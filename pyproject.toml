@@ -1,0 +1,50 @@
+[project]
+name = "thermo-lab"
+version = "0.1.0"
+description = "Reproducible Torx, THRML, and TSU-oriented algorithm research"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "extro-torx==0.0.1",
+    "pydantic>=2.11,<3",
+    "thrml==0.1.4",
+]
+
+[project.urls]
+Repository = "https://github.com/otto-agent007/Thermo"
+Issues = "https://github.com/otto-agent007/Thermo/issues"
+
+[project.scripts]
+thermo-lab = "thermo_lab.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4,<9",
+    "ruff>=0.12,<1",
+]
+
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "slow: longer statistical or performance test",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
