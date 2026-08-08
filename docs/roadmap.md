@@ -15,12 +15,15 @@ paths, and emit auditable JSON without network access or credentials.
 
 ## Phase 1 — Backend-neutral benchmark harness
 
-- checked experiment-spec loading and schema versioning
-- multi-seed execution and aggregated confidence intervals
-- autocorrelation and effective-sample-size metrics
-- curated report generation
-- exact/sampled distribution diagnostics
-- tiny result fixtures and nightly statistical checks
+- [x] checked experiment-spec loading and schema versioning
+- [x] multi-seed execution and aggregated confidence intervals
+- [x] autocorrelation and effective-sample-size metrics
+- [x] generated Markdown reports and JSON Schemas
+- [x] exact/sampled distribution diagnostics
+- [ ] curated tiny result fixtures and nightly statistical checks
+
+The remaining fixture/nightly work is operational follow-up; the local Phase 1
+runner is complete without credentials, remote services, or notebook support.
 
 ## Phase 2 — Biased random-walk reproduction
 

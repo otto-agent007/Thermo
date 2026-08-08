@@ -24,6 +24,10 @@ Python 3.11 and [uv](https://docs.astral.sh/uv/) are the supported baseline.
 ```bash
 uv sync --frozen
 uv run thermo-lab smoke --output-dir results/smoke
+uv run thermo-lab run \
+  configs/experiments/thrml-ising-chain.toml \
+  --seeds 7,8,9,10 \
+  --output-dir results/ising-chain
 uv run pytest
 ```
 
@@ -35,12 +39,20 @@ The smoke command writes validated JSON run records for:
 Generated results are ignored by Git. Curated reports can be committed
 deliberately under `docs/experiment-reports/`.
 
+The `run` command strictly validates a checked TOML specification, selects its
+explicit backend, and writes per-seed records, a compatibility-checked aggregate,
+generated JSON Schemas, and a Markdown report. CPU execution is the default;
+`--allow-accelerator` is an explicit opt-in. See the
+[experiment runner guide](docs/experiment-runner.md) for the configuration and
+statistical contracts.
+
 ## Research contract
 
 - [Project charter](PROJECT_CHARTER.md)
 - [Evidence policy](docs/evidence-policy.md)
 - [Z1 hardware model](docs/z1-hardware-model.md)
 - [Roadmap](docs/roadmap.md)
+- [Experiment runner](docs/experiment-runner.md)
 - [August 2026 release intake](docs/release-intelligence/extropic-2026-08.md)
 
 Every reported claim carries an evidence class. In particular, a THRML or Torx

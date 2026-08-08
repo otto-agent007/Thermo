@@ -77,6 +77,28 @@ def test_record_derives_hashes_and_round_trips() -> None:
     assert RunRecord.model_validate_json(record.model_dump_json()) == record
 
 
+def test_record_rejects_unsupported_schema_version() -> None:
+    record = build_run_record(
+        backend_id=BackendId.TORX_STATEVECTOR,
+        evidence_class=EvidenceClass.EXACT_REFERENCE,
+        spec=_spec(),
+        provenance=_provenance(),
+        timing=_timing(),
+        metrics={
+            "value": MetricObservation(
+                value=1.0,
+                evidence_class=EvidenceClass.EXACT_REFERENCE,
+                method="exact",
+            )
+        },
+    )
+    payload = record.model_dump(mode="python")
+    payload["schema_version"] = "2.0.0"
+
+    with pytest.raises(ValidationError, match="schema_version"):
+        RunRecord.model_validate(payload)
+
+
 def test_experiment_seed_rejects_integer_coercion() -> None:
     payload = _spec().model_dump(mode="python", by_alias=True)
     payload["seed"] = "4"

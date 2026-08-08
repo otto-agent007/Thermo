@@ -27,8 +27,15 @@ def test_torx_statevector_smoke_matches_analytic_distribution() -> None:
 
 
 def test_thrml_chain_smoke_meets_predeclared_statistical_tolerances() -> None:
-    record = ThrmlLocalBackend().run(ising_chain_spec(seed=8, n_samples=1_500))
+    backend = ThrmlLocalBackend()
+    execution = backend.execute(ising_chain_spec(seed=8, n_samples=1_500))
+    record = execution.record
 
     assert record.evidence_class is EvidenceClass.SOFTWARE_SIMULATION
     assert record.metrics["max_marginal_error"].value <= 0.10
     assert record.metrics["empirical_total_variation"].value <= 0.15
+    assert record.metrics["minimum_spin_ess"].value <= 1_500
+    assert record.metrics["median_spin_ess"].value <= 1_500
+    assert record.metrics["complete_gibbs_sweeps_per_recorded_state"].value == 2
+    assert execution.diagnostic_series["spin_states"].shape == (1_500, 5)
+    assert "spin_states" not in record.model_dump_json()

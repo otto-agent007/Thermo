@@ -1,34 +1,118 @@
-import tomllib
 from pathlib import Path
 
+import pytest
+from pydantic import ValidationError
+
+from thermo_lab.config import (
+    dump_experiment_config,
+    experiment_config_path,
+    load_experiment_config,
+)
+from thermo_lab.evidence import BackendId
 from thermo_lab.experiments import ising_chain_spec, torx_smoke_spec
-from thermo_lab.hashing import to_json_value
-from thermo_lab.records import ExperimentSpec
 
 ROOT = Path(__file__).parents[2]
+TORX_CONFIG = ROOT / "configs/experiments/torx-two-gate.toml"
+THRML_CONFIG = ROOT / "configs/experiments/thrml-ising-chain.toml"
 
 
-def _assert_config_matches(path: Path, spec: ExperimentSpec) -> None:
-    with path.open("rb") as handle:
-        configured = tomllib.load(handle)
-
-    assert configured["schema_version"] == "1.0.0"
-    assert configured["experiment_id"] == spec.experiment_id
-    assert configured["seed"] == spec.seed
-    assert configured["sample_definition"] == spec.sample_definition
-    assert configured["model"] == to_json_value(spec.model_parameters)
-    assert configured["run"] == to_json_value(spec.run_parameters)
+def test_config_locator_resolves_authoritative_checked_files() -> None:
+    assert experiment_config_path("torx-two-gate.toml").read_bytes() == TORX_CONFIG.read_bytes()
 
 
-def test_torx_checked_config_matches_executable_spec() -> None:
-    _assert_config_matches(
-        ROOT / "configs/experiments/torx-two-gate.toml",
-        torx_smoke_spec(),
+@pytest.mark.parametrize(
+    ("path", "backend", "experiment_id"),
+    [
+        (TORX_CONFIG, BackendId.TORX_STATEVECTOR, "torx.two_gate_statevector.v1"),
+        (THRML_CONFIG, BackendId.THRML_LOCAL, "thrml.ising_chain_exact_validation.v1"),
+    ],
+)
+def test_checked_config_loads_as_executable_input(
+    path: Path, backend: BackendId, experiment_id: str
+) -> None:
+    configured = load_experiment_config(path)
+
+    assert configured.backend is backend
+    assert configured.experiment_id == experiment_id
+    assert configured.to_spec().experiment_id == experiment_id
+
+
+def test_convenience_factories_use_checked_configs() -> None:
+    assert torx_smoke_spec() == load_experiment_config(TORX_CONFIG).to_spec()
+    assert ising_chain_spec() == load_experiment_config(THRML_CONFIG).to_spec()
+    assert ising_chain_spec(seed=9, n_samples=33).seed == 9
+    assert ising_chain_spec(seed=9, n_samples=33).run_parameters["n_samples"] == 33
+
+
+@pytest.mark.parametrize(
+    ("replacement", "message"),
+    [
+        ('schema_version = "1.0.0"', "schema_version"),
+        ('backend = "torx_statevector"', "unknown"),
+    ],
+)
+def test_loader_rejects_unknown_top_level_and_unsupported_schema(
+    tmp_path: Path, replacement: str, message: str
+) -> None:
+    text = TORX_CONFIG.read_text(encoding="utf-8")
+    if message == "schema_version":
+        text = text.replace(replacement, 'schema_version = "2.0.0"')
+    else:
+        text = text.replace(replacement, replacement + '\nunknown = "value"')
+    path = tmp_path / "invalid.toml"
+    path.write_text(text, encoding="utf-8")
+
+    with pytest.raises(ValidationError, match=message):
+        load_experiment_config(path)
+
+
+def test_loader_rejects_unsupported_backend(tmp_path: Path) -> None:
+    path = tmp_path / "invalid.toml"
+    path.write_text(
+        TORX_CONFIG.read_text(encoding="utf-8").replace(
+            'backend = "torx_statevector"', 'backend = "z1_physical"'
+        ),
+        encoding="utf-8",
     )
 
+    with pytest.raises(ValidationError, match="backend"):
+        load_experiment_config(path)
 
-def test_thrml_checked_config_matches_executable_spec() -> None:
-    _assert_config_matches(
-        ROOT / "configs/experiments/thrml-ising-chain.toml",
-        ising_chain_spec(),
+
+def test_loader_rejects_unsupported_experiment_id(tmp_path: Path) -> None:
+    path = tmp_path / "invalid.toml"
+    path.write_text(
+        TORX_CONFIG.read_text(encoding="utf-8").replace(
+            'experiment_id = "torx.two_gate_statevector.v1"',
+            'experiment_id = "torx.unknown.v1"',
+        ),
+        encoding="utf-8",
     )
+
+    with pytest.raises(ValidationError, match="Unsupported experiment_id"):
+        load_experiment_config(path)
+
+
+@pytest.mark.parametrize(
+    ("old", "new"),
+    [("seed = 0", "seed = 0.0"), ("theta = 0.0", "theta = 0")],
+)
+def test_loader_preserves_strict_numeric_encoding(tmp_path: Path, old: str, new: str) -> None:
+    path = tmp_path / "invalid.toml"
+    path.write_text(TORX_CONFIG.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")
+
+    with pytest.raises(ValidationError):
+        load_experiment_config(path)
+
+
+def test_normalized_snapshot_is_stable_and_round_trips(tmp_path: Path) -> None:
+    configured = load_experiment_config(THRML_CONFIG)
+    first = dump_experiment_config(configured)
+    snapshot = tmp_path / "snapshot.toml"
+    snapshot.write_text(first, encoding="utf-8")
+
+    loaded = load_experiment_config(snapshot)
+
+    assert dump_experiment_config(loaded) == first
+    assert loaded == configured
+    assert "created_at" not in first

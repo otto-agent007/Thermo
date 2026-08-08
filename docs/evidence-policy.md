@@ -39,6 +39,11 @@ separates:
 - synchronized steady-state execution time.
 
 The first-call duration is not silently presented as steady-state throughput.
+Runner timing aggregates are labeled `software_simulation` even when the Torx
+result semantics are `exact_reference`; local CPU/GPU wall-clock timing is not
+an exact mathematical claim or a physical-hardware latency measurement. Reports
+state units, measured operations, exclusions, synchronization method, and the
+per-run `RunTiming` source.
 
 ## Sampling terminology
 
@@ -55,6 +60,21 @@ effective independent samples
 
 A 50 MHz cycle or update statement does not imply 50 million independent
 samples per second.
+
+## Statistical evidence
+
+Within one THRML chain, Thermo reports lag-one autocorrelation, integrated
+autocorrelation time, and effective sample size for scalar coordinate traces.
+These diagnostics use a conservative Geyer initial-positive sequence with
+monotonized adjacent autocorrelation-pair sums. Constant and traces shorter
+than four recorded states are marked explicitly rather than producing NaN or
+misleading precision. ESS is always bounded by the recorded-state count.
+
+Between runs, one independently seeded execution is one replication. Scalar
+metrics receive descriptive statistics and, with at least two compatible
+replications, a two-sided 95% Student-t interval. A one-run aggregate reports
+the interval as unavailable. Vector states are never flattened into fake
+replications.
 
 ## Hardware claims
 
