@@ -7,7 +7,7 @@ from collections.abc import Iterator, Mapping
 from datetime import UTC, datetime
 from numbers import Real
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from pydantic import (
@@ -128,6 +128,18 @@ class ExperimentSpec(FrozenModel):
             }
         )
 
+    @property
+    def non_seed_run_config_hash(self) -> str:
+        """Hash run inputs shared by independent replications, excluding seed."""
+
+        return canonical_sha256(
+            {
+                "experiment_id": self.experiment_id,
+                "run_config": self.run_parameters,
+                "sample_definition": self.sample_definition,
+            }
+        )
+
 
 class MetricObservation(FrozenModel):
     """One claim and the evidence supporting it."""
@@ -188,7 +200,7 @@ class RunTiming(FrozenModel):
 class RunRecord(FrozenModel):
     """Observed output from exactly one backend execution."""
 
-    schema_version: str = "1.0.0"
+    schema_version: Literal["1.0.0"] = "1.0.0"
     run_id: str = Field(default_factory=lambda: str(uuid4()))
     created_at_utc: datetime = Field(default_factory=lambda: datetime.now(UTC))
     backend_id: BackendId
@@ -230,9 +242,10 @@ class RunRecord(FrozenModel):
         # Revalidate the complete payload at the persistence boundary. This is
         # Defense in depth at the persistence boundary.
         validated = RunRecord.model_validate(self.model_dump(mode="python", by_alias=True))
-        path.parent.mkdir(parents=True, exist_ok=True)
+        from thermo_lab.persistence import atomic_write_text
+
         payload = validated.model_dump(mode="json", by_alias=True)
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        atomic_write_text(path, json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
 
 def build_run_record(

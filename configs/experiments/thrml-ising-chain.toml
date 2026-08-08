@@ -1,5 +1,6 @@
 schema_version = "1.0.0"
 experiment_id = "thrml.ising_chain_exact_validation.v1"
+backend = "thrml_local"
 seed = 7
 sample_definition = "One recorded full five-spin state after two complete ordered block-Gibbs sweeps; recorded-state count is not an effective-independent-sample count."
 

@@ -11,6 +11,7 @@ import numpy as np
 import torx
 from torx import psc
 
+from thermo_lab.backends.base import ExecutionResult
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.provenance import collect_runtime_provenance
@@ -40,6 +41,9 @@ class TorxStateVectorBackend:
         self.repository_root = repository_root
 
     def run(self, spec: ExperimentSpec) -> RunRecord:
+        return self.execute(spec).record
+
+    def execute(self, spec: ExperimentSpec) -> ExecutionResult:
         if torx.__version__ != "0.0.1":
             raise RuntimeError(f"Expected Torx 0.0.1, found {torx.__version__}")
 
@@ -139,7 +143,7 @@ class TorxStateVectorBackend:
                 method="comparison with hand-derived transition probabilities",
             ),
         }
-        return build_run_record(
+        record = build_run_record(
             backend_id=self.backend_id,
             evidence_class=self.evidence_class,
             spec=spec,
@@ -155,3 +159,4 @@ class TorxStateVectorBackend:
             ),
             metrics=metrics,
         )
+        return ExecutionResult.build(record)

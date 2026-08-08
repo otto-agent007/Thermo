@@ -34,6 +34,10 @@ preparing for future TSU hardware. Correct evidence labeling is a release gate.
   explicitly; record JAX x64 configuration as runtime provenance.
 - Define precisely what one recorded "sample" means for every experiment.
 - Use distinct JAX keys for initialization and sampling.
+- Treat independently seeded runs, not correlated states within one chain, as
+  the replication unit for confidence intervals.
+- Keep raw diagnostic traces out of ordinary JSON run records; persist only
+  bounded summaries unless a separately hashed trace artifact is specified.
 - Keep exact enumerators deliberately bounded.
 - Tests and the default smoke command must run on CPU without credentials,
   remote services, notebooks, or network access.
@@ -44,9 +48,12 @@ preparing for future TSU hardware. Correct evidence labeling is a release gate.
 
 ```bash
 uv sync --frozen
+uv lock --check --offline
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest
 uv run thermo-lab smoke --output-dir results/smoke
+uv run thermo-lab run configs/experiments/torx-two-gate.toml --seeds 0,1,2 --output-dir results/torx-run
+uv run thermo-lab run configs/experiments/thrml-ising-chain.toml --seeds 7,8,9,10 --output-dir results/thrml-run
 uv build
 ```

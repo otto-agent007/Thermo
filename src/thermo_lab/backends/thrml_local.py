@@ -13,6 +13,8 @@ import thrml
 from thrml import Block, SamplingSchedule, SpinNode, sample_states
 from thrml.models import IsingEBM, IsingSamplingProgram, hinton_init
 
+from thermo_lab.backends.base import ExecutionResult
+from thermo_lab.diagnostics import summarize_chain
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.exact import IsingModel, enumerate_ising
 from thermo_lab.hashing import canonical_sha256, to_json_value
@@ -52,6 +54,9 @@ class ThrmlLocalBackend:
         self.repository_root = repository_root
 
     def run(self, spec: ExperimentSpec) -> RunRecord:
+        return self.execute(spec).record
+
+    def execute(self, spec: ExperimentSpec) -> ExecutionResult:
         if thrml.__version__ != "0.1.4":
             raise RuntimeError(f"Expected THRML 0.1.4, found {thrml.__version__}")
 
@@ -123,6 +128,9 @@ class ThrmlLocalBackend:
         max_marginal_error = float(np.max(np.abs(sampled_mean - exact.mean_spins)))
         total_variation = _empirical_tv(samples, exact.states, exact.probabilities)
         sampled_energy = float(model.energies(samples).mean())
+        diagnostics = summarize_chain(
+            samples, complete_sweeps_per_state=run_config.steps_per_sample
+        )
 
         marginal_tolerance = run_config.max_marginal_error_tolerance
         tv_tolerance = run_config.total_variation_tolerance
@@ -179,8 +187,54 @@ class ThrmlLocalBackend:
                 method="THRML SamplingSchedule.n_samples",
                 notes="Not an effective-independent-sample count.",
             ),
+            "complete_gibbs_sweeps_per_recorded_state": MetricObservation(
+                value=diagnostics.complete_sweeps_per_recorded_state,
+                unit="complete_gibbs_sweeps_per_recorded_state",
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method="THRML SamplingSchedule.steps_per_sample",
+            ),
+            "lag_1_autocorrelation_by_spin": MetricObservation(
+                value=[item.lag_1_autocorrelation for item in diagnostics.spin_coordinates],
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=diagnostics.spin_coordinates[0].estimator,
+                notes="Coordinate-wise values; recorded states are correlated chain states.",
+            ),
+            "integrated_autocorrelation_time_by_spin": MetricObservation(
+                value=[
+                    item.integrated_autocorrelation_time for item in diagnostics.spin_coordinates
+                ],
+                unit="recorded_states",
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=diagnostics.spin_coordinates[0].estimator,
+            ),
+            "effective_sample_size_by_spin": MetricObservation(
+                value=[item.ess for item in diagnostics.spin_coordinates],
+                unit="effective_samples",
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=diagnostics.spin_coordinates[0].estimator,
+                notes="Diagnostic only; never exceeds the recorded-state count.",
+            ),
+            "minimum_spin_ess": MetricObservation(
+                value=diagnostics.minimum_spin_ess,
+                unit="effective_samples",
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=diagnostics.spin_coordinates[0].estimator,
+            ),
+            "median_spin_ess": MetricObservation(
+                value=diagnostics.median_spin_ess,
+                unit="effective_samples",
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=diagnostics.spin_coordinates[0].estimator,
+            ),
+            "magnetization_trace_ess": MetricObservation(
+                value=diagnostics.magnetization.ess,
+                unit="effective_samples",
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=diagnostics.magnetization.estimator,
+                notes=f"status={diagnostics.magnetization.status}",
+            ),
         }
-        return build_run_record(
+        record = build_run_record(
             backend_id=self.backend_id,
             evidence_class=self.evidence_class,
             spec=spec,
@@ -196,3 +250,4 @@ class ThrmlLocalBackend:
             ),
             metrics=metrics,
         )
+        return ExecutionResult.build(record, {"spin_states": samples})
