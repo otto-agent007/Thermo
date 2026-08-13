@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import math
+import re
 from pathlib import Path
 
-from thermo_lab.aggregate import AggregateRecord
+from thermo_lab.aggregate import AggregateRecord, StatisticalSemantics
 from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
 from thermo_lab.hashing import to_json_value
 from thermo_lab.persistence import atomic_write_text
@@ -22,11 +23,14 @@ def _format_number(value: float | None) -> str:
 def _markdown_text(value: str) -> str:
     """Keep persisted text within one Markdown block and escape active syntax."""
 
-    escaped = value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " / ")
-    escaped = escaped.replace("\\", "\\\\")
-    for character in ("`", "*", "_", "[", "]", "<", ">", "|"):
-        escaped = escaped.replace(character, f"\\{character}")
-    return escaped
+    normalized = value.replace("\r\n", "\n").replace("\r", "\n")
+    escaped_lines = []
+    for line in normalized.split("\n"):
+        escaped = line.replace("\\", "\\\\")
+        for character in ("`", "*", "_", "[", "]", "<", ">", "|", "&"):
+            escaped = escaped.replace(character, f"\\{character}")
+        escaped_lines.append(re.sub(r"^([ ]{0,3})([#\-+])(?=\s)", r"\1\\\2", escaped))
+    return " / ".join(escaped_lines)
 
 
 def _markdown_code_span(value: str) -> str:
@@ -46,9 +50,14 @@ def _markdown_code_span(value: str) -> str:
 
 
 def _metric_table(aggregate: AggregateRecord) -> list[str]:
+    interval_heading = (
+        "Confidence interval"
+        if aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
+        else "95% interval"
+    )
     lines = [
         "| Metric | Evidence | Unit | Count | Mean | Std. dev. | Median | Min | Max | "
-        "95% interval | Method/source |",
+        f"{interval_heading} | Method/source |",
         "|---|---|---|---:|---:|---:|---:|---:|---:|---|---|",
     ]
     for name, metric in aggregate.metric_aggregates.items():
@@ -84,7 +93,7 @@ def _metric_table(aggregate: AggregateRecord) -> list[str]:
 
 
 def _run_set_description(aggregate: AggregateRecord) -> str:
-    if aggregate.experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
+    if aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY:
         return f"{aggregate.requested_runs} deterministic execution"
     return f"{aggregate.requested_runs} independent seeded runs"
 
@@ -297,12 +306,15 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
 
     _validate_aggregate_records(aggregate, records)
     is_weighted_graph_walk = aggregate.experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
+    is_deterministic = (
+        aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
+    )
     sample_definition = (
         records[0].spec.sample_definition
         if records
         else (
             "Unavailable because no deterministic execution completed."
-            if is_weighted_graph_walk
+            if is_deterministic
             else "Unavailable because no seeded execution completed."
         )
     )
@@ -313,6 +325,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         f"- Experiment: `{aggregate.experiment_id}`",
         f"- Backend: `{aggregate.backend_id.value}`",
         f"- Evidence class: `{aggregate.evidence_class.value}`",
+        f"- Statistical semantics: `{aggregate.statistical_semantics.value}`",
         f"- Completion state: `{aggregate.completion_state.value}`",
         f"- Model hash: `{aggregate.model_hash}`",
         f"- Non-seed configuration hash: `{aggregate.run_config_hash}`",
@@ -327,7 +340,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
             "This record contains deterministic complete-distribution variants. Resolution, "
             "edge order, program depth, and node coordinates are not replication units, and "
             "no confidence interval is inferred from them."
-            if is_weighted_graph_walk
+            if is_deterministic
             else "Recorded Markov-chain states are not described as independent samples. "
             "Independent seeded runs are the replication unit for confidence intervals."
         ),

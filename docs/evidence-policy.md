@@ -70,10 +70,14 @@ monotonized adjacent autocorrelation-pair sums. Constant and traces shorter
 than four recorded states are marked explicitly rather than producing NaN or
 misleading precision. ESS is always bounded by the recorded-state count.
 
-Between runs, one independently seeded execution is one replication. Scalar
-metrics receive descriptive statistics and, with at least two compatible
-replications, a two-sided 95% Student-t interval. A one-run aggregate reports
-the interval as unavailable. Vector states are never flattened into fake
+Aggregates persist their statistical semantics. Under
+`independent_seeded_replications`, one independently seeded execution is one
+replication. Scalar metrics receive descriptive statistics and, with at least
+two compatible replications, a two-sided 95% Student-t interval. A one-run
+aggregate reports the interval as unavailable. Under `deterministic_identity`,
+such as the weighted graph walk's seed-zero identity, confidence intervals are
+not applicable and no Student-t method or independent-seed reason is assigned.
+Vector states and deterministic variants are never flattened into fake
 replications.
 
 ## Hardware claims

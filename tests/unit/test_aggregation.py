@@ -7,6 +7,7 @@ from thermo_lab.aggregate import (
     AggregateRecord,
     CompletionState,
     RunFailure,
+    StatisticalSemantics,
     aggregate_run_records,
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
@@ -26,9 +27,10 @@ def _record(
     *,
     backend: BackendId = BackendId.THRML_LOCAL,
     ess: float | None = None,
+    experiment_id: str = "test.aggregate.v1",
 ):
     spec = ExperimentSpec(
-        experiment_id="test.aggregate.v1",
+        experiment_id=experiment_id,
         seed=seed,
         model_config={"numeric_dtype": "float32", "weight": 1.0},
         run_config={"n_samples": 20},
@@ -108,6 +110,8 @@ def test_one_seed_interval_is_unavailable_and_vectors_are_not_flattened() -> Non
     assert scalar.mean == 3.0
     assert scalar.confidence_interval is None
     assert scalar.interval_unavailable_reason == "requires at least two independent seeded runs"
+    assert scalar.confidence_level == 0.95
+    assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
     assert "vector" not in aggregate.metric_aggregates
 
 
@@ -128,6 +132,33 @@ def test_multiple_seeds_use_sample_std_and_student_t_interval() -> None:
     assert scalar.confidence_interval.lower == pytest.approx(0.4457, abs=1e-3)
     assert scalar.confidence_interval.upper == pytest.approx(4.5543, abs=1e-3)
     assert scalar.interval_method == "two-sided Student-t across independent seeds"
+    assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
+
+
+def test_deterministic_identity_has_no_replication_interval_contract() -> None:
+    aggregate = aggregate_run_records(
+        [
+            _record(
+                0,
+                3.0,
+                backend=BackendId.TORX_STATEVECTOR,
+                experiment_id="torx.weighted_graph_walk.v1",
+            )
+        ],
+        requested_seeds=(0,),
+        run_record_paths=("runs/seed-0000000000.json",),
+        source_config="configs/experiments/torx-weighted-graph-walk.toml",
+    )
+
+    scalar = aggregate.metric_aggregates["scalar"]
+    assert aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
+    assert scalar.standard_deviation is None
+    assert scalar.confidence_interval is None
+    assert scalar.confidence_level is None
+    assert scalar.interval_method == "not applicable for deterministic execution identity"
+    assert scalar.interval_unavailable_reason == (
+        "confidence intervals are not applicable to deterministic identity fields"
+    )
 
 
 def test_ess_interval_is_capped_at_recorded_state_count() -> None:

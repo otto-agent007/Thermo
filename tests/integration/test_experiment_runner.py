@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from thermo_lab.aggregate import AggregateRecord, CompletionState
+from thermo_lab.aggregate import AggregateRecord, CompletionState, StatisticalSemantics
 from thermo_lab.backends import TorxStateVectorBackend
 from thermo_lab.record_schemas import schema_json
 from thermo_lab.records import RunRecord
@@ -38,6 +38,7 @@ def test_multi_seed_run_emits_deterministic_schemas_and_report(tmp_path: Path) -
 
     assert aggregate.seeds == (2, 0, 1)
     assert aggregate.completed_runs == 3
+    assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
     run_schema = tmp_path / "schemas/run-record.schema.json"
     aggregate_schema = tmp_path / "schemas/aggregate-record.schema.json"
     assert run_schema.read_text(encoding="utf-8") == schema_json(RunRecord)
@@ -47,6 +48,7 @@ def test_multi_seed_run_emits_deterministic_schemas_and_report(tmp_path: Path) -
     assert aggregate.model_hash in report
     assert aggregate.run_config_hash in report
     assert "3 independent seeded runs" in report
+    assert "two-sided 95% Student-t interval across independently seeded runs" in report
     assert "not a physical Z1 or TSU hardware measurement" in report
     assert "Exact final probability mass" in report
     assert "[aggregate.json](aggregate.json)" in report

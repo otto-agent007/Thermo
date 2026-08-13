@@ -1,4 +1,4 @@
-"""Compatibility-checked aggregation across independent seeded executions."""
+"""Compatibility-checked aggregation with explicit persisted statistical semantics."""
 
 from __future__ import annotations
 
@@ -19,14 +19,22 @@ from pydantic import Field, StrictInt, field_serializer, field_validator, model_
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.records import FrozenDict, FrozenModel, RunRecord
 
-AGGREGATE_SCHEMA_VERSION = "1.0.0"
+AGGREGATE_SCHEMA_VERSION = "1.1.0"
 CONFIDENCE_LEVEL = 0.95
+_WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
 
 
 class CompletionState(StrEnum):
     COMPLETE = "complete"
     PARTIAL = "partial"
     FAILED = "failed"
+
+
+class StatisticalSemantics(StrEnum):
+    """Persisted contract identifying what, if anything, is a replication unit."""
+
+    INDEPENDENT_SEEDED_REPLICATIONS = "independent_seeded_replications"
+    DETERMINISTIC_IDENTITY = "deterministic_identity"
 
 
 class ConfidenceInterval(FrozenModel):
@@ -42,7 +50,7 @@ class ScalarAggregate(FrozenModel):
     minimum: float
     maximum: float
     confidence_interval: ConfidenceInterval | None
-    confidence_level: float = CONFIDENCE_LEVEL
+    confidence_level: float | None
     interval_method: str
     interval_unavailable_reason: str | None = None
     unit: str | None = None
@@ -82,12 +90,13 @@ class ReportGenerationMetadata(FrozenModel):
 
 
 class AggregateRecord(FrozenModel):
-    """Immutable summary whose replication unit is one independently seeded run."""
+    """Immutable summary with an experiment-selected statistical contract."""
 
     schema_version: Literal[AGGREGATE_SCHEMA_VERSION] = AGGREGATE_SCHEMA_VERSION
     aggregate_id: str = Field(default_factory=lambda: str(uuid4()))
     created_at_utc: datetime = Field(default_factory=lambda: datetime.now(UTC))
     experiment_id: str = Field(min_length=1)
+    statistical_semantics: StatisticalSemantics
     backend_id: BackendId
     evidence_class: EvidenceClass
     model_hash: str
@@ -125,6 +134,63 @@ class AggregateRecord(FrozenModel):
 
     @model_validator(mode="after")
     def validate_counts_and_state(self) -> AggregateRecord:
+        expected_semantics = _statistical_semantics_for_experiment(self.experiment_id)
+        if self.statistical_semantics is not expected_semantics:
+            raise ValueError(
+                "statistical_semantics must match the checked experiment identity: "
+                f"expected {expected_semantics.value!r}"
+            )
+        if self.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY and (
+            self.seeds != (0,) or self.requested_runs != 1
+        ):
+            raise ValueError(
+                "deterministic identity aggregates require exactly the seed-zero identity"
+            )
+        for name, metric in self.metric_aggregates.items():
+            if metric.count != self.completed_runs:
+                raise ValueError(
+                    f"metric {name!r} count must equal the completed deterministic or seeded runs"
+                )
+            if self.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY:
+                if (
+                    metric.standard_deviation is not None
+                    or metric.confidence_interval is not None
+                    or metric.confidence_level is not None
+                    or metric.interval_method
+                    != "not applicable for deterministic execution identity"
+                    or metric.interval_unavailable_reason
+                    != "confidence intervals are not applicable to deterministic identity fields"
+                ):
+                    raise ValueError(
+                        f"deterministic metric {name!r} must persist not-applicable "
+                        "confidence-interval metadata"
+                    )
+            elif (
+                metric.confidence_level != CONFIDENCE_LEVEL
+                or not metric.interval_method.startswith(
+                    "two-sided Student-t across independent seeds"
+                )
+            ):
+                raise ValueError(
+                    f"independent-seed metric {name!r} must persist the 95% Student-t contract"
+                )
+            elif metric.count == 1 and (
+                metric.standard_deviation is not None
+                or metric.confidence_interval is not None
+                or metric.interval_unavailable_reason
+                != "requires at least two independent seeded runs"
+            ):
+                raise ValueError(
+                    f"one-run independent-seed metric {name!r} must persist its unavailable reason"
+                )
+            elif metric.count >= 2 and (
+                metric.standard_deviation is None
+                or metric.confidence_interval is None
+                or metric.interval_unavailable_reason is not None
+            ):
+                raise ValueError(
+                    f"replicated independent-seed metric {name!r} must persist its interval"
+                )
         if len(self.seeds) != self.requested_runs or len(set(self.seeds)) != len(self.seeds):
             raise ValueError("seeds must contain each requested seed exactly once")
         if self.completed_runs + self.failed_runs != self.requested_runs:
@@ -204,22 +270,37 @@ def _student_t_critical_95(degrees_of_freedom: int) -> float:
     )
 
 
+def _statistical_semantics_for_experiment(experiment_id: str) -> StatisticalSemantics:
+    if experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
+        return StatisticalSemantics.DETERMINISTIC_IDENTITY
+    return StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
+
+
 def _summarize_scalar(
     values: Sequence[float],
     *,
     unit: str | None,
     evidence_class: EvidenceClass | None,
     method: str,
+    statistical_semantics: StatisticalSemantics,
     interval_bounds: tuple[float, float] | None = None,
 ) -> ScalarAggregate:
     count = len(values)
     mean = statistics.fmean(values)
-    standard_deviation = statistics.stdev(values) if count >= 2 else None
+    standard_deviation = None
     interval = None
-    reason = None
-    if standard_deviation is None:
+    confidence_level = None
+    if statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY:
+        reason = "confidence intervals are not applicable to deterministic identity fields"
+        interval_method = "not applicable for deterministic execution identity"
+    elif count < 2:
         reason = "requires at least two independent seeded runs"
+        confidence_level = CONFIDENCE_LEVEL
+        interval_method = "two-sided Student-t across independent seeds"
     else:
+        reason = None
+        confidence_level = CONFIDENCE_LEVEL
+        standard_deviation = statistics.stdev(values)
         critical = _student_t_critical_95(count - 1)
         margin = critical * standard_deviation / math.sqrt(count)
         lower = mean - margin
@@ -228,8 +309,11 @@ def _summarize_scalar(
             lower = max(interval_bounds[0], lower)
             upper = min(interval_bounds[1], upper)
         interval = ConfidenceInterval(lower=lower, upper=upper)
-    interval_method = "two-sided Student-t across independent seeds"
-    if interval_bounds is not None:
+        interval_method = "two-sided Student-t across independent seeds"
+    if (
+        statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
+        and interval_bounds is not None
+    ):
         interval_method += "; truncated to [0, recorded_states]"
     return ScalarAggregate(
         count=count,
@@ -239,6 +323,7 @@ def _summarize_scalar(
         minimum=min(values),
         maximum=max(values),
         confidence_interval=interval,
+        confidence_level=confidence_level,
         interval_method=interval_method,
         interval_unavailable_reason=reason,
         unit=unit,
@@ -302,7 +387,7 @@ def aggregate_run_records(
     failures: tuple[RunFailure, ...] = (),
     failed_identity: tuple[str, BackendId, EvidenceClass, str, str] | None = None,
 ) -> AggregateRecord:
-    """Aggregate compatible scalar metrics using independent seeds as replications."""
+    """Aggregate compatible metrics under the checked experiment's statistical contract."""
 
     if not requested_seeds or len(set(requested_seeds)) != len(requested_seeds):
         raise ValueError("Requested seeds must be non-empty and unique")
@@ -354,6 +439,7 @@ def aggregate_run_records(
         provenance_summary = None
     else:
         raise ValueError("All-failed aggregation requires checked configuration identity")
+    statistical_semantics = _statistical_semantics_for_experiment(experiment_id)
 
     metric_aggregates: dict[str, ScalarAggregate] = {}
     omitted_metrics: dict[str, str] = {}
@@ -393,6 +479,7 @@ def aggregate_run_records(
                 unit=unit,
                 evidence_class=metric_evidence,
                 method=method,
+                statistical_semantics=statistical_semantics,
                 interval_bounds=interval_bounds,
             )
         timing_method = records[0].timing.timing_method
@@ -400,6 +487,7 @@ def aggregate_run_records(
             [record.timing.compile_seconds for record in records],
             unit="seconds",
             evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            statistical_semantics=statistical_semantics,
             method=(
                 f"{timing_method}; compilation interval only; excludes execution, "
                 "configuration loading, provenance collection, persistence, aggregation, "
@@ -410,6 +498,7 @@ def aggregate_run_records(
             [record.timing.execution_seconds for record in records],
             unit="seconds",
             evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            statistical_semantics=statistical_semantics,
             method=(
                 f"{timing_method}; synchronized steady-state backend interval only; "
                 "excludes compilation, untimed warm launch, configuration loading, "
@@ -427,6 +516,7 @@ def aggregate_run_records(
     )
     return AggregateRecord(
         experiment_id=experiment_id,
+        statistical_semantics=statistical_semantics,
         backend_id=backend_id,
         evidence_class=evidence_class,
         model_hash=model_hash,

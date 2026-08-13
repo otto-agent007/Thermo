@@ -1,9 +1,11 @@
+import json
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
-from thermo_lab.aggregate import AggregateRecord, CompletionState
+from thermo_lab.aggregate import AggregateRecord, CompletionState, StatisticalSemantics
 from thermo_lab.cli import main
 from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
 from thermo_lab.hashing import canonical_sha256, to_json_value
@@ -96,7 +98,27 @@ def test_graph_cli_writes_evidence_safe_deterministic_report(tmp_path: Path) -> 
     assert "https://arxiv.org/pdf/2608.01612v1#page=10" in report
     assert "no THRML, Thermalizers, Z1 projection, or physical-hardware evidence" in report
     assert (tmp_path / "schemas/run-record.schema.json").exists()
-    assert (tmp_path / "schemas/aggregate-record.schema.json").exists()
+    aggregate_payload = json.loads((tmp_path / "aggregate.json").read_text(encoding="utf-8"))
+    assert aggregate_payload["schema_version"] == "1.1.0"
+    assert aggregate_payload["statistical_semantics"] == "deterministic_identity"
+    for metric in aggregate_payload["metric_aggregates"].values():
+        assert metric["confidence_interval"] is None
+        assert metric["confidence_level"] is None
+        assert metric["interval_method"] == "not applicable for deterministic execution identity"
+        assert metric["interval_unavailable_reason"] == (
+            "confidence intervals are not applicable to deterministic identity fields"
+        )
+    aggregate_schema = json.loads(
+        (tmp_path / "schemas/aggregate-record.schema.json").read_text(encoding="utf-8")
+    )
+    assert "statistical_semantics" in aggregate_schema["required"]
+    assert aggregate_schema["$defs"]["StatisticalSemantics"]["enum"] == [
+        "independent_seeded_replications",
+        "deterministic_identity",
+    ]
+    assert "requires at least two independent seeded runs" not in report
+    assert "two-sided Student-t across independent seeds" not in report
+    assert "confidence intervals are not applicable to deterministic identity fields" in report
 
 
 def test_persisted_graph_report_renders_complete_deterministic_evidence(
@@ -108,6 +130,7 @@ def test_persisted_graph_report_renders_complete_deterministic_evidence(
 
     report = render_report(aggregate, (record,))
 
+    assert aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     assert "- Seeds: 0 (1 deterministic execution)" in report
     assert "Independent seeded runs are the replication unit" not in report
     assert "Intervals use a two-sided 95% Student-t interval" not in report
@@ -276,7 +299,7 @@ def test_graph_report_escapes_schema_valid_markdown_labels_and_checks(
 ) -> None:
     aggregate, record = persisted_graph_artifacts
     record_payload = deepcopy(record.model_dump(mode="json", by_alias=True))
-    hostile_label = "A|``B\nC"
+    hostile_label = "# heading|``B\n- nested\n+ item\n&copy;"
     model = record_payload["spec"]["model_config"]
     model["nodes"][0] = hostile_label
     for edge in model["edges"]:
@@ -291,28 +314,29 @@ def test_graph_report_escapes_schema_valid_markdown_labels_and_checks(
             edge[1] = hostile_label
     summary = record_payload["metrics"]["weighted_graph_walk"]["value"]
     summary["node_labels"][0] = hostile_label
-    summary["acceptance"]["checks"] = ["valid check\n- injected [link](https://example.invalid)"]
+    summary["acceptance"]["checks"] = [
+        "# heading\n- nested\n+ item\n&copy; [link](https://example.invalid)"
+    ]
     _synchronize_request_hashes(record_payload)
     changed_record = RunRecord.model_validate(record_payload)
 
     report = render_report(_aggregate_for_record(aggregate, changed_record), (changed_record,))
 
-    assert "- Canonical edge order: ```A|``B / C-C" in report
-    assert "| A\\|\\`\\`B / C–B | 0.30 |" in report
-    assert "| A\\|\\`\\`B / C | 0.23579141 |" in report
-    assert "| N | Order | Time | A\\|\\`\\`B / C | B | C | D | E |" in report
-    assert "- valid check / - injected \\[link\\](https://example.invalid)" in report
-    assert "\n- injected" not in report
+    escaped_label = r"\# heading\|\`\`B / \- nested / \+ item / \&copy;"
+    assert "- Canonical edge order: ```# heading|``B / - nested / + item / &copy;-C" in report
+    assert f"| {escaped_label}–B | 0.30 |" in report
+    assert f"| {escaped_label} | 0.23579141 |" in report
+    assert f"| N | Order | Time | {escaped_label} | B | C | D | E |" in report
+    assert (
+        r"- \# heading / \- nested / \+ item / \&copy; \[link\](https://example.invalid)" in report
+    )
+    assert "\n- nested" not in report
 
 
-def test_persisted_graph_report_rejects_out_of_order_seed_records(
+def test_persisted_graph_aggregate_rejects_nonidentity_seeds(
     persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
 ) -> None:
-    aggregate, record = persisted_graph_artifacts
-    second_payload = record.model_dump(mode="json", by_alias=True)
-    second_payload["spec"]["seed"] = 1
-    _synchronize_request_hashes(second_payload)
-    second_record = RunRecord.model_validate(second_payload)
+    aggregate, _ = persisted_graph_artifacts
     aggregate_payload = aggregate.model_dump(mode="json")
     aggregate_payload.update(
         seeds=[1, 0],
@@ -320,10 +344,8 @@ def test_persisted_graph_report_rejects_out_of_order_seed_records(
         completed_runs=2,
         run_record_paths=["runs/seed-0000000001.json", "runs/seed-0000000000.json"],
     )
-    changed_aggregate = AggregateRecord.model_validate(aggregate_payload)
-
-    with pytest.raises(ValueError, match="aggregate seeds"):
-        render_report(changed_aggregate, (record, second_record))
+    with pytest.raises(ValidationError, match="exactly the seed-zero identity"):
+        AggregateRecord.model_validate(aggregate_payload)
 
 
 def _remove_declared_resolution(aggregate: dict[str, object], record: dict[str, object]) -> None:
@@ -344,6 +366,7 @@ def _mismatch_completed_count(aggregate: dict[str, object], record: dict[str, ob
         run_record_paths=[],
         failures=[{"seed": 0, "error_type": "RuntimeError", "message": "tampered"}],
         provenance_summary=None,
+        metric_aggregates={},
         completion_state="failed",
     )
 
@@ -383,12 +406,6 @@ def _mismatch_completed_count(aggregate: dict[str, object], record: dict[str, ob
             "node labels",
         ),
         (
-            lambda aggregate, record: aggregate.__setitem__(
-                "experiment_id", "torx.two_gate_statevector.v1"
-            ),
-            "aggregate experiment id",
-        ),
-        (
             lambda aggregate, record: aggregate.__setitem__("backend_id", "thrml_local"),
             "aggregate backend",
         ),
@@ -417,10 +434,6 @@ def _mismatch_completed_count(aggregate: dict[str, object], record: dict[str, ob
             "aggregate run record path",
         ),
         (_mismatch_completed_count, "aggregate completed run count"),
-        (
-            lambda aggregate, record: aggregate.__setitem__("seeds", [1]),
-            "aggregate seeds",
-        ),
     ),
 )
 def test_persisted_graph_report_rejects_mismatched_artifacts(
@@ -435,6 +448,17 @@ def test_persisted_graph_report_rejects_mismatched_artifacts(
 
     with pytest.raises(ValueError, match=message):
         render_report(changed_aggregate, (changed_record,))
+
+
+def test_persisted_aggregate_rejects_semantics_mismatched_to_experiment(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
+) -> None:
+    aggregate, _ = persisted_graph_artifacts
+    payload = aggregate.model_dump(mode="json")
+    payload["statistical_semantics"] = "independent_seeded_replications"
+
+    with pytest.raises(ValidationError, match="checked experiment identity"):
+        AggregateRecord.model_validate(payload)
 
 
 @pytest.mark.parametrize("seeds", [(1,), (0, 1)])

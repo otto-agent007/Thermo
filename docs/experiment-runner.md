@@ -95,6 +95,11 @@ Each model is revalidated at persistence. Aggregate run paths are relative.
 Multi-seed failures produce `partial` or `failed` aggregates; they never leave a
 misleading `complete` aggregate.
 
+Aggregate schema version `1.1.0` persists `statistical_semantics` as one of
+`independent_seeded_replications` or `deterministic_identity`. Runtime
+validation selects and enforces that value from the checked experiment
+identity, including each scalar aggregate's confidence-interval metadata.
+
 ## Hash semantics and compatibility
 
 The model hash covers only canonical requested model inputs. Per-run
@@ -128,11 +133,18 @@ ordered Gibbs sweeps between recorded states.
 
 ### Between seeds
 
-Each independently seeded run is one replication. Scalar metrics report count,
-mean, sample standard deviation, median, minimum, maximum, and a two-sided 95%
-Student-t interval. One successful run receives no manufactured interval and an
-explicit reason. ESS intervals are truncated to their mathematical
-`[0, recorded_states]` bounds. Vector metrics are not flattened.
+For `independent_seeded_replications`, each independently seeded run is one
+replication. Scalar metrics report count, mean, sample standard deviation,
+median, minimum, maximum, and a two-sided 95% Student-t interval. One successful
+run receives no manufactured interval and an explicit reason. ESS intervals are
+truncated to their mathematical `[0, recorded_states]` bounds. Vector metrics
+are not flattened.
+
+The weighted graph-walk aggregate uses `deterministic_identity`: seed zero is
+not a replication, `confidence_level` and `confidence_interval` are null, and
+the persisted interval method and reason say confidence intervals are not
+applicable. The generated aggregate schema exposes both statistical contracts,
+and the report renders the contract persisted in `aggregate.json`.
 
 ## Reports and evidence boundaries
 

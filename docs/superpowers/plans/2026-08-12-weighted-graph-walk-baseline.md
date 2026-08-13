@@ -1031,7 +1031,12 @@ edge order, program depth, and node coordinates are not replication units, and
 no confidence interval is inferred from them.
 ```
 
-Keep the scalar aggregate table; its one-run intervals remain unavailable with the existing reason. Add the exact sentence:
+Keep the scalar aggregate table, but persist explicit `deterministic_identity`
+statistical semantics in aggregate schema version `1.1.0`. Its scalar
+`confidence_level` and `confidence_interval` values are null, and its interval
+method/reason state that confidence intervals are not applicable. Existing
+Torx/THRML experiments retain `independent_seeded_replications` and the 95%
+Student-t contract. Add the exact sentence:
 
 ```text
 This baseline contains no THRML, Thermalizers, Z1 projection, or physical-hardware evidence.
@@ -1217,3 +1222,32 @@ git commit -m "docs: record graph walk implementation verification"
   hardware or calibrated-projection claim is made.
 - Final `git status --short` output after the verification commit:
   empty (worktree clean).
+
+### Fix Round 1 Verification Evidence
+
+- RED: `uv run pytest tests/unit/test_aggregation.py tests/integration/test_experiment_runner.py tests/integration/test_weighted_graph_walk_runner.py -q`
+  exited 2 during collection because `StatisticalSemantics` did not exist.
+- Intermediate GREEN diagnostic: the same command collected after the initial
+  implementation and reported five compatibility failures, which narrowed
+  Markdown escaping to line-start block markers and moved impossible
+  deterministic aggregate tampering to schema-validation assertions.
+- GREEN: the focused aggregation/report/schema command exited 0 with
+  `39 passed in 7.59s`.
+- `uv run ruff format --check .` initially exited 1 for one test-file formatting
+  change; `uv run ruff format .` reformatted that one file.
+- `uv run ruff format --check .` exited 0 with `59 files already formatted`.
+- `uv run ruff check .` exited 0 with `All checks passed!`.
+- `uv run pytest` exited 0 with `151 passed in 14.20s` after the final strict
+  scalar/count validation refinement.
+- `uv run thermo-lab run configs/experiments/torx-weighted-graph-walk.toml --output-dir results/weighted-graph-walk`
+  exited 0 with one completed run, zero failures, and status `complete` after the
+  prior ignored graph result was preserved separately.
+- Corrected artifact inspection confirmed aggregate schema version `1.1.0`,
+  required `statistical_semantics: deterministic_identity`, null standard
+  deviation/confidence interval/confidence level, explicit not-applicable
+  interval method/reason for all five scalar/timing aggregates, and a generated
+  schema enum containing both statistical contracts.
+- The corrected report has a generic `Confidence interval` column, repeats the
+  persisted deterministic semantics, contains no Student-t or
+  independent-seed failure reason, and retains only explicit evidence-boundary
+  uses of THRML, Thermalizers, hardware, and independent replications.
