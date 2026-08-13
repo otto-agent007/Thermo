@@ -78,7 +78,7 @@
 - Produces: one model containing source identity, node/edge/order data, initial occupancy, and dtype; one run input containing times, resolutions, frozen endpoint, and all tolerances.
 - Consumes: existing `ExperimentConfig`, `ExperimentSpec`, strict JSON-number helpers, canonical hashing, and stable TOML snapshots.
 
-- [ ] **Step 1: Write failing strict-schema tests**
+- [x] **Step 1: Write failing strict-schema tests**
 
 Add focused constructors and rejection cases to `tests/unit/test_weighted_graph_schemas.py`:
 
@@ -176,7 +176,7 @@ def test_request_rejects_nonzero_seed_and_invalid_euler_probability() -> None:
         validate_weighted_graph_request(model, coarse, seed=0)
 ```
 
-- [ ] **Step 2: Run the schema tests and verify the missing interfaces fail**
+- [x] **Step 2: Run the schema tests and verify the missing interfaces fail**
 
 Run:
 
@@ -186,7 +186,7 @@ uv run pytest tests/unit/test_weighted_graph_schemas.py -q
 
 Expected: collection fails because the new schema types are not defined.
 
-- [ ] **Step 3: Implement the strict input models and cross-validator**
+- [x] **Step 3: Implement the strict input models and cross-validator**
 
 Add these exact fields in `src/thermo_lab/schemas.py`, reusing `_require_json_float` and `_require_json_float_list`:
 
@@ -243,7 +243,7 @@ def validate_weighted_graph_request(
 
 Complete model validators with these explicit rules: 2–8 unique non-empty node labels; 1–28 unique undirected, non-self edges; all endpoints declared; positive finite weights; connected graph; edge order is an orientation-insensitive permutation of all edges; occupancy length equals node count and sums to one within `1e-12`. Complete run validators with: positive finite final time; strictly increasing unique positive resolutions with at least three entries; checkpoints strictly increasing, within `[0,T]`, containing both endpoints, and mapping to integer depths at every resolution; expected endpoint length checked in `validate_weighted_graph_request`; finite negative-or-zero minimum probability floor; finite nonnegative values for all other tolerances.
 
-- [ ] **Step 4: Add the checked configuration and failing loader/factory tests**
+- [x] **Step 4: Add the checked configuration and failing loader/factory tests**
 
 Create `configs/experiments/torx-weighted-graph-walk.toml` with the exact values from `valid_model()` and `valid_run()`, plus:
 
@@ -287,7 +287,7 @@ Import `ExperimentConfig` in this test module. The copied model remains valid,
 so the assertion proves scientific-input hashing rather than relying on an
 unsupported field.
 
-- [ ] **Step 5: Register the checked experiment and factory**
+- [x] **Step 5: Register the checked experiment and factory**
 
 In `src/thermo_lab/config.py`, add the experiment identity and branch validation by experiment ID rather than treating every `torx_statevector` experiment as `TorxModelConfig`:
 
@@ -326,7 +326,7 @@ def weighted_graph_walk_spec() -> ExperimentSpec:
 
 Export it from `thermo_lab.experiments`.
 
-- [ ] **Step 6: Run focused configuration tests**
+- [x] **Step 6: Run focused configuration tests**
 
 Run:
 
@@ -337,7 +337,7 @@ uv run ruff check src/thermo_lab/schemas.py src/thermo_lab/config.py src/thermo_
 
 Expected: all tests and lint checks pass.
 
-- [ ] **Step 7: Commit the checked input contract**
+- [x] **Step 7: Commit the checked input contract**
 
 ```bash
 git add configs/experiments/torx-weighted-graph-walk.toml src/thermo_lab/schemas.py src/thermo_lab/config.py src/thermo_lab/experiments tests/unit/test_weighted_graph_schemas.py tests/unit/test_checked_configs.py
