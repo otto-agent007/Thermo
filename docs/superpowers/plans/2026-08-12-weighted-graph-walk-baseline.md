@@ -1275,3 +1275,49 @@ git commit -m "docs: record graph walk implementation verification"
   semantics, schemas, or report evidence, so the already corrected graph
   artifact was inspected rather than regenerated: it remains schema `1.1.0`,
   `deterministic_identity`, `complete`, one completed run, and zero failures.
+
+### Final Review Fix Wave Verification Evidence
+
+- All seven final-review findings were technical fixes; none required a new
+  product, statistical, or human-approved semantic decision.
+- RED command:
+  `uv run pytest tests/unit/test_weighted_graph_schemas.py tests/unit/test_graph_walk_results.py tests/unit/test_aggregation.py tests/unit/test_records.py tests/integration/test_weighted_graph_walk_backend.py tests/integration/test_weighted_graph_walk_runner.py tests/integration/test_experiment_runner.py tests/upstream_regressions/test_torx_001_contracts.py -q`
+  exited 1 with `25 failed, 75 passed in 10.99s`. The failures independently
+  exposed negative occupancy, coercive observed numbers, missing timing
+  attribution/schema `1.1.0`, aggregate tampering, and graph scientific
+  contradictions. The direct Torx `0.0.1` micro-contract passed as an upstream
+  characterization test.
+- GREEN focused rerun of the same command exited 0 with
+  `106 passed in 10.84s`; focused Ruff exited 0 with `All checks passed!`.
+- Commit `8182c1d` (`fix: harden weighted graph evidence contracts`) contains
+  the implementation, regression tests, schema bump, and corrected design
+  links.
+- The exact required gate sequence was rerun on committed code:
+  `uv sync --frozen` checked 24 packages; `uv lock --check --offline` resolved
+  25 packages; `uv run ruff format --check .` reported 60 files formatted;
+  `uv run ruff check .` passed; and `uv run pytest` reported
+  `186 passed in 14.25s` on CPU.
+- `uv run thermo-lab smoke --output-dir results/smoke` passed with Torx maximum
+  absolute error `0.0`; the Torx seeds `0,1,2` run completed `3/0`; the THRML
+  seeds `7,8,9,10` run completed `4/0`; and the weighted graph baseline
+  completed `1/0` with seed zero and status `complete`.
+- `uv build` exited 0 and rebuilt both
+  `dist/thermo_lab-0.1.0.tar.gz` and
+  `dist/thermo_lab-0.1.0-py3-none-any.whl`.
+- Final artifact inspection re-derived the aggregate and graph acceptance from
+  persisted records without changing aggregate, run, or report bytes. It found
+  exactly the six declared graph artifacts; aggregate/run schemas `1.1.0`;
+  `deterministic_identity`; counts `1/1/0`; all 12 accepted variants; graph
+  observations labeled `exact_reference`; and run plus aggregate timings labeled
+  `software_simulation`, unit `seconds`, source `Python time.perf_counter`.
+- Existing Torx and THRML run artifacts also validated under run schema `1.1.0`
+  with synchronized `software_simulation` timing attribution. Report evidence
+  grep returned only the explicit no-THRML/Thermalizers/hardware boundary and
+  the statement that variants are not independent replications.
+- Pre-existing ignored results were preserved under
+  `results/final-review-preexisting-20260812/`; the first final gate generation
+  was preserved under `results/final-review-precommit-gates-20260813/` before
+  the exact post-commit no-overwrite commands.
+- Independent read-only fix-wave audit found no code defects. `git diff --check`
+  exited 0, and `git status --short` was empty immediately before this
+  evidence-only plan update.
