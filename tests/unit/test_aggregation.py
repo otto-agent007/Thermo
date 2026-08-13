@@ -7,6 +7,7 @@ from thermo_lab.aggregate import (
     AggregateRecord,
     CompletionState,
     RunFailure,
+    StatisticalSemantics,
     aggregate_run_records,
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
@@ -26,9 +27,10 @@ def _record(
     *,
     backend: BackendId = BackendId.THRML_LOCAL,
     ess: float | None = None,
+    experiment_id: str = "test.aggregate.v1",
 ):
     spec = ExperimentSpec(
-        experiment_id="test.aggregate.v1",
+        experiment_id=experiment_id,
         seed=seed,
         model_config={"numeric_dtype": "float32", "weight": 1.0},
         run_config={"n_samples": 20},
@@ -86,6 +88,9 @@ def _record(
         spec=spec,
         provenance=provenance,
         timing=RunTiming(
+            evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            unit="seconds",
+            source="Python time.perf_counter",
             compile_seconds=0.2 + seed / 100,
             execution_seconds=0.01,
             synchronized=True,
@@ -108,6 +113,8 @@ def test_one_seed_interval_is_unavailable_and_vectors_are_not_flattened() -> Non
     assert scalar.mean == 3.0
     assert scalar.confidence_interval is None
     assert scalar.interval_unavailable_reason == "requires at least two independent seeded runs"
+    assert scalar.confidence_level == 0.95
+    assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
     assert "vector" not in aggregate.metric_aggregates
 
 
@@ -128,6 +135,33 @@ def test_multiple_seeds_use_sample_std_and_student_t_interval() -> None:
     assert scalar.confidence_interval.lower == pytest.approx(0.4457, abs=1e-3)
     assert scalar.confidence_interval.upper == pytest.approx(4.5543, abs=1e-3)
     assert scalar.interval_method == "two-sided Student-t across independent seeds"
+    assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
+
+
+def test_deterministic_identity_has_no_replication_interval_contract() -> None:
+    aggregate = aggregate_run_records(
+        [
+            _record(
+                0,
+                3.0,
+                backend=BackendId.TORX_STATEVECTOR,
+                experiment_id="torx.weighted_graph_walk.v1",
+            )
+        ],
+        requested_seeds=(0,),
+        run_record_paths=("runs/seed-0000000000.json",),
+        source_config="configs/experiments/torx-weighted-graph-walk.toml",
+    )
+
+    scalar = aggregate.metric_aggregates["scalar"]
+    assert aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
+    assert scalar.standard_deviation is None
+    assert scalar.confidence_interval is None
+    assert scalar.confidence_level is None
+    assert scalar.interval_method == "not applicable for deterministic execution identity"
+    assert scalar.interval_unavailable_reason == (
+        "confidence intervals are not applicable to deterministic identity fields"
+    )
 
 
 def test_ess_interval_is_capped_at_recorded_state_count() -> None:
@@ -245,3 +279,48 @@ def test_aggregate_round_trips_and_rejects_absolute_record_paths(tmp_path: Path)
     payload["schema_version"] = "2.0.0"
     with pytest.raises(ValidationError, match="schema_version"):
         AggregateRecord.model_validate(payload)
+
+
+@pytest.mark.parametrize("value", ["1.0", True])
+def test_scalar_aggregate_rejects_coerced_observed_numbers(value: object) -> None:
+    aggregate = aggregate_run_records(
+        [_record(1)],
+        requested_seeds=(1,),
+        run_record_paths=("runs/seed-0000000001.json",),
+        source_config="config.toml",
+    )
+    payload = aggregate.model_dump(mode="json")
+    payload["metric_aggregates"]["scalar"]["mean"] = value
+
+    with pytest.raises(ValidationError):
+        AggregateRecord.model_validate(payload)
+
+
+def test_confidence_interval_rejects_coerced_observed_numbers() -> None:
+    aggregate = aggregate_run_records(
+        [_record(0, 1.0), _record(1, 2.0)],
+        requested_seeds=(0, 1),
+        run_record_paths=("runs/seed-0000000000.json", "runs/seed-0000000001.json"),
+        source_config="config.toml",
+    )
+    payload = aggregate.model_dump(mode="json")
+    payload["metric_aggregates"]["scalar"]["confidence_interval"]["lower"] = "0.0"
+
+    with pytest.raises(ValidationError):
+        AggregateRecord.model_validate(payload)
+
+
+def test_statistical_aggregate_numbers_accept_json_integers() -> None:
+    aggregate = aggregate_run_records(
+        [_record(1)],
+        requested_seeds=(1,),
+        run_record_paths=("runs/seed-0000000001.json",),
+        source_config="config.toml",
+    )
+    payload = aggregate.model_dump(mode="json")
+    scalar = payload["metric_aggregates"]["scalar"]
+    scalar.update(mean=1, median=1, minimum=1, maximum=1)
+
+    validated = AggregateRecord.model_validate(payload)
+
+    assert validated.metric_aggregates["scalar"].mean == 1.0

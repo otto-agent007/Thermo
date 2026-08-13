@@ -23,6 +23,7 @@ thermo-lab = "thermo_lab.cli:main"
 dev = [
     "pytest>=8.4,<9",
     "ruff>=0.12,<1",
+    "scipy>=1.17,<2",
 ]
 
 [build-system]

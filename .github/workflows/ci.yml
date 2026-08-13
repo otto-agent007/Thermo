@@ -35,3 +35,8 @@ jobs:
         run: uv build
       - name: Run cross-library smoke experiment
         run: uv run thermo-lab smoke --output-dir "${RUNNER_TEMP}/thermo-smoke"
+      - name: Run weighted graph-walk baseline
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/torx-weighted-graph-walk.toml
+          --output-dir "${RUNNER_TEMP}/weighted-graph-walk"

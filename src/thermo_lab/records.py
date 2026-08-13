@@ -29,6 +29,9 @@ from thermo_lab.evidence import (
 )
 from thermo_lab.hashing import canonical_sha256, to_json_value
 
+RUN_RECORD_SCHEMA_VERSION = "1.1.0"
+RUN_TIMING_SOURCE = "Python time.perf_counter"
+
 
 class FrozenModel(BaseModel):
     model_config = ConfigDict(
@@ -184,6 +187,9 @@ class RuntimeProvenance(FrozenModel):
 
 
 class RunTiming(FrozenModel):
+    evidence_class: Literal[EvidenceClass.SOFTWARE_SIMULATION]
+    unit: Literal["seconds"]
+    source: str = Field(min_length=1)
     compile_seconds: float = Field(ge=0)
     execution_seconds: float = Field(ge=0)
     synchronized: StrictBool
@@ -200,7 +206,7 @@ class RunTiming(FrozenModel):
 class RunRecord(FrozenModel):
     """Observed output from exactly one backend execution."""
 
-    schema_version: Literal["1.0.0"] = "1.0.0"
+    schema_version: Literal[RUN_RECORD_SCHEMA_VERSION] = RUN_RECORD_SCHEMA_VERSION
     run_id: str = Field(default_factory=lambda: str(uuid4()))
     created_at_utc: datetime = Field(default_factory=lambda: datetime.now(UTC))
     backend_id: BackendId

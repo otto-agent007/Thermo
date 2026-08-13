@@ -53,14 +53,20 @@ def _existing_completed(output_dir: Path) -> bool:
     return aggregate.completion_state is CompletionState.COMPLETE
 
 
-def _backend(backend_id: BackendId, repository_root: Path | None) -> ExperimentBackend:
-    from thermo_lab.backends import ThrmlLocalBackend, TorxStateVectorBackend
+def _backend(config: ExperimentConfig, repository_root: Path | None) -> ExperimentBackend:
+    from thermo_lab.backends import (
+        ThrmlLocalBackend,
+        TorxStateVectorBackend,
+        TorxWeightedGraphWalkBackend,
+    )
 
-    if backend_id is BackendId.TORX_STATEVECTOR:
+    if config.experiment_id == "torx.weighted_graph_walk.v1":
+        return TorxWeightedGraphWalkBackend(repository_root)
+    if config.backend is BackendId.TORX_STATEVECTOR:
         return TorxStateVectorBackend(repository_root)
-    if backend_id is BackendId.THRML_LOCAL:
+    if config.backend is BackendId.THRML_LOCAL:
         return ThrmlLocalBackend(repository_root)
-    raise ValueError(f"Unsupported executable backend {backend_id.value!r}")
+    raise ValueError(f"Unsupported executable backend {config.backend.value!r}")
 
 
 def _failed_identity(
@@ -100,7 +106,9 @@ def run_experiment(
         isinstance(seed, bool) or not isinstance(seed, int) or seed < 0 for seed in selected_seeds
     ):
         raise ValueError("Seeds must be non-negative integers")
-    if _existing_completed(output_dir) and not overwrite:
+    if config.experiment_id == "torx.weighted_graph_walk.v1" and selected_seeds != (0,):
+        raise ValueError("The deterministic weighted graph walk accepts exactly seed zero")
+    if not overwrite and _existing_completed(output_dir):
         raise FileExistsError(
             f"{output_dir} already contains a completed run; pass --overwrite to replace it"
         )
@@ -110,7 +118,7 @@ def run_experiment(
     write_record_schemas(output_dir / "schemas")
 
     repository_root = Path.cwd() if (Path.cwd() / ".git").exists() else None
-    backend = _backend(config.backend, repository_root)
+    backend = _backend(config, repository_root)
     records: list[RunRecord] = []
     relative_paths: list[str] = []
     failures: list[RunFailure] = []

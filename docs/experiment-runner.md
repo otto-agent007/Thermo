@@ -47,10 +47,34 @@ uv run thermo-lab run configs/experiments/thrml-ising-chain.toml \
   --output-dir results/ising-chain
 ```
 
+Run the checked weighted graph-walk baseline:
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/torx-weighted-graph-walk.toml \
+  --output-dir results/weighted-graph-walk
+```
+
+This baseline evaluates exact continuous-time Markov chain semantics alongside
+deterministic Torx Euler-PSWAP state vectors. Seed zero is an identity field,
+not a replication, so resolutions, edge orders, program depths, and node
+coordinates do not support confidence intervals. Compile and synchronized
+execution timings are local `software_simulation` evidence. See the
+[approved weighted graph-walk design](superpowers/specs/2026-08-12-weighted-graph-walk-baseline-design.md)
+and the
+[Torx paper source](https://arxiv.org/pdf/2608.01612v1#page=10).
+The persisted graph summary records `declared_resolutions` explicitly so
+report validation can reject missing, extra, or mismatched resolution rows.
+
 `--seed N` and `--seeds A,B,C` are mutually exclusive. Seed lists must be
 non-empty, unique, and non-negative. CPU is forced by default before importing
 JAX backends; `--allow-accelerator` permits normal JAX device selection. A
 completed output directory is protected unless `--overwrite` is explicit.
+Seed and deterministic-identity preflight runs before inspecting or clearing
+outputs. With `--overwrite`, the runner clears only its known artifacts without
+parsing the prior aggregate, so an unsupported predecessor schema can be
+replaced. Without `--overwrite`, a valid current completed aggregate remains
+protected.
 
 The legacy `thermo-lab smoke` command remains available for the two foundation
 checks.
@@ -76,6 +100,18 @@ Writes use a temporary sibling followed by atomic replacement where practical.
 Each model is revalidated at persistence. Aggregate run paths are relative.
 Multi-seed failures produce `partial` or `failed` aggregates; they never leave a
 misleading `complete` aggregate.
+
+Aggregate schema version `1.1.0` persists `statistical_semantics` as one of
+`independent_seeded_replications` or `deterministic_identity`. Runtime
+validation selects and enforces that value from the checked experiment
+identity, including each scalar aggregate's confidence-interval metadata.
+
+Run-record schema version `1.1.0` requires each `RunTiming` block to persist
+`software_simulation` evidence, seconds as its unit, and the local measurement
+source alongside the synchronized timing method and inclusion/exclusion text.
+Explicit overwrite replaces predecessor run and aggregate artifacts without
+parsing their unsupported schemas; without overwrite, a valid current completed
+aggregate remains protected.
 
 ## Hash semantics and compatibility
 
@@ -110,11 +146,18 @@ ordered Gibbs sweeps between recorded states.
 
 ### Between seeds
 
-Each independently seeded run is one replication. Scalar metrics report count,
-mean, sample standard deviation, median, minimum, maximum, and a two-sided 95%
-Student-t interval. One successful run receives no manufactured interval and an
-explicit reason. ESS intervals are truncated to their mathematical
-`[0, recorded_states]` bounds. Vector metrics are not flattened.
+For `independent_seeded_replications`, each independently seeded run is one
+replication. Scalar metrics report count, mean, sample standard deviation,
+median, minimum, maximum, and a two-sided 95% Student-t interval. One successful
+run receives no manufactured interval and an explicit reason. ESS intervals are
+truncated to their mathematical `[0, recorded_states]` bounds. Vector metrics
+are not flattened.
+
+The weighted graph-walk aggregate uses `deterministic_identity`: seed zero is
+not a replication, `confidence_level` and `confidence_interval` are null, and
+the persisted interval method and reason say confidence intervals are not
+applicable. The generated aggregate schema exposes both statistical contracts,
+and the report renders the contract persisted in `aggregate.json`.
 
 ## Reports and evidence boundaries
 

@@ -4,16 +4,18 @@ import pytest
 from pydantic import ValidationError
 
 from thermo_lab.config import (
+    ExperimentConfig,
     dump_experiment_config,
     experiment_config_path,
     load_experiment_config,
 )
 from thermo_lab.evidence import BackendId
-from thermo_lab.experiments import ising_chain_spec, torx_smoke_spec
+from thermo_lab.experiments import ising_chain_spec, torx_smoke_spec, weighted_graph_walk_spec
 
 ROOT = Path(__file__).parents[2]
 TORX_CONFIG = ROOT / "configs/experiments/torx-two-gate.toml"
 THRML_CONFIG = ROOT / "configs/experiments/thrml-ising-chain.toml"
+GRAPH_CONFIG = ROOT / "configs/experiments/torx-weighted-graph-walk.toml"
 
 
 def test_config_locator_resolves_authoritative_checked_files() -> None:
@@ -116,3 +118,25 @@ def test_normalized_snapshot_is_stable_and_round_trips(tmp_path: Path) -> None:
     assert dump_experiment_config(loaded) == first
     assert loaded == configured
     assert "created_at" not in first
+
+
+def test_weighted_graph_config_round_trips_and_hashes_scientific_inputs(tmp_path: Path) -> None:
+    configured = load_experiment_config(GRAPH_CONFIG)
+    assert configured.experiment_id == "torx.weighted_graph_walk.v1"
+    assert configured.seed == 0
+    snapshot = tmp_path / "graph.toml"
+    snapshot.write_text(dump_experiment_config(configured), encoding="utf-8")
+    assert load_experiment_config(snapshot) == configured
+
+    payload = configured.model_dump(mode="python", by_alias=True)
+    model = dict(payload["model"])
+    edges = [dict(edge) for edge in model["edges"]]
+    edges[0]["weight"] = 0.31
+    model["edges"] = edges
+    payload["model"] = model
+    changed = ExperimentConfig.model_validate(payload)
+    assert changed.model_hash != configured.model_hash
+
+
+def test_weighted_graph_factory_uses_checked_config() -> None:
+    assert weighted_graph_walk_spec() == load_experiment_config(GRAPH_CONFIG).to_spec()

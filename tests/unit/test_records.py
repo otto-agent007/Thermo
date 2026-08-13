@@ -48,6 +48,9 @@ def _provenance() -> RuntimeProvenance:
 
 def _timing() -> RunTiming:
     return RunTiming(
+        evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+        unit="seconds",
+        source="Python time.perf_counter",
         compile_seconds=0.1,
         execution_seconds=0.01,
         synchronized=True,
@@ -77,7 +80,43 @@ def test_record_derives_hashes_and_round_trips() -> None:
     assert RunRecord.model_validate_json(record.model_dump_json()) == record
 
 
-def test_record_rejects_unsupported_schema_version() -> None:
+def test_run_record_requires_explicit_timing_attribution() -> None:
+    record = build_run_record(
+        backend_id=BackendId.TORX_STATEVECTOR,
+        evidence_class=EvidenceClass.EXACT_REFERENCE,
+        spec=_spec(),
+        provenance=_provenance(),
+        timing=_timing(),
+        metrics={
+            "value": MetricObservation(
+                value=1.0,
+                evidence_class=EvidenceClass.EXACT_REFERENCE,
+                method="exact",
+            )
+        },
+    )
+    payload = record.model_dump(mode="json")
+
+    assert payload["schema_version"] == "1.1.0"
+    assert payload["timing"]["evidence_class"] == "software_simulation"
+    assert payload["timing"]["unit"] == "seconds"
+    assert payload["timing"]["source"] == "Python time.perf_counter"
+
+
+def test_run_timing_rejects_missing_evidence_attribution() -> None:
+    with pytest.raises(ValidationError):
+        RunTiming.model_validate(
+            {
+                "compile_seconds": 0.1,
+                "execution_seconds": 0.01,
+                "synchronized": True,
+                "timing_method": "test clock after block_until_ready",
+            }
+        )
+
+
+@pytest.mark.parametrize("schema_version", ["1.0.0", "2.0.0"])
+def test_record_rejects_unsupported_schema_version(schema_version: str) -> None:
     record = build_run_record(
         backend_id=BackendId.TORX_STATEVECTOR,
         evidence_class=EvidenceClass.EXACT_REFERENCE,
@@ -93,7 +132,7 @@ def test_record_rejects_unsupported_schema_version() -> None:
         },
     )
     payload = record.model_dump(mode="python")
-    payload["schema_version"] = "2.0.0"
+    payload["schema_version"] = schema_version
 
     with pytest.raises(ValidationError, match="schema_version"):
         RunRecord.model_validate(payload)
@@ -154,6 +193,9 @@ def test_record_rejects_unsynchronized_timing() -> None:
             spec=_spec(),
             provenance=_provenance(),
             timing=RunTiming(
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                unit="seconds",
+                source="Python time.perf_counter",
                 compile_seconds=0,
                 execution_seconds=0,
                 synchronized=False,
@@ -215,6 +257,9 @@ def test_experiment_and_record_containers_are_deeply_immutable() -> None:
 def test_timing_rejects_infinity() -> None:
     with pytest.raises(ValidationError):
         RunTiming(
+            evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            unit="seconds",
+            source="Python time.perf_counter",
             compile_seconds=float("inf"),
             execution_seconds=0,
             synchronized=True,
@@ -225,6 +270,9 @@ def test_timing_rejects_infinity() -> None:
 @pytest.mark.parametrize(
     ("field", "value"),
     [
+        ("evidence_class", "exact_reference"),
+        ("unit", "milliseconds"),
+        ("source", ""),
         ("compile_seconds", "0"),
         ("execution_seconds", "1"),
         ("synchronized", "yes"),
@@ -233,6 +281,9 @@ def test_timing_rejects_infinity() -> None:
 )
 def test_timing_rejects_evidence_coercions(field: str, value: object) -> None:
     timing: dict[str, object] = {
+        "evidence_class": "software_simulation",
+        "unit": "seconds",
+        "source": "Python time.perf_counter",
         "compile_seconds": 0.0,
         "execution_seconds": 1.0,
         "synchronized": True,

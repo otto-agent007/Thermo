@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from thermo_lab.aggregate import AggregateRecord, CompletionState
+from thermo_lab.aggregate import AggregateRecord, CompletionState, StatisticalSemantics
 from thermo_lab.backends import TorxStateVectorBackend
 from thermo_lab.record_schemas import schema_json
 from thermo_lab.records import RunRecord
@@ -38,6 +38,7 @@ def test_multi_seed_run_emits_deterministic_schemas_and_report(tmp_path: Path) -
 
     assert aggregate.seeds == (2, 0, 1)
     assert aggregate.completed_runs == 3
+    assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
     run_schema = tmp_path / "schemas/run-record.schema.json"
     aggregate_schema = tmp_path / "schemas/aggregate-record.schema.json"
     assert run_schema.read_text(encoding="utf-8") == schema_json(RunRecord)
@@ -47,6 +48,7 @@ def test_multi_seed_run_emits_deterministic_schemas_and_report(tmp_path: Path) -
     assert aggregate.model_hash in report
     assert aggregate.run_config_hash in report
     assert "3 independent seeded runs" in report
+    assert "two-sided 95% Student-t interval across independently seeded runs" in report
     assert "not a physical Z1 or TSU hardware measurement" in report
     assert "Exact final probability mass" in report
     assert "[aggregate.json](aggregate.json)" in report
@@ -58,13 +60,39 @@ def test_multi_seed_run_emits_deterministic_schemas_and_report(tmp_path: Path) -
 
 def test_completed_output_requires_explicit_overwrite(tmp_path: Path) -> None:
     first = run_experiment(TORX_CONFIG, tmp_path, seeds=(0,))
+    aggregate_path = tmp_path / "aggregate.json"
+    current_aggregate = aggregate_path.read_bytes()
 
     with pytest.raises(FileExistsError, match="--overwrite"):
         run_experiment(TORX_CONFIG, tmp_path, seeds=(1,))
 
+    assert aggregate_path.read_bytes() == current_aggregate
     second = run_experiment(TORX_CONFIG, tmp_path, seeds=(1,), overwrite=True)
     assert second.aggregate_id != first.aggregate_id
     assert not (tmp_path / "runs/seed-0000000000.json").exists()
+
+
+def test_overwrite_replaces_unsupported_predecessor_aggregate_without_parsing(
+    tmp_path: Path,
+) -> None:
+    predecessor = '{"schema_version":"1.0.0","completion_state":"complete"}\n'
+    predecessor_run = '{"schema_version":"1.0.0","timing":{}}\n'
+    (tmp_path / "aggregate.json").write_text(predecessor, encoding="utf-8")
+    old_run = tmp_path / "runs/seed-0000000000.json"
+    old_run.parent.mkdir()
+    old_run.write_text(predecessor_run, encoding="utf-8")
+
+    aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(1,), overwrite=True)
+
+    assert aggregate.schema_version == "1.1.0"
+    assert aggregate.seeds == (1,)
+    assert (tmp_path / "aggregate.json").read_text(encoding="utf-8") != predecessor
+    assert not old_run.exists()
+    replacement_run = json.loads(
+        (tmp_path / "runs/seed-0000000001.json").read_text(encoding="utf-8")
+    )
+    assert replacement_run["schema_version"] == "1.1.0"
+    assert replacement_run["timing"]["evidence_class"] == "software_simulation"
 
 
 def test_source_config_cannot_be_an_output_artifact(tmp_path: Path) -> None:
@@ -90,7 +118,7 @@ def test_failed_seed_persists_partial_not_complete_aggregate(
             return real_backend.execute(spec)
 
     monkeypatch.setattr(
-        "thermo_lab.runner._backend", lambda backend_id, repository_root: FailingSeedBackend()
+        "thermo_lab.runner._backend", lambda config, repository_root: FailingSeedBackend()
     )
 
     aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(0, 1, 2))
