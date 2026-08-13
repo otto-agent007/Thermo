@@ -5,10 +5,12 @@ import pytest
 
 from thermo_lab.aggregate import AggregateRecord, CompletionState
 from thermo_lab.cli import main
-from thermo_lab.hashing import canonical_sha256
+from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
+from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.records import RunRecord
 from thermo_lab.reporting import render_report
 from thermo_lab.runner import run_experiment
+from thermo_lab.schemas import WeightedGraphModelConfig
 
 ROOT = Path(__file__).parents[2]
 GRAPH_CONFIG = ROOT / "configs/experiments/torx-weighted-graph-walk.toml"
@@ -23,6 +25,55 @@ def _persisted_graph_records(tmp_path: Path) -> tuple[AggregateRecord, RunRecord
         (tmp_path / aggregate.run_record_paths[0]).read_text(encoding="utf-8")
     )
     return aggregate, record
+
+
+@pytest.fixture(scope="module")
+def persisted_graph_artifacts(tmp_path_factory) -> tuple[AggregateRecord, RunRecord]:
+    return _persisted_graph_records(tmp_path_factory.mktemp("persisted-graph-report"))
+
+
+def _summary(record: RunRecord) -> WeightedGraphWalkSummary:
+    return WeightedGraphWalkSummary.model_validate(
+        to_json_value(record.metrics["weighted_graph_walk"].value)
+    )
+
+
+def _model(record: RunRecord) -> WeightedGraphModelConfig:
+    return WeightedGraphModelConfig.model_validate(to_json_value(record.spec.model_parameters))
+
+
+def _section(report: str, start: str, end: str) -> str:
+    return report.split(start, maxsplit=1)[1].split(end, maxsplit=1)[0]
+
+
+def _table(report: str, start: str, end: str) -> tuple[list[str], list[list[str]]]:
+    rows = [
+        [cell.strip() for cell in line.strip().strip("|").split("|")]
+        for line in _section(report, start, end).splitlines()
+        if line.startswith("|")
+    ]
+    return rows[0], rows[2:]
+
+
+def _synchronize_request_hashes(record_payload: dict[str, object]) -> None:
+    spec = record_payload["spec"]
+    assert isinstance(spec, dict)
+    record_payload["model_hash"] = canonical_sha256(spec["model_config"])
+    record_payload["run_config_hash"] = canonical_sha256(
+        {
+            "experiment_id": spec["experiment_id"],
+            "seed": spec["seed"],
+            "run_config": spec["run_config"],
+            "sample_definition": spec["sample_definition"],
+        }
+    )
+
+
+def _aggregate_for_record(aggregate: AggregateRecord, record: RunRecord) -> AggregateRecord:
+    payload = aggregate.model_dump(mode="json")
+    payload["model_hash"] = record.model_hash
+    payload["run_config_hash"] = record.spec.non_seed_run_config_hash
+    return AggregateRecord.model_validate(payload)
 
 
 def test_runner_dispatches_weighted_graph_backend(tmp_path: Path) -> None:
@@ -48,8 +99,12 @@ def test_graph_cli_writes_evidence_safe_deterministic_report(tmp_path: Path) -> 
     assert (tmp_path / "schemas/aggregate-record.schema.json").exists()
 
 
-def test_persisted_graph_report_renders_complete_deterministic_evidence(tmp_path: Path) -> None:
-    aggregate, record = _persisted_graph_records(tmp_path)
+def test_persisted_graph_report_renders_complete_deterministic_evidence(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
+) -> None:
+    aggregate, record = persisted_graph_artifacts
+    summary = _summary(record)
+    model = _model(record)
 
     report = render_report(aggregate, (record,))
 
@@ -61,60 +116,158 @@ def test_persisted_graph_report_renders_complete_deterministic_evidence(tmp_path
         "edge order, program depth, and node coordinates are not replication units, and "
         "no confidence interval is inferred from them."
     ) in report
-    assert "| A | 0.23579141 |" in report
-    assert "| 128 | 0.001103811 | 0.0038757771 |" in report
-    assert "- finest canonical error thresholds passed" in report
-    assert "| N | Order | Time | A | B | C | D | E |" in report
+    source_header, source_rows = _table(
+        report, "### Source graph fixture", "### Exact final occupancy"
+    )
+    assert source_header == ["Edge", "Weight"]
+    assert [row[0] for row in source_rows] == [
+        f"{edge.source}–{edge.target}" for edge in model.edges
+    ]
+    assert [float(row[1]) for row in source_rows] == pytest.approx(
+        [edge.weight for edge in model.edges]
+    )
 
-    source_fixture = report.split("### Source graph fixture", maxsplit=1)[1].split(
-        "### Exact final occupancy", maxsplit=1
-    )[0]
-    assert "| A–B | 0.30 |" in source_fixture
+    exact_header, exact_rows = _table(
+        report, "### Exact final occupancy", "### Resolution variants"
+    )
+    assert exact_header == ["Node", "Exact final occupancy"]
+    assert [row[0] for row in exact_rows] == list(summary.node_labels)
+    assert [float(row[1]) for row in exact_rows] == pytest.approx(summary.exact_final_occupancy)
 
-    variant_table = report.split("### Resolution variants", maxsplit=1)[1].split(
-        "### Edge-order sensitivity", maxsplit=1
-    )[0]
-    variant_rows = [line for line in variant_table.splitlines() if line.startswith("| ")][1:]
+    _, variant_rows = _table(report, "### Resolution variants", "### Edge-order sensitivity")
     assert len(variant_rows) == 12
-    assert [(row.split(" | ")[0][2:], row.split(" | ")[1]) for row in variant_rows] == [
-        (str(resolution), f"`{order}`")
-        for resolution in (4, 8, 16, 32, 64, 128)
-        for order in ("canonical", "reverse")
+    expected_variants = sorted(
+        summary.variants,
+        key=lambda variant: (variant.resolution, variant.order != "canonical"),
+    )
+    assert [(int(row[0]), row[1]) for row in variant_rows] == [
+        (variant.resolution, f"`{variant.order}`") for variant in expected_variants
     ]
 
-    checkpoint_table = report.split("### Checkpoint occupancy", maxsplit=1)[1].split(
-        "## Omitted aggregate metrics", maxsplit=1
-    )[0]
-    checkpoint_rows = [line for line in checkpoint_table.splitlines() if line.startswith("| ")][1:]
+    sensitivity_header, sensitivity_rows = _table(
+        report, "### Edge-order sensitivity", "### Acceptance checks"
+    )
+    assert sensitivity_header == ["N", "Final half-L1", "Max trajectory half-L1"]
+    expected_sensitivity = sorted(summary.order_sensitivity, key=lambda item: item.resolution)
+    assert [int(row[0]) for row in sensitivity_rows] == [
+        item.resolution for item in expected_sensitivity
+    ]
+    assert [float(row[1]) for row in sensitivity_rows] == pytest.approx(
+        [item.final_half_l1 for item in expected_sensitivity]
+    )
+    assert [float(row[2]) for row in sensitivity_rows] == pytest.approx(
+        [item.max_trajectory_half_l1 for item in expected_sensitivity]
+    )
+
+    acceptance = _section(report, "### Acceptance checks", "### Checkpoint occupancy")
+    assert [line for line in acceptance.splitlines() if line.startswith("-")] == [
+        f"- Passed: `{'yes' if summary.acceptance.passed else 'no'}`",
+        *(f"- {check}" for check in summary.acceptance.checks),
+    ]
+
+    checkpoint_header, checkpoint_rows = _table(
+        report, "### Checkpoint occupancy", "## Omitted aggregate metrics"
+    )
+    assert checkpoint_header == ["N", "Order", "Time", *summary.node_labels]
     assert len(checkpoint_rows) == 60
-    assert checkpoint_rows[0].startswith("| 4 | `canonical` | 0 |")
-    assert checkpoint_rows[-1].startswith("| 128 | `reverse` | 10 |")
+    expected_checkpoints = [
+        (variant.resolution, f"`{variant.order}`", time, occupancy)
+        for variant in expected_variants
+        for time, occupancy in zip(
+            summary.checkpoint_times, variant.checkpoint_occupancies, strict=True
+        )
+    ]
+    assert [(int(row[0]), row[1], float(row[2])) for row in checkpoint_rows] == [
+        (resolution, order, time) for resolution, order, time, _ in expected_checkpoints
+    ]
+    for row, (_, _, _, occupancy) in zip(checkpoint_rows, expected_checkpoints, strict=True):
+        assert [float(value) for value in row[3:]] == pytest.approx(occupancy)
 
 
-def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(tmp_path: Path) -> None:
-    aggregate, record = _persisted_graph_records(tmp_path)
+def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
+) -> None:
+    aggregate, record = persisted_graph_artifacts
     record_payload = deepcopy(record.model_dump(mode="json", by_alias=True))
     model = record_payload["spec"]["model_config"]
-    edge = next(item for item in model["edges"] if item["source"] == "A" and item["target"] == "B")
+    model["nodes"][0] = "V"
+    for edge in model["edges"]:
+        if edge["source"] == "A":
+            edge["source"] = "V"
+        if edge["target"] == "A":
+            edge["target"] = "V"
+    for edge in model["canonical_edge_order"]:
+        if edge[0] == "A":
+            edge[0] = "V"
+        if edge[1] == "A":
+            edge[1] = "V"
+    edge = next(item for item in model["edges"] if item["source"] == "V" and item["target"] == "B")
     edge["weight"] = 0.31
-    record_payload["metrics"]["weighted_graph_walk"]["value"]["order_sensitivity"][0][
-        "final_half_l1"
-    ] = 0.12345678
-    record_payload["model_hash"] = canonical_sha256(model)
+    summary = record_payload["metrics"]["weighted_graph_walk"]["value"]
+    summary["node_labels"][0] = "V"
+    summary["exact_final_occupancy"][0] = 0.2357915
+    summary["acceptance"]["checks"] = ["persisted acceptance mutation"]
+    summary["variants"][0]["checkpoint_occupancies"][1][0] = 0.9876543
+    record_payload["spec"]["run_config"]["expected_exact_final_occupancy"][0] = 0.2357915
+    _synchronize_request_hashes(record_payload)
     changed_record = RunRecord.model_validate(record_payload)
-    aggregate_payload = aggregate.model_dump(mode="json")
-    aggregate_payload["model_hash"] = changed_record.model_hash
-    changed_aggregate = AggregateRecord.model_validate(aggregate_payload)
+    changed_aggregate = _aggregate_for_record(aggregate, changed_record)
 
     report = render_report(changed_aggregate, (changed_record,))
 
-    assert "| A–B | 0.31 |" in report
-    assert "| 4 | 0.12345678 |" in report
+    assert "| V–B | 0.31 |" in report
+    assert "| V | 0.2357915 |" in report
+    assert "- persisted acceptance mutation" in report
+    assert "| 4 | `canonical` | 2.5 | 0.9876543 |" in report
+
+
+def test_persisted_graph_report_rejects_out_of_order_seed_records(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
+) -> None:
+    aggregate, record = persisted_graph_artifacts
+    second_payload = record.model_dump(mode="json", by_alias=True)
+    second_payload["spec"]["seed"] = 1
+    _synchronize_request_hashes(second_payload)
+    second_record = RunRecord.model_validate(second_payload)
+    aggregate_payload = aggregate.model_dump(mode="json")
+    aggregate_payload.update(
+        seeds=[1, 0],
+        requested_runs=2,
+        completed_runs=2,
+        run_record_paths=["runs/seed-0000000001.json", "runs/seed-0000000000.json"],
+    )
+    changed_aggregate = AggregateRecord.model_validate(aggregate_payload)
+
+    with pytest.raises(ValueError, match="aggregate seeds"):
+        render_report(changed_aggregate, (record, second_record))
+
+
+def _remove_declared_resolution(aggregate: dict[str, object], record: dict[str, object]) -> None:
+    del aggregate
+    summary = record["metrics"]["weighted_graph_walk"]["value"]
+    summary["declared_resolutions"] = summary["declared_resolutions"][1:]
+    summary["variants"] = [item for item in summary["variants"] if item["resolution"] != 4]
+    summary["order_sensitivity"] = [
+        item for item in summary["order_sensitivity"] if item["resolution"] != 4
+    ]
+
+
+def _mismatch_completed_count(aggregate: dict[str, object], record: dict[str, object]) -> None:
+    del record
+    aggregate.update(
+        completed_runs=0,
+        failed_runs=1,
+        run_record_paths=[],
+        failures=[{"seed": 0, "error_type": "RuntimeError", "message": "tampered"}],
+        provenance_summary=None,
+        completion_state="failed",
+    )
 
 
 @pytest.mark.parametrize(
     ("tamper", "message"),
     (
+        (_remove_declared_resolution, "summary resolutions"),
         (
             lambda aggregate, record: record["metrics"]["weighted_graph_walk"]["value"].__setitem__(
                 "checkpoint_times", [0.0, 1.0, 2.0, 3.0, 4.0]
@@ -134,11 +287,52 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(tmp_
             "metric source",
         ),
         (
+            lambda aggregate, record: record["metrics"]["weighted_graph_walk"]["value"].__setitem__(
+                "source_reference", "https://example.invalid/not-the-source"
+            ),
+            "summary source",
+        ),
+        (
+            lambda aggregate, record: record["metrics"]["weighted_graph_walk"]["value"].__setitem__(
+                "node_labels", ["V", "B", "C", "D", "E"]
+            ),
+            "node labels",
+        ),
+        (
+            lambda aggregate, record: aggregate.__setitem__(
+                "experiment_id", "torx.two_gate_statevector.v1"
+            ),
+            "aggregate experiment id",
+        ),
+        (
+            lambda aggregate, record: aggregate.__setitem__("backend_id", "thrml_local"),
+            "aggregate backend",
+        ),
+        (
+            lambda aggregate, record: aggregate.__setitem__(
+                "evidence_class", "software_simulation"
+            ),
+            "aggregate evidence class",
+        ),
+        (
             lambda aggregate, record: aggregate.__setitem__(
                 "model_hash", "sha256:tampered-model-identity"
             ),
             "aggregate model hash",
         ),
+        (
+            lambda aggregate, record: aggregate.__setitem__(
+                "run_config_hash", "sha256:tampered-run-config-identity"
+            ),
+            "aggregate run configuration hash",
+        ),
+        (
+            lambda aggregate, record: aggregate.__setitem__(
+                "run_record_paths", ["runs/seed-0000000001.json"]
+            ),
+            "aggregate run record path",
+        ),
+        (_mismatch_completed_count, "aggregate completed run count"),
         (
             lambda aggregate, record: aggregate.__setitem__("seeds", [1]),
             "aggregate seeds",
@@ -146,9 +340,9 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(tmp_
     ),
 )
 def test_persisted_graph_report_rejects_mismatched_artifacts(
-    tmp_path: Path, tamper, message: str
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord], tamper, message: str
 ) -> None:
-    aggregate, record = _persisted_graph_records(tmp_path)
+    aggregate, record = persisted_graph_artifacts
     aggregate_payload = aggregate.model_dump(mode="json")
     record_payload = record.model_dump(mode="json", by_alias=True)
     tamper(aggregate_payload, record_payload)
