@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 from thermo_lab.aggregate import AggregateRecord
@@ -9,7 +10,7 @@ from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
 from thermo_lab.hashing import to_json_value
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import RunRecord
-from thermo_lab.schemas import WeightedGraphModelConfig
+from thermo_lab.schemas import WeightedGraphModelConfig, WeightedGraphRunConfig
 
 _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
 
@@ -62,19 +63,85 @@ def _run_set_description(aggregate: AggregateRecord) -> str:
     return f"{aggregate.requested_runs} independent seeded runs"
 
 
-def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
-    """Render graph convergence details from the persisted run record only."""
+def _validate_aggregate_records(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) -> None:
+    """Reject records that do not match the aggregate that references them."""
 
+    if len(records) != aggregate.completed_runs:
+        raise ValueError("aggregate completed run count does not match persisted run records")
+    if len(records) != len(aggregate.run_record_paths):
+        raise ValueError("aggregate run record paths do not match persisted run records")
+    failed_seeds = {failure.seed for failure in aggregate.failures}
+    expected_seeds = tuple(seed for seed in aggregate.seeds if seed not in failed_seeds)
+    actual_seeds = tuple(record.spec.seed for record in records)
+    if actual_seeds != expected_seeds:
+        raise ValueError("aggregate seeds do not match persisted run records")
+
+    for record, path in zip(records, aggregate.run_record_paths, strict=True):
+        if aggregate.experiment_id != record.spec.experiment_id:
+            raise ValueError("aggregate experiment id does not match persisted run record")
+        if aggregate.backend_id != record.backend_id:
+            raise ValueError("aggregate backend does not match persisted run record")
+        if aggregate.evidence_class != record.evidence_class:
+            raise ValueError("aggregate evidence class does not match persisted run record")
+        if aggregate.model_hash != record.model_hash:
+            raise ValueError("aggregate model hash does not match persisted run record")
+        if aggregate.run_config_hash != record.spec.non_seed_run_config_hash:
+            raise ValueError("aggregate run configuration hash does not match persisted run record")
+        expected_path = f"runs/seed-{record.spec.seed:010d}.json"
+        if path != expected_path:
+            raise ValueError("aggregate run record path does not match persisted run seed")
+
+
+def _validated_weighted_graph_walk_data(
+    record: RunRecord,
+) -> tuple[WeightedGraphWalkSummary, WeightedGraphModelConfig]:
+    """Validate persisted graph observations against their checked requested inputs."""
+
+    if record.spec.experiment_id != _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
+        raise ValueError("weighted graph-walk summary belongs to a different experiment")
     try:
-        summary_value = record.metrics["weighted_graph_walk"].value
+        metric = record.metrics["weighted_graph_walk"]
     except KeyError as error:
         raise ValueError("Weighted graph-walk record is missing its persisted summary") from error
-    summary = WeightedGraphWalkSummary.model_validate(to_json_value(summary_value))
+    summary = WeightedGraphWalkSummary.model_validate(to_json_value(metric.value))
     model = WeightedGraphModelConfig.model_validate(to_json_value(record.spec.model_parameters))
+    run = WeightedGraphRunConfig.model_validate(to_json_value(record.spec.run_parameters))
+    if metric.source != model.source_reference:
+        raise ValueError("weighted graph-walk metric source differs from the persisted model")
     if summary.node_labels != tuple(model.nodes):
         raise ValueError("Weighted graph-walk summary node labels differ from the persisted model")
     if summary.source_reference != model.source_reference:
         raise ValueError("Weighted graph-walk summary source differs from the persisted model")
+    if summary.declared_resolutions != tuple(run.resolutions):
+        raise ValueError("weighted graph-walk summary resolutions differ from the persisted run")
+    if summary.checkpoint_times != tuple(run.checkpoint_times):
+        raise ValueError(
+            "weighted graph-walk summary checkpoint times differ from the persisted run"
+        )
+    exact_final_error = max(
+        abs(observed - requested)
+        for observed, requested in zip(
+            summary.exact_final_occupancy,
+            run.expected_exact_final_occupancy,
+            strict=True,
+        )
+    )
+    if not math.isclose(
+        exact_final_error,
+        0.0,
+        rel_tol=0.0,
+        abs_tol=run.exact_invariant_tolerance,
+    ):
+        raise ValueError(
+            "weighted graph-walk exact final occupancy differs from the requested endpoint"
+        )
+    return summary, model
+
+
+def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
+    """Render graph convergence details from the persisted run record only."""
+
+    summary, model = _validated_weighted_graph_walk_data(record)
 
     canonical_order = ", ".join(
         f"{source}-{target}" for source, target in model.canonical_edge_order
@@ -197,6 +264,7 @@ def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
 def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) -> str:
     """Render an evidence-safe report from already persisted validated data."""
 
+    _validate_aggregate_records(aggregate, records)
     is_weighted_graph_walk = aggregate.experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
     sample_definition = (
         records[0].spec.sample_definition
