@@ -70,6 +70,32 @@ def test_euler_error_decreases_at_fine_resolutions() -> None:
     assert errors[-1] <= run.finest_max_trajectory_half_l1_tolerance
 
 
+def test_one_layer_euler_applies_edges_sequentially_in_declared_order() -> None:
+    model, _ = checked_inputs()
+    three_node = WeightedGraphModelConfig.model_validate(
+        {
+            **model.model_dump(mode="python"),
+            "nodes": ["A", "B", "C"],
+            "edges": [
+                {"source": "A", "target": "B", "weight": 0.25},
+                {"source": "B", "target": "C", "weight": 0.50},
+            ],
+            "canonical_edge_order": [["A", "B"], ["B", "C"]],
+            "initial_occupancy": [1.0, 0.0, 0.0],
+        }
+    )
+
+    forward = euler_occupancies(
+        three_node, final_time=1.0, resolution=1, edge_order=(("A", "B"), ("B", "C"))
+    )
+    reverse = euler_occupancies(
+        three_node, final_time=1.0, resolution=1, edge_order=(("B", "C"), ("A", "B"))
+    )
+
+    np.testing.assert_allclose(forward, [[1.0, 0.0, 0.0], [0.75, 0.125, 0.125]])
+    np.testing.assert_allclose(reverse, [[1.0, 0.0, 0.0], [0.75, 0.25, 0.0]])
+
+
 @pytest.mark.parametrize("invalid_value", [np.nan, np.inf])
 def test_validate_exact_trajectory_rejects_nonfinite_generator(
     invalid_value: float,
@@ -104,3 +130,40 @@ def test_validate_exact_trajectory_rejects_invalid_tolerance(tolerance: float) -
 
     with pytest.raises(ValueError, match="tolerance must be finite and nonnegative"):
         validate_exact_trajectory(generator, occupancies, tolerance)
+
+
+@pytest.mark.parametrize(
+    ("generator", "occupancies", "message"),
+    (
+        (
+            np.array([[0.0, 0.3], [0.0, -0.3]]),
+            np.array([[1.0, 0.0]]),
+            "generator symmetry error",
+        ),
+        (
+            np.array([[0.1, 0.0], [0.0, 0.0]]),
+            np.array([[1.0, 0.0]]),
+            "generator sum error",
+        ),
+        (
+            np.array([[0.1, -0.1], [-0.1, 0.1]]),
+            np.array([[1.0, 0.0]]),
+            "minimum off-diagonal rate",
+        ),
+        (
+            np.array([[-0.3, 0.3], [0.3, -0.3]]),
+            np.array([[0.6, 0.5]]),
+            "occupancy normalization error",
+        ),
+        (
+            np.array([[-0.3, 0.3], [0.3, -0.3]]),
+            np.array([[-0.1, 1.1]]),
+            "minimum probability",
+        ),
+    ),
+)
+def test_validate_exact_trajectory_rejects_each_invariant_failure(
+    generator: np.ndarray, occupancies: np.ndarray, message: str
+) -> None:
+    with pytest.raises(RuntimeError, match=message):
+        validate_exact_trajectory(generator, occupancies, tolerance=1e-12)

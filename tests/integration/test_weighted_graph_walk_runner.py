@@ -271,6 +271,40 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
     assert "| 4 | `canonical` | 2.5 | 0.9876543 |" in report
 
 
+def test_graph_report_escapes_schema_valid_markdown_labels_and_checks(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
+) -> None:
+    aggregate, record = persisted_graph_artifacts
+    record_payload = deepcopy(record.model_dump(mode="json", by_alias=True))
+    hostile_label = "A|``B\nC"
+    model = record_payload["spec"]["model_config"]
+    model["nodes"][0] = hostile_label
+    for edge in model["edges"]:
+        if edge["source"] == "A":
+            edge["source"] = hostile_label
+        if edge["target"] == "A":
+            edge["target"] = hostile_label
+    for edge in model["canonical_edge_order"]:
+        if edge[0] == "A":
+            edge[0] = hostile_label
+        if edge[1] == "A":
+            edge[1] = hostile_label
+    summary = record_payload["metrics"]["weighted_graph_walk"]["value"]
+    summary["node_labels"][0] = hostile_label
+    summary["acceptance"]["checks"] = ["valid check\n- injected [link](https://example.invalid)"]
+    _synchronize_request_hashes(record_payload)
+    changed_record = RunRecord.model_validate(record_payload)
+
+    report = render_report(_aggregate_for_record(aggregate, changed_record), (changed_record,))
+
+    assert "- Canonical edge order: ```A|``B / C-C" in report
+    assert "| A\\|\\`\\`B / C–B | 0.30 |" in report
+    assert "| A\\|\\`\\`B / C | 0.23579141 |" in report
+    assert "| N | Order | Time | A\\|\\`\\`B / C | B | C | D | E |" in report
+    assert "- valid check / - injected \\[link\\](https://example.invalid)" in report
+    assert "\n- injected" not in report
+
+
 def test_persisted_graph_report_rejects_out_of_order_seed_records(
     persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
 ) -> None:
@@ -418,6 +452,17 @@ def test_runner_rejects_nonzero_graph_seed_before_touching_outputs(
     assert marker.read_text(encoding="utf-8") == "keep"
     assert snapshot.read_text(encoding="utf-8") == "pre-existing output"
     assert not (tmp_path / "aggregate.json").exists()
+
+
+def test_runner_rejects_nonzero_graph_seed_without_creating_absent_output(
+    tmp_path: Path,
+) -> None:
+    output_dir = tmp_path / "absent"
+
+    with pytest.raises(ValueError, match="seed zero"):
+        run_experiment(GRAPH_CONFIG, output_dir, seeds=(1,), overwrite=True)
+
+    assert not output_dir.exists()
 
 
 def test_runner_persists_graph_acceptance_failure(tmp_path: Path) -> None:

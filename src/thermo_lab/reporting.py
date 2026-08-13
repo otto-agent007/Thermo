@@ -19,6 +19,32 @@ def _format_number(value: float | None) -> str:
     return "unavailable" if value is None else f"{value:.8g}"
 
 
+def _markdown_text(value: str) -> str:
+    """Keep persisted text within one Markdown block and escape active syntax."""
+
+    escaped = value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " / ")
+    escaped = escaped.replace("\\", "\\\\")
+    for character in ("`", "*", "_", "[", "]", "<", ">", "|"):
+        escaped = escaped.replace(character, f"\\{character}")
+    return escaped
+
+
+def _markdown_code_span(value: str) -> str:
+    """Render arbitrary persisted text as a single safe CommonMark code span."""
+
+    normalized = value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " / ")
+    longest_run = current_run = 0
+    for character in normalized:
+        if character == "`":
+            current_run += 1
+            longest_run = max(longest_run, current_run)
+        else:
+            current_run = 0
+    delimiter = "`" * (longest_run + 1)
+    padding = " " if normalized.startswith("`") or normalized.endswith("`") else ""
+    return f"{delimiter}{padding}{normalized}{padding}{delimiter}"
+
+
 def _metric_table(aggregate: AggregateRecord) -> list[str]:
     lines = [
         "| Metric | Evidence | Unit | Count | Mean | Std. dev. | Median | Min | Max | "
@@ -154,7 +180,7 @@ def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
         "## Weighted graph-walk convergence",
         "",
         f"- Primary source: <{summary.source_reference}>",
-        f"- Canonical edge order: `{canonical_order}`",
+        f"- Canonical edge order: {_markdown_code_span(canonical_order)}",
         "- Resolution/order variants are not independent replications.",
         "",
         "### Source graph fixture",
@@ -162,7 +188,10 @@ def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
         "| Edge | Weight |",
         "|---|---:|",
     ]
-    lines.extend(f"| {edge.source}–{edge.target} | {edge.weight:.2f} |" for edge in model.edges)
+    lines.extend(
+        f"| {_markdown_text(edge.source)}–{_markdown_text(edge.target)} | {edge.weight:.2f} |"
+        for edge in model.edges
+    )
     lines.extend(
         (
             "",
@@ -173,7 +202,7 @@ def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
         )
     )
     lines.extend(
-        f"| {node} | {_format_number(occupancy)} |"
+        f"| {_markdown_text(node)} | {_format_number(occupancy)} |"
         for node, occupancy in zip(summary.node_labels, summary.exact_final_occupancy, strict=True)
     )
     lines.extend(
@@ -232,13 +261,15 @@ def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
             f"- Passed: `{'yes' if summary.acceptance.passed else 'no'}`",
         )
     )
-    lines.extend(f"- {check}" for check in summary.acceptance.checks)
+    lines.extend(f"- {_markdown_text(check)}" for check in summary.acceptance.checks)
     lines.extend(
         (
             "",
             "### Checkpoint occupancy",
             "",
-            "| N | Order | Time | " + " | ".join(summary.node_labels) + " |",
+            "| N | Order | Time | "
+            + " | ".join(_markdown_text(label) for label in summary.node_labels)
+            + " |",
             "|---:|---|---:|" + "---:|" * len(summary.node_labels),
         )
     )

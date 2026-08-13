@@ -4,6 +4,7 @@ from thermo_lab.backends import TorxWeightedGraphWalkBackend
 from thermo_lab.evidence import EvidenceClass
 from thermo_lab.experiments import weighted_graph_walk_spec
 from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
+from thermo_lab.schemas import TORX_GRAPH_WALK_SOURCE
 
 
 def test_weighted_graph_backend_passes_declared_sweep() -> None:
@@ -24,6 +25,26 @@ def test_weighted_graph_backend_passes_declared_sweep() -> None:
     assert finest.max_one_particle_leakage <= 1e-6
     assert execution.diagnostic_series == {}
     assert "per_layer" not in record.model_dump_json()
+
+    assert set(record.metrics) == {
+        "weighted_graph_walk",
+        "finest_canonical_final_half_l1",
+        "finest_canonical_max_trajectory_half_l1",
+        "maximum_one_particle_leakage",
+        "acceptance_passed",
+    }
+    for metric in record.metrics.values():
+        assert metric.evidence_class is EvidenceClass.EXACT_REFERENCE
+        assert metric.source == TORX_GRAPH_WALK_SOURCE
+        assert metric.method
+    assert record.timing.synchronized
+    assert record.timing.compile_seconds >= 0.0
+    assert record.timing.execution_seconds >= 0.0
+    assert "12 deterministic variants" in record.timing.timing_method
+    assert "synchronized complete pass" in record.timing.timing_method
+    assert "Excludes configuration, provenance, persistence, aggregation, and reporting" in (
+        record.timing.timing_method
+    )
 
 
 def test_basis_collapse_preserves_node_order_and_detects_leakage() -> None:
