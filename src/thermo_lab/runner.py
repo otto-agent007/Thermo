@@ -108,7 +108,7 @@ def run_experiment(
         raise ValueError("Seeds must be non-negative integers")
     if config.experiment_id == "torx.weighted_graph_walk.v1" and selected_seeds != (0,):
         raise ValueError("The deterministic weighted graph walk accepts exactly seed zero")
-    if _existing_completed(output_dir) and not overwrite:
+    if not overwrite and _existing_completed(output_dir):
         raise FileExistsError(
             f"{output_dir} already contains a completed run; pass --overwrite to replace it"
         )

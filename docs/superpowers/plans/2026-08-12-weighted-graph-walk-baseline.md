@@ -1251,3 +1251,27 @@ git commit -m "docs: record graph walk implementation verification"
   persisted deterministic semantics, contains no Student-t or
   independent-seed failure reason, and retains only explicit evidence-boundary
   uses of THRML, Thermalizers, hardware, and independent replications.
+
+### Fix Round 2 Verification Evidence
+
+- RED fixture correction: the first focused run reported `29 passed, 1 failed`
+  because the test redundantly created pytest's existing `tmp_path`; removing
+  that setup error exposed the intended runner failure.
+- RED: `uv run pytest tests/integration/test_experiment_runner.py::test_overwrite_replaces_unsupported_predecessor_aggregate_without_parsing -q`
+  exited 1 because `_existing_completed()` attempted strict `AggregateRecord`
+  parsing of the predecessor `1.0.0` aggregate before considering overwrite.
+- GREEN: after reordering the guard to
+  `if not overwrite and _existing_completed(output_dir):`,
+  `uv run pytest tests/integration/test_experiment_runner.py tests/integration/test_weighted_graph_walk_runner.py -q`
+  exited 0 with `30 passed in 7.28s`.
+- The focused regressions also confirmed a valid current completed aggregate is
+  unchanged when overwrite is absent, and invalid graph seeds preserve an
+  unsupported predecessor aggregate because seed preflight still happens
+  before parsing or clearing.
+- `uv run ruff format --check .` exited 0 with `59 files already formatted`.
+- `uv run ruff check .` exited 0 with `All checks passed!`.
+- `uv run pytest` exited 0 with `152 passed in 13.58s`.
+- The runner-only guard change does not alter graph observations, aggregate
+  semantics, schemas, or report evidence, so the already corrected graph
+  artifact was inspected rather than regenerated: it remains schema `1.1.0`,
+  `deterministic_identity`, `complete`, one completed run, and zero failures.

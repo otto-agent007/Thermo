@@ -469,13 +469,15 @@ def test_runner_rejects_nonzero_graph_seed_before_touching_outputs(
     marker.write_text("keep", encoding="utf-8")
     snapshot = tmp_path / "config.snapshot.toml"
     snapshot.write_text("pre-existing output", encoding="utf-8")
+    predecessor = tmp_path / "aggregate.json"
+    predecessor.write_text('{"schema_version":"1.0.0"}\n', encoding="utf-8")
 
     with pytest.raises(ValueError, match="seed zero"):
         run_experiment(GRAPH_CONFIG, tmp_path, seeds=seeds, overwrite=True)
 
     assert marker.read_text(encoding="utf-8") == "keep"
     assert snapshot.read_text(encoding="utf-8") == "pre-existing output"
-    assert not (tmp_path / "aggregate.json").exists()
+    assert predecessor.read_text(encoding="utf-8") == '{"schema_version":"1.0.0"}\n'
 
 
 def test_runner_rejects_nonzero_graph_seed_without_creating_absent_output(

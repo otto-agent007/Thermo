@@ -69,6 +69,11 @@ report validation can reject missing, extra, or mismatched resolution rows.
 non-empty, unique, and non-negative. CPU is forced by default before importing
 JAX backends; `--allow-accelerator` permits normal JAX device selection. A
 completed output directory is protected unless `--overwrite` is explicit.
+Seed and deterministic-identity preflight runs before inspecting or clearing
+outputs. With `--overwrite`, the runner clears only its known artifacts without
+parsing the prior aggregate, so an unsupported predecessor schema can be
+replaced. Without `--overwrite`, a valid current completed aggregate remains
+protected.
 
 The legacy `thermo-lab smoke` command remains available for the two foundation
 checks.

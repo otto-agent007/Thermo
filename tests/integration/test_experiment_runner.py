@@ -60,13 +60,29 @@ def test_multi_seed_run_emits_deterministic_schemas_and_report(tmp_path: Path) -
 
 def test_completed_output_requires_explicit_overwrite(tmp_path: Path) -> None:
     first = run_experiment(TORX_CONFIG, tmp_path, seeds=(0,))
+    aggregate_path = tmp_path / "aggregate.json"
+    current_aggregate = aggregate_path.read_bytes()
 
     with pytest.raises(FileExistsError, match="--overwrite"):
         run_experiment(TORX_CONFIG, tmp_path, seeds=(1,))
 
+    assert aggregate_path.read_bytes() == current_aggregate
     second = run_experiment(TORX_CONFIG, tmp_path, seeds=(1,), overwrite=True)
     assert second.aggregate_id != first.aggregate_id
     assert not (tmp_path / "runs/seed-0000000000.json").exists()
+
+
+def test_overwrite_replaces_unsupported_predecessor_aggregate_without_parsing(
+    tmp_path: Path,
+) -> None:
+    predecessor = '{"schema_version":"1.0.0","completion_state":"complete"}\n'
+    (tmp_path / "aggregate.json").write_text(predecessor, encoding="utf-8")
+
+    aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(1,), overwrite=True)
+
+    assert aggregate.schema_version == "1.1.0"
+    assert aggregate.seeds == (1,)
+    assert (tmp_path / "aggregate.json").read_text(encoding="utf-8") != predecessor
 
 
 def test_source_config_cannot_be_an_output_artifact(tmp_path: Path) -> None:
