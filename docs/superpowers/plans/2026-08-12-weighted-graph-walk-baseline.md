@@ -854,7 +854,7 @@ git commit -m "feat: execute Torx weighted graph walk sweep"
 - Produces: `_backend(config: ExperimentConfig, repository_root: Path | None) -> ExperimentBackend`.
 - Produces: deterministic seed preflight before output clearing or backend construction.
 
-- [ ] **Step 1: Write failing runner dispatch and seed-preflight tests**
+- [x] **Step 1: Write failing runner dispatch and seed-preflight tests**
 
 Start `tests/integration/test_weighted_graph_walk_runner.py` with:
 
@@ -889,7 +889,7 @@ def test_runner_rejects_nonzero_graph_seed_before_touching_outputs(
     assert not (tmp_path / "aggregate.json").exists()
 ```
 
-- [ ] **Step 2: Run the runner tests and verify generic dispatch is wrong**
+- [x] **Step 2: Run the runner tests and verify generic dispatch is wrong**
 
 Run:
 
@@ -899,7 +899,7 @@ uv run pytest tests/integration/test_weighted_graph_walk_runner.py -q
 
 Expected: the graph run fails because the runner currently selects `TorxStateVectorBackend` from backend ID alone.
 
-- [ ] **Step 3: Dispatch from checked experiment identity**
+- [x] **Step 3: Dispatch from checked experiment identity**
 
 Change `runner._backend` to accept the complete checked config:
 
@@ -922,7 +922,7 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
 
 Call `_backend(config, repository_root)` from `run_experiment`.
 
-- [ ] **Step 4: Add deterministic seed preflight before clearing output**
+- [x] **Step 4: Add deterministic seed preflight before clearing output**
 
 Immediately after generic seed validation and before `_existing_completed` or `_clear_known_outputs`, add:
 
@@ -933,7 +933,7 @@ if config.experiment_id == "torx.weighted_graph_walk.v1" and selected_seeds != (
 
 Keep backend validation as defense in depth. Update monkeypatches in `tests/integration/test_experiment_runner.py` to accept the new `_backend(config, repository_root)` signature, and assert the existing Torx two-gate multi-seed behavior remains valid.
 
-- [ ] **Step 5: Verify runner behavior and failure persistence**
+- [x] **Step 5: Verify runner behavior and failure persistence**
 
 Add a test that copies the graph TOML, changes `finest_final_half_l1_tolerance = 0.003` to `1e-12`, runs it, and asserts `CompletionState.FAILED`, zero completed runs, and a failure message containing `N=128`, `canonical`, observed value, and bound.
 
@@ -945,7 +945,7 @@ uv run pytest tests/integration/test_weighted_graph_walk_runner.py tests/integra
 
 Expected: deterministic graph dispatch, failed acceptance persistence, generic multi-seed behavior, and CLI seed parsing all pass.
 
-- [ ] **Step 6: Commit runner integration**
+- [x] **Step 6: Commit runner integration**
 
 ```bash
 git add src/thermo_lab/runner.py tests/integration/test_weighted_graph_walk_runner.py tests/integration/test_experiment_runner.py
