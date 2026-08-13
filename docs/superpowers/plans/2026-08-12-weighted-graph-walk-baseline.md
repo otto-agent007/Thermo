@@ -965,7 +965,7 @@ git commit -m "feat: route deterministic graph walk runs"
 - Produces: `_weighted_graph_walk_section(record: RunRecord) -> list[str]` and deterministic replication language.
 - Preserves: generic Torx/THRML reports and relative artifact links.
 
-- [ ] **Step 1: Add failing report and CLI assertions**
+- [x] **Step 1: Add failing report and CLI assertions**
 
 Extend `tests/integration/test_weighted_graph_walk_runner.py`:
 
@@ -989,7 +989,7 @@ def test_graph_cli_writes_evidence_safe_deterministic_report(tmp_path: Path) -> 
 
 Also retain the existing assertion that a three-seed Torx smoke report says `3 independent seeded runs`.
 
-- [ ] **Step 2: Run the report test and verify the generic report fails it**
+- [x] **Step 2: Run the report test and verify the generic report fails it**
 
 Run:
 
@@ -999,7 +999,7 @@ uv run pytest tests/integration/test_weighted_graph_walk_runner.py::test_graph_c
 
 Expected: failure because the report has no graph-walk section and calls seed zero an independent seeded run.
 
-- [ ] **Step 3: Render deterministic identity and the resolution table**
+- [x] **Step 3: Render deterministic identity and the resolution table**
 
 In `reporting.py`, select identity text by experiment ID:
 
@@ -1025,7 +1025,7 @@ For a completed graph record, validate `record.metrics["weighted_graph_walk"].va
 
 Append one row per variant in resolution-major, canonical-before-reverse order. Add the five-edge source fixture and canonical edge order from the validated persisted model input. Add exact final occupancy, order-sensitivity rows, acceptance checks, and a checkpoint table with columns `N`, `Order`, `Time`, `A`, `B`, `C`, `D`, `E` from the validated persisted summary. Do not hardcode graph values in the reporter.
 
-- [ ] **Step 4: Correct statistical and evidence prose for this experiment**
+- [x] **Step 4: Correct statistical and evidence prose for this experiment**
 
 For `torx.weighted_graph_walk.v1`, replace the generic Markov-chain/seed prose with:
 
@@ -1043,7 +1043,7 @@ This baseline contains no THRML, Thermalizers, Z1 projection, or physical-hardwa
 
 Do not change generic reports for the existing experiments.
 
-- [ ] **Step 5: Run report, schema, and existing-report regressions**
+- [x] **Step 5: Run report, schema, and existing-report regressions**
 
 Run:
 
@@ -1054,7 +1054,7 @@ uv run ruff check src/thermo_lab/reporting.py tests/integration/test_weighted_gr
 
 Expected: graph and generic reports pass; persisted records and aggregate schemas still round trip.
 
-- [ ] **Step 6: Commit reporting**
+- [x] **Step 6: Commit reporting**
 
 ```bash
 git add src/thermo_lab/reporting.py tests/integration/test_weighted_graph_walk_runner.py
