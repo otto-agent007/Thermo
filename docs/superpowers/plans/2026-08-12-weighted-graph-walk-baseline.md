@@ -107,9 +107,7 @@ def valid_model() -> dict[str, object]:
             {"source": "B", "target": "D", "weight": 0.15},
             {"source": "C", "target": "E", "weight": 0.10},
         ],
-        "canonical_edge_order": [
-            ["A", "C"], ["B", "C"], ["A", "B"], ["B", "D"], ["C", "E"]
-        ],
+        "canonical_edge_order": [["A", "C"], ["B", "C"], ["A", "B"], ["B", "D"], ["C", "E"]],
         "initial_occupancy": [1.0, 0.0, 0.0, 0.0, 0.0],
         "numeric_dtype": "float32",
     }
@@ -147,8 +145,16 @@ def test_checked_graph_request_is_valid() -> None:
     ("mutation", "message"),
     [
         (lambda value: value["nodes"].append("A"), "unique"),
-        (lambda value: value["edges"].append({"source": "A", "target": "A", "weight": 0.1}), "self-loop"),
-        (lambda value: value["edges"].__setitem__(0, {"source": "A", "target": "B", "weight": 0.0}), "positive"),
+        (
+            lambda value: value["edges"].append({"source": "A", "target": "A", "weight": 0.1}),
+            "self-loop",
+        ),
+        (
+            lambda value: value["edges"].__setitem__(
+                0, {"source": "A", "target": "B", "weight": 0.0}
+            ),
+            "positive",
+        ),
         (lambda value: value.__setitem__("canonical_edge_order", [["A", "B"]]), "permutation"),
     ],
 )
@@ -496,9 +502,7 @@ def exact_occupancies(
     generator = build_generator(model)
     eigenvalues, eigenvectors = np.linalg.eigh(generator)
     initial_modes = eigenvectors.T @ np.asarray(model.initial_occupancy, dtype=np.float64)
-    return np.stack(
-        [eigenvectors @ (np.exp(eigenvalues * time) * initial_modes) for time in times]
-    )
+    return np.stack([eigenvectors @ (np.exp(eigenvalues * time) * initial_modes) for time in times])
 
 
 def euler_occupancies(
@@ -508,9 +512,7 @@ def euler_occupancies(
     edge_order: Sequence[Sequence[str]],
 ) -> NDArray[np.float64]:
     node_index = {label: index for index, label in enumerate(model.nodes)}
-    edge_weights = {
-        frozenset((edge.source, edge.target)): edge.weight for edge in model.edges
-    }
+    edge_weights = {frozenset((edge.source, edge.target)): edge.weight for edge in model.edges}
     state = np.asarray(model.initial_occupancy, dtype=np.float64)
     trajectory = np.empty((resolution + 1, len(model.nodes)), dtype=np.float64)
     trajectory[0] = state
@@ -534,15 +536,12 @@ def validate_exact_trajectory(
 ) -> None:
     symmetry_error = float(np.max(np.abs(generator - generator.T)))
     if symmetry_error > tolerance:
-        raise RuntimeError(
-            f"Exact generator symmetry error {symmetry_error} exceeded {tolerance}"
-        )
+        raise RuntimeError(f"Exact generator symmetry error {symmetry_error} exceeded {tolerance}")
     row_sum_error = float(np.max(np.abs(generator.sum(axis=1))))
     column_sum_error = float(np.max(np.abs(generator.sum(axis=0))))
     if max(row_sum_error, column_sum_error) > tolerance:
         raise RuntimeError(
-            "Exact generator sum error "
-            f"{max(row_sum_error, column_sum_error)} exceeded {tolerance}"
+            f"Exact generator sum error {max(row_sum_error, column_sum_error)} exceeded {tolerance}"
         )
     off_diagonal = generator[~np.eye(generator.shape[0], dtype=bool)]
     minimum_rate = float(off_diagonal.min())
@@ -557,9 +556,7 @@ def validate_exact_trajectory(
         )
     minimum_probability = float(occupancies.min())
     if minimum_probability < -tolerance:
-        raise RuntimeError(
-            f"Exact minimum probability {minimum_probability} is below {-tolerance}"
-        )
+        raise RuntimeError(f"Exact minimum probability {minimum_probability} is below {-tolerance}")
 ```
 
 Never call Torx or SciPy from this production module.
@@ -634,6 +631,7 @@ def test_summary_round_trips_as_bounded_json() -> None:
     summary = WeightedGraphWalkSummary(
         source_reference="https://arxiv.org/pdf/2608.01612v1#page=10",
         node_labels=("A", "B", "C", "D", "E"),
+        declared_resolutions=(128,),
         checkpoint_times=(0.0, 10.0),
         exact_final_occupancy=(0.2,) * 5,
         variants=(variant(), variant("reverse")),
@@ -689,6 +687,7 @@ class GraphWalkAcceptance(FrozenModel):
 class WeightedGraphWalkSummary(FrozenModel):
     source_reference: str
     node_labels: tuple[str, ...]
+    declared_resolutions: tuple[StrictInt, ...]
     checkpoint_times: tuple[float, ...]
     exact_final_occupancy: tuple[float, ...]
     variants: tuple[GraphWalkVariantResult, ...]
@@ -714,15 +713,12 @@ from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
 def test_weighted_graph_backend_passes_declared_sweep() -> None:
     execution = TorxWeightedGraphWalkBackend().execute(weighted_graph_walk_spec())
     record = execution.record
-    summary = WeightedGraphWalkSummary.model_validate(
-        record.metrics["weighted_graph_walk"].value
-    )
+    summary = WeightedGraphWalkSummary.model_validate(record.metrics["weighted_graph_walk"].value)
     assert record.evidence_class is EvidenceClass.EXACT_REFERENCE
     assert summary.acceptance.passed
     assert len(summary.variants) == 12
     finest = next(
-        item for item in summary.variants
-        if item.resolution == 128 and item.order == "canonical"
+        item for item in summary.variants if item.resolution == 128 and item.order == "canonical"
     )
     assert finest.final_half_l1 <= 0.003
     assert finest.max_trajectory_half_l1 <= 0.006
@@ -1077,7 +1073,7 @@ git commit -m "feat: report graph walk convergence evidence"
 - Produces: contributor-facing commands, roadmap state, and a CPU CI execution gate.
 - Preserves: every existing required local gate.
 
-- [ ] **Step 1: Document the checked baseline command and semantics**
+- [x] **Step 1: Document the checked baseline command and semantics**
 
 Add this command to `README.md` and `docs/experiment-runner.md`:
 
@@ -1089,7 +1085,7 @@ uv run thermo-lab run \
 
 State that it evaluates exact CTMC semantics and deterministic Torx Euler-PSWAP state vectors, that seed zero is an identity field rather than a replication, and that its timings are local `software_simulation` evidence. Link the committed design spec and the Torx paper source.
 
-- [ ] **Step 2: Update the roadmap without claiming all of Phase 2**
+- [x] **Step 2: Update the roadmap without claiming all of Phase 2**
 
 Under Phase 2, add checkboxes with exactly this scope:
 
@@ -1102,7 +1098,7 @@ Under Phase 2, add checkboxes with exactly this scope:
 
 Do not mark the Phase 2 heading complete.
 
-- [ ] **Step 3: Add the new release gate locally and in CI**
+- [x] **Step 3: Add the new release gate locally and in CI**
 
 Append to `AGENTS.md` required local gates:
 
@@ -1120,7 +1116,7 @@ Add a CI step after the cross-library smoke:
     --output-dir "${RUNNER_TEMP}/weighted-graph-walk"
 ```
 
-- [ ] **Step 4: Run formatting and static checks**
+- [x] **Step 4: Run formatting and static checks**
 
 Run:
 
@@ -1131,7 +1127,7 @@ uv run ruff check .
 
 Expected: both commands exit zero. If formatting fails, run `uv run ruff format .`, inspect the formatting-only diff, then rerun both checks.
 
-- [ ] **Step 5: Run all unit and integration tests**
+- [x] **Step 5: Run all unit and integration tests**
 
 Run:
 
@@ -1141,7 +1137,7 @@ uv run pytest
 
 Expected: the complete suite passes on CPU, including existing THRML upstream contracts, existing smoke backends, the exact fixture, all 12 graph variants, runner failure behavior, and report rendering.
 
-- [ ] **Step 6: Run every required local experiment gate**
+- [x] **Step 6: Run every required local experiment gate**
 
 Run sequentially and stop at the first failure:
 
@@ -1157,7 +1153,7 @@ uv build
 
 Expected: all commands exit zero; generated results remain ignored; the graph report says `complete` and contains no hardware claim.
 
-- [ ] **Step 7: Inspect release evidence and repository scope**
+- [x] **Step 7: Inspect release evidence and repository scope**
 
 Run:
 
@@ -1170,14 +1166,14 @@ rg -n "physical_hardware|calibrated_projection|THRML|Thermalizers|independent re
 
 Expected: only intentional source/docs/test changes are tracked; no generated result is staged; no whitespace errors; the report uses those terms only in explicit evidence boundaries and never labels the graph run as hardware, projection, THRML, or independent replications.
 
-- [ ] **Step 8: Commit documentation and release gates**
+- [x] **Step 8: Commit documentation and release gates**
 
 ```bash
 git add README.md docs/experiment-runner.md docs/roadmap.md AGENTS.md .github/workflows/ci.yml
 git commit -m "docs: publish weighted graph walk workflow"
 ```
 
-- [ ] **Step 9: Record final verification evidence in the plan**
+- [x] **Step 9: Record final verification evidence in the plan**
 
 Update each completed checkbox in this plan, then append a short `## Verification Evidence` section containing the exact command list, exit status, pytest summary, graph-run completion state, and final `git status --short` output. Commit only the updated plan:
 
@@ -1185,3 +1181,39 @@ Update each completed checkbox in this plan, then append a short `## Verificatio
 git add docs/superpowers/plans/2026-08-12-weighted-graph-walk-baseline.md
 git commit -m "docs: record graph walk implementation verification"
 ```
+
+## Verification Evidence
+
+- `uv run ruff format --check .` — initially exited 1 and identified only this
+  plan plus the two newly edited Python files; after `uv run ruff format .`
+  exited 0, the required rerun exited 0 with `59 files already formatted`.
+- `uv run ruff check .` — exited 0 with `All checks passed!`.
+- `uv run pytest` — exited 0 with `151 passed in 13.86s` on CPU.
+- `uv sync --frozen` — exited 0 (`Checked 24 packages`).
+- `uv lock --check --offline` — exited 0 (`Resolved 25 packages`).
+- `uv run thermo-lab smoke --output-dir results/smoke` — exited 0 with
+  `status: passed`.
+- `uv run thermo-lab run configs/experiments/torx-two-gate.toml --seeds 0,1,2 --output-dir results/torx-run`
+  — exited 0 with three completed runs and zero failures.
+- `uv run thermo-lab run configs/experiments/thrml-ising-chain.toml --seeds 7,8,9,10 --output-dir results/thrml-run`
+  — exited 0 with four completed runs and zero failures.
+- `uv run thermo-lab run configs/experiments/torx-weighted-graph-walk.toml --output-dir results/weighted-graph-walk`
+  — exited 0 with completion state `complete`, one completed deterministic
+  execution, zero failures, and all acceptance checks passed.
+- `uv build` — exited 0 and built both the source distribution and wheel.
+- `git status --short` — exited 0 and showed only the ten intentional Task 6
+  source, test, documentation, CI, and plan edits before commits; ignored result
+  and build artifacts were absent from the output.
+- `git diff --check` — exited 0 with no whitespace errors.
+- `git diff --stat origin/main...HEAD` — exited 0 and showed only the planned
+  weighted graph-walk implementation scope.
+- `rg -n "physical_hardware|calibrated_projection|THRML|Thermalizers|independent replications" results/weighted-graph-walk/report.md`
+  — exited 0 with only the explicit no-THRML/Thermalizers/hardware boundary and
+  the statement that resolution/order variants are not independent replications.
+- Persisted artifact inspection found `aggregate.json`, `config.snapshot.toml`,
+  `report.md`, one seed-zero run record, and both generated schemas. The
+  aggregate and report say `complete`; graph observations are
+  `exact_reference`, timing aggregates are `software_simulation`, and no
+  hardware or calibrated-projection claim is made.
+- Final `git status --short` output after the verification commit:
+  empty (worktree clean).
