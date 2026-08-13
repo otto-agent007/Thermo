@@ -7,11 +7,14 @@ from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
 
 
 def test_weighted_graph_backend_passes_declared_sweep() -> None:
-    execution = TorxWeightedGraphWalkBackend().execute(weighted_graph_walk_spec())
+    spec = weighted_graph_walk_spec()
+    execution = TorxWeightedGraphWalkBackend().execute(spec)
     record = execution.record
     summary = WeightedGraphWalkSummary.model_validate(record.metrics["weighted_graph_walk"].value)
     assert record.evidence_class is EvidenceClass.EXACT_REFERENCE
     assert summary.acceptance.passed
+    assert summary.declared_resolutions == tuple(spec.run_parameters["resolutions"])
+    assert summary.checkpoint_times == tuple(spec.run_parameters["checkpoint_times"])
     assert len(summary.variants) == 12
     finest = next(
         item for item in summary.variants if item.resolution == 128 and item.order == "canonical"

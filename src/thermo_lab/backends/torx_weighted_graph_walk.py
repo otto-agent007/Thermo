@@ -267,6 +267,7 @@ class TorxWeightedGraphWalkBackend:
         summary = WeightedGraphWalkSummary(
             source_reference=TORX_GRAPH_WALK_SOURCE,
             node_labels=tuple(model.nodes),
+            declared_resolutions=tuple(run.resolutions),
             checkpoint_times=tuple(run.checkpoint_times),
             exact_final_occupancy=tuple(float(value) for value in exact_final),
             variants=tuple(variant_results),

@@ -9,9 +9,9 @@ from thermo_lab.graph_walk_results import (
 )
 
 
-def variant(order: str = "canonical") -> GraphWalkVariantResult:
+def variant(resolution: int = 128, order: str = "canonical") -> GraphWalkVariantResult:
     return GraphWalkVariantResult(
-        resolution=128,
+        resolution=resolution,
         order=order,
         final_occupancy=(0.2, 0.2, 0.2, 0.2, 0.2),
         checkpoint_occupancies=((1.0, 0.0, 0.0, 0.0, 0.0), (0.2,) * 5),
@@ -24,14 +24,25 @@ def variant(order: str = "canonical") -> GraphWalkVariantResult:
     )
 
 
-def test_summary_round_trips_as_bounded_json() -> None:
-    summary = WeightedGraphWalkSummary(
+def summary() -> WeightedGraphWalkSummary:
+    return WeightedGraphWalkSummary(
         source_reference="https://arxiv.org/pdf/2608.01612v1#page=10",
         node_labels=("A", "B", "C", "D", "E"),
+        declared_resolutions=(64, 128),
         checkpoint_times=(0.0, 10.0),
         exact_final_occupancy=(0.2,) * 5,
-        variants=(variant(), variant("reverse")),
+        variants=(
+            variant(64),
+            variant(64, "reverse"),
+            variant(),
+            variant(order="reverse"),
+        ),
         order_sensitivity=(
+            GraphWalkOrderSensitivity(
+                resolution=64,
+                final_half_l1=0.002,
+                max_trajectory_half_l1=0.003,
+            ),
             GraphWalkOrderSensitivity(
                 resolution=128,
                 final_half_l1=0.001,
@@ -40,8 +51,47 @@ def test_summary_round_trips_as_bounded_json() -> None:
         ),
         acceptance=GraphWalkAcceptance(passed=True, checks=("all checks passed",)),
     )
-    assert WeightedGraphWalkSummary.model_validate_json(summary.model_dump_json()) == summary
-    assert "per_layer" not in summary.model_dump_json()
+
+
+def test_summary_round_trips_as_bounded_json() -> None:
+    result = summary()
+    assert WeightedGraphWalkSummary.model_validate_json(result.model_dump_json()) == result
+    assert "per_layer" not in result.model_dump_json()
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    (
+        "node_labels",
+        "declared_resolutions",
+        "checkpoint_times",
+        "exact_final_occupancy",
+        "variants",
+        "order_sensitivity",
+    ),
+)
+def test_summary_rejects_empty_structural_fields(field_name: str) -> None:
+    payload = summary().model_dump(mode="python")
+    payload[field_name] = ()
+    with pytest.raises(ValidationError, match=f"{field_name} must not be empty"):
+        WeightedGraphWalkSummary.model_validate(payload)
+
+
+def test_summary_rejects_jointly_omitted_declared_resolution() -> None:
+    payload = summary().model_dump(mode="python")
+    payload["variants"] = tuple(item for item in payload["variants"] if item["resolution"] != 64)
+    payload["order_sensitivity"] = tuple(
+        item for item in payload["order_sensitivity"] if item["resolution"] != 64
+    )
+    with pytest.raises(ValidationError, match="declared resolutions"):
+        WeightedGraphWalkSummary.model_validate(payload)
+
+
+def test_summary_rejects_empty_acceptance_checks() -> None:
+    payload = summary().model_dump(mode="python")
+    payload["acceptance"]["checks"] = ()
+    with pytest.raises(ValidationError, match="acceptance checks must not be empty"):
+        WeightedGraphWalkSummary.model_validate(payload)
 
 
 def test_variant_rejects_negative_distance() -> None:
