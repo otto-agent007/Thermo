@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from thermo_lab.aggregate import CompletionState
+from thermo_lab.cli import main
 from thermo_lab.runner import run_experiment
 
 ROOT = Path(__file__).parents[2]
@@ -15,6 +16,21 @@ def test_runner_dispatches_weighted_graph_backend(tmp_path: Path) -> None:
     assert aggregate.completion_state is CompletionState.COMPLETE
     assert aggregate.seeds == (0,)
     assert aggregate.run_record_paths == ("runs/seed-0000000000.json",)
+
+
+def test_graph_cli_writes_evidence_safe_deterministic_report(tmp_path: Path) -> None:
+    result = main(["run", str(GRAPH_CONFIG), "--output-dir", str(tmp_path)])
+
+    assert result == 0
+    report = (tmp_path / "report.md").read_text(encoding="utf-8")
+    assert "## Weighted graph-walk convergence" in report
+    assert "Resolution/order variants are not independent replications" in report
+    assert "| 128 | `canonical` |" in report
+    assert "A–B" in report and "0.30" in report
+    assert "https://arxiv.org/pdf/2608.01612v1#page=10" in report
+    assert "no THRML, Thermalizers, Z1 projection, or physical-hardware evidence" in report
+    assert (tmp_path / "schemas/run-record.schema.json").exists()
+    assert (tmp_path / "schemas/aggregate-record.schema.json").exists()
 
 
 @pytest.mark.parametrize("seeds", [(1,), (0, 1)])
