@@ -1,0 +1,50 @@
+schema_version = "1.0.0"
+experiment_id = "torx.weighted_graph_walk.v1"
+backend = "torx_statevector"
+seed = 0
+sample_definition = "One deterministic family of complete Torx state-vector trajectories over declared Trotter resolutions and edge orders; variants and program depths are not independent samples or replications."
+
+[model]
+source_reference = "https://arxiv.org/pdf/2608.01612v1#page=10"
+nodes = ["A", "B", "C", "D", "E"]
+canonical_edge_order = [["A", "C"], ["B", "C"], ["A", "B"], ["B", "D"], ["C", "E"]]
+initial_occupancy = [1.0, 0.0, 0.0, 0.0, 0.0]
+numeric_dtype = "float32"
+
+[[model.edges]]
+source = "A"
+target = "B"
+weight = 0.30
+
+[[model.edges]]
+source = "A"
+target = "C"
+weight = 0.20
+
+[[model.edges]]
+source = "B"
+target = "C"
+weight = 0.10
+
+[[model.edges]]
+source = "B"
+target = "D"
+weight = 0.15
+
+[[model.edges]]
+source = "C"
+target = "E"
+weight = 0.10
+
+[run]
+final_time = 10.0
+resolutions = [4, 8, 16, 32, 64, 128]
+checkpoint_times = [0.0, 2.5, 5.0, 7.5, 10.0]
+expected_exact_final_occupancy = [0.235791407046705, 0.225498386178227, 0.217953975322491, 0.183734148661745, 0.137022082790832]
+exact_invariant_tolerance = 1e-12
+torx_normalization_tolerance = 1e-6
+torx_minimum_probability_floor = -1e-7
+one_particle_leakage_tolerance = 1e-6
+finest_final_half_l1_tolerance = 0.003
+finest_max_trajectory_half_l1_tolerance = 0.006
+numpy_euler_tolerance = 2e-6

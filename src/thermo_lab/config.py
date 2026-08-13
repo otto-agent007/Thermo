@@ -19,6 +19,9 @@ from thermo_lab.schemas import (
     ThrmlRunConfig,
     TorxModelConfig,
     TorxRunConfig,
+    WeightedGraphModelConfig,
+    WeightedGraphRunConfig,
+    validate_weighted_graph_request,
 )
 
 CONFIG_SCHEMA_VERSION = "1.0.0"
@@ -26,6 +29,7 @@ SupportedBackend = Literal[BackendId.TORX_STATEVECTOR, BackendId.THRML_LOCAL]
 
 _EXPERIMENT_BACKENDS = {
     "torx.two_gate_statevector.v1": BackendId.TORX_STATEVECTOR,
+    "torx.weighted_graph_walk.v1": BackendId.TORX_STATEVECTOR,
     "thrml.ising_chain_exact_validation.v1": BackendId.THRML_LOCAL,
 }
 
@@ -84,7 +88,11 @@ class ExperimentConfig(FrozenModel):
             )
         model = to_json_value(self.model_parameters)
         run = to_json_value(self.run_parameters)
-        if self.backend is BackendId.TORX_STATEVECTOR:
+        if self.experiment_id == "torx.weighted_graph_walk.v1":
+            graph_model = WeightedGraphModelConfig.model_validate(model)
+            graph_run = WeightedGraphRunConfig.model_validate(run)
+            validate_weighted_graph_request(graph_model, graph_run, self.seed)
+        elif self.backend is BackendId.TORX_STATEVECTOR:
             TorxModelConfig.model_validate(model)
             TorxRunConfig.model_validate(run)
         else:
