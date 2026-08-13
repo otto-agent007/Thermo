@@ -56,6 +56,12 @@ def validate_exact_trajectory(
     occupancies: NDArray[np.float64],
     tolerance: float,
 ) -> None:
+    if not np.isfinite(tolerance) or tolerance < 0.0:
+        raise ValueError("tolerance must be finite and nonnegative")
+    if not np.all(np.isfinite(generator)):
+        raise ValueError("generator must contain only finite values")
+    if not np.all(np.isfinite(occupancies)):
+        raise ValueError("occupancies must contain only finite values")
     symmetry_error = float(np.max(np.abs(generator - generator.T)))
     if symmetry_error > tolerance:
         raise RuntimeError(f"Exact generator symmetry error {symmetry_error} exceeded {tolerance}")

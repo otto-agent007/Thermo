@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from scipy.linalg import expm
 
 from thermo_lab.exact.weighted_graph import (
@@ -67,3 +68,39 @@ def test_euler_error_decreases_at_fine_resolutions() -> None:
         errors.append(float(np.max(0.5 * np.abs(approximate - exact).sum(axis=1))))
     assert errors[0] > errors[1] > errors[2]
     assert errors[-1] <= run.finest_max_trajectory_half_l1_tolerance
+
+
+@pytest.mark.parametrize("invalid_value", [np.nan, np.inf])
+def test_validate_exact_trajectory_rejects_nonfinite_generator(
+    invalid_value: float,
+) -> None:
+    model, run = checked_inputs()
+    generator = build_generator(model)
+    generator[0, 1] = invalid_value
+    occupancies = exact_occupancies(model, np.array([0.0, run.final_time]))
+
+    with pytest.raises(ValueError, match="generator must contain only finite values"):
+        validate_exact_trajectory(generator, occupancies, run.exact_invariant_tolerance)
+
+
+@pytest.mark.parametrize("invalid_value", [np.nan, np.inf])
+def test_validate_exact_trajectory_rejects_nonfinite_occupancies(
+    invalid_value: float,
+) -> None:
+    model, run = checked_inputs()
+    generator = build_generator(model)
+    occupancies = exact_occupancies(model, np.array([0.0, run.final_time]))
+    occupancies[1, 0] = invalid_value
+
+    with pytest.raises(ValueError, match="occupancies must contain only finite values"):
+        validate_exact_trajectory(generator, occupancies, run.exact_invariant_tolerance)
+
+
+@pytest.mark.parametrize("tolerance", [np.nan, np.inf, -1e-12])
+def test_validate_exact_trajectory_rejects_invalid_tolerance(tolerance: float) -> None:
+    model, run = checked_inputs()
+    generator = build_generator(model)
+    occupancies = exact_occupancies(model, np.array([0.0, run.final_time]))
+
+    with pytest.raises(ValueError, match="tolerance must be finite and nonnegative"):
+        validate_exact_trajectory(generator, occupancies, tolerance)
