@@ -362,7 +362,7 @@ git commit -m "feat: define weighted graph walk inputs"
 - Produces: `euler_occupancies(model, final_time, resolution, edge_order) -> NDArray[np.float64]` with shape `(resolution + 1, len(nodes))`.
 - Produces: `validate_exact_trajectory(generator, occupancies, tolerance) -> None`.
 
-- [ ] **Step 1: Declare SciPy as the independent development oracle**
+- [x] **Step 1: Declare SciPy as the independent development oracle**
 
 Add the already locked version range to `[dependency-groups].dev`:
 
@@ -379,7 +379,7 @@ uv lock --check --offline
 
 Expected: `scipy==1.17.1` remains locked; `thermo-lab` gains a direct dev requirement without unrelated upgrades.
 
-- [ ] **Step 2: Write failing exact-reference tests**
+- [x] **Step 2: Write failing exact-reference tests**
 
 Create `tests/unit/test_weighted_graph_exact.py`:
 
@@ -455,7 +455,7 @@ def test_euler_error_decreases_at_fine_resolutions() -> None:
     assert errors[-1] <= run.finest_max_trajectory_half_l1_tolerance
 ```
 
-- [ ] **Step 3: Run the reference tests and verify they fail**
+- [x] **Step 3: Run the reference tests and verify they fail**
 
 Run:
 
@@ -465,7 +465,7 @@ uv run pytest tests/unit/test_weighted_graph_exact.py -q
 
 Expected: collection fails because `thermo_lab.exact.weighted_graph` does not exist.
 
-- [ ] **Step 4: Implement the Torx-free reference functions**
+- [x] **Step 4: Implement the Torx-free reference functions**
 
 Create `src/thermo_lab/exact/weighted_graph.py` with these algorithms and signatures:
 
@@ -564,7 +564,7 @@ def validate_exact_trajectory(
 
 Never call Torx or SciPy from this production module.
 
-- [ ] **Step 5: Export and run the focused tests**
+- [x] **Step 5: Export and run the focused tests**
 
 Export the four functions from `src/thermo_lab/exact/__init__.py`, then run:
 
@@ -575,7 +575,7 @@ uv run ruff check src/thermo_lab/exact tests/unit/test_weighted_graph_exact.py
 
 Expected: all exact-reference tests pass; the existing Ising enumerator is unchanged.
 
-- [ ] **Step 6: Commit the independent references**
+- [x] **Step 6: Commit the independent references**
 
 ```bash
 git add pyproject.toml uv.lock src/thermo_lab/exact tests/unit/test_weighted_graph_exact.py
