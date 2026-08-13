@@ -90,7 +90,7 @@ def test_failed_seed_persists_partial_not_complete_aggregate(
             return real_backend.execute(spec)
 
     monkeypatch.setattr(
-        "thermo_lab.runner._backend", lambda backend_id, repository_root: FailingSeedBackend()
+        "thermo_lab.runner._backend", lambda config, repository_root: FailingSeedBackend()
     )
 
     aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(0, 1, 2))
