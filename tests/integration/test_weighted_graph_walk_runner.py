@@ -134,7 +134,19 @@ def test_persisted_graph_report_renders_complete_deterministic_evidence(
     assert [row[0] for row in exact_rows] == list(summary.node_labels)
     assert [float(row[1]) for row in exact_rows] == pytest.approx(summary.exact_final_occupancy)
 
-    _, variant_rows = _table(report, "### Resolution variants", "### Edge-order sensitivity")
+    variant_header, variant_rows = _table(
+        report, "### Resolution variants", "### Edge-order sensitivity"
+    )
+    assert variant_header == [
+        "N",
+        "Order",
+        "Final half-L1",
+        "Max trajectory half-L1",
+        "Final max abs.",
+        "Max leakage",
+        "Max normalization error",
+        "Min probability",
+    ]
     assert len(variant_rows) == 12
     expected_variants = sorted(
         summary.variants,
@@ -143,6 +155,19 @@ def test_persisted_graph_report_renders_complete_deterministic_evidence(
     assert [(int(row[0]), row[1]) for row in variant_rows] == [
         (variant.resolution, f"`{variant.order}`") for variant in expected_variants
     ]
+    expected_variant_metrics = [
+        (
+            variant.final_half_l1,
+            variant.max_trajectory_half_l1,
+            variant.final_max_abs_error,
+            variant.max_one_particle_leakage,
+            variant.max_normalization_error,
+            variant.minimum_state_probability,
+        )
+        for variant in expected_variants
+    ]
+    for row, expected in zip(variant_rows, expected_variant_metrics, strict=True):
+        assert [float(value) for value in row[2:]] == pytest.approx(expected)
 
     sensitivity_header, sensitivity_rows = _table(
         report, "### Edge-order sensitivity", "### Acceptance checks"
@@ -201,12 +226,31 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
             edge[0] = "V"
         if edge[1] == "A":
             edge[1] = "V"
+    model["canonical_edge_order"] = [
+        model["canonical_edge_order"][3],
+        model["canonical_edge_order"][2],
+        model["canonical_edge_order"][4],
+        model["canonical_edge_order"][0],
+        model["canonical_edge_order"][1],
+    ]
     edge = next(item for item in model["edges"] if item["source"] == "V" and item["target"] == "B")
     edge["weight"] = 0.31
     summary = record_payload["metrics"]["weighted_graph_walk"]["value"]
     summary["node_labels"][0] = "V"
     summary["exact_final_occupancy"][0] = 0.2357915
     summary["acceptance"]["checks"] = ["persisted acceptance mutation"]
+    summary["variants"][0].update(
+        final_half_l1=0.11111111,
+        max_trajectory_half_l1=0.22222222,
+        final_max_abs_error=0.33333333,
+        max_one_particle_leakage=0.44444444,
+        max_normalization_error=0.55555555,
+        minimum_state_probability=-0.66666666,
+    )
+    summary["order_sensitivity"][0].update(
+        final_half_l1=0.77777777,
+        max_trajectory_half_l1=0.88888888,
+    )
     summary["variants"][0]["checkpoint_occupancies"][1][0] = 0.9876543
     record_payload["spec"]["run_config"]["expected_exact_final_occupancy"][0] = 0.2357915
     _synchronize_request_hashes(record_payload)
@@ -216,7 +260,13 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
     report = render_report(changed_aggregate, (changed_record,))
 
     assert "| V–B | 0.31 |" in report
+    assert "- Canonical edge order: `B-D, V-B, C-E, V-C, B-C`" in report
     assert "| V | 0.2357915 |" in report
+    assert (
+        "| 4 | `canonical` | 0.11111111 | 0.22222222 | 0.33333333 | 0.44444444 | "
+        "0.55555555 | -0.66666666 |"
+    ) in report
+    assert "| 4 | 0.77777777 | 0.88888888 |" in report
     assert "- persisted acceptance mutation" in report
     assert "| 4 | `canonical` | 2.5 | 0.9876543 |" in report
 
