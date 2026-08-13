@@ -217,6 +217,8 @@ class WeightedGraphModelConfig(StrictSchema):
 
         if len(self.initial_occupancy) != len(self.nodes):
             raise ValueError("initial_occupancy length must match the number of nodes")
+        if any(not math.isfinite(value) or value < 0.0 for value in self.initial_occupancy):
+            raise ValueError("initial_occupancy must contain finite nonnegative probabilities")
         if not math.isclose(sum(self.initial_occupancy), 1.0, rel_tol=0.0, abs_tol=1e-12):
             raise ValueError("initial_occupancy must sum to one within 1e-12")
 

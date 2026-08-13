@@ -13,6 +13,7 @@ def test_weighted_graph_backend_passes_declared_sweep() -> None:
     record = execution.record
     summary = WeightedGraphWalkSummary.model_validate(record.metrics["weighted_graph_walk"].value)
     assert record.evidence_class is EvidenceClass.EXACT_REFERENCE
+    assert record.schema_version == "1.1.0"
     assert summary.acceptance.passed
     assert summary.declared_resolutions == tuple(spec.run_parameters["resolutions"])
     assert summary.checkpoint_times == tuple(spec.run_parameters["checkpoint_times"])
@@ -38,6 +39,9 @@ def test_weighted_graph_backend_passes_declared_sweep() -> None:
         assert metric.source == TORX_GRAPH_WALK_SOURCE
         assert metric.method
     assert record.timing.synchronized
+    assert record.timing.evidence_class is EvidenceClass.SOFTWARE_SIMULATION
+    assert record.timing.unit == "seconds"
+    assert record.timing.source == "Python time.perf_counter"
     assert record.timing.compile_seconds >= 0.0
     assert record.timing.execution_seconds >= 0.0
     assert "12 deterministic variants" in record.timing.timing_method

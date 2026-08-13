@@ -76,13 +76,23 @@ def test_overwrite_replaces_unsupported_predecessor_aggregate_without_parsing(
     tmp_path: Path,
 ) -> None:
     predecessor = '{"schema_version":"1.0.0","completion_state":"complete"}\n'
+    predecessor_run = '{"schema_version":"1.0.0","timing":{}}\n'
     (tmp_path / "aggregate.json").write_text(predecessor, encoding="utf-8")
+    old_run = tmp_path / "runs/seed-0000000000.json"
+    old_run.parent.mkdir()
+    old_run.write_text(predecessor_run, encoding="utf-8")
 
     aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(1,), overwrite=True)
 
     assert aggregate.schema_version == "1.1.0"
     assert aggregate.seeds == (1,)
     assert (tmp_path / "aggregate.json").read_text(encoding="utf-8") != predecessor
+    assert not old_run.exists()
+    replacement_run = json.loads(
+        (tmp_path / "runs/seed-0000000001.json").read_text(encoding="utf-8")
+    )
+    assert replacement_run["schema_version"] == "1.1.0"
+    assert replacement_run["timing"]["evidence_class"] == "software_simulation"
 
 
 def test_source_config_cannot_be_an_output_artifact(tmp_path: Path) -> None:

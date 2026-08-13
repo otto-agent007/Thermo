@@ -56,6 +56,15 @@ def test_checked_graph_request_is_valid() -> None:
     validate_weighted_graph_request(model, run, seed=0)
 
 
+def test_graph_model_accepts_a_normalized_occupancy_mixture() -> None:
+    payload = valid_model()
+    payload["initial_occupancy"] = [0.5, 0.25, 0.125, 0.075, 0.05]
+
+    model = WeightedGraphModelConfig.model_validate(payload)
+
+    assert model.initial_occupancy == [0.5, 0.25, 0.125, 0.075, 0.05]
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
@@ -77,6 +86,24 @@ def test_graph_model_rejects_invalid_structure(mutation, message: str) -> None:
     payload = deepcopy(valid_model())
     mutation(payload)
     with pytest.raises(ValidationError, match=message):
+        WeightedGraphModelConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "initial_occupancy",
+    (
+        [1.1, -0.1, 0.0, 0.0, 0.0],
+        [float("nan"), 1.0, 0.0, 0.0, 0.0],
+        [float("inf"), 0.0, 0.0, 0.0, 0.0],
+    ),
+)
+def test_graph_model_rejects_negative_or_nonfinite_initial_occupancy(
+    initial_occupancy: list[float],
+) -> None:
+    payload = valid_model()
+    payload["initial_occupancy"] = initial_occupancy
+
+    with pytest.raises(ValidationError):
         WeightedGraphModelConfig.model_validate(payload)
 
 

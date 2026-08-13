@@ -16,6 +16,7 @@ from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.provenance import collect_runtime_provenance
 from thermo_lab.records import (
+    RUN_TIMING_SOURCE,
     ExperimentSpec,
     MetricObservation,
     RunRecord,
@@ -149,6 +150,9 @@ class TorxStateVectorBackend:
             spec=spec,
             provenance=collect_runtime_provenance(self.repository_root),
             timing=RunTiming(
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                unit="seconds",
+                source=RUN_TIMING_SOURCE,
                 compile_seconds=compile_seconds,
                 execution_seconds=execution_seconds,
                 synchronized=True,

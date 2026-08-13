@@ -99,3 +99,42 @@ def test_variant_rejects_negative_distance() -> None:
     payload["final_half_l1"] = -0.1
     with pytest.raises(ValidationError, match="greater than or equal to 0"):
         GraphWalkVariantResult.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        lambda payload: payload["checkpoint_times"].__setitem__(0, "0.0"),
+        lambda payload: payload["exact_final_occupancy"].__setitem__(0, True),
+        lambda payload: payload["variants"][0].__setitem__("final_half_l1", "0.002"),
+        lambda payload: payload["variants"][0]["final_occupancy"].__setitem__(0, False),
+        lambda payload: payload["variants"][0]["checkpoint_occupancies"][0].__setitem__(0, "1.0"),
+        lambda payload: payload["order_sensitivity"][0].__setitem__(
+            "max_trajectory_half_l1", "0.003"
+        ),
+    ),
+)
+def test_summary_rejects_coerced_observed_numbers(mutation) -> None:
+    payload = summary().model_dump(mode="json")
+    mutation(payload)
+
+    with pytest.raises(ValidationError):
+        WeightedGraphWalkSummary.model_validate(payload)
+
+
+def test_graph_result_numbers_accept_json_integers() -> None:
+    payload = variant().model_dump(mode="json")
+    payload.update(
+        final_occupancy=[1, 0, 0, 0, 0],
+        checkpoint_occupancies=[[1, 0, 0, 0, 0], [1, 0, 0, 0, 0]],
+        final_half_l1=0,
+        max_trajectory_half_l1=0,
+        final_max_abs_error=0,
+        max_one_particle_leakage=0,
+        max_normalization_error=0,
+        minimum_state_probability=0,
+    )
+
+    result = GraphWalkVariantResult.model_validate(payload)
+
+    assert result.final_occupancy == (1.0, 0.0, 0.0, 0.0, 0.0)

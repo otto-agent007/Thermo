@@ -88,6 +88,9 @@ def _record(
         spec=spec,
         provenance=provenance,
         timing=RunTiming(
+            evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            unit="seconds",
+            source="Python time.perf_counter",
             compile_seconds=0.2 + seed / 100,
             execution_seconds=0.01,
             synchronized=True,
@@ -276,3 +279,48 @@ def test_aggregate_round_trips_and_rejects_absolute_record_paths(tmp_path: Path)
     payload["schema_version"] = "2.0.0"
     with pytest.raises(ValidationError, match="schema_version"):
         AggregateRecord.model_validate(payload)
+
+
+@pytest.mark.parametrize("value", ["1.0", True])
+def test_scalar_aggregate_rejects_coerced_observed_numbers(value: object) -> None:
+    aggregate = aggregate_run_records(
+        [_record(1)],
+        requested_seeds=(1,),
+        run_record_paths=("runs/seed-0000000001.json",),
+        source_config="config.toml",
+    )
+    payload = aggregate.model_dump(mode="json")
+    payload["metric_aggregates"]["scalar"]["mean"] = value
+
+    with pytest.raises(ValidationError):
+        AggregateRecord.model_validate(payload)
+
+
+def test_confidence_interval_rejects_coerced_observed_numbers() -> None:
+    aggregate = aggregate_run_records(
+        [_record(0, 1.0), _record(1, 2.0)],
+        requested_seeds=(0, 1),
+        run_record_paths=("runs/seed-0000000000.json", "runs/seed-0000000001.json"),
+        source_config="config.toml",
+    )
+    payload = aggregate.model_dump(mode="json")
+    payload["metric_aggregates"]["scalar"]["confidence_interval"]["lower"] = "0.0"
+
+    with pytest.raises(ValidationError):
+        AggregateRecord.model_validate(payload)
+
+
+def test_statistical_aggregate_numbers_accept_json_integers() -> None:
+    aggregate = aggregate_run_records(
+        [_record(1)],
+        requested_seeds=(1,),
+        run_record_paths=("runs/seed-0000000001.json",),
+        source_config="config.toml",
+    )
+    payload = aggregate.model_dump(mode="json")
+    scalar = payload["metric_aggregates"]["scalar"]
+    scalar.update(mean=1, median=1, minimum=1, maximum=1)
+
+    validated = AggregateRecord.model_validate(payload)
+
+    assert validated.metric_aggregates["scalar"].mean == 1.0

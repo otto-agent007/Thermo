@@ -25,10 +25,12 @@ from thermo_lab.graph_walk_results import (
     GraphWalkOrderSensitivity,
     GraphWalkVariantResult,
     WeightedGraphWalkSummary,
+    validate_weighted_graph_walk_observations,
 )
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.provenance import collect_runtime_provenance
 from thermo_lab.records import (
+    RUN_TIMING_SOURCE,
     ExperimentSpec,
     MetricObservation,
     RunRecord,
@@ -167,25 +169,8 @@ class TorxWeightedGraphWalkBackend:
                     f"value={numpy_euler_error} exceeded bound={run.numpy_euler_tolerance}"
                 )
             max_normalization_error = float(np.max(np.abs(states.sum(axis=1) - 1.0)))
-            if max_normalization_error > run.torx_normalization_tolerance:
-                raise RuntimeError(
-                    f"Torx normalization error N={resolution} order={order_name} "
-                    f"value={max_normalization_error} exceeded "
-                    f"bound={run.torx_normalization_tolerance}"
-                )
             minimum_state_probability = float(states.min())
-            if minimum_state_probability < run.torx_minimum_probability_floor:
-                raise RuntimeError(
-                    f"Torx minimum probability N={resolution} order={order_name} "
-                    f"value={minimum_state_probability} fell below "
-                    f"bound={run.torx_minimum_probability_floor}"
-                )
             max_leakage = float(leakage.max())
-            if max_leakage > run.one_particle_leakage_tolerance:
-                raise RuntimeError(
-                    f"Torx one-particle leakage N={resolution} order={order_name} "
-                    f"value={max_leakage} exceeded bound={run.one_particle_leakage_tolerance}"
-                )
 
             exact_final = exact[-1]
             variant_results.append(
@@ -209,48 +194,12 @@ class TorxWeightedGraphWalkBackend:
 
         if exact_final is None:
             raise RuntimeError("Weighted graph walk produced no variants")
-        expected_exact_final = np.asarray(run.expected_exact_final_occupancy, dtype=np.float64)
-        exact_final_error = float(np.max(np.abs(exact_final - expected_exact_final)))
-        if exact_final_error > run.exact_invariant_tolerance:
-            raise RuntimeError(
-                f"Exact final occupancy difference value={exact_final_error} exceeded "
-                f"bound={run.exact_invariant_tolerance}"
-            )
-
         finest_resolution = run.resolutions[-1]
         finest_canonical = next(
             item
             for item in variant_results
             if item.resolution == finest_resolution and item.order == "canonical"
         )
-        if finest_canonical.final_half_l1 > run.finest_final_half_l1_tolerance:
-            raise RuntimeError(
-                f"Finest final half-L1 N={finest_resolution} order=canonical "
-                f"value={finest_canonical.final_half_l1} exceeded "
-                f"bound={run.finest_final_half_l1_tolerance}"
-            )
-        if finest_canonical.max_trajectory_half_l1 > run.finest_max_trajectory_half_l1_tolerance:
-            raise RuntimeError(
-                f"Finest maximum trajectory half-L1 N={finest_resolution} order=canonical "
-                f"value={finest_canonical.max_trajectory_half_l1} exceeded "
-                f"bound={run.finest_max_trajectory_half_l1_tolerance}"
-            )
-
-        for order_name, _ in orders:
-            ordered_variants = sorted(
-                (item for item in variant_results if item.order == order_name),
-                key=lambda item: item.resolution,
-            )
-            final_three = ordered_variants[-3:]
-            for metric_name in ("final_half_l1", "max_trajectory_half_l1"):
-                values = tuple(getattr(item, metric_name) for item in final_three)
-                if not values[0] > values[1] > values[2]:
-                    resolutions = tuple(item.resolution for item in final_three)
-                    raise RuntimeError(
-                        f"{metric_name} did not strictly decrease for order={order_name} "
-                        f"over resolutions={resolutions}: values={values}"
-                    )
-
         sensitivity_results = []
         for resolution in run.resolutions:
             canonical = trajectory_by_variant[(resolution, "canonical")]
@@ -320,12 +269,16 @@ class TorxWeightedGraphWalkBackend:
                 source=TORX_GRAPH_WALK_SOURCE,
             ),
         }
+        validate_weighted_graph_walk_observations(metrics, model, run, seed=spec.seed)
         record = build_run_record(
             backend_id=self.backend_id,
             evidence_class=self.evidence_class,
             spec=spec,
             provenance=collect_runtime_provenance(self.repository_root),
             timing=RunTiming(
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                unit="seconds",
+                source=RUN_TIMING_SOURCE,
                 compile_seconds=compile_seconds,
                 execution_seconds=execution_seconds,
                 synchronized=True,

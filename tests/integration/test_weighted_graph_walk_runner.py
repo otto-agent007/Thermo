@@ -5,7 +5,12 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from thermo_lab.aggregate import AggregateRecord, CompletionState, StatisticalSemantics
+from thermo_lab.aggregate import (
+    AggregateRecord,
+    CompletionState,
+    StatisticalSemantics,
+    aggregate_run_records,
+)
 from thermo_lab.cli import main
 from thermo_lab.graph_walk_results import WeightedGraphWalkSummary
 from thermo_lab.hashing import canonical_sha256, to_json_value
@@ -72,10 +77,13 @@ def _synchronize_request_hashes(record_payload: dict[str, object]) -> None:
 
 
 def _aggregate_for_record(aggregate: AggregateRecord, record: RunRecord) -> AggregateRecord:
-    payload = aggregate.model_dump(mode="json")
-    payload["model_hash"] = record.model_hash
-    payload["run_config_hash"] = record.spec.non_seed_run_config_hash
-    return AggregateRecord.model_validate(payload)
+    return aggregate_run_records(
+        (record,),
+        requested_seeds=aggregate.seeds,
+        run_record_paths=aggregate.run_record_paths,
+        source_config=aggregate.source_config,
+        failures=aggregate.failures,
+    )
 
 
 def test_runner_dispatches_weighted_graph_backend(tmp_path: Path) -> None:
@@ -98,9 +106,23 @@ def test_graph_cli_writes_evidence_safe_deterministic_report(tmp_path: Path) -> 
     assert "https://arxiv.org/pdf/2608.01612v1#page=10" in report
     assert "no THRML, Thermalizers, Z1 projection, or physical-hardware evidence" in report
     assert (tmp_path / "schemas/run-record.schema.json").exists()
+    run_payload = json.loads((tmp_path / "runs/seed-0000000000.json").read_text(encoding="utf-8"))
+    assert run_payload["schema_version"] == "1.1.0"
+    assert run_payload["timing"]["evidence_class"] == "software_simulation"
+    assert run_payload["timing"]["unit"] == "seconds"
+    assert run_payload["timing"]["source"] == "Python time.perf_counter"
+    run_schema = json.loads(
+        (tmp_path / "schemas/run-record.schema.json").read_text(encoding="utf-8")
+    )
+    assert {"evidence_class", "unit", "source"} <= set(run_schema["$defs"]["RunTiming"]["required"])
     aggregate_payload = json.loads((tmp_path / "aggregate.json").read_text(encoding="utf-8"))
     assert aggregate_payload["schema_version"] == "1.1.0"
     assert aggregate_payload["statistical_semantics"] == "deterministic_identity"
+    for name in ("timing.compile_seconds", "timing.execution_seconds"):
+        timing_metric = aggregate_payload["metric_aggregates"][name]
+        assert timing_metric["evidence_class"] == "software_simulation"
+        assert timing_metric["unit"] == "seconds"
+        assert "source=Python time.perf_counter" in timing_metric["method"]
     for metric in aggregate_payload["metric_aggregates"].values():
         assert metric["confidence_interval"] is None
         assert metric["confidence_level"] is None
@@ -232,6 +254,19 @@ def test_persisted_graph_report_renders_complete_deterministic_evidence(
         assert [float(value) for value in row[3:]] == pytest.approx(occupancy)
 
 
+def test_persisted_graph_report_validation_does_not_mutate_records(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
+) -> None:
+    aggregate, record = persisted_graph_artifacts
+    aggregate_before = aggregate.model_dump_json()
+    record_before = record.model_dump_json(by_alias=True)
+
+    render_report(aggregate, (record,))
+
+    assert aggregate.model_dump_json() == aggregate_before
+    assert record.model_dump_json(by_alias=True) == record_before
+
+
 def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
     persisted_graph_artifacts: tuple[AggregateRecord, RunRecord],
 ) -> None:
@@ -266,15 +301,19 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
         final_half_l1=0.11111111,
         max_trajectory_half_l1=0.22222222,
         final_max_abs_error=0.33333333,
-        max_one_particle_leakage=0.44444444,
-        max_normalization_error=0.55555555,
-        minimum_state_probability=-0.66666666,
+        max_one_particle_leakage=4.4444444e-7,
+        max_normalization_error=5.5555555e-7,
+        minimum_state_probability=-6.6666666e-8,
     )
     summary["order_sensitivity"][0].update(
         final_half_l1=0.77777777,
         max_trajectory_half_l1=0.88888888,
     )
-    summary["variants"][0]["checkpoint_occupancies"][1][0] = 0.9876543
+    checkpoint = summary["variants"][0]["checkpoint_occupancies"][1]
+    checkpoint[0] += 0.001
+    checkpoint[1] -= 0.001
+    changed_checkpoint = checkpoint[0]
+    record_payload["metrics"]["maximum_one_particle_leakage"]["value"] = 4.4444444e-7
     record_payload["spec"]["run_config"]["expected_exact_final_occupancy"][0] = 0.2357915
     _synchronize_request_hashes(record_payload)
     changed_record = RunRecord.model_validate(record_payload)
@@ -286,12 +325,12 @@ def test_persisted_graph_report_uses_changed_valid_model_and_summary_values(
     assert "- Canonical edge order: `B-D, V-B, C-E, V-C, B-C`" in report
     assert "| V | 0.2357915 |" in report
     assert (
-        "| 4 | `canonical` | 0.11111111 | 0.22222222 | 0.33333333 | 0.44444444 | "
-        "0.55555555 | -0.66666666 |"
+        "| 4 | `canonical` | 0.11111111 | 0.22222222 | 0.33333333 | 4.4444444e-07 | "
+        "5.5555555e-07 | -6.6666666e-08 |"
     ) in report
     assert "| 4 | 0.77777777 | 0.88888888 |" in report
     assert "- persisted acceptance mutation" in report
-    assert "| 4 | `canonical` | 2.5 | 0.9876543 |" in report
+    assert f"| 4 | `canonical` | 2.5 | {changed_checkpoint:.8g} |" in report
 
 
 def test_graph_report_escapes_schema_valid_markdown_labels_and_checks(
@@ -371,6 +410,21 @@ def _mismatch_completed_count(aggregate: dict[str, object], record: dict[str, ob
     )
 
 
+def _tamper_metric_aggregate(aggregate: dict[str, object], record: dict[str, object]) -> None:
+    del record
+    aggregate["metric_aggregates"]["finest_canonical_final_half_l1"]["mean"] = 0.987654321
+
+
+def _tamper_omitted_metrics(aggregate: dict[str, object], record: dict[str, object]) -> None:
+    del record
+    aggregate["omitted_metrics"]["forged"] = "not derived from the persisted run"
+
+
+def _tamper_provenance_summary(aggregate: dict[str, object], record: dict[str, object]) -> None:
+    del record
+    aggregate["provenance_summary"]["python_version"] = "tampered"
+
+
 @pytest.mark.parametrize(
     ("tamper", "message"),
     (
@@ -434,6 +488,9 @@ def _mismatch_completed_count(aggregate: dict[str, object], record: dict[str, ob
             "aggregate run record path",
         ),
         (_mismatch_completed_count, "aggregate completed run count"),
+        (_tamper_metric_aggregate, "metric aggregates"),
+        (_tamper_omitted_metrics, "omitted metrics"),
+        (_tamper_provenance_summary, "provenance summary"),
     ),
 )
 def test_persisted_graph_report_rejects_mismatched_artifacts(
@@ -445,6 +502,79 @@ def test_persisted_graph_report_rejects_mismatched_artifacts(
     tamper(aggregate_payload, record_payload)
     changed_aggregate = AggregateRecord.model_validate(aggregate_payload)
     changed_record = RunRecord.model_validate(record_payload)
+
+    with pytest.raises(ValueError, match=message):
+        render_report(changed_aggregate, (changed_record,))
+
+
+def _remove_required_graph_metric(record: dict[str, object]) -> None:
+    del record["metrics"]["maximum_one_particle_leakage"]
+
+
+def _contradict_graph_scalar(record: dict[str, object]) -> None:
+    record["metrics"]["finest_canonical_final_half_l1"]["value"] = 0.001234567
+
+
+def _mark_graph_acceptance_failed(record: dict[str, object]) -> None:
+    record["metrics"]["weighted_graph_walk"]["value"]["acceptance"]["passed"] = False
+    record["metrics"]["acceptance_passed"]["value"] = False
+
+
+def _contradict_graph_acceptance_scalar(record: dict[str, object]) -> None:
+    record["metrics"]["acceptance_passed"]["value"] = False
+
+
+def _exceed_graph_leakage_bound(record: dict[str, object]) -> None:
+    record["metrics"]["weighted_graph_walk"]["value"]["variants"][0]["max_one_particle_leakage"] = (
+        2e-6
+    )
+    record["metrics"]["maximum_one_particle_leakage"]["value"] = 2e-6
+
+
+def _exceed_graph_normalization_bound(record: dict[str, object]) -> None:
+    record["metrics"]["weighted_graph_walk"]["value"]["variants"][0]["max_normalization_error"] = (
+        2e-6
+    )
+
+
+def _fall_below_graph_probability_floor(record: dict[str, object]) -> None:
+    record["metrics"]["weighted_graph_walk"]["value"]["variants"][0][
+        "minimum_state_probability"
+    ] = -2e-7
+
+
+def _exceed_finest_graph_error_bound(record: dict[str, object]) -> None:
+    summary = record["metrics"]["weighted_graph_walk"]["value"]
+    finest = next(
+        item
+        for item in summary["variants"]
+        if item["resolution"] == 128 and item["order"] == "canonical"
+    )
+    finest["final_half_l1"] = 0.004
+    record["metrics"]["finest_canonical_final_half_l1"]["value"] = 0.004
+
+
+@pytest.mark.parametrize(
+    ("tamper", "message"),
+    (
+        (_remove_required_graph_metric, "missing required metrics"),
+        (_contradict_graph_scalar, "finest canonical final half-L1 metric"),
+        (_contradict_graph_acceptance_scalar, "acceptance_passed metric does not match"),
+        (_mark_graph_acceptance_failed, "acceptance must pass"),
+        (_exceed_graph_leakage_bound, "one-particle leakage"),
+        (_exceed_graph_normalization_bound, "normalization error"),
+        (_fall_below_graph_probability_floor, "minimum probability"),
+        (_exceed_finest_graph_error_bound, "Finest final half-L1"),
+    ),
+)
+def test_persisted_graph_report_rejects_scientific_contradictions(
+    persisted_graph_artifacts: tuple[AggregateRecord, RunRecord], tamper, message: str
+) -> None:
+    aggregate, record = persisted_graph_artifacts
+    record_payload = deepcopy(record.model_dump(mode="json", by_alias=True))
+    tamper(record_payload)
+    changed_record = RunRecord.model_validate(record_payload)
+    changed_aggregate = _aggregate_for_record(aggregate, changed_record)
 
     with pytest.raises(ValueError, match=message):
         render_report(changed_aggregate, (changed_record,))

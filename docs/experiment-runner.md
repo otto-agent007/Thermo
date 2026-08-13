@@ -60,7 +60,8 @@ deterministic Torx Euler-PSWAP state vectors. Seed zero is an identity field,
 not a replication, so resolutions, edge orders, program depths, and node
 coordinates do not support confidence intervals. Compile and synchronized
 execution timings are local `software_simulation` evidence. See the
-[committed design specification](experiments/biased-random-walk.md) and the
+[approved weighted graph-walk design](superpowers/specs/2026-08-12-weighted-graph-walk-baseline-design.md)
+and the
 [Torx paper source](https://arxiv.org/pdf/2608.01612v1#page=10).
 The persisted graph summary records `declared_resolutions` explicitly so
 report validation can reject missing, extra, or mismatched resolution rows.
@@ -104,6 +105,13 @@ Aggregate schema version `1.1.0` persists `statistical_semantics` as one of
 `independent_seeded_replications` or `deterministic_identity`. Runtime
 validation selects and enforces that value from the checked experiment
 identity, including each scalar aggregate's confidence-interval metadata.
+
+Run-record schema version `1.1.0` requires each `RunTiming` block to persist
+`software_simulation` evidence, seconds as its unit, and the local measurement
+source alongside the synchronized timing method and inclusion/exclusion text.
+Explicit overwrite replaces predecessor run and aggregate artifacts without
+parsing their unsupported schemas; without overwrite, a valid current completed
+aggregate remains protected.
 
 ## Hash semantics and compatibility
 

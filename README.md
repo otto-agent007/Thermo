@@ -51,7 +51,8 @@ statistical contracts.
 
 The checked weighted graph-walk baseline implements the continuous-time Markov
 chain semantics and deterministic Torx Euler-PSWAP state vectors described in
-the [committed design specification](docs/experiments/biased-random-walk.md),
+the
+[approved weighted graph-walk design](docs/superpowers/specs/2026-08-12-weighted-graph-walk-baseline-design.md),
 using the published fixture and gate order from the
 [Torx paper](https://arxiv.org/pdf/2608.01612v1#page=10). Its seed zero is an
 identity field, not a replication. Its compile and synchronized execution

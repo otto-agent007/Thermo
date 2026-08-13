@@ -8,13 +8,21 @@ import os
 import statistics
 import tempfile
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from typing import Any, Literal
 from uuid import uuid4
 
-from pydantic import Field, StrictInt, field_serializer, field_validator, model_validator
+from pydantic import (
+    Field,
+    StrictFloat,
+    StrictInt,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.records import FrozenDict, FrozenModel, RunRecord
@@ -38,19 +46,19 @@ class StatisticalSemantics(StrEnum):
 
 
 class ConfidenceInterval(FrozenModel):
-    lower: float
-    upper: float
+    lower: StrictFloat
+    upper: StrictFloat
 
 
 class ScalarAggregate(FrozenModel):
     count: StrictInt = Field(ge=1)
-    mean: float
-    standard_deviation: float | None
-    median: float
-    minimum: float
-    maximum: float
+    mean: StrictFloat
+    standard_deviation: StrictFloat | None
+    median: StrictFloat
+    minimum: StrictFloat
+    maximum: StrictFloat
     confidence_interval: ConfidenceInterval | None
-    confidence_level: float | None
+    confidence_level: StrictFloat | None
     interval_method: str
     interval_unavailable_reason: str | None = None
     unit: str | None = None
@@ -87,6 +95,29 @@ class ReportGenerationMetadata(FrozenModel):
     generator: str = "thermo_lab.reporting.render_report"
     generated_from_persisted_records: bool = True
     report_path: str = "report.md"
+
+
+@dataclass(frozen=True)
+class AggregateDerivedFields:
+    """Purely derived aggregate claims, excluding identity and creation metadata."""
+
+    experiment_id: str
+    statistical_semantics: StatisticalSemantics
+    backend_id: BackendId
+    evidence_class: EvidenceClass
+    model_hash: str
+    run_config_hash: str
+    source_config: str
+    seeds: tuple[int, ...]
+    requested_runs: int
+    completed_runs: int
+    failed_runs: int
+    run_record_paths: tuple[str, ...]
+    failures: tuple[RunFailure, ...]
+    provenance_summary: ProvenanceCompatibilitySummary | None
+    metric_aggregates: Mapping[str, ScalarAggregate]
+    omitted_metrics: Mapping[str, str]
+    completion_state: CompletionState
 
 
 class AggregateRecord(FrozenModel):
@@ -352,6 +383,9 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
         record.provenance.jax_devices,
         record.spec.model_parameters.get("numeric_dtype"),
         record.provenance.jax_enable_x64,
+        record.timing.evidence_class,
+        record.timing.unit,
+        record.timing.source,
         record.timing.timing_method,
     )
 
@@ -378,7 +412,7 @@ def _provenance_summary(record: RunRecord) -> ProvenanceCompatibilitySummary:
     )
 
 
-def aggregate_run_records(
+def derive_aggregate_fields(
     records: Sequence[RunRecord],
     *,
     requested_seeds: tuple[int, ...],
@@ -386,8 +420,8 @@ def aggregate_run_records(
     source_config: str,
     failures: tuple[RunFailure, ...] = (),
     failed_identity: tuple[str, BackendId, EvidenceClass, str, str] | None = None,
-) -> AggregateRecord:
-    """Aggregate compatible metrics under the checked experiment's statistical contract."""
+) -> AggregateDerivedFields:
+    """Purely derive compatible aggregate claims from run records and request identity."""
 
     if not requested_seeds or len(set(requested_seeds)) != len(requested_seeds):
         raise ValueError("Requested seeds must be non-empty and unique")
@@ -399,6 +433,9 @@ def aggregate_run_records(
         raise ValueError("Successful records must preserve requested seed ordering")
     if set(successful_seeds).intersection(failed_seeds):
         raise ValueError("A seed cannot be both successful and failed")
+    expected_paths = tuple(f"runs/seed-{record.spec.seed:010d}.json" for record in records)
+    if run_record_paths != expected_paths:
+        raise ValueError("aggregate run record path does not match persisted run seed")
 
     if records:
         first = records[0]
@@ -419,6 +456,9 @@ def aggregate_run_records(
             "JAX devices",
             "numeric dtype",
             "JAX x64 setting",
+            "timing evidence class",
+            "timing unit",
+            "timing source",
             "timing method",
         )
         for record in records[1:]:
@@ -483,27 +523,30 @@ def aggregate_run_records(
                 interval_bounds=interval_bounds,
             )
         timing_method = records[0].timing.timing_method
+        timing_evidence = records[0].timing.evidence_class
+        timing_unit = records[0].timing.unit
+        timing_source = records[0].timing.source
         metric_aggregates["timing.compile_seconds"] = _summarize_scalar(
             [record.timing.compile_seconds for record in records],
-            unit="seconds",
-            evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            unit=timing_unit,
+            evidence_class=timing_evidence,
             statistical_semantics=statistical_semantics,
             method=(
                 f"{timing_method}; compilation interval only; excludes execution, "
                 "configuration loading, provenance collection, persistence, aggregation, "
-                "and reporting; source=RunTiming"
+                f"and reporting; source={timing_source}"
             ),
         )
         metric_aggregates["timing.execution_seconds"] = _summarize_scalar(
             [record.timing.execution_seconds for record in records],
-            unit="seconds",
-            evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            unit=timing_unit,
+            evidence_class=timing_evidence,
             statistical_semantics=statistical_semantics,
             method=(
                 f"{timing_method}; synchronized steady-state backend interval only; "
                 "excludes compilation, untimed warm launch, configuration loading, "
                 "provenance collection, persistence, aggregation, and reporting; "
-                "source=RunTiming"
+                f"source={timing_source}"
             ),
         )
 
@@ -514,7 +557,7 @@ def aggregate_run_records(
         if not records
         else CompletionState.PARTIAL
     )
-    return AggregateRecord(
+    return AggregateDerivedFields(
         experiment_id=experiment_id,
         statistical_semantics=statistical_semantics,
         backend_id=backend_id,
@@ -529,7 +572,98 @@ def aggregate_run_records(
         run_record_paths=run_record_paths,
         failures=failures,
         provenance_summary=provenance_summary,
-        metric_aggregates=metric_aggregates,
-        omitted_metrics=omitted_metrics,
+        metric_aggregates=FrozenDict(metric_aggregates),
+        omitted_metrics=FrozenDict(omitted_metrics),
         completion_state=state,
     )
+
+
+def aggregate_run_records(
+    records: Sequence[RunRecord],
+    *,
+    requested_seeds: tuple[int, ...],
+    run_record_paths: tuple[str, ...],
+    source_config: str,
+    failures: tuple[RunFailure, ...] = (),
+    failed_identity: tuple[str, BackendId, EvidenceClass, str, str] | None = None,
+) -> AggregateRecord:
+    """Build an aggregate from the same pure derivation used for report validation."""
+
+    derived = derive_aggregate_fields(
+        records,
+        requested_seeds=requested_seeds,
+        run_record_paths=run_record_paths,
+        source_config=source_config,
+        failures=failures,
+        failed_identity=failed_identity,
+    )
+    return AggregateRecord(
+        experiment_id=derived.experiment_id,
+        statistical_semantics=derived.statistical_semantics,
+        backend_id=derived.backend_id,
+        evidence_class=derived.evidence_class,
+        model_hash=derived.model_hash,
+        run_config_hash=derived.run_config_hash,
+        source_config=derived.source_config,
+        seeds=derived.seeds,
+        requested_runs=derived.requested_runs,
+        completed_runs=derived.completed_runs,
+        failed_runs=derived.failed_runs,
+        run_record_paths=derived.run_record_paths,
+        failures=derived.failures,
+        provenance_summary=derived.provenance_summary,
+        metric_aggregates=derived.metric_aggregates,
+        omitted_metrics=derived.omitted_metrics,
+        completion_state=derived.completion_state,
+    )
+
+
+def validate_aggregate_against_records(
+    aggregate: AggregateRecord,
+    records: Sequence[RunRecord],
+) -> None:
+    """Re-derive and compare every aggregate claim that comes from persisted runs."""
+
+    if len(records) != aggregate.completed_runs:
+        raise ValueError("aggregate completed run count does not match persisted run records")
+    if len(records) != len(aggregate.run_record_paths):
+        raise ValueError("aggregate run record paths do not match persisted run records")
+
+    failed_identity = (
+        aggregate.experiment_id,
+        aggregate.backend_id,
+        aggregate.evidence_class,
+        aggregate.model_hash,
+        aggregate.run_config_hash,
+    )
+    derived = derive_aggregate_fields(
+        records,
+        requested_seeds=aggregate.seeds,
+        run_record_paths=aggregate.run_record_paths,
+        source_config=aggregate.source_config,
+        failures=aggregate.failures,
+        failed_identity=failed_identity,
+    )
+    compared_fields = {
+        "experiment_id": "experiment id",
+        "statistical_semantics": "statistical semantics",
+        "backend_id": "backend",
+        "evidence_class": "evidence class",
+        "model_hash": "model hash",
+        "run_config_hash": "run configuration hash",
+        "seeds": "seeds",
+        "requested_runs": "requested run count",
+        "completed_runs": "completed run count",
+        "failed_runs": "failed run count",
+        "run_record_paths": "run record paths",
+        "failures": "failure details",
+        "provenance_summary": "provenance summary",
+        "metric_aggregates": "metric aggregates",
+        "omitted_metrics": "omitted metrics",
+        "completion_state": "completion state",
+    }
+    for field_name, label in compared_fields.items():
+        if getattr(aggregate, field_name) != getattr(derived, field_name):
+            raise ValueError(
+                f"aggregate {label} does not match values derived from persisted run records"
+            )
