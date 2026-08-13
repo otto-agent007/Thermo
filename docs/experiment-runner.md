@@ -47,6 +47,24 @@ uv run thermo-lab run configs/experiments/thrml-ising-chain.toml \
   --output-dir results/ising-chain
 ```
 
+Run the checked weighted graph-walk baseline:
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/torx-weighted-graph-walk.toml \
+  --output-dir results/weighted-graph-walk
+```
+
+This baseline evaluates exact continuous-time Markov chain semantics alongside
+deterministic Torx Euler-PSWAP state vectors. Seed zero is an identity field,
+not a replication, so resolutions, edge orders, program depths, and node
+coordinates do not support confidence intervals. Compile and synchronized
+execution timings are local `software_simulation` evidence. See the
+[committed design specification](experiments/biased-random-walk.md) and the
+[Torx paper source](https://arxiv.org/pdf/2608.01612v1#page=10).
+The persisted graph summary records `declared_resolutions` explicitly so
+report validation can reject missing, extra, or mismatched resolution rows.
+
 `--seed N` and `--seeds A,B,C` are mutually exclusive. Seed lists must be
 non-empty, unique, and non-negative. CPU is forced by default before importing
 JAX backends; `--allow-accelerator` permits normal JAX device selection. A

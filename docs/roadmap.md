@@ -37,6 +37,11 @@ Reproduce and separate:
 
 See [the experiment specification](experiments/biased-random-walk.md).
 
+- [x] published five-node continuous reference and discretized Torx target
+- [x] resolution sweep, edge-order sensitivity, trajectory error, and invariant checks
+- [ ] independently compiled thermodynamic kernels
+- [ ] context matching, trajectory refinement, and finite-Gibbs-horizon comparison
+
 ## Phase 3 — Narrow Thermalizers-compatible research compiler
 
 Only if official source is still unavailable and the reproduction requires it:

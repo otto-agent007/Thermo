@@ -28,6 +28,9 @@ uv run thermo-lab run \
   configs/experiments/thrml-ising-chain.toml \
   --seeds 7,8,9,10 \
   --output-dir results/ising-chain
+uv run thermo-lab run \
+  configs/experiments/torx-weighted-graph-walk.toml \
+  --output-dir results/weighted-graph-walk
 uv run pytest
 ```
 
@@ -45,6 +48,15 @@ generated JSON Schemas, and a Markdown report. CPU execution is the default;
 `--allow-accelerator` is an explicit opt-in. See the
 [experiment runner guide](docs/experiment-runner.md) for the configuration and
 statistical contracts.
+
+The checked weighted graph-walk baseline implements the continuous-time Markov
+chain semantics and deterministic Torx Euler-PSWAP state vectors described in
+the [committed design specification](docs/experiments/biased-random-walk.md),
+using the published fixture and gate order from the
+[Torx paper](https://arxiv.org/pdf/2608.01612v1#page=10). Its seed zero is an
+identity field, not a replication. Its compile and synchronized execution
+timings are local `software_simulation` evidence; they are not hardware or
+calibrated-projection measurements.
 
 ## Research contract
 
