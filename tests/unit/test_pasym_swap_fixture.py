@@ -20,19 +20,27 @@ def test_pasym_swap_table_is_input_major_and_oriented() -> None:
     expected = np.asarray(
         [
             [1.0, 0.0, 0.0, 0.0],
-            [0.0, 0.93, 0.07, 0.0],
-            [0.0, 0.03, 0.97, 0.0],
+            [0.0, 1.0 - 0.07, 0.07, 0.0],
+            [0.0, 0.03, 1.0 - 0.03, 0.0],
             [0.0, 0.0, 0.0, 1.0],
         ]
     )
     np.testing.assert_allclose(observed, expected, atol=0.0, rtol=0.0)
-    np.testing.assert_allclose(observed.sum(axis=1), 1.0, atol=0.0, rtol=0.0)
+    np.testing.assert_allclose(observed.sum(axis=1), 1.0, atol=1e-15, rtol=0.0)
 
 
 @pytest.mark.parametrize("p_ij, p_ji", [(0.0, 0.07), (0.03, 1.0)])
 def test_pasym_swap_table_rejects_non_strict_hop_probabilities(p_ij: float, p_ji: float) -> None:
     with pytest.raises(ValueError, match="strictly between zero and one"):
         build_pasym_swap_conditional(p_ij=p_ij, p_ji=p_ji)
+
+
+def test_pasym_swap_table_uses_unrounded_binary_complements() -> None:
+    probability = 0.059
+
+    conditional = build_pasym_swap_conditional(p_ij=probability, p_ji=0.07)
+
+    assert conditional[2][2] == 1.0 - probability
 
 
 def test_paper_fixture_has_complete_colored_torus_schedule() -> None:
@@ -62,6 +70,8 @@ def test_paper_fixture_probabilities_obey_rate_identity() -> None:
             {"word_order": WORD_ORDER, "conditional": target.conditional}
         )
         assert target.conditional[0] == (1.0, 0.0, 0.0, 0.0)
+        assert target.conditional[1] == (0.0, 1.0 - target.p_ji, target.p_ji, 0.0)
+        assert target.conditional[2] == (0.0, target.p_ij, 1.0 - target.p_ij, 0.0)
         assert target.conditional[3] == (0.0, 0.0, 0.0, 1.0)
 
 
@@ -69,7 +79,7 @@ def test_paper_target_conditionals_are_exactly_input_stochastic() -> None:
     fixture = build_paper_fixture()
 
     for target in fixture.targets:
-        assert all(sum(row) == 1.0 for row in target.conditional)
+        assert all(sum(row) == pytest.approx(1.0, abs=1e-15) for row in target.conditional)
 
 
 @pytest.mark.parametrize(

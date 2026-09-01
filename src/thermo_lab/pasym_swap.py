@@ -73,17 +73,10 @@ def build_pasym_swap_conditional(p_ij: float, p_ji: float) -> ConditionalTable:
         raise ValueError("PAsymSwap hop probabilities must lie strictly between zero and one")
     return (
         (1.0, 0.0, 0.0, 0.0),
-        (0.0, _unit_complement(p_ji), p_ji, 0.0),
-        (0.0, p_ij, _unit_complement(p_ij), 0.0),
+        (0.0, 1.0 - p_ji, p_ji, 0.0),
+        (0.0, p_ij, 1.0 - p_ij, 0.0),
         (0.0, 0.0, 0.0, 1.0),
     )
-
-
-def _unit_complement(probability: float) -> float:
-    """Return a display-stable complement without sacrificing an exact row sum."""
-    complement = 1.0 - probability
-    rounded = round(complement, 15)
-    return rounded if rounded + probability == 1.0 else complement
 
 
 def paper_logit(x: int, y: int) -> float:
