@@ -71,7 +71,7 @@ arXiv:2608.01612v2](https://arxiv.org/abs/2608.01612v2) and [Thermalizers
 arXiv:2608.01615v2](https://arxiv.org/abs/2608.01615v2). The current GitHub
 tags remain Torx `v0.0.1` and THRML `v0.1.4`.
 
-`extro-sim==0.5.0` was uploaded on 2026-08-04 under Apache-2.0. It is an
+[`extro-sim==0.5.0`](https://pypi.org/project/extro-sim/0.5.0/) was uploaded on 2026-08-04 under Apache-2.0. It is an
 authenticated remote compute client (authenticated remote execution), not
 Thermalizers, not a compiler, and not hardware. It supplies no basis for a
 hosted-execution result in Thermo's checked local experiments.
