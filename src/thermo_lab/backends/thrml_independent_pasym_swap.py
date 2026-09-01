@@ -29,6 +29,7 @@ from thermo_lab.pasym_swap import PAPER_SOURCE, WORD_ORDER, PAsymSwapTarget, bui
 from thermo_lab.pasym_swap_results import (
     CompiledKernelResult,
     KernelConditionalResult,
+    KernelOptimizationAttemptResult,
     KernelOptimizationResult,
     summarize_artifacts,
     validate_independent_pasym_swap_observations,
@@ -381,6 +382,21 @@ class ThrmlIndependentPAsymSwapBackend:
                         objective=artifact.objective,
                         projected_gradient_norm=artifact.projected_gradient_norm,
                         cap_active_parameter_count=artifact.cap_active_parameter_count,
+                        attempts=tuple(
+                            KernelOptimizationAttemptResult(
+                                restart_index=attempt.restart_index,
+                                parameters=attempt.parameters,
+                                objective=attempt.objective,
+                                raw_gradient_norm=attempt.raw_gradient_norm,
+                                projected_gradient_norm=attempt.projected_gradient_norm,
+                                scipy_success=attempt.scipy_success,
+                                passed_checks=attempt.passed_checks,
+                                iterations=attempt.iterations,
+                                termination=attempt.termination,
+                                cap_active_parameter_count=attempt.cap_active_parameter_count,
+                            )
+                            for attempt in artifact.attempts
+                        ),
                     ),
                     conditionals=KernelConditionalResult(
                         target_conditional=target.conditional,

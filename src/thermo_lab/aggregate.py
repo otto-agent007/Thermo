@@ -425,13 +425,24 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
         record.provenance.jaxlib_version,
         record.provenance.jax_backend,
         record.provenance.jax_devices,
-        record.spec.model_parameters.get("numeric_dtype"),
+        _dtype_compatibility_signature(record),
         record.provenance.jax_enable_x64,
         record.timing.evidence_class,
         record.timing.unit,
         record.timing.source,
         timing_method,
     )
+
+
+def _dtype_compatibility_signature(record: RunRecord) -> str:
+    """Return the declared numeric representation without conflating exact and THRML paths."""
+
+    if record.spec.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+        return (
+            f"exact={record.spec.model_parameters.get('exact_dtype')}; "
+            f"thrml={record.spec.model_parameters.get('thrml_dtype')}"
+        )
+    return str(record.spec.model_parameters.get("numeric_dtype"))
 
 
 def _independent_pasym_swap_omission_reason(name: str) -> str | None:
@@ -456,7 +467,7 @@ def _provenance_summary(record: RunRecord) -> ProvenanceCompatibilitySummary:
         jax_backend=record.provenance.jax_backend,
         jax_devices=record.provenance.jax_devices,
         jax_enable_x64=record.provenance.jax_enable_x64,
-        numeric_dtype=str(record.spec.model_parameters.get("numeric_dtype")),
+        numeric_dtype=_dtype_compatibility_signature(record),
         git_commit=record.provenance.git_commit,
         git_dirty=record.provenance.git_dirty,
         packages=packages,

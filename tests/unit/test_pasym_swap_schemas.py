@@ -38,16 +38,65 @@ def test_checked_pasym_swap_config_declares_every_scientific_choice() -> None:
     model = PAsymSwapModelConfig.model_validate(to_json_value(config.model_parameters))
     run = IndependentCompilerRunConfig.model_validate(to_json_value(config.run_parameters))
     assert model.source_reference == PAPER_SOURCE
-    assert model.color_order == list(COLOR_ORDER)
+    assert model.color_order == COLOR_ORDER
     assert [item.coordinate_pairs for item in model.color_classes] == [
-        [list(pair) for pair in COORDINATE_PAIR_CLASSES[name]] for name in COLOR_ORDER
+        tuple(COORDINATE_PAIR_CLASSES[name]) for name in COLOR_ORDER
     ]
-    assert model.word_order == [list(word) for word in WORD_ORDER]
-    assert model.parameter_order == list(PARAMETER_ORDER)
+    assert model.word_order == WORD_ORDER
+    assert model.parameter_order == PARAMETER_ORDER
     assert model.parameter_cap == 2.0
-    assert run.horizons == [1, 2, 4, 8, 16, 30]
+    assert run.horizons == (1, 2, 4, 8, 16, 30)
     assert run.chain_count_per_context == 4096
-    assert run.initializations[1] == [0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05]
+    assert run.initializations[1] == (
+        0.05,
+        -0.05,
+        0.05,
+        -0.05,
+        0.05,
+        -0.05,
+        0.05,
+        -0.05,
+        0.05,
+    )
+
+
+def test_checked_pasym_swap_sequences_are_deeply_immutable_and_json_stable() -> None:
+    requested_model = checked_model()
+    requested_run = checked_run()
+    model = PAsymSwapModelConfig.model_validate(requested_model)
+    run = IndependentCompilerRunConfig.model_validate(requested_run)
+
+    assert isinstance(model.color_order, tuple)
+    assert isinstance(model.color_classes, tuple)
+    assert isinstance(model.color_classes[0].coordinate_pairs, tuple)
+    assert isinstance(model.color_classes[0].coordinate_pairs[0], tuple)
+    assert isinstance(model.word_order, tuple)
+    assert isinstance(model.word_order[0], tuple)
+    assert isinstance(model.topology_edges, tuple)
+    assert isinstance(model.topology_edges[0], tuple)
+    assert isinstance(run.context_weights, tuple)
+    assert isinstance(run.initializations, tuple)
+    assert isinstance(run.initializations[0], tuple)
+    assert isinstance(run.horizons, tuple)
+    assert isinstance(run.sweep_order, tuple)
+    with pytest.raises(TypeError):
+        model.color_order[0] = "H2"  # type: ignore[index]
+    with pytest.raises(AttributeError):
+        model.color_classes.append(model.color_classes[0])  # type: ignore[attr-defined]
+    with pytest.raises(TypeError):
+        model.color_classes[0].coordinate_pairs[0][0] = 4  # type: ignore[index]
+    with pytest.raises(TypeError):
+        model.topology_edges[0][0] = "hidden_0"  # type: ignore[index]
+    with pytest.raises(TypeError):
+        run.context_weights[0] = 0.0  # type: ignore[index]
+    with pytest.raises(TypeError):
+        run.initializations[0][0] = 0.1  # type: ignore[index]
+    with pytest.raises(TypeError):
+        run.horizons[0] = 30  # type: ignore[index]
+    with pytest.raises(TypeError):
+        run.sweep_order[0] = "outputs"  # type: ignore[index]
+    assert model.model_dump(mode="json") == requested_model
+    assert run.model_dump(mode="json") == requested_run
 
 
 MODEL_MUTATIONS = [
@@ -210,6 +259,26 @@ def test_checked_schemas_reject_unknown_keys_and_invalid_seed() -> None:
     run = IndependentCompilerRunConfig.model_validate(checked_run())
     with pytest.raises(ValueError, match="nonnegative"):
         validate_independent_pasym_swap_request(model, run, seed=-1)
+
+
+def test_public_request_validation_rejects_constructed_schema_bypasses() -> None:
+    model = PAsymSwapModelConfig.model_validate(checked_model())
+    run = IndependentCompilerRunConfig.model_validate(checked_run())
+    forged_model_payload = dict(model.__dict__)
+    forged_model_payload["parameter_cap"] = 4.0
+    forged_model = PAsymSwapModelConfig.model_construct(**forged_model_payload)
+    forged_run_payload = dict(run.__dict__)
+    forged_run_payload["context_weights"] = (0.0, 0.5, 0.25, 0.25)
+    forged_run = IndependentCompilerRunConfig.model_construct(**forged_run_payload)
+
+    with pytest.raises(ValueError, match="parameter_cap"):
+        validate_independent_pasym_swap_request(forged_model, run, seed=0)
+    with pytest.raises(ValueError, match="context_weights"):
+        validate_independent_pasym_swap_request(model, forged_run, seed=0)
+    with pytest.raises(TypeError, match="PAsymSwapModelConfig"):
+        validate_independent_pasym_swap_request(checked_model(), run, seed=0)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="IndependentCompilerRunConfig"):
+        validate_independent_pasym_swap_request(model, checked_run(), seed=0)  # type: ignore[arg-type]
 
 
 def test_checked_config_rejects_non_thrml_backend() -> None:

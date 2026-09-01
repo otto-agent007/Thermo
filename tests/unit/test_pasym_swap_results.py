@@ -23,6 +23,7 @@ from thermo_lab.pasym_swap_results import (
     CompiledKernelResult,
     IndependentPAsymSwapSummary,
     KernelConditionalResult,
+    KernelOptimizationAttemptResult,
     KernelOptimizationResult,
     _artifact_identity,
     summarize_artifacts,
@@ -68,6 +69,33 @@ def _settings(run: IndependentCompilerRunConfig, model: PAsymSwapModelConfig) ->
     )
 
 
+def _optimization_result(frozen) -> KernelOptimizationResult:
+    return KernelOptimizationResult(
+        artifact_hash=frozen.artifact_hash,
+        parameters=frozen.parameters.values,
+        selected_restart=frozen.selected_restart,
+        successful_restart_count=sum(attempt.passed_checks for attempt in frozen.attempts),
+        objective=frozen.objective,
+        projected_gradient_norm=frozen.projected_gradient_norm,
+        cap_active_parameter_count=frozen.cap_active_parameter_count,
+        attempts=tuple(
+            KernelOptimizationAttemptResult(
+                restart_index=attempt.restart_index,
+                parameters=attempt.parameters,
+                objective=attempt.objective,
+                raw_gradient_norm=attempt.raw_gradient_norm,
+                projected_gradient_norm=attempt.projected_gradient_norm,
+                scipy_success=attempt.scipy_success,
+                passed_checks=attempt.passed_checks,
+                iterations=attempt.iterations,
+                termination=attempt.termination,
+                cap_active_parameter_count=attempt.cap_active_parameter_count,
+            )
+            for attempt in frozen.attempts
+        ),
+    )
+
+
 @lru_cache(maxsize=1)
 def _serialized_passing_template() -> str:
     """Cache only JSON, making each mutation test receive fresh metric objects."""
@@ -102,15 +130,7 @@ def _serialized_passing_template() -> str:
         artifact = CompiledKernelResult(
             target_hash=target.target_hash,
             compiler_request_hash=checked.non_seed_config_hash,
-            optimization=KernelOptimizationResult(
-                artifact_hash=frozen.artifact_hash,
-                parameters=frozen.parameters.values,
-                selected_restart=frozen.selected_restart,
-                successful_restart_count=sum(attempt.passed_checks for attempt in frozen.attempts),
-                objective=frozen.objective,
-                projected_gradient_norm=frozen.projected_gradient_norm,
-                cap_active_parameter_count=frozen.cap_active_parameter_count,
-            ),
+            optimization=_optimization_result(frozen),
             conditionals=conditionals,
         )
         artifacts.append(artifact)
@@ -236,6 +256,130 @@ def test_passing_fixture_round_trips_and_stays_bounded() -> None:
         assert forbidden not in payload
 
 
+def test_persisted_optimizer_retains_all_three_bounded_restart_attempts() -> None:
+    metrics, model, run = passing_observations()
+    summary = validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+    optimization = summary.artifacts[0].optimization
+    assert tuple(attempt.restart_index for attempt in optimization.attempts) == (0, 1, 2)
+    assert optimization.successful_restart_count == sum(
+        attempt.passed_checks for attempt in optimization.attempts
+    )
+    assert len({attempt.termination for attempt in optimization.attempts}) <= 3
+    assert "optimizer_history" not in summary.model_dump_json()
+
+
+def test_failed_nonselected_optimizer_attempt_round_trips_without_raw_history() -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    optimization = payload["artifacts"][0]["optimization"]
+    nonselected = next(
+        attempt
+        for attempt in optimization["attempts"]
+        if attempt["restart_index"] != optimization["selected_restart"]
+    )
+    nonselected["scipy_success"] = False
+    nonselected["passed_checks"] = False
+    optimization["successful_restart_count"] = sum(
+        attempt["passed_checks"] for attempt in optimization["attempts"]
+    )
+    _set_summary(metrics, payload)
+
+    summary = validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+    attempts = summary.artifacts[0].optimization.attempts
+    assert any(
+        not attempt.scipy_success and not attempt.passed_checks
+        for attempt in attempts
+        if attempt.restart_index != summary.artifacts[0].optimization.selected_restart
+    )
+    assert "raw_trace" not in summary.model_dump_json()
+
+
+@pytest.mark.parametrize(
+    ("name", "mutate", "match"),
+    (
+        (
+            "successful restart count",
+            lambda optimization: optimization.__setitem__("successful_restart_count", 0),
+            "successful restart count",
+        ),
+        (
+            "selected restart",
+            lambda optimization: optimization.__setitem__(
+                "selected_restart", (optimization["selected_restart"] + 1) % 3
+            ),
+            "selected restart",
+        ),
+        (
+            "attempt parameters",
+            lambda optimization: optimization["attempts"][0]["parameters"].__setitem__(
+                1,
+                (
+                    optimization["attempts"][0]["parameters"][1] + 0.1
+                    if optimization["attempts"][0]["parameters"][1] <= 1.9
+                    else optimization["attempts"][0]["parameters"][1] - 0.1
+                ),
+            ),
+            "attempt objective",
+        ),
+        (
+            "attempt objective",
+            lambda optimization: optimization["attempts"][0].__setitem__("objective", 1.0),
+            "attempt objective",
+        ),
+        (
+            "attempt raw norm",
+            lambda optimization: optimization["attempts"][0].__setitem__("raw_gradient_norm", 0.0),
+            "raw gradient",
+        ),
+        (
+            "attempt projected norm",
+            lambda optimization: optimization["attempts"][0].__setitem__(
+                "projected_gradient_norm", 0.0
+            ),
+            "projected gradient",
+        ),
+        (
+            "attempt passed checks",
+            lambda optimization: optimization["attempts"][0].__setitem__("passed_checks", False),
+            "passed checks",
+        ),
+        (
+            "attempt scipy success",
+            lambda optimization: optimization["attempts"][0].__setitem__("scipy_success", False),
+            "passed checks",
+        ),
+        (
+            "attempt cap active count",
+            lambda optimization: optimization["attempts"][0].__setitem__(
+                "cap_active_parameter_count", 9
+            ),
+            "cap-active count",
+        ),
+    ),
+)
+def test_each_persisted_optimizer_attempt_claim_is_recomputed(
+    name: str, mutate: Any, match: str
+) -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    mutate(payload["artifacts"][0]["optimization"])
+    _set_summary(metrics, payload)
+
+    with pytest.raises(ValueError, match=match):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def test_optimizer_restart_set_requires_exactly_indices_zero_through_two() -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    payload["artifacts"][0]["optimization"]["attempts"].pop()
+    _set_summary(metrics, payload)
+
+    with pytest.raises(ValueError, match="exactly three"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
 @pytest.mark.parametrize(
     "metric_name",
     (
@@ -345,7 +489,7 @@ def _set_summary(metrics: dict[str, MetricObservation], payload: dict[str, Any])
         (
             "optimizer objective",
             lambda payload: payload["artifacts"][0]["optimization"].__setitem__("objective", 1.0),
-            "optimizer objective",
+            "selected objective",
         ),
         (
             "optimizer gradient",
@@ -359,14 +503,14 @@ def _set_summary(metrics: dict[str, MetricObservation], payload: dict[str, Any])
             lambda payload: payload["artifacts"][0]["optimization"].__setitem__(
                 "successful_restart_count", 0
             ),
-            "optimizer",
+            "successful restart count",
         ),
         (
             "optimizer parameters",
             lambda payload: payload["artifacts"][0]["optimization"]["parameters"].__setitem__(
                 0, 0.1
             ),
-            "optimizer objective",
+            "selected parameters",
         ),
         (
             "cap active count",
@@ -427,6 +571,21 @@ def test_nonconverged_parameters_cannot_claim_a_passing_optimizer() -> None:
     optimization_payload["objective"] = objective
     optimization_payload["projected_gradient_norm"] = 0.0
     optimization_payload["cap_active_parameter_count"] = 0
+    selected_attempt = next(
+        attempt
+        for attempt in optimization_payload["attempts"]
+        if attempt["restart_index"] == optimization_payload["selected_restart"]
+    )
+    selected_attempt["parameters"] = parameters
+    selected_attempt["objective"] = objective
+    _, gradient = loss_and_gradient(
+        np.asarray(parameters, dtype=np.float64),
+        target,
+        np.asarray(run.context_weights, dtype=np.float64),
+    )
+    selected_attempt["raw_gradient_norm"] = float(np.max(np.abs(gradient)))
+    selected_attempt["projected_gradient_norm"] = 0.0
+    selected_attempt["cap_active_parameter_count"] = 0
     rebound = IndependentPAsymSwapSummary.model_validate_json(json.dumps(payload)).artifacts[0]
     optimization_payload["artifact_hash"] = canonical_sha256(
         _artifact_identity(rebound, model, run)

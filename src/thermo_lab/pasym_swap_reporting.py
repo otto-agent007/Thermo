@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 
+from thermo_lab.config import INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION
 from thermo_lab.hashing import to_json_value
 from thermo_lab.pasym_swap_results import (
     CompiledKernelResult,
@@ -57,6 +58,10 @@ def validate_persisted_independent_pasym_swap_record(
 
     if record.spec.experiment_id != _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
         raise ValueError("independent PAsymSwap section belongs to a different experiment")
+    if record.spec.sample_definition != INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION:
+        raise ValueError(
+            "persisted independent PAsymSwap sample_definition must equal the checked definition"
+        )
     model = PAsymSwapModelConfig.model_validate(to_json_value(record.spec.model_parameters))
     run = IndependentCompilerRunConfig.model_validate(to_json_value(record.spec.run_parameters))
     summary = validate_independent_pasym_swap_observations(

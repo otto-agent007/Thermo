@@ -30,10 +30,15 @@ def _record(
     ess: float | None = None,
     experiment_id: str = "test.aggregate.v1",
 ):
+    model_config = (
+        {"exact_dtype": "float64", "thrml_dtype": "float32", "weight": 1.0}
+        if experiment_id == "thrml.independent_pasym_swap_compilation.v1"
+        else {"numeric_dtype": "float32", "weight": 1.0}
+    )
     spec = ExperimentSpec(
         experiment_id=experiment_id,
         seed=seed,
-        model_config={"numeric_dtype": "float32", "weight": 1.0},
+        model_config=model_config,
         run_config={"n_samples": 20},
         sample_definition="one correlated recorded state",
     )
@@ -229,6 +234,10 @@ def test_independent_pasym_swap_aggregates_only_sampled_cross_check() -> None:
             "per-seed cache timing is not an independently seeded sampled cross-check"
         ),
     }
+    assert aggregate.provenance_summary is not None
+    assert aggregate.provenance_summary.numeric_dtype == "exact=float64; thrml=float32"
+    round_tripped = AggregateRecord.model_validate_json(aggregate.model_dump_json())
+    assert round_tripped.provenance_summary == aggregate.provenance_summary
     validate_aggregate_against_records(aggregate, records)
 
 

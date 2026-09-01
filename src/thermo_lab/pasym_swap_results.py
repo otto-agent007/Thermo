@@ -274,8 +274,40 @@ class KernelConditionalResult(_StrictFrozenResultModel):
         return {str(horizon): table for horizon, table in value.items()}
 
 
+class KernelOptimizationAttemptResult(_StrictFrozenResultModel):
+    """Bounded diagnostics for one checked optimizer restart."""
+
+    restart_index: StrictInt = Field(ge=0, le=2)
+    parameters: tuple[
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+    ]
+    objective: StrictFloat = Field(ge=0)
+    raw_gradient_norm: StrictFloat = Field(ge=0)
+    projected_gradient_norm: StrictFloat = Field(ge=0)
+    scipy_success: StrictBool
+    passed_checks: StrictBool
+    iterations: StrictInt = Field(ge=0, le=2000)
+    termination: str = Field(min_length=1, max_length=512)
+    cap_active_parameter_count: StrictInt = Field(ge=0, le=9)
+    evidence_class: EvidenceClass = EvidenceClass.SOFTWARE_SIMULATION
+
+    @model_validator(mode="after")
+    def validate_evidence(self) -> KernelOptimizationAttemptResult:
+        if self.evidence_class is not EvidenceClass.SOFTWARE_SIMULATION:
+            raise ValueError("optimizer attempts must use software_simulation evidence")
+        return self
+
+
 class KernelOptimizationResult(_StrictFrozenResultModel):
-    """Bounded optimizer winner information; histories are intentionally absent."""
+    """Bounded optimizer winner information with all three restart records."""
 
     artifact_hash: str = Field(min_length=1)
     parameters: tuple[
@@ -294,12 +326,17 @@ class KernelOptimizationResult(_StrictFrozenResultModel):
     objective: StrictFloat
     projected_gradient_norm: StrictFloat = Field(ge=0)
     cap_active_parameter_count: StrictInt = Field(ge=0, le=9)
+    attempts: tuple[KernelOptimizationAttemptResult, ...]
     evidence_class: EvidenceClass = EvidenceClass.SOFTWARE_SIMULATION
 
     @model_validator(mode="after")
     def validate_evidence(self) -> KernelOptimizationResult:
         if self.evidence_class is not EvidenceClass.SOFTWARE_SIMULATION:
             raise ValueError("optimizer results must use software_simulation evidence")
+        if len(self.attempts) != 3:
+            raise ValueError("optimizer attempts must contain exactly three checked restarts")
+        if tuple(attempt.restart_index for attempt in self.attempts) != (0, 1, 2):
+            raise ValueError("optimizer attempts must have restart indices exactly (0, 1, 2)")
         return self
 
 
@@ -550,51 +587,110 @@ def _check_optimizer(
             f"compiler request hash target_hash={artifact.target_hash} "
             f"observed={artifact.compiler_request_hash} bound={expected_request_hash}"
         )
-    if optimization.successful_restart_count < 1:
+    target = np.asarray(artifact.conditionals.target_conditional, dtype=np.float64)
+    context_weights = np.asarray(run.context_weights, dtype=np.float64)
+    passing: list[KernelOptimizationAttemptResult] = []
+    for attempt in optimization.attempts:
+        values = np.asarray(attempt.parameters, dtype=np.float64)
+        objective, gradient = loss_and_gradient(values, target, context_weights)
+        raw_gradient_norm = float(np.max(np.abs(gradient)))
+        projected_gradient = project_gradient(values, gradient, model.parameter_cap)
+        projected_gradient_norm = float(np.max(np.abs(projected_gradient)))
+        cap_active_parameter_count = sum(abs(value) >= model.parameter_cap for value in values)
+        values_within_bounds = bool(np.all(np.abs(values) <= model.parameter_cap))
+        observations_finite = bool(
+            np.all(np.isfinite(values))
+            and all(
+                math.isfinite(value)
+                for value in (
+                    attempt.objective,
+                    attempt.raw_gradient_norm,
+                    attempt.projected_gradient_norm,
+                    objective,
+                    raw_gradient_norm,
+                    projected_gradient_norm,
+                )
+            )
+        )
+        if abs(attempt.objective - objective) > run.exact_normalization_tolerance:
+            raise ValueError(
+                f"attempt objective target_hash={artifact.target_hash} "
+                f"restart={attempt.restart_index} observed={attempt.objective} bound={objective}"
+            )
+        if abs(attempt.raw_gradient_norm - raw_gradient_norm) > run.exact_normalization_tolerance:
+            raise ValueError(
+                f"raw gradient target_hash={artifact.target_hash} restart={attempt.restart_index} "
+                f"observed={attempt.raw_gradient_norm} bound={raw_gradient_norm}"
+            )
+        if (
+            abs(attempt.projected_gradient_norm - projected_gradient_norm)
+            > run.exact_normalization_tolerance
+        ):
+            raise ValueError(
+                f"projected gradient target_hash={artifact.target_hash} "
+                f"restart={attempt.restart_index} "
+                f"observed={attempt.projected_gradient_norm} bound={projected_gradient_norm}"
+            )
+        if attempt.cap_active_parameter_count != cap_active_parameter_count:
+            raise ValueError(
+                f"cap-active count target_hash={artifact.target_hash} "
+                f"restart={attempt.restart_index} "
+                f"observed={attempt.cap_active_parameter_count} bound={cap_active_parameter_count}"
+            )
+        if not values_within_bounds:
+            maximum = float(np.max(np.abs(values)))
+            raise ValueError(
+                f"parameter cap target_hash={artifact.target_hash} restart={attempt.restart_index} "
+                f"observed={maximum} bound={model.parameter_cap}"
+            )
+        passed_checks = (
+            attempt.scipy_success
+            and observations_finite
+            and values_within_bounds
+            and projected_gradient_norm <= run.projected_gradient_tolerance
+        )
+        if attempt.passed_checks != passed_checks:
+            raise ValueError(
+                f"attempt passed checks target_hash={artifact.target_hash} "
+                f"restart={attempt.restart_index} observed={attempt.passed_checks} "
+                f"bound={passed_checks}"
+            )
+        if passed_checks:
+            passing.append(attempt)
+    expected_successful_restart_count = len(passing)
+    if optimization.successful_restart_count != expected_successful_restart_count:
+        raise ValueError(
+            f"successful restart count target_hash={artifact.target_hash} "
+            f"observed={optimization.successful_restart_count} "
+            f"bound={expected_successful_restart_count}"
+        )
+    if not passing:
         raise ValueError(f"optimizer target_hash={artifact.target_hash} observed=0 bound=1")
-    if any(abs(value) > model.parameter_cap for value in optimization.parameters):
-        maximum = max(abs(value) for value in optimization.parameters)
+    winner = min(passing, key=lambda attempt: (attempt.objective, attempt.parameters))
+    if optimization.selected_restart != winner.restart_index:
         raise ValueError(
-            f"parameter cap target_hash={artifact.target_hash} "
-            f"observed={maximum} bound={model.parameter_cap}"
+            f"selected restart target_hash={artifact.target_hash} "
+            f"observed={optimization.selected_restart} bound={winner.restart_index}"
         )
-    expected_cap_active = sum(
-        abs(value) >= model.parameter_cap for value in optimization.parameters
-    )
-    if optimization.cap_active_parameter_count != expected_cap_active:
+    if optimization.parameters != winner.parameters:
         raise ValueError(
-            f"cap-active count target_hash={artifact.target_hash} "
-            f"observed={optimization.cap_active_parameter_count} bound={expected_cap_active}"
+            f"selected parameters target_hash={artifact.target_hash} "
+            "do not match the selected restart"
         )
-    objective, gradient = loss_and_gradient(
-        np.asarray(optimization.parameters, dtype=np.float64),
-        np.asarray(artifact.conditionals.target_conditional, dtype=np.float64),
-        np.asarray(run.context_weights, dtype=np.float64),
-    )
-    if abs(optimization.objective - objective) > run.exact_normalization_tolerance:
+    if optimization.objective != winner.objective:
         raise ValueError(
-            f"optimizer objective target_hash={artifact.target_hash} "
-            f"observed={optimization.objective} bound={objective}"
+            f"selected objective target_hash={artifact.target_hash} "
+            "does not match the selected restart"
         )
-    projected_gradient = project_gradient(
-        np.asarray(optimization.parameters, dtype=np.float64),
-        gradient,
-        model.parameter_cap,
-    )
-    recomputed_projected_norm = float(np.max(np.abs(projected_gradient)))
-    if (
-        abs(optimization.projected_gradient_norm - recomputed_projected_norm)
-        > run.exact_normalization_tolerance
-    ):
+    if optimization.projected_gradient_norm != winner.projected_gradient_norm:
         raise ValueError(
-            f"projected gradient target_hash={artifact.target_hash} "
-            f"observed={optimization.projected_gradient_norm} "
-            f"bound={recomputed_projected_norm}"
+            f"selected projected gradient target_hash={artifact.target_hash} "
+            "does not match the selected restart"
         )
-    if recomputed_projected_norm > run.projected_gradient_tolerance:
+    if optimization.cap_active_parameter_count != winner.cap_active_parameter_count:
         raise ValueError(
-            f"optimizer target_hash={artifact.target_hash} observed={recomputed_projected_norm} "
-            f"bound={run.projected_gradient_tolerance}"
+            f"selected cap-active count target_hash={artifact.target_hash} "
+            "does not match the selected restart"
         )
     expected_hash = canonical_sha256(_artifact_identity(artifact, model, run))
     if optimization.artifact_hash != expected_hash:

@@ -14,7 +14,7 @@ from thermo_lab.backends.base import ExecutionResult
 from thermo_lab.config import load_experiment_config
 from thermo_lab.hashing import to_json_value
 from thermo_lab.pasym_swap_reporting import render_independent_pasym_swap_section
-from thermo_lab.records import RunRecord
+from thermo_lab.records import ExperimentSpec, RunRecord
 from thermo_lab.reporting import write_report_from_persisted
 from thermo_lab.runner import _backend, run_experiment
 
@@ -276,6 +276,38 @@ def test_report_rejects_tampered_persisted_pasym_swap_data_before_replacing_repo
     record_path.write_text(json.dumps(payload), encoding="utf-8")
 
     with pytest.raises(ValueError, match=expected_error):
+        write_report_from_persisted(output)
+
+    assert report_path.read_bytes() == original_report
+
+
+@pytest.mark.slow
+def test_report_rejects_tampered_pasym_swap_sample_definition_before_replacing_report(
+    run_output: Path, tmp_path: Path
+) -> None:
+    """A self-consistent ordinary request hash cannot authorize a forged sample claim."""
+
+    output = tmp_path / "tampered-sample-definition"
+    shutil.copytree(run_output, output)
+    report_path = output / "report.md"
+    original_report = report_path.read_bytes()
+    aggregate_path = output / "aggregate.json"
+    aggregate_payload = json.loads(aggregate_path.read_text(encoding="utf-8"))
+    forged_definition = "Forged sample definition that claims unrelated sampling semantics."
+    changed_non_seed_hash = None
+    for relative_path in aggregate_payload["run_record_paths"]:
+        record_path = output / relative_path
+        payload = json.loads(record_path.read_text(encoding="utf-8"))
+        payload["spec"]["sample_definition"] = forged_definition
+        spec = ExperimentSpec.model_validate(payload["spec"])
+        payload["run_config_hash"] = spec.run_config_hash
+        changed_non_seed_hash = spec.non_seed_run_config_hash
+        record_path.write_text(json.dumps(payload), encoding="utf-8")
+    assert changed_non_seed_hash is not None
+    aggregate_payload["run_config_hash"] = changed_non_seed_hash
+    aggregate_path.write_text(json.dumps(aggregate_payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="sample_definition.*checked"):
         write_report_from_persisted(output)
 
     assert report_path.read_bytes() == original_report
