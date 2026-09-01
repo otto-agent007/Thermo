@@ -8,6 +8,7 @@ import jax
 import numpy as np
 import pytest
 
+import thermo_lab.backends.thrml_independent_pasym_swap as backend_module
 from thermo_lab.backends.thrml_independent_pasym_swap import (
     ThrmlIndependentPAsymSwapBackend,
     artifact_keys,
@@ -17,6 +18,7 @@ from thermo_lab.config import load_experiment_config
 from thermo_lab.evidence import EvidenceClass
 from thermo_lab.hashing import to_json_value
 from thermo_lab.pasym_swap_results import validate_independent_pasym_swap_observations
+from thermo_lab.records import RUN_TIMING_SOURCE
 from thermo_lab.schemas import IndependentCompilerRunConfig, PAsymSwapModelConfig
 
 pytestmark = pytest.mark.slow
@@ -30,21 +32,32 @@ def checked_request(seed: int = 0):
     return config.to_spec(seed=seed), model, run
 
 
-def test_artifact_keys_do_not_depend_on_iteration_order() -> None:
-    root = jax.random.key(7)
-    hashes = (
-        "00112233" * 8,
-        "00112233" * 7 + "aabbccdd",
+def _keys_equal(left: tuple[jax.Array, jax.Array], right: tuple[jax.Array, jax.Array]) -> bool:
+    return all(
+        np.array_equal(jax.random.key_data(left_key), jax.random.key_data(right_key))
+        for left_key, right_key in zip(left, right, strict=True)
     )
+
+
+def test_artifact_keys_fold_all_digest_words_and_ignore_iteration_order() -> None:
+    root = jax.random.key(7)
+    raw_hash = "00112233" * 8
+    hashes = (raw_hash, "00112233" * 7 + "aabbccdd")
     forward = {item: artifact_keys(root, item, 2) for item in hashes}
     reverse = {item: artifact_keys(root, item, 2) for item in reversed(hashes)}
     for item in forward:
-        for left, right in zip(forward[item], reverse[item], strict=True):
-            np.testing.assert_array_equal(jax.random.key_data(left), jax.random.key_data(right))
-    assert any(
-        not np.array_equal(jax.random.key_data(left), jax.random.key_data(right))
-        for left, right in zip(forward[hashes[0]], forward[hashes[1]], strict=True)
+        assert _keys_equal(forward[item], reverse[item])
+    assert _keys_equal(
+        artifact_keys(root, raw_hash, 2), artifact_keys(root, f"sha256:{raw_hash}", 2)
     )
+    assert not _keys_equal(artifact_keys(root, raw_hash, 1), artifact_keys(root, raw_hash, 2))
+
+    words = ["00112233"] * 8
+    baseline = artifact_keys(root, "".join(words), 2)
+    for index in range(8):
+        changed = words.copy()
+        changed[index] = "aabbccdd"
+        assert not _keys_equal(baseline, artifact_keys(root, "".join(changed), 2))
 
 
 def test_uniform_free_state_uses_half_probability_not_model_bias() -> None:
@@ -54,9 +67,44 @@ def test_uniform_free_state_uses_half_probability_not_model_bias() -> None:
     assert abs(float(state[1].mean()) - 0.5) < 0.03
 
 
-def test_backend_matches_exact_k30_and_reuses_deterministic_compilation() -> None:
+def test_backend_matches_exact_k30_and_reuses_deterministic_compilation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    compiler_calls = 0
+    lower_calls = 0
+    compile_calls = 0
+    real_compile_target = backend_module.compile_target
+    real_shared_sampler = backend_module._shared_sampler
+
+    def counted_compile_target(*args, **kwargs):
+        nonlocal compiler_calls
+        compiler_calls += 1
+        return real_compile_target(*args, **kwargs)
+
+    def counted_shared_sampler():
+        sampler = real_shared_sampler()
+
+        class LoweredSampler:
+            def __init__(self, lowered) -> None:
+                self.lowered = lowered
+
+            def compile(self):
+                nonlocal compile_calls
+                compile_calls += 1
+                return self.lowered.compile()
+
+        class Sampler:
+            def lower(self, *args, **kwargs):
+                nonlocal lower_calls
+                lower_calls += 1
+                return LoweredSampler(sampler.lower(*args, **kwargs))
+
+        return Sampler()
+
+    monkeypatch.setattr(backend_module, "compile_target", counted_compile_target)
+    monkeypatch.setattr(backend_module, "_shared_sampler", counted_shared_sampler)
     backend = ThrmlIndependentPAsymSwapBackend(ROOT)
-    spec, model, run = checked_request()
+    spec, model, run = checked_request(seed=0)
     first = backend.execute(spec)
     summary = validate_independent_pasym_swap_observations(first.record.metrics, model, run, seed=0)
 
@@ -81,28 +129,48 @@ def test_backend_matches_exact_k30_and_reuses_deterministic_compilation() -> Non
     with pytest.raises(ValueError, match="disagrees"):
         validate_independent_pasym_swap_observations(corrupted, model, run, seed=0)
 
-    same_seed = backend.execute(spec)
-    other_seed = backend.execute(checked_request(seed=1)[0])
+    second = backend.execute(checked_request(seed=1)[0])
+    third = backend.execute(checked_request(seed=2)[0])
     first_summary = summary
-    same_summary = validate_independent_pasym_swap_observations(
-        same_seed.record.metrics, model, run, seed=0
+    second_summary = validate_independent_pasym_swap_observations(
+        second.record.metrics, model, run, seed=1
     )
-    other_summary = validate_independent_pasym_swap_observations(
-        other_seed.record.metrics, model, run, seed=1
+    third_summary = validate_independent_pasym_swap_observations(
+        third.record.metrics, model, run, seed=2
     )
-    assert first_summary.artifacts == same_summary.artifacts
-    assert {item.artifact_hash for item in first_summary.artifacts} == {
-        item.artifact_hash for item in other_summary.artifacts
-    }
+    assert compiler_calls == 37
+    assert lower_calls == 1
+    assert compile_calls == 1
+    assert (
+        {item.artifact_hash for item in first_summary.artifacts}
+        == {item.artifact_hash for item in second_summary.artifacts}
+        == {item.artifact_hash for item in third_summary.artifacts}
+    )
     assert any(
         first_artifact.conditionals.empirical_k30_counts
-        != other_artifact.conditionals.empirical_k30_counts
-        for first_artifact, other_artifact in zip(
-            first_summary.artifacts, other_summary.artifacts, strict=True
+        != second_artifact.conditionals.empirical_k30_counts
+        for first_artifact, second_artifact in zip(
+            first_summary.artifacts, second_summary.artifacts, strict=True
         )
     )
-    assert first.record.timing.compile_seconds >= 0.0
-    assert same_seed.record.timing.compile_seconds == 0.0
-    assert other_seed.record.timing.compile_seconds == 0.0
+    assert any(
+        first_artifact.conditionals.empirical_k30_counts
+        != third_artifact.conditionals.empirical_k30_counts
+        for first_artifact, third_artifact in zip(
+            first_summary.artifacts, third_summary.artifacts, strict=True
+        )
+    )
+    assert first.record.timing.compile_seconds > 0.0
+    assert second.record.timing.compile_seconds == 0.0
+    assert third.record.timing.compile_seconds == 0.0
     assert first.record.timing.synchronized
+    assert first.record.timing.source == RUN_TIMING_SOURCE
+    assert second.record.timing.source == RUN_TIMING_SOURCE
+    assert third.record.timing.source == RUN_TIMING_SOURCE
     assert "aggregate synchronized" in first.record.timing.timing_method
+    assert "lower().compile() measured once" in first.record.timing.timing_method
+    assert "reused from in-process shape cache" in second.record.timing.timing_method
+    assert "reused from in-process shape cache" in third.record.timing.timing_method
+    assert "populated" in first.record.metrics["deterministic_optimizer_seconds"].notes
+    assert "reused" in second.record.metrics["deterministic_optimizer_seconds"].notes
+    assert "reused" in third.record.metrics["deterministic_optimizer_seconds"].notes
