@@ -13,21 +13,26 @@ import pytest
 
 from thermo_lab.config import load_experiment_config
 from thermo_lab.evidence import EvidenceClass
-from thermo_lab.hashing import to_json_value
-from thermo_lab.independent_compiler import CompilerSettings, compile_target
+from thermo_lab.hashing import canonical_sha256, to_json_value
+from thermo_lab.independent_compiler import CompilerSettings, compile_target, loss_and_gradient
 from thermo_lab.pasym_swap import PAPER_SOURCE, build_paper_fixture
 from thermo_lab.pasym_swap_results import (
     CompiledKernelResult,
     IndependentPAsymSwapSummary,
     KernelConditionalResult,
     KernelOptimizationResult,
+    _artifact_identity,
     summarize_artifacts,
     summarize_values,
     validate_independent_pasym_swap_observations,
 )
 from thermo_lab.records import MetricObservation
 from thermo_lab.schemas import IndependentCompilerRunConfig, PAsymSwapModelConfig
-from thermo_lab.thermodynamic_kernel import equilibrium_conditional
+from thermo_lab.thermodynamic_kernel import (
+    KernelParameters,
+    equilibrium_conditional,
+    finite_horizon_conditional,
+)
 
 _CONFIG = Path("configs/experiments/thrml-independent-pasym-swap.toml")
 
@@ -61,6 +66,37 @@ def _settings(run: IndependentCompilerRunConfig, model: PAsymSwapModelConfig) ->
     )
 
 
+def _fast_mixing_parameters(target: np.ndarray) -> tuple[tuple[float, ...], float]:
+    """Fit independent output logits, leaving hidden-output couplings at zero."""
+
+    probabilities = (target[1, 2], target[2, 1])
+    epsilon = 1.0 / (1.0 + math.exp(8.0))
+    design = 2.0 * np.asarray(
+        ((1.0, -1.0, -1.0), (1.0, -1.0, 1.0), (1.0, 1.0, -1.0), (1.0, 1.0, 1.0))
+    )
+    output_coefficients = []
+    for values in (
+        (epsilon, probabilities[0], 1.0 - probabilities[1], 1.0 - epsilon),
+        (epsilon, 1.0 - probabilities[0], probabilities[1], 1.0 - epsilon),
+    ):
+        logits = np.log(np.asarray(values) / (1.0 - np.asarray(values)))
+        output_coefficients.append(np.linalg.lstsq(design, logits, rcond=None)[0])
+    output_0, output_1 = output_coefficients
+    parameters = (
+        0.0,
+        float(output_0[0]),
+        float(output_1[0]),
+        float(output_0[1]),
+        float(output_1[1]),
+        float(output_0[2]),
+        float(output_1[2]),
+        0.0,
+        0.0,
+    )
+    loss, _ = loss_and_gradient(np.asarray(parameters), target, np.full(4, 0.25, dtype=np.float64))
+    return parameters, loss
+
+
 @lru_cache(maxsize=1)
 def _serialized_passing_template() -> str:
     """Cache only JSON, making each mutation test receive fresh metric objects."""
@@ -74,12 +110,15 @@ def _serialized_passing_template() -> str:
         frozen = compile_target(
             target.target_hash, np.asarray(target.conditional), _settings(run, model)
         )
-        # The result contract owns acceptance validation, not the finite-sweep
-        # evaluator.  Use the independently computed exact equilibrium table
-        # as a stable converged-table fixture so this contract test stays
-        # focused on serialization and mutual validation.
-        equilibrium = _table(equilibrium_conditional(frozen.parameters, frozen.beta))
-        finite = {horizon: equilibrium for horizon in run.horizons}
+        parameters, objective = _fast_mixing_parameters(np.asarray(target.conditional))
+        kernel_parameters = KernelParameters(parameters)
+        equilibrium = _table(equilibrium_conditional(kernel_parameters, model.beta))
+        finite = {
+            horizon: _table(table)
+            for horizon, table in finite_horizon_conditional(
+                kernel_parameters, run.horizons, model.beta
+            ).items()
+        }
         k30 = finite[30]
         counts = tuple(_largest_remainder(row) for row in k30)
         empirical = tuple(tuple(count / 4096.0 for count in row) for row in counts)
@@ -90,24 +129,32 @@ def _serialized_passing_template() -> str:
             empirical_k30_counts=counts,
             empirical_k30_conditional=empirical,
         )
-        artifacts.append(
-            CompiledKernelResult(
-                target_hash=target.target_hash,
-                compiler_request_hash="checked-independent-pasym-swap-v1",
-                optimization=KernelOptimizationResult(
-                    artifact_hash=frozen.artifact_hash,
-                    parameters=frozen.parameters.values,
-                    selected_restart=frozen.selected_restart,
-                    successful_restart_count=sum(
-                        attempt.passed_checks for attempt in frozen.attempts
-                    ),
-                    objective=frozen.objective,
-                    projected_gradient_norm=frozen.projected_gradient_norm,
-                    cap_active_parameter_count=frozen.cap_active_parameter_count,
+        artifact = CompiledKernelResult(
+            target_hash=target.target_hash,
+            compiler_request_hash="checked-independent-pasym-swap-v1",
+            optimization=KernelOptimizationResult(
+                artifact_hash="pending",
+                parameters=parameters,
+                selected_restart=frozen.selected_restart,
+                successful_restart_count=sum(attempt.passed_checks for attempt in frozen.attempts),
+                objective=objective,
+                projected_gradient_norm=0.0,
+                cap_active_parameter_count=sum(
+                    abs(value) >= model.parameter_cap for value in parameters
                 ),
-                conditionals=conditionals,
-            )
+            ),
+            conditionals=conditionals,
         )
+        artifact = artifact.model_copy(
+            update={
+                "optimization": artifact.optimization.model_copy(
+                    update={
+                        "artifact_hash": canonical_sha256(_artifact_identity(artifact, model, run))
+                    }
+                )
+            }
+        )
+        artifacts.append(artifact)
     summary = summarize_artifacts(artifacts, fixture.occurrences, model, run)
     metrics = {
         "independent_pasym_swap": MetricObservation(
@@ -183,6 +230,13 @@ def passing_observations() -> tuple[
     )
 
 
+def _summary_payload(metrics: dict[str, MetricObservation]) -> dict[str, Any]:
+    summary = IndependentPAsymSwapSummary.model_validate_json(
+        json.dumps(to_json_value(metrics["independent_pasym_swap"].value))
+    )
+    return summary.model_dump(mode="json")
+
+
 def test_nearest_rank_and_even_median_are_explicit() -> None:
     summary = summarize_values((0.4, 0.1, 0.3, 0.2))
     assert summary.minimum == 0.1
@@ -237,9 +291,7 @@ def test_optimizer_and_sample_metrics_cannot_claim_exact_evidence() -> None:
 
 def test_nested_artifact_hash_occurrence_and_evidence_mutations_reject() -> None:
     metrics, model, run = passing_observations()
-    summary_payload = IndependentPAsymSwapSummary.model_validate(
-        to_json_value(metrics["independent_pasym_swap"].value)
-    ).model_dump(mode="python")
+    summary_payload = _summary_payload(metrics)
     summary_payload["artifacts"][0]["optimization"]["artifact_hash"] = "forged"
     metrics["independent_pasym_swap"] = metrics["independent_pasym_swap"].model_copy(
         update={"value": summary_payload}
@@ -248,9 +300,7 @@ def test_nested_artifact_hash_occurrence_and_evidence_mutations_reject() -> None
         validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
 
     metrics, model, run = passing_observations()
-    summary_payload = IndependentPAsymSwapSummary.model_validate(
-        to_json_value(metrics["independent_pasym_swap"].value)
-    ).model_dump(mode="python")
+    summary_payload = _summary_payload(metrics)
     summary_payload["occurrences"][0]["target_hash"] = "missing"
     metrics["independent_pasym_swap"] = metrics["independent_pasym_swap"].model_copy(
         update={"value": summary_payload}
@@ -259,12 +309,228 @@ def test_nested_artifact_hash_occurrence_and_evidence_mutations_reject() -> None
         validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
 
     metrics, model, run = passing_observations()
-    summary_payload = IndependentPAsymSwapSummary.model_validate(
-        to_json_value(metrics["independent_pasym_swap"].value)
-    ).model_dump(mode="python")
+    summary_payload = _summary_payload(metrics)
     summary_payload["artifacts"][0]["optimization"]["evidence_class"] = "exact_reference"
     metrics["independent_pasym_swap"] = metrics["independent_pasym_swap"].model_copy(
         update={"value": summary_payload}
     )
     with pytest.raises(ValueError, match="software_simulation"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def _set_summary(metrics: dict[str, MetricObservation], payload: dict[str, Any]) -> None:
+    metrics["independent_pasym_swap"] = metrics["independent_pasym_swap"].model_copy(
+        update={"value": payload}
+    )
+
+
+@pytest.mark.parametrize(
+    ("name", "mutate", "match"),
+    (
+        (
+            "equilibrium cell",
+            lambda payload: payload["artifacts"][0]["conditionals"]["equilibrium_conditional"][
+                0
+            ].__setitem__(
+                0, payload["artifacts"][0]["conditionals"]["equilibrium_conditional"][0][0] - 1e-4
+            ),
+            "equilibrium target",
+        ),
+        (
+            "finite cell",
+            lambda payload: payload["artifacts"][0]["conditionals"]["finite_horizon_conditionals"][
+                "1"
+            ][0].__setitem__(
+                0,
+                payload["artifacts"][0]["conditionals"]["finite_horizon_conditionals"]["1"][0][0]
+                - 1e-4,
+            ),
+            "finite horizon",
+        ),
+        (
+            "empirical cell",
+            lambda payload: payload["artifacts"][0]["conditionals"]["empirical_k30_conditional"][
+                0
+            ].__setitem__(0, 0.0),
+            "empirical target",
+        ),
+        (
+            "empirical count",
+            lambda payload: (
+                payload["artifacts"][0]["conditionals"]["empirical_k30_counts"][0].__setitem__(
+                    0, 0
+                ),
+                payload["artifacts"][0]["conditionals"]["empirical_k30_counts"][0].__setitem__(
+                    1, 4096
+                ),
+            ),
+            "chain count",
+        ),
+        (
+            "optimizer objective",
+            lambda payload: payload["artifacts"][0]["optimization"].__setitem__("objective", 1.0),
+            "optimizer objective",
+        ),
+        (
+            "optimizer gradient",
+            lambda payload: payload["artifacts"][0]["optimization"].__setitem__(
+                "projected_gradient_norm", 1.0
+            ),
+            "optimizer",
+        ),
+        (
+            "optimizer success",
+            lambda payload: payload["artifacts"][0]["optimization"].__setitem__(
+                "successful_restart_count", 0
+            ),
+            "optimizer",
+        ),
+        (
+            "optimizer parameters",
+            lambda payload: payload["artifacts"][0]["optimization"]["parameters"].__setitem__(
+                0, 0.1
+            ),
+            "artifact hash",
+        ),
+        (
+            "cap active count",
+            lambda payload: payload["artifacts"][0]["optimization"].__setitem__(
+                "cap_active_parameter_count", 9
+            ),
+            "cap-active count",
+        ),
+        (
+            "acceptance boolean",
+            lambda payload: payload["acceptance"].__setitem__("passed", False),
+            "persisted PAsymSwap summary",
+        ),
+    ),
+)
+def test_every_scientific_nested_claim_is_recomputed(name: str, mutate: Any, match: str) -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    mutate(payload)
+    _set_summary(metrics, payload)
+    with pytest.raises(ValueError, match=match):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("macrostep", 99),
+        ("layer", 999),
+        ("color", "H2"),
+        ("edge", [[9, 9], [9, 8]]),
+        ("target_hash", None),
+    ),
+)
+def test_canonical_occurrence_schedule_rejects_each_mutation(field: str, value: Any) -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    payload["occurrences"][0][field] = (
+        payload["artifacts"][1]["target_hash"] if field == "target_hash" else value
+    )
+    _set_summary(metrics, payload)
+    with pytest.raises(ValueError, match="canonical occurrence"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def test_self_hashed_noncanonical_target_is_rejected() -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    target = payload["artifacts"][0]["conditionals"]["target_conditional"]
+    target[1][1] -= 0.01
+    target[1][2] += 0.01
+    payload["artifacts"][0]["target_hash"] = canonical_sha256(
+        {"word_order": ((0, 0), (0, 1), (1, 0), (1, 1)), "conditional": target}
+    )
+    for occurrence in payload["occurrences"]:
+        if occurrence["target_hash"] == build_paper_fixture().targets[0].target_hash:
+            occurrence["target_hash"] = payload["artifacts"][0]["target_hash"]
+    _set_summary(metrics, payload)
+    with pytest.raises(ValueError, match="canonical target collection"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+@pytest.mark.parametrize(
+    "metric_name",
+    (
+        "independent_pasym_swap",
+        "median_equilibrium_tv",
+        "worst_equilibrium_tv",
+        "maximum_k30_equilibrium_residual",
+        "maximum_empirical_k30_residual",
+        "successful_artifact_count",
+        "total_cap_active_parameter_count",
+        "acceptance_passed",
+    ),
+)
+@pytest.mark.parametrize("field", ("source", "method", "evidence_class"))
+def test_every_metric_provenance_category_is_enforced(metric_name: str, field: str) -> None:
+    metrics, model, run = passing_observations()
+    metric = metrics[metric_name]
+    replacement: object = "forged"
+    if field == "evidence_class":
+        replacement = EvidenceClass.CALIBRATED_PROJECTION
+    metrics[metric_name] = metric.model_copy(update={field: replacement})
+    with pytest.raises(ValueError):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def test_probability_cells_are_strict_floats() -> None:
+    metrics, _, _ = passing_observations()
+    payload = _summary_payload(metrics)
+    payload["artifacts"][0]["conditionals"]["equilibrium_conditional"][0][0] = 1
+    with pytest.raises(ValueError, match="float"):
+        IndependentPAsymSwapSummary.model_validate_json(json.dumps(payload))
+
+
+@pytest.mark.parametrize(
+    ("path", "replacement"),
+    (
+        (("conditionals", "target_evidence_class"), "software_simulation"),
+        (("conditionals", "equilibrium_evidence_class"), "software_simulation"),
+        (("conditionals", "finite_horizon_evidence_class"), "software_simulation"),
+        (("conditionals", "empirical_k30_evidence_class"), "exact_reference"),
+        (("optimization", "evidence_class"), "exact_reference"),
+        (("evidence_class",), "exact_reference"),
+    ),
+)
+def test_each_nested_evidence_class_is_enforced(path: tuple[str, ...], replacement: str) -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    target: dict[str, Any] = payload["artifacts"][0]
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = replacement
+    _set_summary(metrics, payload)
+    with pytest.raises(ValueError, match="evidence"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+@pytest.mark.parametrize(
+    ("path", "value"),
+    (
+        (("equilibrium_kl", "minimum"), 1.0),
+        (("equilibrium_tv", "p90"), 1.0),
+        (("finite_horizon_kl", "1", "median"), 1.0),
+        (("finite_horizon_tv", "30", "maximum"), 1.0),
+        (("maximum_finite_horizon_equilibrium_residual", "30"), 1.0),
+        (("maximum_empirical_k30_residual",), 1.0),
+        (("successful_artifact_count",), 0),
+        (("total_cap_active_parameter_count",), 9),
+    ),
+)
+def test_every_persisted_summary_aggregate_is_mutually_validated(
+    path: tuple[str, ...], value: float | int
+) -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    target: dict[str, Any] = payload
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = value
+    _set_summary(metrics, payload)
+    with pytest.raises(ValueError, match="persisted PAsymSwap summary"):
         validate_independent_pasym_swap_observations(metrics, model, run, seed=0)

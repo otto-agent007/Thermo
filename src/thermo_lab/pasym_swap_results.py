@@ -7,12 +7,15 @@ recomputes all diagnostics when a result is assembled or reloaded, so a stale
 
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Any
 
+import numpy as np
 from pydantic import (
+    ConfigDict,
     Field,
     StrictBool,
     StrictFloat,
@@ -24,13 +27,19 @@ from pydantic import (
 
 from thermo_lab.evidence import EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
-from thermo_lab.pasym_swap import PAPER_SOURCE, WORD_ORDER, GateOccurrence
+from thermo_lab.independent_compiler import loss_and_gradient
+from thermo_lab.pasym_swap import PAPER_SOURCE, WORD_ORDER, GateOccurrence, build_paper_fixture
 from thermo_lab.records import FrozenModel, MetricObservation
 from thermo_lab.schemas import (
     PARAMETER_ORDER,
     IndependentCompilerRunConfig,
     PAsymSwapModelConfig,
     validate_independent_pasym_swap_request,
+)
+from thermo_lab.thermodynamic_kernel import (
+    KernelParameters,
+    equilibrium_conditional,
+    finite_horizon_conditional,
 )
 
 _HORIZONS = (1, 2, 4, 8, 16, 30)
@@ -48,11 +57,24 @@ _CHECKS = (
 )
 
 ConditionalTable = tuple[
-    tuple[float, float, float, float],
-    tuple[float, float, float, float],
-    tuple[float, float, float, float],
-    tuple[float, float, float, float],
+    tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+    tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+    tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+    tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
 ]
+
+_EXACT_METHOD = "recomputed from exact frozen-model conditionals"
+_FINITE_METHOD = "recomputed from exact finite-horizon conditionals"
+_SAMPLE_METHOD = "deterministic 4096-chain synthetic cross-check"
+_OPTIMIZER_METHOD = "bounded optimizer winner checks"
+_ACCEPTANCE_METHOD = "all eight acceptance gates recomputed"
+_SUMMARY_METHOD = "bounded independent compiler summary"
+
+
+class _StrictFrozenResultModel(FrozenModel):
+    """Strict immutable persistence base without widening record-model inputs."""
+
+    model_config = ConfigDict(allow_inf_nan=False, extra="forbid", frozen=True, strict=True)
 
 
 def _freeze_mapping(values: Mapping[int, Any]) -> Mapping[int, Any]:
@@ -68,6 +90,23 @@ def _parse_horizon_mapping(value: object) -> object:
     for key, item in value.items():
         parsed[int(key) if isinstance(key, str) and key.isdecimal() else key] = item
     return parsed
+
+
+def _tuple_table(value: object) -> object:
+    if isinstance(value, list):
+        return tuple(_tuple_table(item) for item in value)
+    return value
+
+
+def _reject_integer_probability_cells(value: object, *, name: str) -> None:
+    if not isinstance(value, (tuple, list)):
+        return
+    for row in value:
+        if not isinstance(row, (tuple, list)):
+            continue
+        for cell in row:
+            if type(cell) is int:
+                raise ValueError(f"{name} probability cells must be JSON floating-point values")
 
 
 def _finite(value: float, *, name: str) -> float:
@@ -133,7 +172,7 @@ def _counts(
     return tuple(rows)  # type: ignore[return-value]
 
 
-class SummaryStatistics(FrozenModel):
+class SummaryStatistics(_StrictFrozenResultModel):
     """Explicit order-statistics used in reports and acceptance summaries."""
 
     minimum: StrictFloat
@@ -165,7 +204,7 @@ def summarize_values(values: Sequence[float]) -> SummaryStatistics:
     )
 
 
-class KernelConditionalResult(FrozenModel):
+class KernelConditionalResult(_StrictFrozenResultModel):
     """Exact and sampled conditionals for one frozen five-spin kernel."""
 
     target_conditional: ConditionalTable
@@ -186,7 +225,20 @@ class KernelConditionalResult(FrozenModel):
     @field_validator("finite_horizon_conditionals", mode="before")
     @classmethod
     def parse_horizon_keys(cls, value: object) -> object:
-        return _parse_horizon_mapping(value)
+        parsed = _parse_horizon_mapping(value)
+        if not isinstance(parsed, Mapping):
+            return parsed
+        for horizon, table in parsed.items():
+            _reject_integer_probability_cells(table, name=f"finite_horizon_conditionals[{horizon}]")
+        return {key: _tuple_table(table) for key, table in parsed.items()}
+
+    @field_validator(
+        "target_conditional", "equilibrium_conditional", "empirical_k30_conditional", mode="before"
+    )
+    @classmethod
+    def parse_json_tables(cls, value: object) -> object:
+        _reject_integer_probability_cells(value, name="conditional")
+        return _tuple_table(value)
 
     @model_validator(mode="after")
     def validate_bounded_tables(self) -> KernelConditionalResult:
@@ -221,7 +273,7 @@ class KernelConditionalResult(FrozenModel):
         return {str(horizon): table for horizon, table in value.items()}
 
 
-class KernelOptimizationResult(FrozenModel):
+class KernelOptimizationResult(_StrictFrozenResultModel):
     """Bounded optimizer winner information; histories are intentionally absent."""
 
     artifact_hash: str = Field(min_length=1)
@@ -250,7 +302,7 @@ class KernelOptimizationResult(FrozenModel):
         return self
 
 
-class CompiledKernelResult(FrozenModel):
+class CompiledKernelResult(_StrictFrozenResultModel):
     """One canonical target and the immutable compiled artifact that realizes it."""
 
     target_hash: str = Field(min_length=1)
@@ -272,7 +324,7 @@ class CompiledKernelResult(FrozenModel):
         return self.optimization.artifact_hash
 
 
-class PAsymSwapAcceptance(FrozenModel):
+class PAsymSwapAcceptance(_StrictFrozenResultModel):
     """Persisted acceptance record, cross-checked rather than trusted."""
 
     passed: StrictBool
@@ -288,7 +340,7 @@ class PAsymSwapAcceptance(FrozenModel):
         return self
 
 
-class IndependentPAsymSwapSummary(FrozenModel):
+class IndependentPAsymSwapSummary(_StrictFrozenResultModel):
     """Complete bounded outcome for one sampled independent-compiler seed."""
 
     source_reference: str = Field(min_length=1)
@@ -397,7 +449,32 @@ def _artifact_identity(
     }
 
 
-def _check_tables(artifact: CompiledKernelResult, run: IndependentCompilerRunConfig) -> None:
+def _require_exact_table(
+    persisted: ConditionalTable,
+    expected: np.ndarray,
+    *,
+    target_hash: str,
+    name: str,
+    horizon: int | None,
+    tolerance: float,
+) -> None:
+    for context in _CONTEXTS:
+        for output in _OUTPUTS:
+            observed = persisted[context][output]
+            reference = float(expected[context, output])
+            if abs(observed - reference) > tolerance:
+                horizon_text = "" if horizon is None else f" horizon={horizon}"
+                raise ValueError(
+                    f"{name} target_hash={target_hash} context={context}{horizon_text} "
+                    f"observed={observed} bound={reference}"
+                )
+
+
+def _check_tables(
+    artifact: CompiledKernelResult,
+    model: PAsymSwapModelConfig,
+    run: IndependentCompilerRunConfig,
+) -> None:
     conditionals = artifact.conditionals
     target = _probability_table(
         conditionals.target_conditional,
@@ -410,13 +487,14 @@ def _check_tables(artifact: CompiledKernelResult, run: IndependentCompilerRunCon
             "target hash mismatch "
             f"target_hash={artifact.target_hash} observed={expected_target_hash}"
         )
-    _probability_table(
+    equilibrium = _probability_table(
         conditionals.equilibrium_conditional,
         name=f"equilibrium target_hash={artifact.target_hash}",
         tolerance=run.exact_normalization_tolerance,
     )
+    finite_tables: dict[int, ConditionalTable] = {}
     for horizon in _HORIZONS:
-        _probability_table(
+        finite_tables[horizon] = _probability_table(
             conditionals.finite_horizon_conditionals[horizon],
             name=f"finite horizon target_hash={artifact.target_hash} horizon={horizon}",
             tolerance=run.exact_normalization_tolerance,
@@ -439,6 +517,26 @@ def _check_tables(artifact: CompiledKernelResult, run: IndependentCompilerRunCon
                     f"empirical target_hash={artifact.target_hash} context={context} horizon=30 "
                     f"observed={empirical[context][output]} bound={expected}: counts disagree"
                 )
+    parameters = KernelParameters(tuple(artifact.optimization.parameters))
+    expected_equilibrium = equilibrium_conditional(parameters, beta=model.beta)
+    _require_exact_table(
+        equilibrium,
+        expected_equilibrium,
+        target_hash=artifact.target_hash,
+        name="equilibrium conditional",
+        horizon=None,
+        tolerance=run.exact_normalization_tolerance,
+    )
+    expected_finite = finite_horizon_conditional(parameters, _HORIZONS, beta=model.beta)
+    for horizon in _HORIZONS:
+        _require_exact_table(
+            finite_tables[horizon],
+            expected_finite[horizon],
+            target_hash=artifact.target_hash,
+            name="finite conditional",
+            horizon=horizon,
+            tolerance=run.exact_normalization_tolerance,
+        )
 
 
 def _check_optimizer(
@@ -458,6 +556,24 @@ def _check_optimizer(
         raise ValueError(
             f"parameter cap target_hash={artifact.target_hash} "
             f"observed={maximum} bound={model.parameter_cap}"
+        )
+    expected_cap_active = sum(
+        abs(value) >= model.parameter_cap for value in optimization.parameters
+    )
+    if optimization.cap_active_parameter_count != expected_cap_active:
+        raise ValueError(
+            f"cap-active count target_hash={artifact.target_hash} "
+            f"observed={optimization.cap_active_parameter_count} bound={expected_cap_active}"
+        )
+    objective, _ = loss_and_gradient(
+        np.asarray(optimization.parameters, dtype=np.float64),
+        np.asarray(artifact.conditionals.target_conditional, dtype=np.float64),
+        np.asarray(run.context_weights, dtype=np.float64),
+    )
+    if abs(optimization.objective - objective) > run.exact_normalization_tolerance:
+        raise ValueError(
+            f"optimizer objective target_hash={artifact.target_hash} "
+            f"observed={optimization.objective} bound={objective}"
         )
     expected_hash = canonical_sha256(_artifact_identity(artifact, model, run))
     if optimization.artifact_hash != expected_hash:
@@ -540,6 +656,43 @@ def _derived(artifacts: Sequence[CompiledKernelResult]) -> dict[str, Any]:
     }
 
 
+def _check_canonical_fixture(
+    artifacts: Sequence[CompiledKernelResult], occurrences: Sequence[GateOccurrence]
+) -> None:
+    """Bind persisted artifacts and all 500 occurrences to the paper fixture."""
+
+    fixture = build_paper_fixture()
+    if len(artifacts) != len(fixture.targets):
+        raise ValueError(
+            f"canonical target collection observed={len(artifacts)} bound={len(fixture.targets)}"
+        )
+    expected_hashes = tuple(target.target_hash for target in fixture.targets)
+    observed_hashes = tuple(artifact.target_hash for artifact in artifacts)
+    if observed_hashes != expected_hashes:
+        raise ValueError(
+            "canonical target collection target hashes or ordering differ: "
+            f"observed={observed_hashes} bound={expected_hashes}"
+        )
+    for artifact, target in zip(artifacts, fixture.targets, strict=True):
+        if artifact.conditionals.target_conditional != target.conditional:
+            raise ValueError(
+                f"canonical target table target_hash={artifact.target_hash} "
+                "does not match the paper fixture"
+            )
+    if tuple(occurrences) != fixture.occurrences:
+        for index, (observed, expected) in enumerate(
+            zip(occurrences, fixture.occurrences, strict=False)
+        ):
+            if observed != expected:
+                raise ValueError(
+                    f"canonical occurrence index={index} observed={observed} bound={expected}"
+                )
+        raise ValueError(
+            f"canonical occurrence schedule observed={len(occurrences)} "
+            f"bound={len(fixture.occurrences)}"
+        )
+
+
 def summarize_artifacts(
     artifacts: Sequence[CompiledKernelResult],
     occurrences: Sequence[GateOccurrence],
@@ -555,18 +708,10 @@ def summarize_artifacts(
         raise ValueError("PAsymSwap summary requires at least one artifact")
     if len(occurrences) != 500:
         raise ValueError("PAsymSwap summary requires exactly 500 occurrences")
-    if len({artifact.target_hash for artifact in artifacts}) != len(artifacts):
-        raise ValueError("PAsymSwap artifacts must contain one artifact per target hash")
-    target_hashes = {artifact.target_hash for artifact in artifacts}
-    for occurrence in occurrences:
-        if occurrence.target_hash not in target_hashes:
-            raise ValueError(
-                f"occurrence target_hash={occurrence.target_hash} does not resolve "
-                "to an included artifact"
-            )
+    _check_canonical_fixture(artifacts, occurrences)
     for artifact in artifacts:
-        _check_tables(artifact, run)
         _check_optimizer(artifact, model, run)
+        _check_tables(artifact, model, run)
     derived = _derived(artifacts)
     if derived["equilibrium_tv"].median > run.median_equilibrium_tv_tolerance:
         raise ValueError(
@@ -597,11 +742,11 @@ def summarize_artifacts(
                     f"target_hash={artifact.target_hash} context={context} "
                     f"horizon=30 observed={k30} bound={run.k30_equilibrium_tv_tolerance}"
                 )
-            if k30 > k1:
+            if k30 > k1 + run.exact_normalization_tolerance:
                 raise ValueError(
                     f"K30 versus K1 target_hash={artifact.target_hash} context={context} "
                     "horizon=30 "
-                    f"observed={k30} bound={k1}"
+                    f"observed={k30} bound={k1 + run.exact_normalization_tolerance}"
                 )
             empirical = _tv(
                 conditionals.empirical_k30_conditional,
@@ -630,7 +775,8 @@ def summarize_artifacts(
             artifact.optimization.successful_restart_count >= 1 for artifact in artifacts
         ),
         total_cap_active_parameter_count=sum(
-            artifact.optimization.cap_active_parameter_count for artifact in artifacts
+            sum(abs(value) >= model.parameter_cap for value in artifact.optimization.parameters)
+            for artifact in artifacts
         ),
         acceptance=PAsymSwapAcceptance(passed=True, checks=_CHECKS),
     )
@@ -655,10 +801,16 @@ def _require_metric(
     name: str,
     expected: float | int | bool,
     evidence: EvidenceClass,
+    method: str,
+    source: str,
 ) -> None:
     metric = metrics[name]
     if metric.evidence_class is not evidence:
         raise ValueError(f"metric {name!r} must use {evidence.value} evidence")
+    if metric.source != source:
+        raise ValueError(f"metric {name!r} source observed={metric.source!r} bound={source!r}")
+    if metric.method != method:
+        raise ValueError(f"metric {name!r} method observed={metric.method!r} bound={method!r}")
     if metric.value != expected:
         raise ValueError(
             f"{name} does not match recomputed nested artifacts: "
@@ -687,7 +839,14 @@ def validate_independent_pasym_swap_observations(
         raise ValueError("independent_pasym_swap composite must use software_simulation evidence")
     if summary_metric.source != model.source_reference:
         raise ValueError("independent_pasym_swap source differs from persisted model")
-    summary = IndependentPAsymSwapSummary.model_validate(to_json_value(summary_metric.value))
+    if summary_metric.method != _SUMMARY_METHOD:
+        raise ValueError(
+            f"independent_pasym_swap method observed={summary_metric.method!r} "
+            f"bound={_SUMMARY_METHOD!r}"
+        )
+    summary = IndependentPAsymSwapSummary.model_validate_json(
+        json.dumps(to_json_value(summary_metric.value))
+    )
     regenerated = summarize_artifacts(summary.artifacts, summary.occurrences, model, run)
     if summary.model_dump(mode="json") != regenerated.model_dump(mode="json"):
         raise ValueError("persisted PAsymSwap summary disagrees with nested artifacts")
@@ -696,36 +855,55 @@ def validate_independent_pasym_swap_observations(
         "median_equilibrium_tv",
         regenerated.equilibrium_tv.median,
         EvidenceClass.EXACT_REFERENCE,
+        _EXACT_METHOD,
+        model.source_reference,
     )
     _require_metric(
         metrics,
         "worst_equilibrium_tv",
         regenerated.equilibrium_tv.maximum,
         EvidenceClass.EXACT_REFERENCE,
+        _EXACT_METHOD,
+        model.source_reference,
     )
     _require_metric(
         metrics,
         "maximum_k30_equilibrium_residual",
         regenerated.maximum_finite_horizon_equilibrium_residual[30],
         EvidenceClass.EXACT_REFERENCE,
+        _FINITE_METHOD,
+        model.source_reference,
     )
     _require_metric(
         metrics,
         "maximum_empirical_k30_residual",
         regenerated.maximum_empirical_k30_residual,
         EvidenceClass.SOFTWARE_SIMULATION,
+        _SAMPLE_METHOD,
+        model.source_reference,
     )
     _require_metric(
         metrics,
         "successful_artifact_count",
         regenerated.successful_artifact_count,
         EvidenceClass.SOFTWARE_SIMULATION,
+        _OPTIMIZER_METHOD,
+        model.source_reference,
     )
     _require_metric(
         metrics,
         "total_cap_active_parameter_count",
         regenerated.total_cap_active_parameter_count,
         EvidenceClass.SOFTWARE_SIMULATION,
+        _OPTIMIZER_METHOD,
+        model.source_reference,
     )
-    _require_metric(metrics, "acceptance_passed", True, EvidenceClass.SOFTWARE_SIMULATION)
+    _require_metric(
+        metrics,
+        "acceptance_passed",
+        True,
+        EvidenceClass.SOFTWARE_SIMULATION,
+        _ACCEPTANCE_METHOD,
+        model.source_reference,
+    )
     return regenerated
