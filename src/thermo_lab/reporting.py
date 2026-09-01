@@ -15,11 +15,13 @@ from thermo_lab.graph_walk_results import (
     validate_weighted_graph_walk_observations,
 )
 from thermo_lab.hashing import to_json_value
+from thermo_lab.pasym_swap_reporting import render_independent_pasym_swap_section
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import RunRecord
 from thermo_lab.schemas import WeightedGraphModelConfig, WeightedGraphRunConfig
 
 _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
+_INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
 
 
 def _format_number(value: float | None) -> str:
@@ -255,6 +257,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
 
     validate_aggregate_against_records(aggregate, records)
     is_weighted_graph_walk = aggregate.experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
+    is_independent_pasym_swap = aggregate.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
@@ -290,8 +293,14 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
             "edge order, program depth, and node coordinates are not replication units, and "
             "no confidence interval is inferred from them."
             if is_deterministic
-            else "Recorded Markov-chain states are not described as independent samples. "
-            "Independent seeded runs are the replication unit for confidence intervals."
+            else (
+                "Seeds vary only the sampled cross-check and timing; targets, compiler, "
+                "compiled artifacts, and exact horizons are deterministic identity fields and "
+                "do not receive Student-t intervals."
+                if is_independent_pasym_swap
+                else "Recorded Markov-chain states are not described as independent samples. "
+                "Independent seeded runs are the replication unit for confidence intervals."
+            )
         ),
         "",
         "## Runtime provenance",
@@ -299,6 +308,17 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     ]
     if aggregate.provenance_summary is None:
         lines.append("Unavailable because no run completed.")
+    elif is_independent_pasym_swap:
+        lines.extend(
+            (
+                "",
+                "Only the independently seeded THRML sampled cross-check scalar is eligible for "
+                "a two-sided 95% Student-t interval. Deterministic compiler and exact-evaluation "
+                "identity fields remain in the validated per-run section below.",
+            )
+        )
+        if records:
+            lines.extend(("", *render_independent_pasym_swap_section(records[0])))
     else:
         provenance = aggregate.provenance_summary
         lines.extend(
