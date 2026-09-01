@@ -17,9 +17,11 @@ from thermo_lab.graph_walk_results import (
 from thermo_lab.hashing import to_json_value
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import RunRecord
-from thermo_lab.schemas import WeightedGraphModelConfig, WeightedGraphRunConfig
-
-_WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
+from thermo_lab.schemas import (
+    WEIGHTED_GRAPH_WALK_EXPERIMENT_ID,
+    WeightedGraphModelConfig,
+    WeightedGraphRunConfig,
+)
 
 
 def _format_number(value: float | None) -> str:
@@ -109,7 +111,7 @@ def _validated_weighted_graph_walk_data(
 ) -> tuple[WeightedGraphWalkSummary, WeightedGraphModelConfig]:
     """Validate persisted graph observations against their checked requested inputs."""
 
-    if record.spec.experiment_id != _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
+    if record.spec.experiment_id != WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
         raise ValueError("weighted graph-walk summary belongs to a different experiment")
     model = WeightedGraphModelConfig.model_validate(to_json_value(record.spec.model_parameters))
     run = WeightedGraphRunConfig.model_validate(to_json_value(record.spec.run_parameters))
@@ -254,7 +256,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     """Render an evidence-safe report from already persisted validated data."""
 
     validate_aggregate_against_records(aggregate, records)
-    is_weighted_graph_walk = aggregate.experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
+    is_weighted_graph_walk = aggregate.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
@@ -361,7 +363,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     if aggregate.failures:
         lines.extend(("", "## Failures", ""))
         lines.extend(
-            f"- Seed {failure.seed}: `{failure.error_type}` — {failure.message}"
+            f"- Seed {failure.seed}: `{failure.error_type}` — {_markdown_text(failure.message)}"
             for failure in aggregate.failures
         )
     lines.extend(

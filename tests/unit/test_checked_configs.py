@@ -1,3 +1,4 @@
+import sysconfig
 from pathlib import Path
 
 import pytest
@@ -140,3 +141,32 @@ def test_weighted_graph_config_round_trips_and_hashes_scientific_inputs(tmp_path
 
 def test_weighted_graph_factory_uses_checked_config() -> None:
     assert weighted_graph_walk_spec() == load_experiment_config(GRAPH_CONFIG).to_spec()
+
+
+def test_config_locator_falls_back_to_installed_data_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    installed = tmp_path / "data" / "configs" / "experiments" / "torx-two-gate.toml"
+    installed.parent.mkdir(parents=True)
+    installed.write_bytes(TORX_CONFIG.read_bytes())
+    monkeypatch.setattr(
+        "thermo_lab.config._config_search_roots",
+        lambda: (tmp_path / "absent-checkout", tmp_path / "data"),
+    )
+
+    assert experiment_config_path("torx-two-gate.toml") == installed
+
+
+def test_config_locator_searches_the_install_data_scheme() -> None:
+    from thermo_lab.config import _config_search_roots
+
+    assert _config_search_roots()[-1] == Path(sysconfig.get_path("data"))
+
+
+def test_config_locator_reports_missing_config(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("thermo_lab.config._config_search_roots", lambda: (tmp_path,))
+
+    with pytest.raises(FileNotFoundError, match="torx-two-gate.toml"):
+        experiment_config_path("torx-two-gate.toml")

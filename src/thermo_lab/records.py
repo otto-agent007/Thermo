@@ -28,6 +28,7 @@ from thermo_lab.evidence import (
     validate_metric_evidence,
 )
 from thermo_lab.hashing import canonical_sha256, to_json_value
+from thermo_lab.persistence import atomic_write_text
 
 RUN_RECORD_SCHEMA_VERSION = "1.1.0"
 RUN_TIMING_SOURCE = "Python time.perf_counter"
@@ -245,11 +246,8 @@ class RunRecord(FrozenModel):
         return self
 
     def write_json(self, path: Path) -> None:
-        # Revalidate the complete payload at the persistence boundary. This is
-        # Defense in depth at the persistence boundary.
+        # Revalidate the complete payload as defense in depth at the persistence boundary.
         validated = RunRecord.model_validate(self.model_dump(mode="python", by_alias=True))
-        from thermo_lab.persistence import atomic_write_text
-
         payload = validated.model_dump(mode="json", by_alias=True)
         atomic_write_text(path, json.dumps(payload, indent=2, sort_keys=True) + "\n")
 

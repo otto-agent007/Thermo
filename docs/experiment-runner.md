@@ -74,7 +74,8 @@ Seed and deterministic-identity preflight runs before inspecting or clearing
 outputs. With `--overwrite`, the runner clears only its known artifacts without
 parsing the prior aggregate, so an unsupported predecessor schema can be
 replaced. Without `--overwrite`, a valid current completed aggregate remains
-protected.
+protected, and an `aggregate.json` the current version cannot read is refused
+with the same `--overwrite` guidance rather than a raw validation traceback.
 
 The legacy `thermo-lab smoke` command remains available for the two foundation
 checks.

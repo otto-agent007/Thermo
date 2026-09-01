@@ -14,9 +14,11 @@ from thermo_lab.aggregate import (
 from thermo_lab.config import ExperimentConfig, dump_experiment_config, load_experiment_config
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.persistence import atomic_write_text
+from thermo_lab.provenance import find_repository_root
 from thermo_lab.record_schemas import write_record_schemas
 from thermo_lab.records import RunRecord
 from thermo_lab.reporting import write_report_from_persisted
+from thermo_lab.schemas import WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
 
 if TYPE_CHECKING:
     from thermo_lab.backends.base import ExperimentBackend
@@ -49,7 +51,13 @@ def _existing_completed(output_dir: Path) -> bool:
     path = output_dir / "aggregate.json"
     if not path.exists():
         return False
-    aggregate = AggregateRecord.model_validate_json(path.read_text(encoding="utf-8"))
+    try:
+        aggregate = AggregateRecord.model_validate_json(path.read_text(encoding="utf-8"))
+    except ValueError as error:  # pydantic ValidationError is a ValueError
+        raise FileExistsError(
+            f"{output_dir} contains an aggregate.json this version cannot read; "
+            "pass --overwrite to replace it"
+        ) from error
     return aggregate.completion_state is CompletionState.COMPLETE
 
 
@@ -60,7 +68,7 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
         TorxWeightedGraphWalkBackend,
     )
 
-    if config.experiment_id == "torx.weighted_graph_walk.v1":
+    if config.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
         return TorxWeightedGraphWalkBackend(repository_root)
     if config.backend is BackendId.TORX_STATEVECTOR:
         return TorxStateVectorBackend(repository_root)
@@ -106,7 +114,7 @@ def run_experiment(
         isinstance(seed, bool) or not isinstance(seed, int) or seed < 0 for seed in selected_seeds
     ):
         raise ValueError("Seeds must be non-negative integers")
-    if config.experiment_id == "torx.weighted_graph_walk.v1" and selected_seeds != (0,):
+    if config.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID and selected_seeds != (0,):
         raise ValueError("The deterministic weighted graph walk accepts exactly seed zero")
     if not overwrite and _existing_completed(output_dir):
         raise FileExistsError(
@@ -117,7 +125,7 @@ def run_experiment(
     atomic_write_text(output_dir / "config.snapshot.toml", dump_experiment_config(config))
     write_record_schemas(output_dir / "schemas")
 
-    repository_root = Path.cwd() if (Path.cwd() / ".git").exists() else None
+    repository_root = find_repository_root(Path.cwd())
     backend = _backend(config, repository_root)
     records: list[RunRecord] = []
     relative_paths: list[str] = []

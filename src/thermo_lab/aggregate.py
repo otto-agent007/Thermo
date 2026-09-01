@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import statistics
-import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -25,11 +23,12 @@ from pydantic import (
 )
 
 from thermo_lab.evidence import BackendId, EvidenceClass
+from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import FrozenDict, FrozenModel, RunRecord
+from thermo_lab.schemas import WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
 
 AGGREGATE_SCHEMA_VERSION = "1.1.0"
 CONFIDENCE_LEVEL = 0.95
-_WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
 
 
 class CompletionState(StrEnum):
@@ -245,14 +244,8 @@ class AggregateRecord(FrozenModel):
 
     def write_json(self, path: Path) -> None:
         validated = AggregateRecord.model_validate(self.model_dump(mode="python"))
-        path.parent.mkdir(parents=True, exist_ok=True)
         payload = json.dumps(validated.model_dump(mode="json"), indent=2, sort_keys=True) + "\n"
-        with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", dir=path.parent, prefix=f".{path.name}.", delete=False
-        ) as handle:
-            handle.write(payload)
-            temporary = Path(handle.name)
-        os.replace(temporary, path)
+        atomic_write_text(path, payload)
 
 
 def _student_t_critical_95(degrees_of_freedom: int) -> float:
@@ -302,7 +295,7 @@ def _student_t_critical_95(degrees_of_freedom: int) -> float:
 
 
 def _statistical_semantics_for_experiment(experiment_id: str) -> StatisticalSemantics:
-    if experiment_id == _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
+    if experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
         return StatisticalSemantics.DETERMINISTIC_IDENTITY
     return StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
 

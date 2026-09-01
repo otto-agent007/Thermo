@@ -143,3 +143,47 @@ def test_schema_output_is_deterministic_json() -> None:
 
     assert first == second
     assert json.loads(first)["title"] == "AggregateRecord"
+
+
+def test_unreadable_predecessor_aggregate_is_refused_without_overwrite(tmp_path: Path) -> None:
+    predecessor = '{"schema_version":"1.0.0","completion_state":"complete"}\n'
+    (tmp_path / "aggregate.json").write_text(predecessor, encoding="utf-8")
+
+    with pytest.raises(FileExistsError, match="--overwrite"):
+        run_experiment(TORX_CONFIG, tmp_path, seeds=(1,))
+
+    assert (tmp_path / "aggregate.json").read_text(encoding="utf-8") == predecessor
+    assert not (tmp_path / "runs").exists()
+
+
+def test_multiline_failure_message_stays_on_one_report_line(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class FailingBackend:
+        def execute(self, spec):
+            raise RuntimeError("first line\n- second line | with table syntax")
+
+    monkeypatch.setattr("thermo_lab.runner._backend", lambda config, root: FailingBackend())
+
+    aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(0,))
+
+    assert aggregate.completion_state is CompletionState.FAILED
+    report = (tmp_path / "report.md").read_text(encoding="utf-8")
+    assert "- Seed 0: `RuntimeError` — first line / \\- second line \\| with table syntax" in report
+    assert "\n- second line" not in report
+
+
+def test_git_provenance_is_independent_of_the_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(ROOT)
+    from_root = run_experiment(TORX_CONFIG, tmp_path / "root", seeds=(0,))
+    monkeypatch.chdir(ROOT / "configs")
+    from_subdirectory = run_experiment(TORX_CONFIG, tmp_path / "subdirectory", seeds=(0,))
+
+    assert from_root.provenance_summary is not None
+    assert from_subdirectory.provenance_summary is not None
+    assert (
+        from_subdirectory.provenance_summary.git_commit == from_root.provenance_summary.git_commit
+    )
+    assert from_subdirectory.provenance_summary.git_dirty == from_root.provenance_summary.git_dirty

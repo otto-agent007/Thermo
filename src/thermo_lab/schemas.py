@@ -22,6 +22,8 @@ JAX_KEY_POLICY = "split root key once into distinct initialization and sampling 
 JAX_NUMERIC_DTYPE = "float32"
 TORX_GRAPH_WALK_SOURCE = "https://arxiv.org/pdf/2608.01612v1#page=10"
 MAX_WEIGHTED_GRAPH_NODES = 8
+MAX_WEIGHTED_GRAPH_EDGES = MAX_WEIGHTED_GRAPH_NODES * (MAX_WEIGHTED_GRAPH_NODES - 1) // 2
+WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
 
 
 class StrictSchema(BaseModel):
@@ -194,8 +196,8 @@ class WeightedGraphModelConfig(StrictSchema):
 
     @model_validator(mode="after")
     def validate_graph(self) -> "WeightedGraphModelConfig":
-        if not 1 <= len(self.edges) <= 28:
-            raise ValueError("Weighted graph must declare 1 to 28 edges")
+        if not 1 <= len(self.edges) <= MAX_WEIGHTED_GRAPH_EDGES:
+            raise ValueError(f"Weighted graph must declare 1 to {MAX_WEIGHTED_GRAPH_EDGES} edges")
 
         edge_keys: list[frozenset[str]] = []
         for edge in self.edges:

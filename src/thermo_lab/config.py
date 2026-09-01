@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
+import sysconfig
 import tomllib
 from collections.abc import Mapping
-from importlib.metadata import distribution
 from pathlib import Path
 from typing import Any, Literal
 
@@ -15,6 +15,7 @@ from thermo_lab.evidence import BackendId
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.records import ExperimentSpec, FrozenModel, _freeze_json
 from thermo_lab.schemas import (
+    WEIGHTED_GRAPH_WALK_EXPERIMENT_ID,
     IsingModelConfig,
     ThrmlRunConfig,
     TorxModelConfig,
@@ -29,23 +30,32 @@ SupportedBackend = Literal[BackendId.TORX_STATEVECTOR, BackendId.THRML_LOCAL]
 
 _EXPERIMENT_BACKENDS = {
     "torx.two_gate_statevector.v1": BackendId.TORX_STATEVECTOR,
-    "torx.weighted_graph_walk.v1": BackendId.TORX_STATEVECTOR,
+    WEIGHTED_GRAPH_WALK_EXPERIMENT_ID: BackendId.TORX_STATEVECTOR,
     "thrml.ising_chain_exact_validation.v1": BackendId.THRML_LOCAL,
 }
 
 
+def _config_search_roots() -> tuple[Path, ...]:
+    """Roots that may hold ``configs/experiments``: a checkout, then the install data path."""
+
+    return (Path(__file__).parents[2], Path(sysconfig.get_path("data")))
+
+
 def experiment_config_path(filename: str) -> Path:
-    """Locate one authoritative checked config in a checkout or installation."""
+    """Locate one authoritative checked config in a checkout or installation.
+
+    Checked configs ship as wheel data files, which install under the
+    interpreter's ``data`` scheme path (the environment prefix), not under
+    ``site-packages``.
+    """
 
     if Path(filename).name != filename:
         raise ValueError("Experiment config filename must not contain path components")
     relative = Path("configs/experiments") / filename
-    checkout_path = Path(__file__).parents[2] / relative
-    if checkout_path.is_file():
-        return checkout_path
-    installed_path = Path(distribution("thermo-lab").locate_file(relative))
-    if installed_path.is_file():
-        return installed_path
+    for root in _config_search_roots():
+        candidate = root / relative
+        if candidate.is_file():
+            return candidate
     raise FileNotFoundError(f"Installed checked experiment config not found: {relative}")
 
 
@@ -88,7 +98,7 @@ class ExperimentConfig(FrozenModel):
             )
         model = to_json_value(self.model_parameters)
         run = to_json_value(self.run_parameters)
-        if self.experiment_id == "torx.weighted_graph_walk.v1":
+        if self.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
             graph_model = WeightedGraphModelConfig.model_validate(model)
             graph_run = WeightedGraphRunConfig.model_validate(run)
             validate_weighted_graph_request(graph_model, graph_run, self.seed)
@@ -103,21 +113,6 @@ class ExperimentConfig(FrozenModel):
     @property
     def model_hash(self) -> str:
         return canonical_sha256(self.model_parameters)
-
-    @property
-    def non_seed_config_hash(self) -> str:
-        """Hash checked requested inputs except the independently varied seed."""
-
-        return canonical_sha256(
-            {
-                "schema_version": self.schema_version,
-                "experiment_id": self.experiment_id,
-                "backend": self.backend,
-                "sample_definition": self.sample_definition,
-                "model": self.model_parameters,
-                "run": self.run_parameters,
-            }
-        )
 
     def to_spec(self, *, seed: int | None = None) -> ExperimentSpec:
         return ExperimentSpec(

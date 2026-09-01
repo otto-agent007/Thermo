@@ -8,8 +8,6 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-import jax
-
 from thermo_lab.records import PackageProvenance, RuntimeProvenance
 
 
@@ -44,6 +42,15 @@ def _version(distribution: str) -> str:
         return "not-installed"
 
 
+def find_repository_root(start: Path) -> Path | None:
+    """Walk upward from ``start`` to the checkout holding ``pyproject.toml`` and ``.git``."""
+
+    for candidate in (start, *start.parents):
+        if (candidate / "pyproject.toml").exists() and (candidate / ".git").exists():
+            return candidate
+    return None
+
+
 def _git_metadata(repository_root: Path | None) -> tuple[str | None, bool | None]:
     if repository_root is None:
         return None, None
@@ -69,6 +76,10 @@ def _git_metadata(repository_root: Path | None) -> tuple[str | None, bool | None
 
 def collect_runtime_provenance(repository_root: Path | None = None) -> RuntimeProvenance:
     """Capture software, device, and source state used for a run."""
+
+    # Imported here so this module stays importable before the CLI selects the
+    # default JAX platform.
+    import jax
 
     package_names = ("thermo-lab", "thrml", "extro-torx", "jax", "jaxlib", "equinox")
     packages = []

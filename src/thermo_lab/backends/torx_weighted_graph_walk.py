@@ -140,7 +140,16 @@ class TorxWeightedGraphWalkBackend:
             trajectory.block_until_ready()
         execution_seconds = time.perf_counter() - execution_started
 
-        exact_final = None
+        # The exact CTMC reference depends only on the time grid, so evaluate it
+        # once per resolution rather than once per (resolution, order) variant.
+        generator = build_generator(model)
+        exact_by_resolution: dict[int, NDArray[np.float64]] = {}
+        for resolution in run.resolutions:
+            exact = exact_occupancies(model, np.linspace(0.0, run.final_time, resolution + 1))
+            validate_exact_trajectory(generator, exact, run.exact_invariant_tolerance)
+            exact_by_resolution[resolution] = exact
+        exact_final = exact_by_resolution[run.resolutions[-1]][-1]
+
         variant_results = []
         trajectory_by_variant = {}
         for (resolution, order_name, edge_order, _), state_trajectory in zip(
@@ -152,9 +161,7 @@ class TorxWeightedGraphWalkBackend:
                     f"Torx trajectory N={resolution} order={order_name} contains non-finite values"
                 )
             occupancies, leakage = _summarize_state_trajectory(states, node_count=len(model.nodes))
-            times = np.linspace(0.0, run.final_time, resolution + 1)
-            exact = exact_occupancies(model, times)
-            validate_exact_trajectory(build_generator(model), exact, run.exact_invariant_tolerance)
+            exact = exact_by_resolution[resolution]
             numpy_euler = euler_occupancies(model, run.final_time, resolution, edge_order)
             half_l1 = 0.5 * np.abs(occupancies - exact).sum(axis=1)
             checkpoint_indices = tuple(
@@ -172,7 +179,6 @@ class TorxWeightedGraphWalkBackend:
             minimum_state_probability = float(states.min())
             max_leakage = float(leakage.max())
 
-            exact_final = exact[-1]
             variant_results.append(
                 GraphWalkVariantResult(
                     resolution=resolution,
@@ -192,8 +198,6 @@ class TorxWeightedGraphWalkBackend:
             )
             trajectory_by_variant[(resolution, order_name)] = occupancies
 
-        if exact_final is None:
-            raise RuntimeError("Weighted graph walk produced no variants")
         finest_resolution = run.resolutions[-1]
         finest_canonical = next(
             item
