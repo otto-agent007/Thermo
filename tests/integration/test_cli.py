@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -81,3 +83,22 @@ def test_existing_smoke_command_regression(tmp_path: Path) -> None:
     assert result == 0
     assert (tmp_path / "torx-statevector.json").exists()
     assert (tmp_path / "thrml-ising-chain.json").exists()
+
+
+def test_smoke_rejects_negative_seed(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit) as error:
+        main(["smoke", "--output-dir", str(tmp_path), "--seed", "-1"])
+
+    assert error.value.code == 2
+
+
+def test_cli_and_runner_import_without_loading_jax() -> None:
+    """The CLI must be able to select the CPU platform before JAX is first imported."""
+
+    script = (
+        "import sys, thermo_lab.cli, thermo_lab.runner, thermo_lab.provenance; "
+        "sys.exit(1 if 'jax' in sys.modules else 0)"
+    )
+    completed = subprocess.run([sys.executable, "-c", script], check=False)
+
+    assert completed.returncode == 0
