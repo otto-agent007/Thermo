@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from thermo_lab.config import ExperimentConfig, dump_experiment_config, load_experiment_config
 from thermo_lab.evidence import BackendId
-from thermo_lab.hashing import to_json_value
+from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.pasym_swap import COLOR_ORDER, COORDINATE_PAIR_CLASSES, PAPER_SOURCE, WORD_ORDER
 from thermo_lab.schemas import (
     PARAMETER_ORDER,
@@ -49,46 +49,132 @@ def test_checked_pasym_swap_config_declares_every_scientific_choice() -> None:
     assert run.initializations[1] == [0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05]
 
 
-@pytest.mark.parametrize(
-    ("section", "mutate"),
-    [
-        ("model", lambda value: value.__setitem__("gamma", 2)),
-        ("model", lambda value: value.__setitem__("coordinate_order", "(y,x)")),
-        ("model", lambda value: value.__setitem__("periodic_boundary", "open")),
-        ("model", lambda value: value["color_classes"][0].__setitem__("axis", "vertical")),
-        ("model", lambda value: value["color_classes"][0]["coordinate_pairs"][0].__setitem__(0, 4)),
-        ("model", lambda value: value.__setitem__("word_order", [[0, 0], [1, 0], [0, 1], [1, 1]])),
-        (
-            "model",
-            lambda value: value.__setitem__(
-                "color_a_roles", ["hidden_0", "input_0", "input_1"]
-            ),
-        ),
-        ("model", lambda value: value["topology_edges"].__setitem__(0, ["output_0", "input_0"])),
-        (
-            "model",
-            lambda value: value.__setitem__("parameter_order", list(reversed(PARAMETER_ORDER))),
-        ),
-        ("model", lambda value: value.__setitem__("beta", 0.9)),
-        ("model", lambda value: value.__setitem__("parameter_cap", 3.0)),
-        ("run", lambda value: value.__setitem__("context_weights", [0.4, 0.2, 0.2, 0.2])),
-        ("run", lambda value: value.__setitem__("horizons", [1, 2, 8, 4, 16, 30])),
-        ("run", lambda value: value.__setitem__("horizons", [1, 2, 4, 8, 16])),
-        ("run", lambda value: value.__setitem__("maxiter", 1999)),
-        ("run", lambda value: value.__setitem__("initializations", [[0.0] * 8] * 3)),
-        ("run", lambda value: value.__setitem__("exact_normalization_tolerance", 1e-11)),
-        ("run", lambda value: value.__setitem__("median_equilibrium_tv_tolerance", 0.16)),
-    ],
-)
-def test_checked_scientific_inputs_reject_mutations(section: str, mutate) -> None:
-    value = checked_model() if section == "model" else checked_run()
-    mutate(value)
+MODEL_MUTATIONS = [
+    ("source_reference", "https://arxiv.org/abs/0000.00000v1"),
+    ("torus_side", 6),
+    ("coordinate_order", "(y,x), each coordinate in 0..4"),
+    ("periodic_boundary", "modulo_6"),
+    ("gamma", 3.0),
+    ("delta_t", 0.06),
+    ("macrosteps", 9),
+    ("color_order", ["H2", "H1", "H3", "V1", "V2", "V3"]),
+    (
+        "color_classes",
+        [
+            {"name": "H1", "axis": "vertical", "coordinate_pairs": [[0, 1], [2, 3]]},
+            {"name": "H2", "axis": "horizontal", "coordinate_pairs": [[1, 2], [3, 4]]},
+            {"name": "H3", "axis": "horizontal", "coordinate_pairs": [[4, 0]]},
+            {"name": "V1", "axis": "vertical", "coordinate_pairs": [[0, 1], [2, 3]]},
+            {"name": "V2", "axis": "vertical", "coordinate_pairs": [[1, 2], [3, 4]]},
+            {"name": "V3", "axis": "vertical", "coordinate_pairs": [[4, 0]]},
+        ],
+    ),
+    ("word_order", [[0, 0], [1, 0], [0, 1], [1, 1]]),
+    ("matrix_storage", "conditional[output_index][input_index]"),
+    ("bit_to_spin", "s = b"),
+    ("color_a_roles", ["hidden_0", "input_0", "input_1"]),
+    ("color_b_roles", ["output_1", "output_0"]),
+    ("topology_id", "thermo_k3_2_v2"),
+    (
+        "topology_edges",
+        [
+            ["input_0", "output_1"],
+            ["input_0", "output_0"],
+            ["input_1", "output_0"],
+            ["input_1", "output_1"],
+            ["hidden_0", "output_0"],
+            ["hidden_0", "output_1"],
+        ],
+    ),
+    ("parameter_order", list(reversed(PARAMETER_ORDER))),
+    ("beta", 0.9),
+    ("parameter_cap", 3.0),
+    ("exact_dtype", "float32"),
+    ("thrml_dtype", "float64"),
+]
 
-    with pytest.raises(ValidationError):
-        if section == "model":
-            PAsymSwapModelConfig.model_validate(value)
-        else:
-            IndependentCompilerRunConfig.model_validate(value)
+RUN_MUTATIONS = [
+    ("context_weights", [0.4, 0.2, 0.2, 0.2]),
+    ("optimizer", "scipy_cg"),
+    ("maxiter", 2001),
+    ("maxls", 51),
+    ("ftol", 2e-12),
+    ("gtol", 2e-9),
+    ("projected_gradient_tolerance", 2e-6),
+    (
+        "initializations",
+        [
+            [0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05],
+            [-0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05],
+        ],
+    ),
+    ("restart_selection", "minimum_objective"),
+    ("horizons", [1, 2, 8, 4, 16, 30]),
+    ("deployment_horizon", 29),
+    ("reset_distribution", "uniform_over_4_output_states"),
+    ("sweep_order", ["outputs", "hidden"]),
+    ("chain_count_per_context", 4095),
+    ("samples_per_chain", 2),
+    ("steps_per_sample", 2),
+    ("key_policy", "split root key"),
+    ("exact_normalization_tolerance", 2e-12),
+    ("median_equilibrium_tv_tolerance", 0.16),
+    ("worst_equilibrium_tv_tolerance", 0.36),
+    ("k30_equilibrium_tv_tolerance", 0.06),
+    ("thrml_k30_tv_tolerance", 0.11),
+]
+
+
+def assert_rejection_or_hash_change(
+    payload: dict[str, object], *, section: str, configured: ExperimentConfig
+) -> None:
+    try:
+        changed = ExperimentConfig.model_validate(payload)
+    except ValidationError:
+        return
+
+    if section == "model":
+        assert changed.to_spec().model_hash != configured.to_spec().model_hash
+    else:
+        assert (
+            changed.to_spec().non_seed_run_config_hash
+            != configured.to_spec().non_seed_run_config_hash
+        )
+
+
+@pytest.mark.parametrize(("field", "replacement"), MODEL_MUTATIONS)
+def test_every_model_scientific_input_rejects_mutation_or_changes_model_hash(
+    field: str, replacement: object
+) -> None:
+    configured = load_experiment_config(CONFIG_PATH)
+    payload = checked_payload()
+    model = checked_model()
+    model[field] = replacement
+    payload["model"] = model
+
+    assert_rejection_or_hash_change(payload, section="model", configured=configured)
+
+
+@pytest.mark.parametrize(("field", "replacement"), RUN_MUTATIONS)
+def test_every_run_scientific_input_rejects_mutation_or_changes_non_seed_run_hash(
+    field: str, replacement: object
+) -> None:
+    configured = load_experiment_config(CONFIG_PATH)
+    payload = checked_payload()
+    run = checked_run()
+    run[field] = replacement
+    payload["run"] = run
+
+    assert_rejection_or_hash_change(payload, section="run", configured=configured)
+
+
+def test_every_sample_definition_mutation_changes_non_seed_run_hash() -> None:
+    configured = load_experiment_config(CONFIG_PATH)
+    payload = checked_payload()
+    payload["sample_definition"] = "A materially different sample definition."
+
+    assert_rejection_or_hash_change(payload, section="run", configured=configured)
 
 
 @pytest.mark.parametrize(
@@ -133,13 +219,15 @@ def test_checked_config_rejects_non_thrml_backend() -> None:
         ExperimentConfig.model_validate(payload)
 
 
-def test_request_hashes_change_for_allowed_input_mutations() -> None:
+def test_strict_schema_dumps_preserve_requested_hash_material() -> None:
     configured = load_experiment_config(CONFIG_PATH)
-    payload = checked_payload()
-    payload["sample_definition"] = "A materially different sample definition."
-    changed = ExperimentConfig.model_validate(payload)
+    requested_model = to_json_value(configured.model_parameters)
+    requested_run = to_json_value(configured.run_parameters)
+    model = PAsymSwapModelConfig.model_validate(requested_model)
+    run = IndependentCompilerRunConfig.model_validate(requested_run)
 
-    assert changed.non_seed_config_hash != configured.non_seed_config_hash
+    assert canonical_sha256(model.model_dump(mode="json")) == canonical_sha256(requested_model)
+    assert canonical_sha256(run.model_dump(mode="json")) == canonical_sha256(requested_run)
 
 
 def test_checked_pasym_swap_config_snapshot_round_trips(tmp_path: Path) -> None:
