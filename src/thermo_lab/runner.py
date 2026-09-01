@@ -22,6 +22,9 @@ if TYPE_CHECKING:
     from thermo_lab.backends.base import ExperimentBackend
 
 
+_INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
+
+
 def _source_identifier(path: Path) -> str:
     resolved = path.resolve()
     try:
@@ -55,6 +58,7 @@ def _existing_completed(output_dir: Path) -> bool:
 
 def _backend(config: ExperimentConfig, repository_root: Path | None) -> ExperimentBackend:
     from thermo_lab.backends import (
+        ThrmlIndependentPAsymSwapBackend,
         ThrmlLocalBackend,
         TorxStateVectorBackend,
         TorxWeightedGraphWalkBackend,
@@ -62,6 +66,8 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
 
     if config.experiment_id == "torx.weighted_graph_walk.v1":
         return TorxWeightedGraphWalkBackend(repository_root)
+    if config.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+        return ThrmlIndependentPAsymSwapBackend(repository_root)
     if config.backend is BackendId.TORX_STATEVECTOR:
         return TorxStateVectorBackend(repository_root)
     if config.backend is BackendId.THRML_LOCAL:

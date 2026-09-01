@@ -317,6 +317,7 @@ source = { editable = "." }
 dependencies = [
     { name = "extro-torx" },
     { name = "pydantic" },
+    { name = "scipy" },
     { name = "thrml" },
 ]
 
@@ -324,13 +325,13 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "ruff" },
-    { name = "scipy" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "extro-torx", specifier = "==0.0.1" },
     { name = "pydantic", specifier = ">=2.11,<3" },
+    { name = "scipy", specifier = ">=1.17,<2" },
     { name = "thrml", specifier = "==0.1.4" },
 ]
 
@@ -338,7 +339,6 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=8.4,<9" },
     { name = "ruff", specifier = ">=0.12,<1" },
-    { name = "scipy", specifier = ">=1.17,<2" },
 ]
 
 [[package]]

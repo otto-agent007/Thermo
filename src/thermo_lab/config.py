@@ -15,23 +15,49 @@ from thermo_lab.evidence import BackendId
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.records import ExperimentSpec, FrozenModel, _freeze_json
 from thermo_lab.schemas import (
+    IndependentCompilerRunConfig,
     IsingModelConfig,
+    PAsymSwapModelConfig,
     ThrmlRunConfig,
     TorxModelConfig,
     TorxRunConfig,
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
+    validate_independent_pasym_swap_request,
     validate_weighted_graph_request,
 )
 
 CONFIG_SCHEMA_VERSION = "1.0.0"
 SupportedBackend = Literal[BackendId.TORX_STATEVECTOR, BackendId.THRML_LOCAL]
+INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
+INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION = (
+    "One independently seeded THRML cross-check using 4,096 chains per input context "
+    "over every frozen compiled kernel at 30 complete two-color Gibbs sweeps."
+)
 
 _EXPERIMENT_BACKENDS = {
     "torx.two_gate_statevector.v1": BackendId.TORX_STATEVECTOR,
     "torx.weighted_graph_walk.v1": BackendId.TORX_STATEVECTOR,
     "thrml.ising_chain_exact_validation.v1": BackendId.THRML_LOCAL,
+    INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
 }
+
+
+def independent_pasym_swap_non_seed_config_hash(
+    model: PAsymSwapModelConfig, run: IndependentCompilerRunConfig
+) -> str:
+    """Derive the checked PAsymSwap request identity without loading its TOML."""
+
+    return canonical_sha256(
+        {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "experiment_id": INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID,
+            "backend": BackendId.THRML_LOCAL,
+            "sample_definition": INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION,
+            "model": model.model_dump(mode="json"),
+            "run": run.model_dump(mode="json"),
+        }
+    )
 
 
 def experiment_config_path(filename: str) -> Path:
@@ -92,6 +118,10 @@ class ExperimentConfig(FrozenModel):
             graph_model = WeightedGraphModelConfig.model_validate(model)
             graph_run = WeightedGraphRunConfig.model_validate(run)
             validate_weighted_graph_request(graph_model, graph_run, self.seed)
+        elif self.experiment_id == INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+            model_config = PAsymSwapModelConfig.model_validate(model)
+            run_config = IndependentCompilerRunConfig.model_validate(run)
+            validate_independent_pasym_swap_request(model_config, run_config, self.seed)
         elif self.backend is BackendId.TORX_STATEVECTOR:
             TorxModelConfig.model_validate(model)
             TorxRunConfig.model_validate(run)
