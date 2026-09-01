@@ -16,12 +16,45 @@ from pydantic import (
     model_validator,
 )
 
+from thermo_lab.pasym_swap import COLOR_ORDER, COORDINATE_PAIR_CLASSES, PAPER_SOURCE, WORD_ORDER
+
 ISING_ENERGY_CONVENTION = "-beta*(sum(b_i*s_i)+sum(J_ij*s_i*s_j))"
 ISING_SPIN_VALUES = [-1, 1]
 JAX_KEY_POLICY = "split root key once into distinct initialization and sampling keys"
 JAX_NUMERIC_DTYPE = "float32"
 TORX_GRAPH_WALK_SOURCE = "https://arxiv.org/pdf/2608.01612v1#page=10"
 MAX_WEIGHTED_GRAPH_NODES = 8
+PARAMETER_ORDER = (
+    "h_hidden",
+    "h_output_0",
+    "h_output_1",
+    "J_input_0_output_0",
+    "J_input_0_output_1",
+    "J_input_1_output_0",
+    "J_input_1_output_1",
+    "J_hidden_output_0",
+    "J_hidden_output_1",
+)
+_COLOR_AXES = ("horizontal", "horizontal", "horizontal", "vertical", "vertical", "vertical")
+_COLOR_CLASSES = tuple(
+    (name, axis, tuple(COORDINATE_PAIR_CLASSES[name]))
+    for name, axis in zip(COLOR_ORDER, _COLOR_AXES, strict=True)
+)
+_COLOR_A_ROLES = ("input_0", "input_1", "hidden_0")
+_COLOR_B_ROLES = ("output_0", "output_1")
+_TOPOLOGY_EDGES = (
+    ("input_0", "output_0"),
+    ("input_0", "output_1"),
+    ("input_1", "output_0"),
+    ("input_1", "output_1"),
+    ("hidden_0", "output_0"),
+    ("hidden_0", "output_1"),
+)
+_INITIALIZATIONS = (
+    (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    (0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05),
+    (-0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05),
+)
 
 
 class StrictSchema(BaseModel):
@@ -43,6 +76,16 @@ def _require_json_float(value: object, field_name: str) -> object:
 
 def _require_json_float_list(value: object, field_name: str) -> object:
     if not isinstance(value, list) or any(type(item) is not float for item in value):
+        raise ValueError(
+            f"Every item in {field_name} must be encoded as a JSON floating-point number"
+        )
+    return value
+
+
+def _require_json_float_matrix(value: object, field_name: str) -> object:
+    if not isinstance(value, list) or any(
+        not isinstance(row, list) or any(type(item) is not float for item in row) for row in value
+    ):
         raise ValueError(
             f"Every item in {field_name} must be encoded as a JSON floating-point number"
         )
@@ -148,6 +191,158 @@ class ThrmlRunConfig(StrictSchema):
     @classmethod
     def validate_tolerance_encoding(cls, value: object, info) -> object:
         return _require_json_float(value, info.field_name)
+
+
+class EdgeColorClassConfig(StrictSchema):
+    name: Literal["H1", "H2", "H3", "V1", "V2", "V3"]
+    axis: Literal["horizontal", "vertical"]
+    coordinate_pairs: list[list[StrictInt]]
+
+
+class PAsymSwapModelConfig(StrictSchema):
+    source_reference: Literal[PAPER_SOURCE]
+    torus_side: Literal[5]
+    coordinate_order: Literal["(x,y), each coordinate in 0..4"]
+    periodic_boundary: Literal["modulo_5"]
+    gamma: StrictFloat
+    delta_t: StrictFloat
+    macrosteps: Literal[10]
+    color_order: list[Literal["H1", "H2", "H3", "V1", "V2", "V3"]]
+    color_classes: list[EdgeColorClassConfig]
+    word_order: list[list[StrictInt]]
+    matrix_storage: Literal["conditional[input_index][output_index]"]
+    bit_to_spin: Literal["s = 2*b - 1"]
+    color_a_roles: list[Literal["input_0", "input_1", "hidden_0"]]
+    color_b_roles: list[Literal["output_0", "output_1"]]
+    topology_id: Literal["thermo_k3_2_v1"]
+    topology_edges: list[list[str]]
+    parameter_order: list[str]
+    beta: StrictFloat
+    parameter_cap: StrictFloat
+    exact_dtype: Literal["float64"]
+    thrml_dtype: Literal["float32"]
+
+    @field_validator("gamma", "delta_t", "beta", "parameter_cap", mode="before")
+    @classmethod
+    def validate_float_encoding(cls, value: object, info) -> object:
+        return _require_json_float(value, info.field_name)
+
+    @model_validator(mode="after")
+    def validate_paper_model(self) -> "PAsymSwapModelConfig":
+        if self.gamma != 2.0 or self.delta_t != 0.05:
+            raise ValueError("gamma and delta_t must match the paper fixture")
+        if self.color_order != list(COLOR_ORDER):
+            raise ValueError("color_order must match the canonical paper fixture")
+        observed_classes = tuple(
+            (item.name, item.axis, tuple(tuple(pair) for pair in item.coordinate_pairs))
+            for item in self.color_classes
+        )
+        if observed_classes != _COLOR_CLASSES:
+            raise ValueError("color_classes must match the canonical paper fixture")
+        if self.word_order != [list(word) for word in WORD_ORDER]:
+            raise ValueError("word_order must match the canonical input-major word order")
+        if (
+            tuple(self.color_a_roles) != _COLOR_A_ROLES
+            or tuple(self.color_b_roles) != _COLOR_B_ROLES
+        ):
+            raise ValueError("role partitions must match the declared K_(3,2) topology")
+        if tuple(tuple(edge) for edge in self.topology_edges) != _TOPOLOGY_EDGES:
+            raise ValueError("topology_edges must match the declared K_(3,2) edge order")
+        if tuple(self.parameter_order) != PARAMETER_ORDER:
+            raise ValueError("parameter_order must match the canonical nine-parameter order")
+        if self.beta != 1.0:
+            raise ValueError("beta must be exactly 1.0")
+        if self.parameter_cap != 4.0:
+            raise ValueError("parameter_cap must be exactly 4.0")
+        return self
+
+
+class IndependentCompilerRunConfig(StrictSchema):
+    context_weights: list[StrictFloat]
+    optimizer: Literal["scipy_lbfgsb"]
+    maxiter: Literal[2000]
+    maxls: Literal[50]
+    ftol: StrictFloat
+    gtol: StrictFloat
+    projected_gradient_tolerance: StrictFloat
+    initializations: list[list[StrictFloat]]
+    restart_selection: Literal["minimum_objective_then_lexicographic_parameters"]
+    horizons: list[StrictInt]
+    deployment_horizon: Literal[30]
+    reset_distribution: Literal["uniform_over_8_free_states"]
+    sweep_order: list[Literal["hidden", "outputs"]]
+    chain_count_per_context: Literal[4096]
+    samples_per_chain: Literal[1]
+    steps_per_sample: Literal[1]
+    key_policy: Literal["fold seed with target hash then input index; split init and sampling keys"]
+    exact_normalization_tolerance: StrictFloat
+    median_equilibrium_tv_tolerance: StrictFloat
+    worst_equilibrium_tv_tolerance: StrictFloat
+    k30_equilibrium_tv_tolerance: StrictFloat
+    thrml_k30_tv_tolerance: StrictFloat
+
+    @field_validator(
+        "ftol",
+        "gtol",
+        "projected_gradient_tolerance",
+        "exact_normalization_tolerance",
+        "median_equilibrium_tv_tolerance",
+        "worst_equilibrium_tv_tolerance",
+        "k30_equilibrium_tv_tolerance",
+        "thrml_k30_tv_tolerance",
+        mode="before",
+    )
+    @classmethod
+    def validate_float_encoding(cls, value: object, info) -> object:
+        return _require_json_float(value, info.field_name)
+
+    @field_validator("context_weights", mode="before")
+    @classmethod
+    def validate_context_weight_encoding(cls, value: object) -> object:
+        return _require_json_float_list(value, "context_weights")
+
+    @field_validator("initializations", mode="before")
+    @classmethod
+    def validate_initialization_encoding(cls, value: object) -> object:
+        return _require_json_float_matrix(value, "initializations")
+
+    @model_validator(mode="after")
+    def validate_compiler_schedule(self) -> "IndependentCompilerRunConfig":
+        if self.context_weights != [0.25, 0.25, 0.25, 0.25]:
+            raise ValueError("context_weights must be uniform over the four input contexts")
+        if self.ftol != 1e-12 or self.gtol != 1e-9 or self.projected_gradient_tolerance != 1e-6:
+            raise ValueError("optimizer tolerances must match the checked compiler schedule")
+        if tuple(tuple(values) for values in self.initializations) != _INITIALIZATIONS:
+            raise ValueError("initializations must be the three checked deterministic restarts")
+        if self.horizons != [1, 2, 4, 8, 16, 30]:
+            raise ValueError("horizons must be the checked ascending finite-horizon schedule")
+        if self.sweep_order != ["hidden", "outputs"]:
+            raise ValueError("sweep_order must update hidden then outputs")
+        expected_tolerances = (1e-12, 0.15, 0.35, 0.05, 0.10)
+        observed_tolerances = (
+            self.exact_normalization_tolerance,
+            self.median_equilibrium_tv_tolerance,
+            self.worst_equilibrium_tv_tolerance,
+            self.k30_equilibrium_tv_tolerance,
+            self.thrml_k30_tv_tolerance,
+        )
+        if observed_tolerances != expected_tolerances:
+            raise ValueError("acceptance tolerances must match the checked release thresholds")
+        if any(not math.isfinite(value) or value <= 0.0 for value in observed_tolerances):
+            raise ValueError("tolerances must be positive finite numbers")
+        return self
+
+
+def validate_independent_pasym_swap_request(
+    model: PAsymSwapModelConfig,
+    run: IndependentCompilerRunConfig,
+    seed: int,
+) -> None:
+    """Validate cross-section constraints for an independent compiler request."""
+    if type(seed) is not int or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    if model.macrosteps != 10 or run.deployment_horizon != 30:
+        raise ValueError("PAsymSwap schedule and deployment horizon are fixed")
 
 
 class WeightedGraphEdgeConfig(StrictSchema):
