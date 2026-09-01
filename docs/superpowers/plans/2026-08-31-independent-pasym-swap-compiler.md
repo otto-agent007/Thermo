@@ -260,9 +260,7 @@ git commit -m "feat: add paper PAsymSwap fixture"
 
 ```python
 def test_checked_pasym_swap_config_declares_every_scientific_choice() -> None:
-    config = load_experiment_config(
-        Path("configs/experiments/thrml-independent-pasym-swap.toml")
-    )
+    config = load_experiment_config(Path("configs/experiments/thrml-independent-pasym-swap.toml"))
     assert config.experiment_id == "thrml.independent_pasym_swap_compilation.v1"
     assert config.backend is BackendId.THRML_LOCAL
     model = PAsymSwapModelConfig.model_validate(to_json_value(config.model_parameters))
@@ -433,10 +431,15 @@ def test_joint_energy_uses_canonical_parameter_order() -> None:
     params = KernelParameters((1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0))
     spins = np.asarray([-1, 1, -1, 1, -1], dtype=np.int8)
     expected = -(
-        1.0 * -1 + 2.0 * 1 + 3.0 * -1
-        + 4.0 * (-1 * 1) + 5.0 * (-1 * -1)
-        + 6.0 * (1 * 1) + 7.0 * (1 * -1)
-        + 8.0 * (-1 * 1) + 9.0 * (-1 * -1)
+        1.0 * -1
+        + 2.0 * 1
+        + 3.0 * -1
+        + 4.0 * (-1 * 1)
+        + 5.0 * (-1 * -1)
+        + 6.0 * (1 * 1)
+        + 7.0 * (1 * -1)
+        + 8.0 * (-1 * 1)
+        + 9.0 * (-1 * -1)
     )
     assert joint_energy(params, spins) == expected
 
@@ -475,7 +478,9 @@ def brute_force_conditional(params: KernelParameters) -> np.ndarray:
 
 def test_equilibrium_conditional_matches_independent_oracle() -> None:
     params = KernelParameters((0.1, -0.2, 0.3, -0.4, 0.5, -0.6, 0.7, -0.8, 0.9))
-    np.testing.assert_allclose(equilibrium_conditional(params), brute_force_conditional(params), atol=1e-14)
+    np.testing.assert_allclose(
+        equilibrium_conditional(params), brute_force_conditional(params), atol=1e-14
+    )
 ```
 
 - [ ] **Step 5: Implement KL and TV with exact zero-target semantics**
@@ -801,12 +806,8 @@ schedule = SamplingSchedule(n_warmup=30, n_samples=1, steps_per_sample=1)
 single_chain = lambda key, hidden, outputs, clamp: sample_states(
     key, program, schedule, [hidden, outputs], [clamp], [Block([out0, out1])]
 )[0]
-sample_chains = jax.jit(
-    jax.vmap(single_chain, in_axes=(0, 0, 0, 0))
-)
-observed = sample_chains(
-    jax.random.split(sample_key, 8), hidden_init, output_init, clamped_inputs
-)
+sample_chains = jax.jit(jax.vmap(single_chain, in_axes=(0, 0, 0, 0)))
+observed = sample_chains(jax.random.split(sample_key, 8), hidden_init, output_init, clamped_inputs)
 assert observed.shape == (8, 1, 2)
 ```
 
@@ -947,7 +948,9 @@ does not duplicate the checked CLI release gate:
 pytestmark = pytest.mark.slow
 
 
-def checked_request(seed: int = 0) -> tuple[ExperimentSpec, PAsymSwapModelConfig, IndependentCompilerRunConfig]:
+def checked_request(
+    seed: int = 0,
+) -> tuple[ExperimentSpec, PAsymSwapModelConfig, IndependentCompilerRunConfig]:
     config = load_experiment_config(ROOT / "configs/experiments/thrml-independent-pasym-swap.toml")
     model = PAsymSwapModelConfig.model_validate(to_json_value(config.model_parameters))
     run = IndependentCompilerRunConfig.model_validate(to_json_value(config.run_parameters))
@@ -962,9 +965,14 @@ def test_backend_matches_exact_k30_and_preserves_evidence() -> None:
         result.record.metrics, model, run, seed=0
     )
     assert summary.acceptance.passed
-    assert all(item.thrml_k30_tv <= 0.10 for artifact in summary.artifacts for item in artifact.contexts)
+    assert all(
+        item.thrml_k30_tv <= 0.10 for artifact in summary.artifacts for item in artifact.contexts
+    )
     assert result.record.evidence_class is EvidenceClass.SOFTWARE_SIMULATION
-    assert result.record.metrics["median_equilibrium_tv"].evidence_class is EvidenceClass.EXACT_REFERENCE
+    assert (
+        result.record.metrics["median_equilibrium_tv"].evidence_class
+        is EvidenceClass.EXACT_REFERENCE
+    )
 ```
 
 Also assert seed reproducibility, different seed samples, identical compiled artifact hashes across seeds, no raw chains, correct sample definition, synchronized timing source, and a failed result when a nested acceptance input is mutated.
@@ -1023,7 +1031,10 @@ def test_runner_executes_three_seeded_cross_checks(run_output: Path) -> None:
         for path in aggregate.run_record_paths
     )
     artifact_sets = [
-        tuple(item["compiled_artifact_hash"] for item in record.metrics["independent_pasym_swap"].value["artifacts"])
+        tuple(
+            item["compiled_artifact_hash"]
+            for item in record.metrics["independent_pasym_swap"].value["artifacts"]
+        )
         for record in records
     ]
     assert artifact_sets[0] == artifact_sets[1] == artifact_sets[2]
@@ -1168,9 +1179,7 @@ def test_documentation_records_the_narrow_compiler_scope() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     roadmap = (ROOT / "docs/roadmap.md").read_text(encoding="utf-8")
-    release = (ROOT / "docs/release-intelligence/extropic-2026-08.md").read_text(
-        encoding="utf-8"
-    )
+    release = (ROOT / "docs/release-intelligence/extropic-2026-08.md").read_text(encoding="utf-8")
     config_path = "configs/experiments/thrml-independent-pasym-swap.toml"
     assert config_path in readme and config_path in agents
     assert "- [x] independently compiled thermodynamic kernels" in roadmap

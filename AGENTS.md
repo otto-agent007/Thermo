@@ -56,5 +56,9 @@ uv run thermo-lab smoke --output-dir results/smoke
 uv run thermo-lab run configs/experiments/torx-two-gate.toml --seeds 0,1,2 --output-dir results/torx-run
 uv run thermo-lab run configs/experiments/thrml-ising-chain.toml --seeds 7,8,9,10 --output-dir results/thrml-run
 uv run thermo-lab run configs/experiments/torx-weighted-graph-walk.toml --output-dir results/weighted-graph-walk
+uv run thermo-lab run \
+  configs/experiments/thrml-independent-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/independent-pasym-swap
 uv build
 ```
