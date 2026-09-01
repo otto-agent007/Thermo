@@ -190,9 +190,11 @@ class CompiledKernelArtifact:
             raise TypeError("attempts must contain OptimizationAttempt records")
         logical_role_order = tuple(self.logical_role_order)
         parameter_order = tuple(self.parameter_order)
+        parameters = KernelParameters(tuple(float(value) for value in self.parameters.values))
         object.__setattr__(self, "attempts", attempts)
         object.__setattr__(self, "logical_role_order", logical_role_order)
         object.__setattr__(self, "parameter_order", parameter_order)
+        object.__setattr__(self, "parameters", parameters)
         object.__setattr__(self, "artifact_hash", canonical_sha256(self.identity_payload()))
 
     def identity_payload(self) -> dict[str, Any]:

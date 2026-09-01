@@ -225,6 +225,18 @@ def test_artifact_derives_hash_and_copies_nested_records() -> None:
     assert copied.attempts == (attempt,)
 
 
+def test_artifact_copies_kernel_parameters_from_mutable_backing_storage() -> None:
+    mutable_values = [0.0] * 9
+    artifact = example_artifact(parameters=KernelParameters(mutable_values))
+    identity = artifact.identity_payload()
+    artifact_hash = artifact.artifact_hash
+    mutable_values[0] = 1.0
+
+    assert artifact.parameters.values == (0.0,) * 9
+    assert artifact.identity_payload() == identity
+    assert artifact.artifact_hash == artifact_hash == canonical_sha256(artifact.identity_payload())
+
+
 def test_two_target_compilations_have_isolated_attempts_and_parameters() -> None:
     settings = checked_compiler_settings()
     first = compile_target("first", np.asarray(build_pasym_swap_conditional(0.03, 0.07)), settings)
@@ -283,13 +295,13 @@ def test_compile_target_rejects_every_unchecked_restart(
         compile_target("target-for-failure", target, checked_compiler_settings())
 
 
-def example_artifact() -> CompiledKernelArtifact:
+def example_artifact(parameters: KernelParameters | None = None) -> CompiledKernelArtifact:
     settings = checked_compiler_settings()
-    parameters = KernelParameters((0.0,) * 9)
+    checked_parameters = parameters or KernelParameters((0.0,) * 9)
     attempt = OptimizationAttempt(
         restart_index=0,
         objective=0.1,
-        parameters=parameters.values,
+        parameters=checked_parameters.values,
         raw_gradient_norm=0.01,
         projected_gradient_norm=0.01,
         scipy_success=True,
@@ -304,7 +316,7 @@ def example_artifact() -> CompiledKernelArtifact:
         logical_role_order=("input_0", "input_1", "hidden_0", "output_0", "output_1"),
         parameter_order=PARAMETER_ORDER,
         dtype="float64",
-        parameters=parameters,
+        parameters=checked_parameters,
         beta=1.0,
         parameter_cap=4.0,
         settings=settings,
