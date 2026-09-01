@@ -11,7 +11,10 @@ from typing import Any
 import numpy as np
 import pytest
 
-from thermo_lab.config import load_experiment_config
+from thermo_lab.config import (
+    independent_pasym_swap_non_seed_config_hash,
+    load_experiment_config,
+)
 from thermo_lab.evidence import EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.independent_compiler import CompilerSettings, compile_target, loss_and_gradient
@@ -201,6 +204,14 @@ def test_nearest_rank_and_even_median_are_explicit() -> None:
     assert summary.maximum == 0.4
 
 
+def test_checked_request_hash_matches_checked_config_envelope() -> None:
+    checked = load_experiment_config(_CONFIG)
+    model = PAsymSwapModelConfig.model_validate(to_json_value(checked.model_parameters))
+    run = IndependentCompilerRunConfig.model_validate(to_json_value(checked.run_parameters))
+
+    assert independent_pasym_swap_non_seed_config_hash(model, run) == checked.non_seed_config_hash
+
+
 def test_passing_fixture_round_trips_and_stays_bounded() -> None:
     metrics, model, run = passing_observations()
     summary = validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
@@ -387,6 +398,16 @@ def test_forged_projected_gradient_norm_is_rejected() -> None:
     _set_summary(metrics, payload)
 
     with pytest.raises(ValueError, match="projected gradient"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def test_forged_compiler_request_hash_is_rejected() -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    payload["artifacts"][0]["compiler_request_hash"] = "forged-non-seed-request"
+    _set_summary(metrics, payload)
+
+    with pytest.raises(ValueError, match="compiler request hash target_hash=.*observed=.*bound="):
         validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
 
 

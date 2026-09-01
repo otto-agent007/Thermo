@@ -25,6 +25,7 @@ from pydantic import (
     model_validator,
 )
 
+from thermo_lab.config import independent_pasym_swap_non_seed_config_hash
 from thermo_lab.evidence import EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.independent_compiler import loss_and_gradient, project_gradient
@@ -543,6 +544,12 @@ def _check_optimizer(
     artifact: CompiledKernelResult, model: PAsymSwapModelConfig, run: IndependentCompilerRunConfig
 ) -> None:
     optimization = artifact.optimization
+    expected_request_hash = independent_pasym_swap_non_seed_config_hash(model, run)
+    if artifact.compiler_request_hash != expected_request_hash:
+        raise ValueError(
+            f"compiler request hash target_hash={artifact.target_hash} "
+            f"observed={artifact.compiler_request_hash} bound={expected_request_hash}"
+        )
     if optimization.successful_restart_count < 1:
         raise ValueError(f"optimizer target_hash={artifact.target_hash} observed=0 bound=1")
     if any(abs(value) > model.parameter_cap for value in optimization.parameters):
