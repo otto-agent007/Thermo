@@ -7,6 +7,7 @@ import math
 from thermo_lab.hashing import to_json_value
 from thermo_lab.pasym_swap_results import (
     CompiledKernelResult,
+    IndependentPAsymSwapSummary,
     validate_independent_pasym_swap_observations,
 )
 from thermo_lab.records import RunRecord
@@ -49,12 +50,10 @@ def _summary_text(summary, format_number) -> str:
     )
 
 
-def render_independent_pasym_swap_section(record: RunRecord) -> list[str]:
-    """Render validated compiled-kernel evidence from one persisted run record only."""
-
-    # Import at call time so this focused module can reuse reporting's one set
-    # of Markdown escapers without introducing an import-time cycle.
-    from thermo_lab.reporting import _format_number, _markdown_code_span, _markdown_text
+def validate_persisted_independent_pasym_swap_record(
+    record: RunRecord,
+) -> tuple[IndependentPAsymSwapSummary, PAsymSwapModelConfig, IndependentCompilerRunConfig]:
+    """Reconstruct and validate one persisted independent-compiler result."""
 
     if record.spec.experiment_id != _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
         raise ValueError("independent PAsymSwap section belongs to a different experiment")
@@ -66,6 +65,17 @@ def render_independent_pasym_swap_section(record: RunRecord) -> list[str]:
         run,
         seed=record.spec.seed,
     )
+    return summary, model, run
+
+
+def render_independent_pasym_swap_section(record: RunRecord) -> list[str]:
+    """Render validated compiled-kernel evidence from one persisted run record only."""
+
+    # Import at call time so this focused module can reuse reporting's one set
+    # of Markdown escapers without introducing an import-time cycle.
+    from thermo_lab.reporting import _format_number, _markdown_code_span, _markdown_text
+
+    summary, model, run = validate_persisted_independent_pasym_swap_record(record)
 
     parameter_order = ", ".join(model.parameter_order)
     optimizer_seconds = record.metrics["deterministic_optimizer_seconds"].value
@@ -127,6 +137,36 @@ def render_independent_pasym_swap_section(record: RunRecord) -> list[str]:
             f"{summary.successful_artifact_count}/{len(summary.artifacts)}; "
             f"cap-active parameters: {summary.total_cap_active_parameter_count}."
         ),
+        "",
+        "### Exact equilibrium aggregate summary",
+        "",
+        "KL (min / med / p90 / max) and TV (min / med / p90 / max) are exact order "
+        "statistics across canonical artifacts, not cross-seed intervals.",
+        "",
+        "| Metric | Minimum | Median | P90 | Maximum |",
+        "|---|---:|---:|---:|---:|",
+        "| Target-to-equilibrium KL | "
+        + " | ".join(
+            _format_number(value)
+            for value in (
+                summary.equilibrium_kl.minimum,
+                summary.equilibrium_kl.median,
+                summary.equilibrium_kl.p90,
+                summary.equilibrium_kl.maximum,
+            )
+        )
+        + " |",
+        "| Target-to-equilibrium TV | "
+        + " | ".join(
+            _format_number(value)
+            for value in (
+                summary.equilibrium_tv.minimum,
+                summary.equilibrium_tv.median,
+                summary.equilibrium_tv.p90,
+                summary.equilibrium_tv.maximum,
+            )
+        )
+        + " |",
         "",
         "### Exact equilibrium accuracy per artifact",
         "",
@@ -198,7 +238,7 @@ def render_independent_pasym_swap_section(record: RunRecord) -> list[str]:
     lines.extend(
         (
             "",
-            "### All eight acceptance gates",
+            f"### Selected seed {record.spec.seed}: all eight acceptance gates",
             "",
             "| Gate | Persisted/recomputed status |",
             "|---|---|",

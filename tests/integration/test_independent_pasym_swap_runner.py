@@ -171,6 +171,8 @@ def test_report_separates_paper_values_from_thermo_conventions(run_output: Path)
         "not official Thermalizers compatibility",
         "Seeds vary only the sampled cross-check and timing",
         "do not receive Student-t intervals",
+        "Exact equilibrium aggregate summary",
+        "KL (min / med / p90 / max)",
     ):
         assert required_text in report
 
@@ -198,21 +200,31 @@ def test_pasym_report_escapes_persisted_timing_text(run_output: Path) -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    ("mutation", "expected_error"),
+    ("record_index", "mutation", "expected_error"),
     (
         (
+            0,
             lambda payload: payload["metrics"]["independent_pasym_swap"]["value"]["artifacts"][0][
                 "conditionals"
             ]["equilibrium_conditional"][0].__setitem__(0, 0.0),
             "equilibrium target_hash",
         ),
         (
+            1,
+            lambda payload: payload["metrics"]["independent_pasym_swap"]["value"]["artifacts"][0][
+                "conditionals"
+            ]["equilibrium_conditional"][0].__setitem__(0, 0.0),
+            "equilibrium target_hash",
+        ),
+        (
+            0,
             lambda payload: payload["metrics"]["independent_pasym_swap"]["value"]["occurrences"][
                 0
             ].__setitem__("target_hash", "tampered-target-hash"),
             "every occurrence target hash",
         ),
         (
+            0,
             lambda payload: payload["metrics"].__setitem__(
                 "median_equilibrium_tv",
                 {
@@ -223,6 +235,7 @@ def test_pasym_report_escapes_persisted_timing_text(run_output: Path) -> None:
             "median_equilibrium_tv",
         ),
         (
+            0,
             lambda payload: payload["metrics"].__setitem__(
                 "maximum_empirical_k30_residual",
                 {
@@ -233,11 +246,18 @@ def test_pasym_report_escapes_persisted_timing_text(run_output: Path) -> None:
             "maximum_empirical_k30_residual",
         ),
     ),
-    ids=("nested_equilibrium", "occurrence_hash", "scalar_summary", "evidence_class"),
+    ids=(
+        "first_nested_equilibrium",
+        "second_nested_equilibrium",
+        "occurrence_hash",
+        "scalar_summary",
+        "evidence_class",
+    ),
 )
 def test_report_rejects_tampered_persisted_pasym_swap_data_before_replacing_report(
     run_output: Path,
     tmp_path: Path,
+    record_index: int,
     mutation,
     expected_error: str,
 ) -> None:
@@ -250,7 +270,7 @@ def test_report_rejects_tampered_persisted_pasym_swap_data_before_replacing_repo
     aggregate = AggregateRecord.model_validate_json(
         (output / "aggregate.json").read_text(encoding="utf-8")
     )
-    record_path = output / aggregate.run_record_paths[0]
+    record_path = output / aggregate.run_record_paths[record_index]
     payload = json.loads(record_path.read_text(encoding="utf-8"))
     mutation(payload)
     record_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -323,4 +343,6 @@ def test_runner_records_one_failed_seed_and_never_claims_complete(
     assert "bound=0.1" in aggregate.failures[0].message
     report = (tmp_path / "report.md").read_text(encoding="utf-8")
     assert "Completion state: `partial`" in report
+    assert "### Selected seed 0: all eight acceptance gates" in report
+    assert "Aggregate completion is `partial`; failed seeds are excluded" in report
     assert "Passed: `yes`" not in report

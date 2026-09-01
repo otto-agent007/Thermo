@@ -7,6 +7,7 @@ from pathlib import Path
 
 from thermo_lab.aggregate import (
     AggregateRecord,
+    CompletionState,
     StatisticalSemantics,
     validate_aggregate_against_records,
 )
@@ -15,7 +16,10 @@ from thermo_lab.graph_walk_results import (
     validate_weighted_graph_walk_observations,
 )
 from thermo_lab.hashing import to_json_value
-from thermo_lab.pasym_swap_reporting import render_independent_pasym_swap_section
+from thermo_lab.pasym_swap_reporting import (
+    render_independent_pasym_swap_section,
+    validate_persisted_independent_pasym_swap_record,
+)
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import RunRecord
 from thermo_lab.schemas import WeightedGraphModelConfig, WeightedGraphRunConfig
@@ -261,6 +265,12 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
+    if is_independent_pasym_swap:
+        # Aggregate scalar rederivation deliberately omits deterministic nested
+        # identities, so validate every persisted successful run before any
+        # report text is returned to the atomic writer.
+        for record in records:
+            validate_persisted_independent_pasym_swap_record(record)
     sample_definition = (
         records[0].spec.sample_definition
         if records
@@ -319,6 +329,16 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
         if records:
             lines.extend(("", *render_independent_pasym_swap_section(records[0])))
+            if aggregate.completion_state is not CompletionState.COMPLETE:
+                lines.extend(
+                    (
+                        "",
+                        "Aggregate completion is "
+                        f"`{aggregate.completion_state.value}`; failed seeds "
+                        "are excluded from this selected successful record's gate table and from "
+                        "seed aggregate calculations.",
+                    )
+                )
     else:
         provenance = aggregate.provenance_summary
         lines.extend(
