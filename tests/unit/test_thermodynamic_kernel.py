@@ -9,7 +9,9 @@ from thermo_lab.thermodynamic_kernel import (
     bits_to_spins,
     conditional_tv,
     equilibrium_conditional,
+    finite_horizon_conditional,
     joint_energy,
+    one_sweep_transition,
     uniform_context_kl,
 )
 
@@ -78,6 +80,147 @@ def test_equilibrium_conditional_remains_finite_at_declared_parameter_cap() -> N
     assert np.all(np.isfinite(conditional))
     assert np.all(conditional > 0.0)
     np.testing.assert_allclose(conditional.sum(axis=1), 1.0, atol=1e-15)
+
+
+def test_zero_parameter_sweep_maps_every_start_to_uniform() -> None:
+    transition = one_sweep_transition(KernelParameters((0.0,) * 9), input_index=0)
+
+    assert transition.shape == (8, 8)
+    assert transition.dtype == np.float64
+    np.testing.assert_allclose(transition.sum(axis=1), 1.0, atol=1e-15)
+    np.testing.assert_allclose(transition, np.full((8, 8), 1.0 / 8.0), atol=1e-15)
+
+
+def test_finite_horizon_zero_model_is_uniform_for_every_k() -> None:
+    observed = finite_horizon_conditional(KernelParameters((0.0,) * 9), (1, 2, 30))
+
+    assert tuple(observed) == (1, 2, 30)
+    for conditional in observed.values():
+        assert conditional.shape == (4, 4)
+        assert conditional.dtype == np.float64
+        np.testing.assert_allclose(conditional, np.full((4, 4), 0.25), atol=1e-15)
+
+
+def direct_sweep_transition(
+    params: KernelParameters, input_index: int, beta: float = 1.0
+) -> np.ndarray:
+    """Independent state-loop oracle in free-state order (hidden, output_0, output_1)."""
+
+    input_bits = WORD_ORDER[input_index]
+    transition = np.zeros((8, 8), dtype=np.float64)
+    for hidden_index, _hidden_bit in enumerate((0, 1)):
+        for output_index, output_bits in enumerate(WORD_ORDER):
+            start_index = hidden_index * 4 + output_index
+            hidden_weights = np.asarray(
+                [
+                    math.exp(
+                        -beta
+                        * joint_energy(
+                            params,
+                            2 * np.asarray((*input_bits, next_hidden, *output_bits), dtype=np.int8)
+                            - 1,
+                        )
+                    )
+                    for next_hidden in (0, 1)
+                ],
+                dtype=np.float64,
+            )
+            hidden_probabilities = hidden_weights / hidden_weights.sum()
+            for next_hidden_index, next_hidden in enumerate((0, 1)):
+                output_weights = np.asarray(
+                    [
+                        math.exp(
+                            -beta
+                            * joint_energy(
+                                params,
+                                2
+                                * np.asarray(
+                                    (*input_bits, next_hidden, *next_output), dtype=np.int8
+                                )
+                                - 1,
+                            )
+                        )
+                        for next_output in WORD_ORDER
+                    ],
+                    dtype=np.float64,
+                )
+                output_probabilities = output_weights / output_weights.sum()
+                transition[start_index, next_hidden_index * 4 : (next_hidden_index + 1) * 4] = (
+                    hidden_probabilities[next_hidden_index] * output_probabilities
+                )
+    return transition
+
+
+def test_one_sweep_transition_matches_independent_hidden_then_output_state_loop() -> None:
+    params = KernelParameters((0.15, -0.25, 0.35, -0.45, 0.2, 0.3, -0.4, 0.5, -0.1))
+
+    for input_index in range(4):
+        np.testing.assert_allclose(
+            one_sweep_transition(params, input_index, beta=0.75),
+            direct_sweep_transition(params, input_index, beta=0.75),
+            atol=1e-14,
+        )
+
+
+def test_finite_horizon_matches_direct_loop_and_matrix_powers() -> None:
+    params = KernelParameters((0.2, -0.15, 0.3, -0.25, 0.4, -0.35, 0.1, 0.2, -0.3))
+    horizons = (4, 1, 8, 2)
+    observed = finite_horizon_conditional(params, horizons, beta=0.8)
+
+    assert tuple(observed) == (1, 2, 4, 8)
+    for input_index in range(4):
+        transition = direct_sweep_transition(params, input_index, beta=0.8)
+        for horizon, conditional in observed.items():
+            direct_distribution = np.full(8, 1.0 / 8.0, dtype=np.float64)
+            for _ in range(horizon):
+                direct_distribution = direct_distribution @ transition
+            matrix_power_distribution = np.full(
+                8, 1.0 / 8.0, dtype=np.float64
+            ) @ np.linalg.matrix_power(transition, horizon)
+            np.testing.assert_allclose(direct_distribution, matrix_power_distribution, atol=1e-14)
+            np.testing.assert_allclose(
+                conditional[input_index],
+                direct_distribution.reshape(2, 4).sum(axis=0),
+                atol=1e-14,
+            )
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        KernelParameters((0.1, -0.2, 0.3, -0.25, 0.15, 0.2, -0.3, 0.25, -0.1)),
+        KernelParameters((-0.3, 0.2, -0.15, 0.35, -0.2, 0.1, 0.25, -0.3, 0.2)),
+        KernelParameters((0.25, 0.1, -0.2, -0.15, 0.3, -0.25, 0.2, 0.1, -0.35)),
+    ],
+)
+def test_thirty_sweeps_approaches_equilibrium_for_nonzero_fixtures(
+    params: KernelParameters,
+) -> None:
+    finite = finite_horizon_conditional(params, (30,))[30]
+
+    np.testing.assert_allclose(finite, equilibrium_conditional(params), atol=1e-10)
+
+
+@pytest.mark.parametrize("input_index", [-1, 4, True, 1.0, "1"])
+def test_one_sweep_transition_rejects_noncanonical_input_indexes(input_index: object) -> None:
+    with pytest.raises(ValueError, match="input_index"):
+        one_sweep_transition(KernelParameters((0.0,) * 9), input_index)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("horizons", [(), (0,), (-1,), (True,), (1, 1.5), (1, "2")])
+def test_finite_horizon_rejects_nonpositive_or_noninteger_horizons(horizons: object) -> None:
+    with pytest.raises(ValueError, match="horizons"):
+        finite_horizon_conditional(KernelParameters((0.0,) * 9), horizons)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("beta", [0.0, -1.0, float("inf"), float("nan")])
+def test_finite_sweep_interfaces_reject_invalid_beta(beta: float) -> None:
+    params = KernelParameters((0.0,) * 9)
+
+    with pytest.raises(ValueError, match="beta"):
+        one_sweep_transition(params, 0, beta=beta)
+    with pytest.raises(ValueError, match="beta"):
+        finite_horizon_conditional(params, (1,), beta=beta)
 
 
 @pytest.mark.parametrize("beta", [0.0, -1.0, float("inf"), float("nan")])

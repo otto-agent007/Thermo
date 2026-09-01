@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
 from numbers import Real
 
@@ -15,6 +16,7 @@ from thermo_lab.schemas import PARAMETER_ORDER
 ParameterVector = tuple[float, float, float, float, float, float, float, float, float]
 
 _N_PARAMETERS = len(PARAMETER_ORDER)
+_N_FREE_STATES = 8
 
 
 @dataclass(frozen=True)
@@ -83,13 +85,160 @@ def joint_energy(parameters: KernelParameters, spins: NDArray[np.generic]) -> fl
     return -float(affinity)
 
 
+def _checked_beta(beta: float) -> float:
+    if type(beta) not in (int, float) or not math.isfinite(beta) or beta <= 0.0:
+        raise ValueError("beta must be a positive finite number")
+    return float(beta)
+
+
+def _checked_input_index(input_index: int) -> int:
+    if type(input_index) is not int or input_index not in range(len(WORD_ORDER)):
+        raise ValueError("input_index must be a canonical input word index")
+    return input_index
+
+
+def _normalized_probabilities(
+    log_weights: NDArray[np.float64], *, name: str
+) -> NDArray[np.float64]:
+    probabilities = np.exp(log_weights - np.logaddexp.reduce(log_weights))
+    if not np.all(np.isfinite(probabilities)) or np.any(probabilities < 0.0):
+        raise ValueError(f"{name} probabilities must be finite and nonnegative")
+    if not np.isclose(probabilities.sum(), 1.0, rtol=0.0, atol=1e-12):
+        raise ValueError(f"{name} probabilities must sum to one")
+    return probabilities
+
+
+def _checked_transition(transition: NDArray[np.generic]) -> NDArray[np.float64]:
+    checked = np.asarray(transition, dtype=np.float64)
+    if checked.shape != (_N_FREE_STATES, _N_FREE_STATES):
+        raise ValueError("transition must have shape (8, 8)")
+    if not np.all(np.isfinite(checked)):
+        raise ValueError("transition must contain only finite probabilities")
+    if np.any(checked < 0.0):
+        raise ValueError("transition must contain nonnegative probabilities")
+    if not np.allclose(checked.sum(axis=1), 1.0, rtol=0.0, atol=1e-12):
+        raise ValueError("transition rows must sum to one")
+    return checked
+
+
+def _spins_for_state(
+    input_bits: tuple[int, int], hidden_bit: int, output_bits: tuple[int, int]
+) -> NDArray[np.int8]:
+    return 2 * np.asarray((*input_bits, hidden_bit, *output_bits), dtype=np.int8) - 1
+
+
+def one_sweep_transition(
+    parameters: KernelParameters, input_index: int, beta: float = 1.0
+) -> NDArray[np.float64]:
+    """Return one complete hidden-then-output Gibbs sweep for one clamped input."""
+
+    if not isinstance(parameters, KernelParameters):
+        raise TypeError("parameters must be KernelParameters")
+    checked_input_index = _checked_input_index(input_index)
+    checked_beta = _checked_beta(beta)
+    input_bits = WORD_ORDER[checked_input_index]
+    transition = np.empty((_N_FREE_STATES, _N_FREE_STATES), dtype=np.float64)
+
+    for hidden_index, _ in enumerate((0, 1)):
+        for output_index, current_output_bits in enumerate(WORD_ORDER):
+            start_index = hidden_index * len(WORD_ORDER) + output_index
+            hidden_log_weights = np.asarray(
+                [
+                    -checked_beta
+                    * joint_energy(
+                        parameters,
+                        _spins_for_state(input_bits, next_hidden_bit, current_output_bits),
+                    )
+                    for next_hidden_bit in (0, 1)
+                ],
+                dtype=np.float64,
+            )
+            hidden_probabilities = _normalized_probabilities(
+                hidden_log_weights, name="hidden conditional"
+            )
+            for next_hidden_index, next_hidden_bit in enumerate((0, 1)):
+                output_log_weights = np.asarray(
+                    [
+                        -checked_beta
+                        * joint_energy(
+                            parameters,
+                            _spins_for_state(input_bits, next_hidden_bit, next_output_bits),
+                        )
+                        for next_output_bits in WORD_ORDER
+                    ],
+                    dtype=np.float64,
+                )
+                output_probabilities = _normalized_probabilities(
+                    output_log_weights, name="output conditional"
+                )
+                next_start = next_hidden_index * len(WORD_ORDER)
+                transition[start_index, next_start : next_start + len(WORD_ORDER)] = (
+                    hidden_probabilities[next_hidden_index] * output_probabilities
+                )
+
+    return _checked_transition(transition)
+
+
+def _checked_horizons(horizons: Iterable[int]) -> tuple[int, ...]:
+    try:
+        requested = tuple(horizons)
+    except TypeError as error:
+        raise ValueError("horizons must be an iterable of positive integers") from error
+    if not requested or any(type(horizon) is not int or horizon <= 0 for horizon in requested):
+        raise ValueError("horizons must contain only positive integers")
+    return tuple(sorted(set(requested)))
+
+
+def _checked_distribution(distribution: NDArray[np.generic]) -> NDArray[np.float64]:
+    checked = np.asarray(distribution, dtype=np.float64)
+    if checked.shape != (_N_FREE_STATES,):
+        raise ValueError("free-state distribution must have shape (8,)")
+    if not np.all(np.isfinite(checked)) or np.any(checked < 0.0):
+        raise ValueError("free-state distribution must be finite and nonnegative")
+    if not np.isclose(checked.sum(), 1.0, rtol=0.0, atol=1e-12):
+        raise ValueError("free-state distribution must sum to one")
+    return checked
+
+
+def finite_horizon_conditional(
+    parameters: KernelParameters, horizons: Iterable[int], beta: float = 1.0
+) -> dict[int, NDArray[np.float64]]:
+    """Return uniform-reset output conditionals after exact complete-sweep horizons."""
+
+    if not isinstance(parameters, KernelParameters):
+        raise TypeError("parameters must be KernelParameters")
+    checked_horizons = _checked_horizons(horizons)
+    checked_beta = _checked_beta(beta)
+    conditionals = {
+        horizon: np.empty((len(WORD_ORDER), len(WORD_ORDER)), dtype=np.float64)
+        for horizon in checked_horizons
+    }
+
+    for input_index in range(len(WORD_ORDER)):
+        transition = one_sweep_transition(parameters, input_index, beta=checked_beta)
+        distribution = np.full(_N_FREE_STATES, 1.0 / _N_FREE_STATES, dtype=np.float64)
+        previous_horizon = 0
+        for horizon in checked_horizons:
+            for _ in range(horizon - previous_horizon):
+                distribution = distribution @ transition
+            distribution = _checked_distribution(distribution)
+            conditionals[horizon][input_index] = distribution.reshape(2, len(WORD_ORDER)).sum(
+                axis=0
+            )
+            previous_horizon = horizon
+
+    return {
+        horizon: _checked_conditional(conditional, name=f"horizon {horizon} conditional")
+        for horizon, conditional in conditionals.items()
+    }
+
+
 def equilibrium_conditional(parameters: KernelParameters, beta: float = 1.0) -> NDArray[np.float64]:
     """Enumerate the exact input-major equilibrium output conditional in float64."""
 
     if not isinstance(parameters, KernelParameters):
         raise TypeError("parameters must be KernelParameters")
-    if type(beta) not in (int, float) or not math.isfinite(beta) or beta <= 0.0:
-        raise ValueError("beta must be a positive finite number")
+    checked_beta = _checked_beta(beta)
 
     conditional = np.empty((4, 4), dtype=np.float64)
     for input_index, input_bits in enumerate(WORD_ORDER):
@@ -106,8 +255,8 @@ def equilibrium_conditional(parameters: KernelParameters, beta: float = 1.0) -> 
                 dtype=np.int8,
             )
             log_affinities[output_index] = np.logaddexp(
-                -beta * joint_energy(parameters, hidden_negative),
-                -beta * joint_energy(parameters, hidden_positive),
+                -checked_beta * joint_energy(parameters, hidden_negative),
+                -checked_beta * joint_energy(parameters, hidden_positive),
             )
         conditional[input_index] = np.exp(log_affinities - np.logaddexp.reduce(log_affinities))
     return conditional
