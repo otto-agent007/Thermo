@@ -29,7 +29,6 @@ from thermo_lab.pasym_swap_results import (
 from thermo_lab.records import MetricObservation
 from thermo_lab.schemas import IndependentCompilerRunConfig, PAsymSwapModelConfig
 from thermo_lab.thermodynamic_kernel import (
-    KernelParameters,
     equilibrium_conditional,
     finite_horizon_conditional,
 )
@@ -66,37 +65,6 @@ def _settings(run: IndependentCompilerRunConfig, model: PAsymSwapModelConfig) ->
     )
 
 
-def _fast_mixing_parameters(target: np.ndarray) -> tuple[tuple[float, ...], float]:
-    """Fit independent output logits, leaving hidden-output couplings at zero."""
-
-    probabilities = (target[1, 2], target[2, 1])
-    epsilon = 1.0 / (1.0 + math.exp(8.0))
-    design = 2.0 * np.asarray(
-        ((1.0, -1.0, -1.0), (1.0, -1.0, 1.0), (1.0, 1.0, -1.0), (1.0, 1.0, 1.0))
-    )
-    output_coefficients = []
-    for values in (
-        (epsilon, probabilities[0], 1.0 - probabilities[1], 1.0 - epsilon),
-        (epsilon, 1.0 - probabilities[0], probabilities[1], 1.0 - epsilon),
-    ):
-        logits = np.log(np.asarray(values) / (1.0 - np.asarray(values)))
-        output_coefficients.append(np.linalg.lstsq(design, logits, rcond=None)[0])
-    output_0, output_1 = output_coefficients
-    parameters = (
-        0.0,
-        float(output_0[0]),
-        float(output_1[0]),
-        float(output_0[1]),
-        float(output_1[1]),
-        float(output_0[2]),
-        float(output_1[2]),
-        0.0,
-        0.0,
-    )
-    loss, _ = loss_and_gradient(np.asarray(parameters), target, np.full(4, 0.25, dtype=np.float64))
-    return parameters, loss
-
-
 @lru_cache(maxsize=1)
 def _serialized_passing_template() -> str:
     """Cache only JSON, making each mutation test receive fresh metric objects."""
@@ -110,8 +78,7 @@ def _serialized_passing_template() -> str:
         frozen = compile_target(
             target.target_hash, np.asarray(target.conditional), _settings(run, model)
         )
-        parameters, objective = _fast_mixing_parameters(np.asarray(target.conditional))
-        kernel_parameters = KernelParameters(parameters)
+        kernel_parameters = frozen.parameters
         equilibrium = _table(equilibrium_conditional(kernel_parameters, model.beta))
         finite = {
             horizon: _table(table)
@@ -131,28 +98,17 @@ def _serialized_passing_template() -> str:
         )
         artifact = CompiledKernelResult(
             target_hash=target.target_hash,
-            compiler_request_hash="checked-independent-pasym-swap-v1",
+            compiler_request_hash=checked.non_seed_config_hash,
             optimization=KernelOptimizationResult(
-                artifact_hash="pending",
-                parameters=parameters,
+                artifact_hash=frozen.artifact_hash,
+                parameters=frozen.parameters.values,
                 selected_restart=frozen.selected_restart,
                 successful_restart_count=sum(attempt.passed_checks for attempt in frozen.attempts),
-                objective=objective,
-                projected_gradient_norm=0.0,
-                cap_active_parameter_count=sum(
-                    abs(value) >= model.parameter_cap for value in parameters
-                ),
+                objective=frozen.objective,
+                projected_gradient_norm=frozen.projected_gradient_norm,
+                cap_active_parameter_count=frozen.cap_active_parameter_count,
             ),
             conditionals=conditionals,
-        )
-        artifact = artifact.model_copy(
-            update={
-                "optimization": artifact.optimization.model_copy(
-                    update={
-                        "artifact_hash": canonical_sha256(_artifact_identity(artifact, model, run))
-                    }
-                )
-            }
         )
         artifacts.append(artifact)
     summary = summarize_artifacts(artifacts, fixture.occurrences, model, run)
@@ -250,7 +206,16 @@ def test_passing_fixture_round_trips_and_stays_bounded() -> None:
     summary = validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
     payload = summary.model_dump_json()
     assert summary == type(summary).model_validate_json(payload)
+    assert len(summary.artifacts) == 37
     assert len(summary.occurrences) == 500
+    assert summary.equilibrium_tv.median == pytest.approx(0.038072, abs=1e-6)
+    assert summary.equilibrium_tv.maximum == pytest.approx(0.040826, abs=1e-6)
+    assert summary.maximum_finite_horizon_equilibrium_residual[30] == pytest.approx(
+        0.004671, abs=1e-6
+    )
+    assert {artifact.compiler_request_hash for artifact in summary.artifacts} == {
+        load_experiment_config(_CONFIG).non_seed_config_hash
+    }
     assert all(
         sum(row) == 4096
         for artifact in summary.artifacts
@@ -376,7 +341,7 @@ def _set_summary(metrics: dict[str, MetricObservation], payload: dict[str, Any])
             lambda payload: payload["artifacts"][0]["optimization"].__setitem__(
                 "projected_gradient_norm", 1.0
             ),
-            "optimizer",
+            "projected gradient",
         ),
         (
             "optimizer success",
@@ -390,7 +355,7 @@ def _set_summary(metrics: dict[str, MetricObservation], payload: dict[str, Any])
             lambda payload: payload["artifacts"][0]["optimization"]["parameters"].__setitem__(
                 0, 0.1
             ),
-            "artifact hash",
+            "optimizer objective",
         ),
         (
             "cap active count",
@@ -412,6 +377,42 @@ def test_every_scientific_nested_claim_is_recomputed(name: str, mutate: Any, mat
     mutate(payload)
     _set_summary(metrics, payload)
     with pytest.raises(ValueError, match=match):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def test_forged_projected_gradient_norm_is_rejected() -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    payload["artifacts"][0]["optimization"]["projected_gradient_norm"] = 0.0
+    _set_summary(metrics, payload)
+
+    with pytest.raises(ValueError, match="projected gradient"):
+        validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
+
+
+def test_nonconverged_parameters_cannot_claim_a_passing_optimizer() -> None:
+    metrics, model, run = passing_observations()
+    payload = _summary_payload(metrics)
+    artifact_payload = payload["artifacts"][0]
+    optimization_payload = artifact_payload["optimization"]
+    parameters = [0.0] * 9
+    target = np.asarray(artifact_payload["conditionals"]["target_conditional"], dtype=np.float64)
+    objective, _ = loss_and_gradient(
+        np.asarray(parameters, dtype=np.float64),
+        target,
+        np.asarray(run.context_weights, dtype=np.float64),
+    )
+    optimization_payload["parameters"] = parameters
+    optimization_payload["objective"] = objective
+    optimization_payload["projected_gradient_norm"] = 0.0
+    optimization_payload["cap_active_parameter_count"] = 0
+    rebound = IndependentPAsymSwapSummary.model_validate_json(json.dumps(payload)).artifacts[0]
+    optimization_payload["artifact_hash"] = canonical_sha256(
+        _artifact_identity(rebound, model, run)
+    )
+    _set_summary(metrics, payload)
+
+    with pytest.raises(ValueError, match="projected gradient"):
         validate_independent_pasym_swap_observations(metrics, model, run, seed=0)
 
 

@@ -27,7 +27,7 @@ from pydantic import (
 
 from thermo_lab.evidence import EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
-from thermo_lab.independent_compiler import loss_and_gradient
+from thermo_lab.independent_compiler import loss_and_gradient, project_gradient
 from thermo_lab.pasym_swap import PAPER_SOURCE, WORD_ORDER, GateOccurrence, build_paper_fixture
 from thermo_lab.records import FrozenModel, MetricObservation
 from thermo_lab.schemas import (
@@ -545,12 +545,6 @@ def _check_optimizer(
     optimization = artifact.optimization
     if optimization.successful_restart_count < 1:
         raise ValueError(f"optimizer target_hash={artifact.target_hash} observed=0 bound=1")
-    if optimization.projected_gradient_norm > run.projected_gradient_tolerance:
-        raise ValueError(
-            f"optimizer target_hash={artifact.target_hash} "
-            f"observed={optimization.projected_gradient_norm} "
-            f"bound={run.projected_gradient_tolerance}"
-        )
     if any(abs(value) > model.parameter_cap for value in optimization.parameters):
         maximum = max(abs(value) for value in optimization.parameters)
         raise ValueError(
@@ -565,7 +559,7 @@ def _check_optimizer(
             f"cap-active count target_hash={artifact.target_hash} "
             f"observed={optimization.cap_active_parameter_count} bound={expected_cap_active}"
         )
-    objective, _ = loss_and_gradient(
+    objective, gradient = loss_and_gradient(
         np.asarray(optimization.parameters, dtype=np.float64),
         np.asarray(artifact.conditionals.target_conditional, dtype=np.float64),
         np.asarray(run.context_weights, dtype=np.float64),
@@ -574,6 +568,26 @@ def _check_optimizer(
         raise ValueError(
             f"optimizer objective target_hash={artifact.target_hash} "
             f"observed={optimization.objective} bound={objective}"
+        )
+    projected_gradient = project_gradient(
+        np.asarray(optimization.parameters, dtype=np.float64),
+        gradient,
+        model.parameter_cap,
+    )
+    recomputed_projected_norm = float(np.max(np.abs(projected_gradient)))
+    if (
+        abs(optimization.projected_gradient_norm - recomputed_projected_norm)
+        > run.exact_normalization_tolerance
+    ):
+        raise ValueError(
+            f"projected gradient target_hash={artifact.target_hash} "
+            f"observed={optimization.projected_gradient_norm} "
+            f"bound={recomputed_projected_norm}"
+        )
+    if recomputed_projected_norm > run.projected_gradient_tolerance:
+        raise ValueError(
+            f"optimizer target_hash={artifact.target_hash} observed={recomputed_projected_norm} "
+            f"bound={run.projected_gradient_tolerance}"
         )
     expected_hash = canonical_sha256(_artifact_identity(artifact, model, run))
     if optimization.artifact_hash != expected_hash:

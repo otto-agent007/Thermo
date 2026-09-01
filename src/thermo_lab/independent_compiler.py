@@ -66,7 +66,7 @@ def _checked_context_weights(context_weights: object) -> NDArray[np.float64]:
 class CompilerSettings:
     """Exact, deterministic settings for the bounded three-restart optimizer."""
 
-    parameter_cap: float = 4.0
+    parameter_cap: float = 2.0
     maxiter: int = 2000
     maxls: int = 50
     ftol: float = 1e-12

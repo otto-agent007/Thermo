@@ -4,6 +4,18 @@
 
 Approved in chat on 2026-08-31 for the next narrow Phase 2 increment.
 
+### Checked-cap revision (2026-09-01)
+
+The checked field and symmetric-coupling cap is revised from `4.0` to `2.0`
+dimensionless energy units. This is a Thermo experiment-input revision, not a
+claim about the unpublished Z1 cap or the paper's trained models. Diagnostic
+compilations with the previous `4.0` cap produced a canonical maximum `K = 30`
+equilibrium residual of `0.411679`, above the unchanged `0.05` gate. With the
+`2.0` cap, all 37 canonical targets compiled; the diagnostic median/worst
+equilibrium TVs were `0.038072`/`0.040826`, and the maximum `K = 30` residual
+was `0.004671`. The target, target-to-model KL objective, three restarts,
+horizons, reset semantics, and acceptance thresholds are unchanged.
+
 ## Purpose
 
 This increment reconstructs the independently compiled atomic kernel from the
@@ -135,7 +147,7 @@ scientific inputs. At minimum it declares:
 - input, hidden, and output logical roles;
 - the exact synthetic topology and its two-color partition;
 - inverse temperature `beta = 1.0`;
-- a field and symmetric-coupling cap of `4.0` in dimensionless energy units;
+- a field and symmetric-coupling cap of `2.0` in dimensionless energy units;
 - the uniform four-context training weights;
 - SciPy L-BFGS-B with `maxiter = 2000`, `maxls = 50`, `ftol = 1e-12`,
   `gtol = 1e-9`, and a post-optimization projected-gradient gate of `1e-6`;
@@ -212,7 +224,7 @@ Extropic. Input-only energy terms are absent by convention because they cancel
 from the forward conditional and are not identifiable by the compilation
 objective.
 
-All nine identifiable parameters are bounded to `[-4.0, 4.0]`. The cap is a Thermo
+All nine identifiable parameters are bounded to `[-2.0, 2.0]`. The cap is a Thermo
 convention, not a published Z1 number. Parameters and beta are represented in
 the same dimensionless energy convention used to evaluate the Boltzmann
 distribution.
@@ -421,7 +433,7 @@ The checked run succeeds only when all of these predeclared gates pass:
    declared count.
 2. Every artifact has at least one successful checked restart. Its selected
    winner has finite parameters, objective, and gradient diagnostics and
-   respects the `4.0` parameter cap. Failed nonselected restarts remain recorded
+   respects the `2.0` parameter cap. Failed nonselected restarts remain recorded
    but do not fail an artifact that has a valid selected winner.
 3. Median uniform-weighted equilibrium TV over canonical artifacts is at most
    `0.15`.

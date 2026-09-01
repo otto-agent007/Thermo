@@ -252,8 +252,8 @@ class PAsymSwapModelConfig(StrictSchema):
             raise ValueError("parameter_order must match the canonical nine-parameter order")
         if self.beta != 1.0:
             raise ValueError("beta must be exactly 1.0")
-        if self.parameter_cap != 4.0:
-            raise ValueError("parameter_cap must be exactly 4.0")
+        if self.parameter_cap != 2.0:
+            raise ValueError("parameter_cap must be exactly 2.0")
         return self
 
 

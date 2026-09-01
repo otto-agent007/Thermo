@@ -74,7 +74,7 @@ def test_equilibrium_conditional_is_input_major_and_row_stochastic() -> None:
 
 def test_equilibrium_conditional_remains_finite_at_declared_parameter_cap() -> None:
     conditional = equilibrium_conditional(
-        KernelParameters((4.0, -4.0, 4.0, -4.0, 4.0, -4.0, 4.0, -4.0, 4.0))
+        KernelParameters((2.0, -2.0, 2.0, -2.0, 2.0, -2.0, 2.0, -2.0, 2.0))
     )
 
     assert np.all(np.isfinite(conditional))

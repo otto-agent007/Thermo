@@ -24,7 +24,7 @@ from thermo_lab.thermodynamic_kernel import KernelParameters
 def checked_compiler_settings() -> CompilerSettings:
     alternating = tuple(0.05 if index % 2 == 0 else -0.05 for index in range(9))
     return CompilerSettings(
-        parameter_cap=4.0,
+        parameter_cap=2.0,
         maxiter=2000,
         maxls=50,
         ftol=1e-12,
@@ -66,7 +66,7 @@ def test_compiler_is_deterministic_and_freezes_artifact_identity() -> None:
     assert first == second
     assert first.selected_restart in {0, 1, 2}
     assert first.projected_gradient_norm <= 1e-6
-    assert max(abs(value) for value in first.parameters.values) <= 4.0
+    assert max(abs(value) for value in first.parameters.values) <= 2.0
     assert first.artifact_hash == canonical_sha256(first.identity_payload())
     assert first.attempts[first.selected_restart].scipy_success
     assert first.attempts[first.selected_restart].passed_checks
@@ -318,7 +318,7 @@ def example_artifact(parameters: KernelParameters | None = None) -> CompiledKern
         dtype="float64",
         parameters=checked_parameters,
         beta=1.0,
-        parameter_cap=4.0,
+        parameter_cap=2.0,
         settings=settings,
         attempts=(attempt,),
         selected_restart=0,

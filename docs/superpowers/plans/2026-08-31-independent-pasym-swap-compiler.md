@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-31-independent-pasym-swap-compiler-design.md`
 
+**2026-09-01 checked-cap revision:** The authoritative parameter bounds are
+`[-2.0, 2.0]`, replacing `[-4.0, 4.0]`, after the diagnostics recorded in the
+design specification. This changes neither the target, target-to-model KL,
+three restart vectors/settings, horizons/reset semantics, nor any acceptance
+threshold.
+
 ## Global Constraints
 
 - Keep `thrml==0.1.4`, `extro-torx==0.0.1`, and Python `>=3.11,<3.12` pinned.
@@ -17,7 +23,7 @@
 - The source identity is exactly `https://arxiv.org/abs/2608.01615v2`.
 - Store conditional tables as `conditional[input_index][output_index]` with both axes ordered `(00, 01, 10, 11)`.
 - Convert occupation bits to spins only as `s = 2*b - 1`.
-- Use the declared `K_(3,2)` topology, nine-parameter order, `beta = 1.0`, and parameter bounds `[-4.0, 4.0]`.
+- Use the declared `K_(3,2)` topology, nine-parameter order, `beta = 1.0`, and parameter bounds `[-2.0, 2.0]`.
 - Compile with exact uniform-context target-to-model KL and the three deterministic checked restarts; no trajectory or model context may enter optimization.
 - Evaluate exact horizons `(1, 2, 4, 8, 16, 30)` from a uniform reset over the eight free states.
 - Run the THRML cross-check with 4,096 chains per input context and exactly 30 complete hidden-then-output block sweeps.
@@ -271,7 +277,7 @@ def test_checked_pasym_swap_config_declares_every_scientific_choice() -> None:
 Add parametrized mutations that reject integer-encoded floats, unknown keys,
 changed coordinate/boundary/class definitions, changed role or topology edge
 order, nonuniform context weights, unsorted horizons, missing `30`, changed
-schedule values, a cap other than `4.0`, a beta other than `1.0`, wrong restart
+schedule values, a cap other than `2.0`, a beta other than `1.0`, wrong restart
 length, changed tolerances, and an experiment backend other than `thrml_local`.
 For every accepted scientific field, mutate one value in an otherwise valid
 config and assert that either strict validation rejects it or the model/non-seed
@@ -604,7 +610,7 @@ Define the test-local settings helper explicitly before the tests:
 def checked_compiler_settings() -> CompilerSettings:
     alternating = tuple(0.05 if index % 2 == 0 else -0.05 for index in range(9))
     return CompilerSettings(
-        parameter_cap=4.0,
+        parameter_cap=2.0,
         maxiter=2000,
         maxls=50,
         ftol=1e-12,
@@ -623,7 +629,7 @@ def test_compiler_is_deterministic_and_freezes_artifact_identity() -> None:
     assert first == second
     assert first.selected_restart in {0, 1, 2}
     assert first.projected_gradient_norm <= 1e-6
-    assert max(abs(value) for value in first.parameters.values) <= 4.0
+    assert max(abs(value) for value in first.parameters.values) <= 2.0
     assert first.artifact_hash == canonical_sha256(first.identity_payload())
 
 

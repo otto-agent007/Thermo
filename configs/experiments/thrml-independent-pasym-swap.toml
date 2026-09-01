@@ -47,7 +47,7 @@ parameter_order = [
     "J_hidden_output_1",
 ]
 beta = 1.0
-parameter_cap = 4.0
+parameter_cap = 2.0
 exact_dtype = "float64"
 thrml_dtype = "float32"
 

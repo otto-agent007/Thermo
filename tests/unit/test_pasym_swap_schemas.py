@@ -44,6 +44,7 @@ def test_checked_pasym_swap_config_declares_every_scientific_choice() -> None:
     ]
     assert model.word_order == [list(word) for word in WORD_ORDER]
     assert model.parameter_order == list(PARAMETER_ORDER)
+    assert model.parameter_cap == 2.0
     assert run.horizons == [1, 2, 4, 8, 16, 30]
     assert run.chain_count_per_context == 4096
     assert run.initializations[1] == [0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05]
@@ -88,7 +89,7 @@ MODEL_MUTATIONS = [
     ),
     ("parameter_order", list(reversed(PARAMETER_ORDER))),
     ("beta", 0.9),
-    ("parameter_cap", 3.0),
+    ("parameter_cap", 4.0),
     ("exact_dtype", "float32"),
     ("thrml_dtype", "float64"),
 ]
