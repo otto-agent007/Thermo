@@ -23,11 +23,6 @@ if TYPE_CHECKING:
 
 
 _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
-_INDEPENDENT_PASYM_SWAP_TIMING_METHOD = (
-    "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
-    "warm launch, then aggregate synchronized steady-state execution; per-seed compilation "
-    "and executable-cache status recorded by duration"
-)
 
 
 def _source_identifier(path: Path) -> str:
@@ -98,20 +93,6 @@ def _failed_identity(
     )
 
 
-def _record_for_persistence(record: RunRecord) -> RunRecord:
-    """Stabilize cache-sensitive timing metadata across seeded replications."""
-
-    if record.spec.experiment_id != _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
-        return record
-    return record.model_copy(
-        update={
-            "timing": record.timing.model_copy(
-                update={"timing_method": _INDEPENDENT_PASYM_SWAP_TIMING_METHOD}
-            )
-        }
-    )
-
-
 def run_experiment(
     config_path: Path,
     output_dir: Path,
@@ -149,7 +130,7 @@ def run_experiment(
     failures: list[RunFailure] = []
     for seed in selected_seeds:
         try:
-            record = _record_for_persistence(backend.execute(config.to_spec(seed=seed)).record)
+            record = backend.execute(config.to_spec(seed=seed)).record
             relative = f"runs/seed-{seed:010d}.json"
             record.write_json(output_dir / relative)
             records.append(record)

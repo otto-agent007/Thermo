@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from thermo_lab.aggregate import AggregateRecord, CompletionState, StatisticalSemantics
+from thermo_lab.backends.base import ExecutionResult
 from thermo_lab.config import load_experiment_config
+from thermo_lab.hashing import to_json_value
 from thermo_lab.records import RunRecord
-from thermo_lab.runner import run_experiment
-
-pytestmark = pytest.mark.slow
+from thermo_lab.runner import _backend, run_experiment
 
 ROOT = Path(__file__).parents[2]
 CONFIG = ROOT / "configs/experiments/thrml-independent-pasym-swap.toml"
@@ -25,14 +26,43 @@ def _records(output: Path, aggregate: AggregateRecord) -> tuple[RunRecord, ...]:
 
 
 @pytest.fixture(scope="module")
-def run_output(tmp_path_factory: pytest.TempPathFactory) -> Path:
+def run_artifacts(tmp_path_factory: pytest.TempPathFactory):
+    import thermo_lab.backends.thrml_independent_pasym_swap as backend_module
+
+    instances = []
+    real_init = backend_module.ThrmlIndependentPAsymSwapBackend.__init__
+    patch = pytest.MonkeyPatch()
+
+    def recording_init(self, *args, **kwargs) -> None:
+        real_init(self, *args, **kwargs)
+        instances.append(self)
+
+    patch.setattr(backend_module.ThrmlIndependentPAsymSwapBackend, "__init__", recording_init)
     output = tmp_path_factory.mktemp("independent-pasym-swap")
-    aggregate = run_experiment(CONFIG, output, seeds=(0, 1, 2))
+    try:
+        aggregate = run_experiment(CONFIG, output, seeds=(0, 1, 2))
 
-    assert aggregate.completion_state is CompletionState.COMPLETE
-    return output
+        assert aggregate.completion_state is CompletionState.COMPLETE
+        assert len(instances) == 1
+        return SimpleNamespace(output=output, backend=instances[0])
+    finally:
+        patch.undo()
 
 
+@pytest.fixture(scope="module")
+def run_output(run_artifacts) -> Path:
+    return run_artifacts.output
+
+
+def test_backend_dispatches_independent_compiler_exact_id() -> None:
+    from thermo_lab.backends.thrml_independent_pasym_swap import ThrmlIndependentPAsymSwapBackend
+
+    assert isinstance(
+        _backend(load_experiment_config(CONFIG), ROOT), ThrmlIndependentPAsymSwapBackend
+    )
+
+
+@pytest.mark.slow
 def test_runner_persists_three_independent_cross_checks(run_output: Path) -> None:
     aggregate = AggregateRecord.model_validate_json(
         (run_output / "aggregate.json").read_text(encoding="utf-8")
@@ -57,6 +87,11 @@ def test_runner_persists_three_independent_cross_checks(run_output: Path) -> Non
     ]
     assert records[0].timing.compile_seconds > 0.0
     assert [record.timing.compile_seconds for record in records[1:]] == [0.0, 0.0]
+    assert "lower().compile() measured once" in records[0].timing.timing_method
+    assert all(
+        "reused from in-process shape cache" in record.timing.timing_method
+        for record in records[1:]
+    )
 
     summaries = [record.metrics["independent_pasym_swap"].value for record in records]
     artifact_sets = [
@@ -72,6 +107,7 @@ def test_runner_persists_three_independent_cross_checks(run_output: Path) -> Non
     )
 
 
+@pytest.mark.slow
 def test_runner_persists_snapshot_schemas_and_only_scalar_seed_aggregates(run_output: Path) -> None:
     aggregate = AggregateRecord.model_validate_json(
         (run_output / "aggregate.json").read_text(encoding="utf-8")
@@ -82,45 +118,82 @@ def test_runner_persists_snapshot_schemas_and_only_scalar_seed_aggregates(run_ou
     )
     assert (run_output / "schemas/run-record.schema.json").exists()
     assert (run_output / "schemas/aggregate-record.schema.json").exists()
-    assert "independent_pasym_swap" not in aggregate.metric_aggregates
-    assert aggregate.omitted_metrics["independent_pasym_swap"] == (
-        "non-scalar metric retained only in per-run records"
+    assert set(aggregate.metric_aggregates) == {"maximum_empirical_k30_residual"}
+    assert (
+        aggregate.metric_aggregates["maximum_empirical_k30_residual"].interval_method
+        == "two-sided Student-t across independent seeds"
     )
-    assert all(metric.count == 3 for metric in aggregate.metric_aggregates.values())
+    assert set(aggregate.omitted_metrics) == {
+        "acceptance_passed",
+        "deterministic_optimizer_seconds",
+        "independent_pasym_swap",
+        "maximum_k30_equilibrium_residual",
+        "median_equilibrium_tv",
+        "successful_artifact_count",
+        "timing.compile_seconds",
+        "timing.execution_seconds",
+        "total_cap_active_parameter_count",
+        "worst_equilibrium_tv",
+    }
     assert all(
-        metric.interval_method.startswith("two-sided Student-t across independent seeds")
-        for metric in aggregate.metric_aggregates.values()
-    )
-    forbidden_identity_terms = ("kernel", "context", "horizon", "probability", "occurrence")
-    assert not any(
-        any(term in name for term in forbidden_identity_terms)
-        for name in aggregate.metric_aggregates
+        "independently seeded sampled cross-check" in reason
+        or reason == "non-scalar metric retained only in per-run records"
+        for reason in aggregate.omitted_metrics.values()
     )
 
 
+@pytest.mark.slow
 def test_runner_preserves_completed_outputs_without_overwrite(run_output: Path) -> None:
     with pytest.raises(FileExistsError, match="completed run"):
         run_experiment(CONFIG, run_output, seeds=(0, 1, 2))
 
 
+@pytest.mark.slow
 def test_runner_records_one_failed_seed_and_never_claims_complete(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, run_artifacts
 ) -> None:
     import thermo_lab.backends.thrml_independent_pasym_swap as backend_module
 
-    real_execute = backend_module.ThrmlIndependentPAsymSwapBackend.execute
+    successful = _records(
+        run_artifacts.output,
+        AggregateRecord.model_validate_json(
+            (run_artifacts.output / "aggregate.json").read_text(encoding="utf-8")
+        ),
+    )
+    records_by_seed = {record.spec.seed: record for record in successful}
+    real_validate = backend_module.validate_independent_pasym_swap_observations
+    validated_seeds: list[int] = []
 
-    def fail_only_seed_one(self, spec):
-        result = real_execute(self, spec)
-        if spec.seed == 1:
-            raise ValueError("sampled THRML cross-check residual=0.100001 bound=0.1")
-        return result
+    def corrupt_seed_one_before_validation(metrics, model, run, seed):
+        validated_seeds.append(seed)
+        if seed == 1:
+            summary = to_json_value(metrics["independent_pasym_swap"].value)
+            conditionals = summary["artifacts"][0]["conditionals"]
+            finite = conditionals["finite_horizon_conditionals"]["30"][0]
+            output_index = min(range(4), key=finite.__getitem__)
+            counts = [0, 0, 0, 0]
+            counts[output_index] = run.chain_count_per_context
+            conditionals["empirical_k30_counts"][0] = counts
+            conditionals["empirical_k30_conditional"][0] = [
+                count / run.chain_count_per_context for count in counts
+            ]
+            metrics["independent_pasym_swap"] = metrics["independent_pasym_swap"].model_copy(
+                update={"value": summary}
+            )
+        return real_validate(metrics, model, run, seed)
+
+    class ReplaySuccessfulSeeds:
+        def execute(self, spec):
+            if spec.seed in (0, 2):
+                return ExecutionResult.build(records_by_seed[spec.seed])
+            return run_artifacts.backend.execute(spec)
 
     monkeypatch.setattr(
-        backend_module.ThrmlIndependentPAsymSwapBackend,
-        "execute",
-        fail_only_seed_one,
+        backend_module,
+        "validate_independent_pasym_swap_observations",
+        corrupt_seed_one_before_validation,
     )
+    monkeypatch.setattr("thermo_lab.runner._backend", lambda *_: ReplaySuccessfulSeeds())
     aggregate = run_experiment(CONFIG, tmp_path, seeds=(0, 1, 2))
 
     assert aggregate.completion_state is CompletionState.PARTIAL
@@ -131,7 +204,10 @@ def test_runner_records_one_failed_seed_and_never_claims_complete(
         "runs/seed-0000000002.json",
     )
     assert aggregate.failures[0].seed == 1
-    assert "residual=0.100001" in aggregate.failures[0].message
+    assert validated_seeds == [1]
+    assert "target_hash=" in aggregate.failures[0].message
+    assert "observed=" in aggregate.failures[0].message
+    assert "bound=0.1" in aggregate.failures[0].message
     report = (tmp_path / "report.md").read_text(encoding="utf-8")
     assert "Completion state: `partial`" in report
     assert "Passed: `yes`" not in report

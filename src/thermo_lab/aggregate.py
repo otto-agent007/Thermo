@@ -30,6 +30,41 @@ from thermo_lab.records import FrozenDict, FrozenModel, RunRecord
 AGGREGATE_SCHEMA_VERSION = "1.1.0"
 CONFIDENCE_LEVEL = 0.95
 _WEIGHTED_GRAPH_WALK_EXPERIMENT_ID = "torx.weighted_graph_walk.v1"
+_INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
+_INDEPENDENT_PASYM_SWAP_SAMPLED_METRICS = frozenset({"maximum_empirical_k30_residual"})
+_INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS = {
+    "median_equilibrium_tv": (
+        "deterministic exact conditional diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "worst_equilibrium_tv": (
+        "deterministic exact conditional diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "maximum_k30_equilibrium_residual": (
+        "deterministic exact conditional diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "successful_artifact_count": (
+        "deterministic compiler identity is not an independently seeded sampled cross-check"
+    ),
+    "total_cap_active_parameter_count": (
+        "deterministic compiler identity is not an independently seeded sampled cross-check"
+    ),
+    "acceptance_passed": (
+        "deterministic acceptance identity is not an independently seeded sampled cross-check"
+    ),
+    "deterministic_optimizer_seconds": (
+        "deterministic compiler/cache timing is not an independently seeded sampled cross-check"
+    ),
+}
+_INDEPENDENT_PASYM_SWAP_TIMING_OMISSION_REASON = (
+    "per-seed cache timing is not an independently seeded sampled cross-check"
+)
+_INDEPENDENT_PASYM_SWAP_TIMING_METHOD_PREFIX = (
+    "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
+    "warm launch, then aggregate synchronized steady-state execution"
+)
 
 
 class CompletionState(StrEnum):
@@ -367,6 +402,15 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
     package_versions = tuple(
         sorted((package.distribution, package.version) for package in record.provenance.packages)
     )
+    timing_method = record.timing.timing_method
+    if record.spec.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+        for suffix in (
+            "; JAX lower().compile() measured once for shared shapes",
+            "; JAX executable reused from in-process shape cache",
+        ):
+            if timing_method == _INDEPENDENT_PASYM_SWAP_TIMING_METHOD_PREFIX + suffix:
+                timing_method = _INDEPENDENT_PASYM_SWAP_TIMING_METHOD_PREFIX
+                break
     return (
         record.spec.experiment_id,
         record.backend_id,
@@ -386,7 +430,14 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
         record.timing.evidence_class,
         record.timing.unit,
         record.timing.source,
-        record.timing.timing_method,
+        timing_method,
+    )
+
+
+def _independent_pasym_swap_omission_reason(name: str) -> str | None:
+    return _INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
+        name,
+        "metric is not declared an independently seeded sampled cross-check",
     )
 
 
@@ -493,10 +544,24 @@ def derive_aggregate_fields(
         for name in sorted(common_names):
             observations = [record.metrics[name] for record in records]
             values = [observation.value for observation in observations]
+            omission_reason = _INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(name)
+            if (
+                experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
+                and name not in _INDEPENDENT_PASYM_SWAP_SAMPLED_METRICS
+                and omission_reason is not None
+            ):
+                omitted_metrics[name] = omission_reason
+                continue
             if any(
                 isinstance(value, bool) or not isinstance(value, (int, float)) for value in values
             ):
                 omitted_metrics[name] = "non-scalar metric retained only in per-run records"
+                continue
+            if (
+                experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
+                and name not in _INDEPENDENT_PASYM_SWAP_SAMPLED_METRICS
+            ):
+                omitted_metrics[name] = _independent_pasym_swap_omission_reason(name)
                 continue
             metadata = {
                 (observation.unit, observation.evidence_class, observation.method)
@@ -522,33 +587,41 @@ def derive_aggregate_fields(
                 statistical_semantics=statistical_semantics,
                 interval_bounds=interval_bounds,
             )
-        timing_method = records[0].timing.timing_method
-        timing_evidence = records[0].timing.evidence_class
-        timing_unit = records[0].timing.unit
-        timing_source = records[0].timing.source
-        metric_aggregates["timing.compile_seconds"] = _summarize_scalar(
-            [record.timing.compile_seconds for record in records],
-            unit=timing_unit,
-            evidence_class=timing_evidence,
-            statistical_semantics=statistical_semantics,
-            method=(
-                f"{timing_method}; compilation interval only; excludes execution, "
-                "configuration loading, provenance collection, persistence, aggregation, "
-                f"and reporting; source={timing_source}"
-            ),
-        )
-        metric_aggregates["timing.execution_seconds"] = _summarize_scalar(
-            [record.timing.execution_seconds for record in records],
-            unit=timing_unit,
-            evidence_class=timing_evidence,
-            statistical_semantics=statistical_semantics,
-            method=(
-                f"{timing_method}; synchronized steady-state backend interval only; "
-                "excludes compilation, untimed warm launch, configuration loading, "
-                "provenance collection, persistence, aggregation, and reporting; "
-                f"source={timing_source}"
-            ),
-        )
+        if experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+            omitted_metrics["timing.compile_seconds"] = (
+                _INDEPENDENT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+            omitted_metrics["timing.execution_seconds"] = (
+                _INDEPENDENT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+        else:
+            timing_method = records[0].timing.timing_method
+            timing_evidence = records[0].timing.evidence_class
+            timing_unit = records[0].timing.unit
+            timing_source = records[0].timing.source
+            metric_aggregates["timing.compile_seconds"] = _summarize_scalar(
+                [record.timing.compile_seconds for record in records],
+                unit=timing_unit,
+                evidence_class=timing_evidence,
+                statistical_semantics=statistical_semantics,
+                method=(
+                    f"{timing_method}; compilation interval only; excludes execution, "
+                    "configuration loading, provenance collection, persistence, aggregation, "
+                    f"and reporting; source={timing_source}"
+                ),
+            )
+            metric_aggregates["timing.execution_seconds"] = _summarize_scalar(
+                [record.timing.execution_seconds for record in records],
+                unit=timing_unit,
+                evidence_class=timing_evidence,
+                statistical_semantics=statistical_semantics,
+                method=(
+                    f"{timing_method}; synchronized steady-state backend interval only; "
+                    "excludes compilation, untimed warm launch, configuration loading, "
+                    "provenance collection, persistence, aggregation, and reporting; "
+                    f"source={timing_source}"
+                ),
+            )
 
     state = (
         CompletionState.COMPLETE

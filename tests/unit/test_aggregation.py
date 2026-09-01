@@ -9,6 +9,7 @@ from thermo_lab.aggregate import (
     RunFailure,
     StatisticalSemantics,
     aggregate_run_records,
+    validate_aggregate_against_records,
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.records import (
@@ -136,6 +137,99 @@ def test_multiple_seeds_use_sample_std_and_student_t_interval() -> None:
     assert scalar.confidence_interval.upper == pytest.approx(4.5543, abs=1e-3)
     assert scalar.interval_method == "two-sided Student-t across independent seeds"
     assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
+
+
+def test_independent_pasym_swap_aggregates_only_sampled_cross_check() -> None:
+    records = []
+    for seed, sampled_residual in enumerate((0.03, 0.04, 0.05)):
+        record = _record(
+            seed,
+            experiment_id="thrml.independent_pasym_swap_compilation.v1",
+        )
+        metrics = {
+            "maximum_empirical_k30_residual": MetricObservation(
+                value=sampled_residual,
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method="sampled cross-check",
+            ),
+            "median_equilibrium_tv": MetricObservation(
+                value=0.02,
+                evidence_class=EvidenceClass.EXACT_REFERENCE,
+                method="exact diagnostic",
+            ),
+            "successful_artifact_count": MetricObservation(
+                value=37,
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method="compiler identity",
+            ),
+            "acceptance_passed": MetricObservation(
+                value=True,
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method="acceptance identity",
+            ),
+            "independent_pasym_swap": MetricObservation(
+                value={"artifacts": ["nested"]},
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method="nested summary",
+            ),
+        }
+        records.append(
+            record.model_copy(
+                update={
+                    "metrics": metrics,
+                    "timing": record.timing.model_copy(
+                        update={
+                            "timing_method": (
+                                "cached shared jax.jit(jax.vmap(single_chain)) executable; one "
+                                "untimed synchronized warm launch, then aggregate synchronized "
+                                "steady-state execution; JAX lower().compile() measured once for "
+                                "shared shapes"
+                                if seed == 0
+                                else (
+                                    "cached shared jax.jit(jax.vmap(single_chain)) executable; one "
+                                    "untimed synchronized warm launch, then aggregate synchronized "
+                                    "steady-state execution; JAX executable reused from in-process "
+                                    "shape cache"
+                                )
+                            )
+                        }
+                    ),
+                }
+            )
+        )
+
+    aggregate = aggregate_run_records(
+        records,
+        requested_seeds=(0, 1, 2),
+        run_record_paths=tuple(f"runs/seed-{seed:010d}.json" for seed in range(3)),
+        source_config="configs/experiments/thrml-independent-pasym-swap.toml",
+    )
+
+    assert set(aggregate.metric_aggregates) == {"maximum_empirical_k30_residual"}
+    assert (
+        aggregate.metric_aggregates["maximum_empirical_k30_residual"].interval_method
+        == "two-sided Student-t across independent seeds"
+    )
+    assert aggregate.omitted_metrics == {
+        "acceptance_passed": (
+            "deterministic acceptance identity is not an independently seeded sampled cross-check"
+        ),
+        "independent_pasym_swap": "non-scalar metric retained only in per-run records",
+        "median_equilibrium_tv": (
+            "deterministic exact conditional diagnostic is not an independently seeded sampled "
+            "cross-check"
+        ),
+        "successful_artifact_count": (
+            "deterministic compiler identity is not an independently seeded sampled cross-check"
+        ),
+        "timing.compile_seconds": (
+            "per-seed cache timing is not an independently seeded sampled cross-check"
+        ),
+        "timing.execution_seconds": (
+            "per-seed cache timing is not an independently seeded sampled cross-check"
+        ),
+    }
+    validate_aggregate_against_records(aggregate, records)
 
 
 def test_deterministic_identity_has_no_replication_interval_contract() -> None:
