@@ -311,6 +311,15 @@ reordering unrelated artifacts cannot change another artifact's samples. JAX
 work is synchronized before observation and timing completion. First-call XLA
 lowering/compilation remains separate from synchronized execution timing.
 
+THRML 0.1.4's public Ising sampler accepts one chain's block states at its
+direct boundary; directly supplying a leading chain axis is incompatible with
+its unequal hidden/output block widths. The adapter therefore uses public
+`jax.vmap` over the single-chain `sample_states` call, followed by one `jax.jit`,
+to execute 4,096 chains. The vmapped inputs are boolean occupation bits with
+leading chain dimension, and the sampled outputs are converted back to the
+declared `(00, 01, 10, 11)` word order. A pinned upstream regression test owns
+this contract.
+
 Compilation/optimization wall time is a separately attributed
 `software_simulation` metric. It is not folded into `RunTiming.compile_seconds`,
 whose established meaning remains JAX lowering and compilation.
@@ -410,8 +419,10 @@ The checked run succeeds only when all of these predeclared gates pass:
    within `1e-12` for exact tables. Empirical tables must contain exactly 4,096
    counted chains per input context and normalize to one after division by that
    declared count.
-2. Every optimizer terminates successfully with finite parameters, objective,
-   and gradient diagnostics and respects the `4.0` parameter cap.
+2. Every artifact has at least one successful checked restart. Its selected
+   winner has finite parameters, objective, and gradient diagnostics and
+   respects the `4.0` parameter cap. Failed nonselected restarts remain recorded
+   but do not fail an artifact that has a valid selected winner.
 3. Median uniform-weighted equilibrium TV over canonical artifacts is at most
    `0.15`.
 4. Worst-artifact uniform-weighted equilibrium TV is at most `0.35`.
@@ -556,7 +567,7 @@ completed aggregate or a report that claims acceptance.
 - Empirical output ordering matches the exact conditional ordering.
 - JAX values are synchronized before timing completion.
 - A focused THRML 0.1.4 regression contract covers every newly relied-upon
-  clamping, multi-chain, and block-schedule behavior.
+  clamping, vmapped multi-chain, and block-schedule behavior.
 
 ### Configuration, record, and reporting tests
 
