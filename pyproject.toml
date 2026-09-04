@@ -9,6 +9,7 @@ requires-python = ">=3.11,<3.12"
 dependencies = [
     "extro-torx==0.0.1",
     "pydantic>=2.11,<3",
+    "scipy>=1.17,<2",
     "thrml==0.1.4",
 ]
 
@@ -23,7 +24,6 @@ thermo-lab = "thermo_lab.cli:main"
 dev = [
     "pytest>=8.4,<10",
     "ruff>=0.12,<1",
-    "scipy>=1.17,<2",
 ]
 
 [build-system]

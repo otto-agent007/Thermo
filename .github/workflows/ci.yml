@@ -42,3 +42,9 @@ jobs:
           uv run thermo-lab run
           configs/experiments/torx-weighted-graph-walk.toml
           --output-dir "${RUNNER_TEMP}/weighted-graph-walk"
+      - name: Run independent PAsymSwap compiler baseline
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/thrml-independent-pasym-swap.toml
+          --seeds 0,1,2
+          --output-dir "${RUNNER_TEMP}/independent-pasym-swap"

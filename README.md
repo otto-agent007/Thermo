@@ -31,6 +31,10 @@ uv run thermo-lab run \
 uv run thermo-lab run \
   configs/experiments/torx-weighted-graph-walk.toml \
   --output-dir results/weighted-graph-walk
+uv run thermo-lab run \
+  configs/experiments/thrml-independent-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/independent-pasym-swap
 uv run pytest
 ```
 
@@ -58,6 +62,18 @@ using the published fixture and gate order from the
 identity field, not a replication. Its compile and synchronized execution
 timings are local `software_simulation` evidence; they are not hardware or
 calibrated-projection measurements.
+
+The checked independent PAsymSwap command is a separate, atomic method-level
+reconstruction from the Thermalizers paper's 5 by 5 fixture. It independently
+compiles each unique two-bit target channel into a declared five-spin,
+two-color thermodynamic kernel, then checks exact equilibrium and finite
+Gibbs-horizon behavior with a THRML sampled cross-check. It is distinct from
+the five-node Torx weighted-graph paper baseline, and it does not compose the
+500 gate occurrences into a 25-site program. The Thermo-selected `[-2, 2]`
+field/coupling cap is the approved checked-input revision; the target,
+objective, horizons, reset semantics, and acceptance gates are unchanged. This
+is not an implementation of unpublished Thermalizers, official compatibility,
+or hardware evidence.
 
 ## Research contract
 

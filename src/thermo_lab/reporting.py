@@ -7,6 +7,7 @@ from pathlib import Path
 
 from thermo_lab.aggregate import (
     AggregateRecord,
+    CompletionState,
     StatisticalSemantics,
     validate_aggregate_against_records,
 )
@@ -15,6 +16,10 @@ from thermo_lab.graph_walk_results import (
     validate_weighted_graph_walk_observations,
 )
 from thermo_lab.hashing import to_json_value
+from thermo_lab.pasym_swap_reporting import (
+    render_independent_pasym_swap_section,
+    validate_persisted_independent_pasym_swap_record,
+)
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import RunRecord
 from thermo_lab.schemas import (
@@ -22,6 +27,8 @@ from thermo_lab.schemas import (
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
 )
+
+_INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
 
 
 def _format_number(value: float | None) -> str:
@@ -255,11 +262,27 @@ def _weighted_graph_walk_section(record: RunRecord) -> list[str]:
 def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) -> str:
     """Render an evidence-safe report from already persisted validated data."""
 
-    validate_aggregate_against_records(aggregate, records)
     is_weighted_graph_walk = aggregate.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
+    is_independent_pasym_swap = aggregate.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
+    if is_independent_pasym_swap:
+        # Aggregate scalar rederivation deliberately omits deterministic nested
+        # identities, so validate every persisted successful run before any
+        # report text is returned to the atomic writer.
+        expected_artifact_identity: tuple[str, ...] | None = None
+        for record in records:
+            summary, _, _ = validate_persisted_independent_pasym_swap_record(record)
+            artifact_identity = tuple(artifact.artifact_hash for artifact in summary.artifacts)
+            if expected_artifact_identity is None:
+                expected_artifact_identity = artifact_identity
+            elif artifact_identity != expected_artifact_identity:
+                raise ValueError(
+                    "Cannot report incompatible independent PAsymSwap deterministic artifact "
+                    "identity across seeds"
+                )
+    validate_aggregate_against_records(aggregate, records)
     sample_definition = (
         records[0].spec.sample_definition
         if records
@@ -292,8 +315,14 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
             "edge order, program depth, and node coordinates are not replication units, and "
             "no confidence interval is inferred from them."
             if is_deterministic
-            else "Recorded Markov-chain states are not described as independent samples. "
-            "Independent seeded runs are the replication unit for confidence intervals."
+            else (
+                "Seeds vary only the sampled cross-check and timing; targets, compiler, "
+                "compiled artifacts, and exact horizons are deterministic identity fields and "
+                "do not receive Student-t intervals."
+                if is_independent_pasym_swap
+                else "Recorded Markov-chain states are not described as independent samples. "
+                "Independent seeded runs are the replication unit for confidence intervals."
+            )
         ),
         "",
         "## Runtime provenance",
@@ -327,6 +356,28 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 ),
             )
         )
+        if is_independent_pasym_swap:
+            lines.extend(
+                (
+                    "",
+                    "Only the independently seeded THRML sampled cross-check scalar is eligible "
+                    "for a two-sided 95% Student-t interval. Deterministic compiler and "
+                    "exact-evaluation identity fields remain in the validated per-run section "
+                    "below.",
+                )
+            )
+            if records:
+                lines.extend(("", *render_independent_pasym_swap_section(records[0])))
+                if aggregate.completion_state is not CompletionState.COMPLETE:
+                    lines.extend(
+                        (
+                            "",
+                            "Aggregate completion is "
+                            f"`{aggregate.completion_state.value}`; failed seeds "
+                            "are excluded from this selected successful record's gate table and "
+                            "from seed aggregate calculations.",
+                        )
+                    )
     lines.extend(
         (
             "",

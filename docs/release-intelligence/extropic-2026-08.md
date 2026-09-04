@@ -1,6 +1,6 @@
 # Extropic August 2026 release intake
 
-Status date: 2026-08-05 UTC
+Status date: 2026-09-01 UTC
 
 Extropic's release exposes a layered programming direction rather than only a
 THRML update:
@@ -15,10 +15,10 @@ Torx → direct software/API execution
 
 | Component | Pinned status | Thermo decision |
 |---|---|---|
-| THRML | `thrml==0.1.4` | Hardware-near EBM and Gibbs-sampling dependency |
-| Torx | `extro-torx==0.0.1` | High-level stochastic-circuit dependency |
-| Thermalizers | Paper published; source forthcoming | Define experiments and boundaries; no placeholder compiler |
-| Extropic simulator API | Announced early access | Integrate only with a supported SDK/credentials |
+| THRML | `thrml==0.1.4` (tag `v0.1.4`, unchanged) | Hardware-near EBM and Gibbs-sampling dependency |
+| Torx | `extro-torx==0.0.1` (tag `v0.0.1`, unchanged) | High-level stochastic-circuit dependency |
+| Thermalizers | Paper published; source/repository unavailable | Define experiments and boundaries; no placeholder compiler |
+| `extro-sim` | `extro-sim==0.5.0`, uploaded 2026-08-04 | Apache-2.0 authenticated remote execution client; not used by local checked runs |
 | Z1 | Systems announced; external access planned | Model topology/cost assumptions; no physical backend yet |
 
 Sources:
@@ -63,6 +63,22 @@ ahead by 2026-08-05 with fixes involving repeated-circuit addition, hybrid
 dimension inference, and Glauber sigmoid stability. Thermo intentionally uses
 the published 0.0.1 API and avoids those affected paths. It will not mix main
 source behavior into records labeled as the 0.0.1 release.
+
+## August paper and client update
+
+Both paper sources were revised on 2026-08-13: [Torx
+arXiv:2608.01612v2](https://arxiv.org/abs/2608.01612v2) and [Thermalizers
+arXiv:2608.01615v2](https://arxiv.org/abs/2608.01615v2). The current GitHub
+tags remain Torx `v0.0.1` and THRML `v0.1.4`.
+
+[`extro-sim==0.5.0`](https://pypi.org/project/extro-sim/0.5.0/) was uploaded on 2026-08-04 under Apache-2.0. It is an
+authenticated remote compute client (authenticated remote execution), not
+Thermalizers, not a compiler, and not hardware. It supplies no basis for a
+hosted-execution result in Thermo's checked local experiments.
+
+Thermalizers remains unpublished: its source and repository are unavailable.
+Thermo's five-spin PAsymSwap reconstruction is an internal, declared research
+method and makes no official Thermalizers-compatibility claim.
 
 ## Architectural consequence
 
