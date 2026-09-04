@@ -7,6 +7,7 @@ from pydantic import ValidationError
 import thermo_lab.config as config_module
 import thermo_lab.experiments as experiments_module
 import thermo_lab.schemas as schemas_module
+import thermo_lab.target_context_schemas as target_schemas_module
 from thermo_lab.evidence import BackendId
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.pasym_swap import COLOR_ORDER, PAPER_SOURCE, WORD_ORDER
@@ -35,7 +36,7 @@ def checked_run() -> dict[str, object]:
 
 
 def target_run_config():
-    return schemas_module.TargetContextCompilerRunConfig
+    return target_schemas_module.TargetContextCompilerRunConfig
 
 
 def test_target_context_public_identity_and_checked_file_are_registered() -> None:
@@ -189,7 +190,9 @@ def test_target_context_schema_rejects_unknown_keys_and_invalid_seed() -> None:
     model = schemas_module.PAsymSwapModelConfig.model_validate(checked_model())
     validated_run = target_run_config().model_validate(checked_run())
     with pytest.raises(ValueError, match="nonnegative"):
-        schemas_module.validate_target_context_pasym_swap_request(model, validated_run, seed=-1)
+        target_schemas_module.validate_target_context_pasym_swap_request(
+            model, validated_run, seed=-1
+        )
 
 
 def test_target_context_request_validation_rejects_constructed_bypasses() -> None:
@@ -203,13 +206,21 @@ def test_target_context_request_validation_rejects_constructed_bypasses() -> Non
     forged_run = target_run_config().model_construct(**forged_run_payload)
 
     with pytest.raises(ValueError, match="parameter_cap"):
-        schemas_module.validate_target_context_pasym_swap_request(forged_model, run, seed=0)
+        target_schemas_module.validate_target_context_pasym_swap_request(
+            forged_model, run, seed=0
+        )
     with pytest.raises(ValueError, match="zero_support_policy"):
-        schemas_module.validate_target_context_pasym_swap_request(model, forged_run, seed=0)
+        target_schemas_module.validate_target_context_pasym_swap_request(
+            model, forged_run, seed=0
+        )
     with pytest.raises(TypeError, match="PAsymSwapModelConfig"):
-        schemas_module.validate_target_context_pasym_swap_request(checked_model(), run, seed=0)
+        target_schemas_module.validate_target_context_pasym_swap_request(
+            checked_model(), run, seed=0
+        )
     with pytest.raises(TypeError, match="TargetContextCompilerRunConfig"):
-        schemas_module.validate_target_context_pasym_swap_request(model, checked_run(), seed=0)
+        target_schemas_module.validate_target_context_pasym_swap_request(
+            model, checked_run(), seed=0
+        )
 
 
 def test_target_context_checked_config_round_trips(tmp_path: Path) -> None:
