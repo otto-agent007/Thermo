@@ -42,9 +42,7 @@ def test_target_context_public_identity_and_checked_file_are_registered() -> Non
     assert config_module.TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID == EXPERIMENT_ID
     assert config_module.TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION == SAMPLE_DEFINITION
     assert (
-        config_module.experiment_config_path(
-            "thrml-target-context-pasym-swap.toml"
-        ).read_bytes()
+        config_module.experiment_config_path("thrml-target-context-pasym-swap.toml").read_bytes()
         == CONFIG_PATH.read_bytes()
     )
 
@@ -67,10 +65,7 @@ def test_checked_target_context_config_declares_every_scientific_choice() -> Non
     assert run.initial_particle_site == (0, 0)
     assert run.context_source == "exact_target_trajectory"
     assert run.context_aggregation == "mean_over_occurrences_sharing_target_hash"
-    assert (
-        run.zero_support_policy
-        == "preserve_exact_zero_and_report_off_support"
-    )
+    assert run.zero_support_policy == "preserve_exact_zero_and_report_off_support"
     assert run.baseline_context_weights == (0.25, 0.25, 0.25, 0.25)
     assert run.horizons == (1, 2, 4, 8, 16, 30)
     assert run.chain_count_per_context == 4096
@@ -110,9 +105,10 @@ def test_target_context_non_seed_hash_matches_checked_config() -> None:
     )
     run = target_run_config().model_validate(to_json_value(config.run_parameters))
 
-    assert config_module.target_context_pasym_swap_non_seed_config_hash(
-        model, run
-    ) == config.non_seed_config_hash
+    assert (
+        config_module.target_context_pasym_swap_non_seed_config_hash(model, run)
+        == config.non_seed_config_hash
+    )
 
 
 RUN_MUTATIONS = [
@@ -193,9 +189,7 @@ def test_target_context_schema_rejects_unknown_keys_and_invalid_seed() -> None:
     model = schemas_module.PAsymSwapModelConfig.model_validate(checked_model())
     validated_run = target_run_config().model_validate(checked_run())
     with pytest.raises(ValueError, match="nonnegative"):
-        schemas_module.validate_target_context_pasym_swap_request(
-            model, validated_run, seed=-1
-        )
+        schemas_module.validate_target_context_pasym_swap_request(model, validated_run, seed=-1)
 
 
 def test_target_context_request_validation_rejects_constructed_bypasses() -> None:
@@ -203,42 +197,30 @@ def test_target_context_request_validation_rejects_constructed_bypasses() -> Non
     run = target_run_config().model_validate(checked_run())
     forged_model_payload = dict(model.__dict__)
     forged_model_payload["parameter_cap"] = 4.0
-    forged_model = schemas_module.PAsymSwapModelConfig.model_construct(
-        **forged_model_payload
-    )
+    forged_model = schemas_module.PAsymSwapModelConfig.model_construct(**forged_model_payload)
     forged_run_payload = dict(run.__dict__)
     forged_run_payload["zero_support_policy"] = "epsilon_floor"
     forged_run = target_run_config().model_construct(**forged_run_payload)
 
     with pytest.raises(ValueError, match="parameter_cap"):
-        schemas_module.validate_target_context_pasym_swap_request(
-            forged_model, run, seed=0
-        )
+        schemas_module.validate_target_context_pasym_swap_request(forged_model, run, seed=0)
     with pytest.raises(ValueError, match="zero_support_policy"):
-        schemas_module.validate_target_context_pasym_swap_request(
-            model, forged_run, seed=0
-        )
+        schemas_module.validate_target_context_pasym_swap_request(model, forged_run, seed=0)
     with pytest.raises(TypeError, match="PAsymSwapModelConfig"):
-        schemas_module.validate_target_context_pasym_swap_request(
-            checked_model(), run, seed=0
-        )
+        schemas_module.validate_target_context_pasym_swap_request(checked_model(), run, seed=0)
     with pytest.raises(TypeError, match="TargetContextCompilerRunConfig"):
-        schemas_module.validate_target_context_pasym_swap_request(
-            model, checked_run(), seed=0
-        )
+        schemas_module.validate_target_context_pasym_swap_request(model, checked_run(), seed=0)
 
 
 def test_target_context_checked_config_round_trips(tmp_path: Path) -> None:
     configured = config_module.load_experiment_config(CONFIG_PATH)
     snapshot = tmp_path / "target-context.toml"
-    snapshot.write_text(
-        config_module.dump_experiment_config(configured), encoding="utf-8"
-    )
+    snapshot.write_text(config_module.dump_experiment_config(configured), encoding="utf-8")
 
     assert config_module.load_experiment_config(snapshot) == configured
-    assert canonical_sha256(
-        to_json_value(configured.run_parameters)
-    ) == canonical_sha256(checked_run())
+    assert canonical_sha256(to_json_value(configured.run_parameters)) == canonical_sha256(
+        checked_run()
+    )
 
 
 def test_target_context_factory_uses_checked_config() -> None:
