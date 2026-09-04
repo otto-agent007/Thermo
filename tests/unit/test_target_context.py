@@ -2,7 +2,6 @@ import math
 from dataclasses import FrozenInstanceError, replace
 
 import pytest
-
 from thermo_lab.target_context import (
     aggregate_shared_context_loss,
     build_exact_target_contexts,
