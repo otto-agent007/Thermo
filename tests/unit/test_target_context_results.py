@@ -98,9 +98,7 @@ def _serialized_passing_template() -> str:
                 context.parameters, run.horizons, model.beta
             ).items()
         }
-        counts = tuple(
-            _largest_remainder(row, run.chain_count_per_context) for row in finite[30]
-        )
+        counts = tuple(_largest_remainder(row, run.chain_count_per_context) for row in finite[30])
         empirical = tuple(
             tuple(count / run.chain_count_per_context for count in row) for row in counts
         )
@@ -125,9 +123,7 @@ def _serialized_passing_template() -> str:
     metrics = target_context_metric_observations(summary, model.source_reference)
     return json.dumps(
         {
-            "metrics": {
-                name: metric.model_dump(mode="json") for name, metric in metrics.items()
-            },
+            "metrics": {name: metric.model_dump(mode="json") for name, metric in metrics.items()},
             "model": model.model_dump(mode="json"),
             "run": run.model_dump(mode="json"),
         },
@@ -166,9 +162,7 @@ def test_passing_target_context_result_round_trips_and_preserves_exact_support()
 
     summary = validate_target_context_pasym_swap_observations(metrics, model, run, seed=0)
 
-    assert summary == TargetContextPAsymSwapSummary.model_validate_json(
-        summary.model_dump_json()
-    )
+    assert summary == TargetContextPAsymSwapSummary.model_validate_json(summary.model_dump_json())
     assert len(summary.trajectory.occurrences) == 500
     assert len(summary.trajectory.profiles) == 37
     assert len(summary.comparisons) == 37
