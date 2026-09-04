@@ -8,9 +8,9 @@ from typing import Literal
 from pydantic import StrictFloat, StrictInt, field_validator, model_validator
 
 from thermo_lab.schemas import (
+    _INITIALIZATIONS,
     PAsymSwapModelConfig,
     StrictSchema,
-    _INITIALIZATIONS,
     _require_json_float,
     _require_json_float_list,
     _require_json_float_matrix,
@@ -55,7 +55,8 @@ class TargetContextCompilerRunConfig(StrictSchema):
     samples_per_chain: Literal[1]
     steps_per_sample: Literal[1]
     key_policy: Literal[
-        "fold seed with profile hash then artifact hash then input index; split init and sampling keys"
+        "fold seed with profile hash then artifact hash then input index; "
+        "split init and sampling keys"
     ]
     exact_normalization_tolerance: StrictFloat
     target_cm_not_worse_tolerance: StrictFloat
@@ -107,7 +108,7 @@ class TargetContextCompilerRunConfig(StrictSchema):
         return _tuple_json_lists(value)
 
     @model_validator(mode="after")
-    def validate_target_context_schedule(self) -> "TargetContextCompilerRunConfig":
+    def validate_target_context_schedule(self) -> TargetContextCompilerRunConfig:
         if self.initial_particle_site != (0, 0):
             raise ValueError("initial_particle_site must be exactly (0, 0)")
         if self.baseline_context_weights != (0.25, 0.25, 0.25, 0.25):
