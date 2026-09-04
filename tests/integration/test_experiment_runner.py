@@ -1,8 +1,10 @@
 import json
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
+import thermo_lab.runner as runner_module
 from thermo_lab.aggregate import AggregateRecord, CompletionState, StatisticalSemantics
 from thermo_lab.backends import TorxStateVectorBackend
 from thermo_lab.record_schemas import schema_json
@@ -135,6 +137,115 @@ def test_failed_seed_persists_partial_not_complete_aggregate(
         (tmp_path / "aggregate.json").read_text(encoding="utf-8")
     )
     assert persisted.completion_state is CompletionState.PARTIAL
+
+
+def test_report_validation_failure_leaves_seed_records_but_no_derived_outputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        runner_module, "render_report", Mock(side_effect=ValueError("bad report")), raising=False
+    )
+
+    with pytest.raises(ValueError, match="bad report"):
+        run_experiment(TORX_CONFIG, tmp_path, seeds=(0,))
+
+    assert tuple((tmp_path / "runs").glob("seed-*.json"))
+    assert not (tmp_path / "report.md").exists()
+    assert not (tmp_path / "aggregate.json").exists()
+
+
+def test_aggregate_validation_failure_leaves_seed_records_but_no_derived_outputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        runner_module,
+        "aggregate_run_records",
+        Mock(side_effect=ValueError("bad aggregate")),
+    )
+
+    with pytest.raises(ValueError, match="bad aggregate"):
+        run_experiment(TORX_CONFIG, tmp_path, seeds=(0,))
+
+    assert tuple((tmp_path / "runs").glob("seed-*.json"))
+    assert not (tmp_path / "report.md").exists()
+    assert not (tmp_path / "aggregate.json").exists()
+
+
+def test_report_is_atomically_published_before_aggregate_completion_marker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    events: list[str] = []
+    real_atomic_write = runner_module.atomic_write_text
+    real_aggregate_write = AggregateRecord.write_json
+
+    def tracked_atomic_write(path, content):
+        if path.name == "report.md":
+            events.append("report")
+        return real_atomic_write(path, content)
+
+    def tracked_aggregate_write(self, path):
+        events.append("aggregate")
+        return real_aggregate_write(self, path)
+
+    monkeypatch.setattr(runner_module, "atomic_write_text", tracked_atomic_write)
+    monkeypatch.setattr(AggregateRecord, "write_json", tracked_aggregate_write)
+
+    run_experiment(TORX_CONFIG, tmp_path, seeds=(0,))
+
+    assert events == ["report", "aggregate"]
+
+
+def test_aggregate_and_report_are_derived_from_reloaded_seed_records(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    backend_records: list[RunRecord] = []
+    aggregated_records: list[RunRecord] = []
+    reported_records: list[RunRecord] = []
+    real_backend = TorxStateVectorBackend()
+    real_aggregate = runner_module.aggregate_run_records
+    real_render = runner_module.render_report
+    real_run_write = RunRecord.write_json
+    persisted_python = "persisted-python-version"
+
+    class TrackingBackend:
+        def execute(self, spec):
+            result = real_backend.execute(spec)
+            backend_records.append(result.record)
+            return result
+
+    def tracked_aggregate(records, **kwargs):
+        aggregated_records.extend(records)
+        return real_aggregate(records, **kwargs)
+
+    def tracked_render(aggregate, records):
+        reported_records.extend(records)
+        return real_render(aggregate, records)
+
+    def mutate_persisted_record(self, path):
+        real_run_write(self, path)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["provenance"]["python_version"] = persisted_python
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        runner_module, "_backend", lambda config, repository_root: TrackingBackend()
+    )
+    monkeypatch.setattr(runner_module, "aggregate_run_records", tracked_aggregate)
+    monkeypatch.setattr(runner_module, "render_report", tracked_render)
+    monkeypatch.setattr(RunRecord, "write_json", mutate_persisted_record)
+
+    aggregate = run_experiment(TORX_CONFIG, tmp_path, seeds=(0, 1))
+
+    assert [record.spec.seed for record in aggregated_records] == [0, 1]
+    assert reported_records == aggregated_records
+    assert aggregate.provenance_summary is not None
+    assert aggregate.provenance_summary.python_version == persisted_python
+    assert all(record.provenance.python_version == persisted_python for record in reported_records)
+    assert all(record.provenance.python_version != persisted_python for record in backend_records)
+    assert all(
+        persisted is not returned
+        for persisted, returned in zip(aggregated_records, backend_records, strict=True)
+    )
 
 
 def test_schema_output_is_deterministic_json() -> None:

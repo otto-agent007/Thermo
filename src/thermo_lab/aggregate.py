@@ -22,10 +22,20 @@ from pydantic import (
     model_validator,
 )
 
+from thermo_lab.config import TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION
 from thermo_lab.evidence import BackendId, EvidenceClass
+from thermo_lab.hashing import to_json_value
 from thermo_lab.persistence import atomic_write_text
-from thermo_lab.records import FrozenDict, FrozenModel, RunRecord
-from thermo_lab.schemas import WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
+from thermo_lab.records import RUN_TIMING_SOURCE, FrozenDict, FrozenModel, RunRecord
+from thermo_lab.schemas import (
+    WEIGHTED_GRAPH_WALK_EXPERIMENT_ID,
+    PAsymSwapModelConfig,
+    TargetContextCompilerRunConfig,
+    validate_target_context_pasym_swap_request,
+)
+from thermo_lab.target_context_pasym_swap_results import (
+    validate_target_context_pasym_swap_observations,
+)
 
 AGGREGATE_SCHEMA_VERSION = "1.1.0"
 CONFIDENCE_LEVEL = 0.95
@@ -63,6 +73,57 @@ _INDEPENDENT_PASYM_SWAP_TIMING_OMISSION_REASON = (
 _INDEPENDENT_PASYM_SWAP_TIMING_METHOD_PREFIX = (
     "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
     "warm launch, then aggregate synchronized steady-state execution"
+)
+_TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
+_TARGET_CONTEXT_PASYM_SWAP_SAMPLED_METRICS = frozenset({"maximum_empirical_k30_residual"})
+_TARGET_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS = {
+    "target_context_pasym_swap": (
+        "nested target-context evidence is retained only in per-run records"
+    ),
+    "baseline_occurrence_weighted_equilibrium_kl": (
+        "deterministic exact target-context diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "target_context_occurrence_weighted_equilibrium_kl": (
+        "deterministic exact target-context diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "occurrence_weighted_equilibrium_kl_improvement": (
+        "deterministic exact target-context diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "baseline_occurrence_weighted_equilibrium_tv": (
+        "deterministic exact target-context diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "target_context_occurrence_weighted_equilibrium_tv": (
+        "deterministic exact target-context diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "maximum_paired_k30_equilibrium_residual": (
+        "deterministic exact target-context diagnostic is not an independently seeded sampled "
+        "cross-check"
+    ),
+    "acceptance_passed": (
+        "deterministic acceptance identity is not an independently seeded sampled cross-check"
+    ),
+    "baseline_optimizer_seconds": (
+        "per-seed optimizer/cache timing is not an independently seeded sampled cross-check"
+    ),
+    "target_context_optimizer_seconds": (
+        "per-seed optimizer/cache timing is not an independently seeded sampled cross-check"
+    ),
+}
+_TARGET_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON = (
+    "per-seed synchronized JAX timing is not an independently seeded sampled cross-check"
+)
+_TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX = (
+    "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
+    "warm launch, then aggregate synchronized steady-state execution"
+)
+_TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES = (
+    "; JAX lower().compile() measured once for shared shapes",
+    "; JAX executable reused from in-process shape cache",
 )
 
 
@@ -404,6 +465,12 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
             if timing_method == _INDEPENDENT_PASYM_SWAP_TIMING_METHOD_PREFIX + suffix:
                 timing_method = _INDEPENDENT_PASYM_SWAP_TIMING_METHOD_PREFIX
                 break
+    deterministic_identity: tuple[str, ...] | str | None = None
+    if record.spec.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+        deterministic_identity = _independent_pasym_swap_artifact_identity(record)
+    elif record.spec.experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        deterministic_identity = _target_context_deterministic_identity(record)
+        timing_method = _target_context_timing_method(record)
     return (
         record.spec.experiment_id,
         record.backend_id,
@@ -424,11 +491,7 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
         record.timing.unit,
         record.timing.source,
         timing_method,
-        (
-            _independent_pasym_swap_artifact_identity(record)
-            if record.spec.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
-            else None
-        ),
+        deterministic_identity,
     )
 
 
@@ -461,10 +524,60 @@ def _independent_pasym_swap_artifact_identity(record: RunRecord) -> tuple[str, .
     return tuple(artifact_hashes)
 
 
+def _target_context_timing_method(record: RunRecord) -> str:
+    for suffix in _TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES:
+        if record.timing.timing_method == _TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX + suffix:
+            return _TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX
+    raise ValueError(
+        "target-context timing method must use the synchronized sampling prefix and one "
+        "checked JAX compile/reuse suffix"
+    )
+
+
+def _target_context_deterministic_identity(record: RunRecord) -> str:
+    """Deeply validate one checked target record before exposing aggregate scalars."""
+
+    if record.spec.experiment_id != _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        raise ValueError("record is not the checked target-context PAsymSwap experiment")
+    if record.spec.sample_definition != TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION:
+        raise ValueError("target-context sample definition differs from the checked value")
+    if record.backend_id is not BackendId.THRML_LOCAL:
+        raise ValueError("target-context records require the thrml_local backend")
+    if record.evidence_class is not EvidenceClass.SOFTWARE_SIMULATION:
+        raise ValueError("target-context records require software_simulation evidence")
+    if record.timing.synchronized is not True:
+        raise ValueError("target-context records require synchronized timing")
+    if record.timing.evidence_class is not EvidenceClass.SOFTWARE_SIMULATION:
+        raise ValueError("target-context timing requires software_simulation evidence")
+    if record.timing.source != RUN_TIMING_SOURCE:
+        raise ValueError("target-context timing source differs from the checked value")
+    if record.timing.unit != "seconds":
+        raise ValueError("target-context timing unit must be seconds")
+    _target_context_timing_method(record)
+    if not any(
+        package.distribution == "thrml" and package.version == "0.1.4"
+        for package in record.provenance.packages
+    ):
+        raise ValueError(
+            "target-context runtime provenance requires the pinned THRML 0.1.4 package"
+        )
+
+    model = PAsymSwapModelConfig.model_validate(to_json_value(record.spec.model_parameters))
+    run = TargetContextCompilerRunConfig.model_validate(to_json_value(record.spec.run_parameters))
+    validate_target_context_pasym_swap_request(model, run, record.spec.seed)
+    summary = validate_target_context_pasym_swap_observations(
+        record.metrics, model, run, record.spec.seed
+    )
+    return summary.deterministic_result_hash
+
+
 def _dtype_compatibility_signature(record: RunRecord) -> str:
     """Return the declared numeric representation without conflating exact and THRML paths."""
 
-    if record.spec.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
+    if record.spec.experiment_id in {
+        _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID,
+        _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+    }:
         return (
             f"exact={record.spec.model_parameters.get('exact_dtype')}; "
             f"thrml={record.spec.model_parameters.get('thrml_dtype')}"
@@ -474,6 +587,13 @@ def _dtype_compatibility_signature(record: RunRecord) -> str:
 
 def _independent_pasym_swap_omission_reason(name: str) -> str | None:
     return _INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
+        name,
+        "metric is not declared an independently seeded sampled cross-check",
+    )
+
+
+def _target_context_pasym_swap_omission_reason(name: str) -> str:
+    return _TARGET_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
         name,
         "metric is not declared an independently seeded sampled cross-check",
     )
@@ -583,6 +703,12 @@ def derive_aggregate_fields(
         for name in sorted(common_names):
             observations = [record.metrics[name] for record in records]
             values = [observation.value for observation in observations]
+            if (
+                experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
+                and name not in _TARGET_CONTEXT_PASYM_SWAP_SAMPLED_METRICS
+            ):
+                omitted_metrics[name] = _target_context_pasym_swap_omission_reason(name)
+                continue
             omission_reason = _INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(name)
             if (
                 experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
@@ -632,6 +758,13 @@ def derive_aggregate_fields(
             )
             omitted_metrics["timing.execution_seconds"] = (
                 _INDEPENDENT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+        elif experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+            omitted_metrics["timing.compile_seconds"] = (
+                _TARGET_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+            omitted_metrics["timing.execution_seconds"] = (
+                _TARGET_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
             )
         else:
             timing_method = records[0].timing.timing_method

@@ -40,15 +40,21 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] published five-node continuous reference and discretized Torx target
 - [x] resolution sweep, edge-order sensitivity, trajectory error, and invariant checks
 - [x] independently compiled thermodynamic kernels
-- [ ] context matching
-- [ ] trajectory refinement
+- [x] exact target-context matching
+- [ ] model-context matching
+- [ ] trajectory-level REINFORCE refinement
 - [ ] full finite-Gibbs-horizon composed-program comparison
 
-The completed item is only the atomic method-level reconstruction: independently
-compiled five-spin PAsymSwap kernels from the separate 5 by 5 Thermalizers
-fixture, evaluated against exact equilibrium and finite horizons. It is not
-the existing five-node Torx weighted-graph paper baseline and does not claim a
-composed 25-site program comparison.
+The independently compiled item is an atomic method-level reconstruction:
+five-spin PAsymSwap kernels from the separate 5 by 5 Thermalizers fixture,
+evaluated against exact equilibrium and finite horizons. It is not the existing
+five-node Torx weighted-graph paper baseline and does not claim a composed
+25-site program comparison.
+
+Exact target-context matching is complete only for the analytically propagated
+target input distribution. Model-context matching, trajectory-level REINFORCE
+refinement, and a full finite-Gibbs-horizon comparison of the composed 25-site
+program remain deferred.
 
 ## Phase 3 — Narrow Thermalizers-informed research compiler
 

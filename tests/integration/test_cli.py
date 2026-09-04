@@ -11,6 +11,7 @@ from thermo_lab.cli import main
 ROOT = Path(__file__).parents[2]
 TORX_CONFIG = ROOT / "configs/experiments/torx-two-gate.toml"
 PASYM_SWAP_CONFIG = ROOT / "configs/experiments/thrml-independent-pasym-swap.toml"
+TARGET_CONTEXT_CONFIG = ROOT / "configs/experiments/thrml-target-context-pasym-swap.toml"
 
 
 def test_run_cli_uses_config_seed_by_default(tmp_path: Path) -> None:
@@ -99,6 +100,49 @@ def test_run_cli_forwards_independent_compiler_seed_list(
     assert result == 0
     assert captured == {
         "config_path": PASYM_SWAP_CONFIG,
+        "output_dir": tmp_path,
+        "seeds": (0, 1, 2),
+        "overwrite": False,
+    }
+
+
+def test_run_cli_forwards_target_context_compiler_seed_list(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import thermo_lab.runner as runner
+
+    captured: dict[str, object] = {}
+
+    def fake_run_experiment(config_path, output_dir, *, seeds, overwrite):
+        captured.update(
+            config_path=config_path,
+            output_dir=output_dir,
+            seeds=seeds,
+            overwrite=overwrite,
+        )
+        return SimpleNamespace(
+            completed_runs=3,
+            failed_runs=0,
+            seeds=(0, 1, 2),
+            completion_state=SimpleNamespace(value="complete"),
+        )
+
+    monkeypatch.setattr(runner, "run_experiment", fake_run_experiment)
+
+    result = main(
+        [
+            "run",
+            str(TARGET_CONTEXT_CONFIG),
+            "--seeds",
+            "0,1,2",
+            "--output-dir",
+            str(tmp_path),
+        ]
+    )
+
+    assert result == 0
+    assert captured == {
+        "config_path": TARGET_CONTEXT_CONFIG,
         "output_dir": tmp_path,
         "seeds": (0, 1, 2),
         "overwrite": False,

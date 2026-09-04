@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+import thermo_lab.independent_compiler as independent_compiler
 from thermo_lab.hashing import canonical_sha256
 from thermo_lab.independent_compiler import (
     CompiledKernelArtifact,
@@ -16,9 +17,66 @@ from thermo_lab.independent_compiler import (
     loss_and_gradient,
     project_gradient,
 )
-from thermo_lab.pasym_swap import build_pasym_swap_conditional
+from thermo_lab.pasym_swap import build_paper_fixture, build_pasym_swap_conditional
 from thermo_lab.schemas import PARAMETER_ORDER
 from thermo_lab.thermodynamic_kernel import KernelParameters
+
+PARAMETERS = np.asarray((0.1, -0.2, 0.3, -0.4, 0.5, -0.6, 0.7, -0.8, 0.9))
+TARGET = np.asarray(build_pasym_swap_conditional(0.03, 0.07))
+
+
+def central_difference(function: object, *, epsilon: float = 1e-6) -> np.ndarray:
+    values = PARAMETERS.copy()
+    numeric = np.empty(len(values))
+    for index in range(len(values)):
+        offset = np.zeros(len(values))
+        offset[index] = epsilon
+        numeric[index] = (function(values + offset) - function(values - offset)) / (2.0 * epsilon)  # type: ignore[operator]
+    return numeric
+
+
+def _legacy_checked_pasym_target(target: object) -> np.ndarray:
+    """Test-local copy of the pre-hardening valid-target validator."""
+
+    checked = np.asarray(target, dtype=np.float64)
+    if checked.shape != (4, 4) or not np.all(np.isfinite(checked)):
+        raise ValueError("target must be a finite (4, 4) PAsymSwap conditional")
+    if np.any(checked < 0.0) or not np.allclose(checked.sum(axis=1), 1.0, atol=1e-12):
+        raise ValueError("target must be a stochastic PAsymSwap conditional")
+    if not (
+        np.array_equal(checked[0], np.asarray((1.0, 0.0, 0.0, 0.0)))
+        and np.array_equal(checked[3], np.asarray((0.0, 0.0, 0.0, 1.0)))
+        and checked[1, 0] == 0.0
+        and checked[1, 3] == 0.0
+        and checked[2, 0] == 0.0
+        and checked[2, 3] == 0.0
+        and 0.0 < checked[1, 2] < 1.0
+        and 0.0 < checked[2, 1] < 1.0
+    ):
+        raise ValueError("target must use the checked two-bit PAsymSwap support")
+    return checked
+
+
+@pytest.fixture(scope="module")
+def paper_artifact_pairs() -> tuple[tuple[CompiledKernelArtifact, CompiledKernelArtifact], ...]:
+    """Compile the canonical targets once per validator path for exact regressions."""
+
+    fixture = build_paper_fixture()
+    settings = checked_compiler_settings()
+    hardened_validator = independent_compiler._checked_pasym_target
+    try:
+        independent_compiler._checked_pasym_target = _legacy_checked_pasym_target
+        legacy = tuple(
+            compile_target(target.target_hash, np.asarray(target.conditional), settings)
+            for target in fixture.targets
+        )
+    finally:
+        independent_compiler._checked_pasym_target = hardened_validator
+    hardened = tuple(
+        compile_target(target.target_hash, np.asarray(target.conditional), settings)
+        for target in fixture.targets
+    )
+    return tuple(zip(legacy, hardened, strict=True))
 
 
 def checked_compiler_settings() -> CompilerSettings:
@@ -49,6 +107,36 @@ def test_exact_gradient_matches_central_difference() -> None:
     assert math.isfinite(loss)
     assert gradient.dtype == np.float64
     np.testing.assert_allclose(gradient, numeric, atol=2e-7, rtol=2e-6)
+
+
+def test_pasym_target_validation_uses_zero_relative_tolerance() -> None:
+    target = np.asarray(build_pasym_swap_conditional(0.03, 0.07))
+    target[1, 1] += 1e-8
+
+    with pytest.raises(ValueError, match="stochastic"):
+        loss_and_gradient(np.zeros(9), target, np.full(4, 0.25))
+
+
+def test_nonuniform_zero_context_gradient_matches_central_difference() -> None:
+    weights = np.asarray((0.60, 0.25, 0.15, 0.0))
+
+    observed_loss, observed_gradient = loss_and_gradient(PARAMETERS, TARGET, weights)
+    numeric = central_difference(lambda values: loss_and_gradient(values, TARGET, weights)[0])
+
+    assert math.isfinite(observed_loss)
+    np.testing.assert_allclose(observed_gradient, numeric, rtol=1e-5, atol=1e-7)
+
+
+def test_absolute_target_validation_preserves_all_canonical_artifact_identities(
+    paper_artifact_pairs: tuple[tuple[CompiledKernelArtifact, CompiledKernelArtifact], ...],
+) -> None:
+    assert len(paper_artifact_pairs) == 37
+    for legacy, hardened in paper_artifact_pairs:
+        assert hardened.parameters.values == legacy.parameters.values
+        assert hardened.objective == legacy.objective
+        assert hardened.attempts == legacy.attempts
+        assert hardened.selected_restart == legacy.selected_restart
+        assert hardened.artifact_hash == legacy.artifact_hash
 
 
 def test_projected_gradient_zeros_only_blocked_descent_components() -> None:

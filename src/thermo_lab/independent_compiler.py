@@ -39,7 +39,7 @@ def _checked_pasym_target(target: object) -> NDArray[np.float64]:
         raise ValueError("target must be a numeric PAsymSwap conditional") from error
     if checked.shape != (4, 4) or not np.all(np.isfinite(checked)):
         raise ValueError("target must be a finite (4, 4) PAsymSwap conditional")
-    if np.any(checked < 0.0) or not np.allclose(checked.sum(axis=1), 1.0, atol=1e-12):
+    if np.any(checked < 0.0) or not np.allclose(checked.sum(axis=1), 1.0, rtol=0.0, atol=1e-12):
         raise ValueError("target must be a stochastic PAsymSwap conditional")
     if not (
         np.array_equal(checked[0], np.asarray((1.0, 0.0, 0.0, 0.0)))

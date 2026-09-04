@@ -35,6 +35,10 @@ uv run thermo-lab run \
   configs/experiments/thrml-independent-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/independent-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/thrml-target-context-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/target-context-pasym-swap
 uv run pytest
 ```
 
@@ -74,6 +78,17 @@ field/coupling cap is the approved checked-input revision; the target,
 objective, horizons, reset semantics, and acceptance gates are unchanged. This
 is not an implementation of unpublished Thermalizers, official compatibility,
 or hardware evidence.
+
+The checked exact target-context PAsymSwap command propagates the declared
+one-particle target marginal through all 500 occurrences, pools the resulting
+contexts into 37 equal-occurrence target-hash profiles, and compares paired
+uniform and target-context artifacts. Any reported improvement applies only
+under that exact target input distribution. Exact target propagation and
+evaluation are `exact_reference` evidence for the declared process and frozen
+software-derived models; optimization, THRML sampling, and timings remain
+`software_simulation`. This study did not evaluate model-context matching,
+trajectory-level REINFORCE refinement, the complete compiled 25-site rollout,
+official Thermalizers, hosted simulation, or Z1 hardware.
 
 ## Research contract
 

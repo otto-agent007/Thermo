@@ -35,6 +35,21 @@ jobs:
         run: uv run pytest -m "not slow"
       - name: Build package artifacts
         run: uv build
+      - name: Verify target-context config in package artifacts
+        run: |
+          python - <<'PY'
+          import glob
+          import tarfile
+          import zipfile
+
+          config = "configs/experiments/thrml-target-context-pasym-swap.toml"
+          wheel, = glob.glob("dist/thermo_lab-*.whl")
+          sdist, = glob.glob("dist/thermo_lab-*.tar.gz")
+          with zipfile.ZipFile(wheel) as archive:
+              assert any(name.endswith(config) for name in archive.namelist())
+          with tarfile.open(sdist) as archive:
+              assert any(name.endswith(config) for name in archive.getnames())
+          PY
       - name: Run cross-library smoke experiment
         run: uv run thermo-lab smoke --output-dir "${RUNNER_TEMP}/thermo-smoke"
       - name: Run weighted graph-walk baseline
@@ -48,3 +63,9 @@ jobs:
           configs/experiments/thrml-independent-pasym-swap.toml
           --seeds 0,1,2
           --output-dir "${RUNNER_TEMP}/independent-pasym-swap"
+      - name: Run exact target-context PAsymSwap compiler study
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/thrml-target-context-pasym-swap.toml
+          --seeds 0,1,2
+          --output-dir "${RUNNER_TEMP}/target-context-pasym-swap"

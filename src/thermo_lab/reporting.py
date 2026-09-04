@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 
 from thermo_lab.aggregate import (
@@ -27,12 +28,70 @@ from thermo_lab.schemas import (
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
 )
+from thermo_lab.target_context_pasym_swap_reporting import (
+    canonical_target_context_record,
+    render_target_context_pasym_swap_section,
+    validate_persisted_target_context_pasym_swap_record,
+)
 
 _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
+_TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
+_LEGACY_SAMPLE_DEFINITIONS = frozenset(
+    (
+        "Exact final probability mass over basis states [00, 01, 10, 11]; not a Monte Carlo "
+        "sample.",
+        "One deterministic family of complete Torx state-vector trajectories over declared "
+        "Trotter resolutions and edge orders; variants and program depths are not independent "
+        "samples or replications.",
+        "One independently seeded THRML cross-check using 4,096 chains per input context over "
+        "every frozen compiled kernel at 30 complete two-color Gibbs sweeps.",
+        "One independently seeded THRML cross-check using 4,096 chains per input context over "
+        "every frozen target-context kernel at 30 complete two-color Gibbs sweeps.",
+        "One recorded full five-spin state after two complete ordered block-Gibbs sweeps; "
+        "recorded-state count is not an effective-independent-sample count.",
+    )
+)
+_ORDINARY_TABLE_UNIT = re.compile(r"[A-Za-z][A-Za-z0-9_./ \-]*\Z")
 
 
 def _format_number(value: float | None) -> str:
     return "unavailable" if value is None else f"{value:.8g}"
+
+
+def _normalize_markdown_value(value: str) -> str:
+    return value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " / ")
+
+
+def _markdown_numeric_code(value: str) -> str:
+    normalized = _normalize_markdown_value(value)
+    visible_characters: list[str] = []
+    for index, character in enumerate(normalized):
+        codepoint = ord(character)
+        category = unicodedata.category(character)
+        is_noncharacter = 0xFDD0 <= codepoint <= 0xFDEF or codepoint & 0xFFFF in (
+            0xFFFE,
+            0xFFFF,
+        )
+        is_collapsible_space = character == " " and (
+            index == 0
+            or index == len(normalized) - 1
+            or (index > 0 and normalized[index - 1] == " ")
+        )
+        if is_noncharacter:
+            label = "NONCHARACTER"
+        elif category.startswith("C"):
+            label = {
+                0x0000: "NULL",
+                0x0009: "CHARACTER TABULATION",
+            }.get(codepoint, unicodedata.name(character, "CONTROL"))
+        elif is_collapsible_space:
+            label = "SPACE"
+        else:
+            visible_characters.append(character)
+            continue
+        visible_characters.append(f"[U+{codepoint:04X} {label}]")
+    payload = "".join(f"&#{ord(character)};" for character in "".join(visible_characters))
+    return f"<code>{payload}</code>"
 
 
 def _markdown_text(value: str) -> str:
@@ -42,16 +101,24 @@ def _markdown_text(value: str) -> str:
     escaped_lines = []
     for line in normalized.split("\n"):
         escaped = line.replace("\\", "\\\\")
-        for character in ("`", "*", "_", "[", "]", "<", ">", "|", "&"):
+        for character in ("`", "*", "_", "~", "[", "]", "<", ">", "|", "&"):
             escaped = escaped.replace(character, f"\\{character}")
         escaped_lines.append(re.sub(r"^([ ]{0,3})([#\-+])(?=\s)", r"\1\\\2", escaped))
     return " / ".join(escaped_lines)
 
 
+def _markdown_block_text(value: str) -> str:
+    """Render persisted text as one inert standalone Markdown block."""
+
+    if value in _LEGACY_SAMPLE_DEFINITIONS:
+        return _markdown_text(value)
+    return _markdown_numeric_code(value)
+
+
 def _markdown_code_span(value: str) -> str:
     """Render arbitrary persisted text as a single safe CommonMark code span."""
 
-    normalized = value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " / ")
+    normalized = _normalize_markdown_value(value)
     longest_run = current_run = 0
     for character in normalized:
         if character == "`":
@@ -62,6 +129,14 @@ def _markdown_code_span(value: str) -> str:
     delimiter = "`" * (longest_run + 1)
     padding = " " if normalized.startswith("`") or normalized.endswith("`") else ""
     return f"{delimiter}{padding}{normalized}{padding}{delimiter}"
+
+
+def _markdown_table_code_span(value: str) -> str:
+    """Render a safe code span inside a GFM table cell."""
+
+    if value == value.strip() and "  " not in value and _ORDINARY_TABLE_UNIT.fullmatch(value):
+        return _markdown_code_span(value)
+    return _markdown_numeric_code(value)
 
 
 def _metric_table(aggregate: AggregateRecord) -> list[str]:
@@ -77,7 +152,10 @@ def _metric_table(aggregate: AggregateRecord) -> list[str]:
     ]
     for name, metric in aggregate.metric_aggregates.items():
         if metric.confidence_interval is None:
-            interval = f"unavailable ({metric.interval_unavailable_reason})"
+            interval = (
+                "unavailable ("
+                f"{_markdown_text(metric.interval_unavailable_reason or 'unspecified')})"
+            )
         else:
             interval = (
                 f"[{_format_number(metric.confidence_interval.lower)}, "
@@ -87,11 +165,13 @@ def _metric_table(aggregate: AggregateRecord) -> list[str]:
             "| "
             + " | ".join(
                 (
-                    name,
-                    f"`{metric.evidence_class.value}`"
+                    _markdown_text(name),
+                    _markdown_code_span(metric.evidence_class.value)
                     if metric.evidence_class is not None
                     else "unavailable",
-                    f"`{metric.unit}`" if metric.unit is not None else "dimensionless",
+                    _markdown_table_code_span(metric.unit)
+                    if metric.unit is not None
+                    else "dimensionless",
                     str(metric.count),
                     _format_number(metric.mean),
                     _format_number(metric.standard_deviation),
@@ -99,7 +179,7 @@ def _metric_table(aggregate: AggregateRecord) -> list[str]:
                     _format_number(metric.minimum),
                     _format_number(metric.maximum),
                     interval,
-                    metric.method,
+                    _markdown_text(metric.method),
                 )
             )
             + " |"
@@ -264,9 +344,14 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
 
     is_weighted_graph_walk = aggregate.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
     is_independent_pasym_swap = aggregate.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
+    is_target_context_pasym_swap = (
+        aggregate.experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
+    )
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
+    target_summaries = []
+    records_for_validation = records
     if is_independent_pasym_swap:
         # Aggregate scalar rederivation deliberately omits deterministic nested
         # identities, so validate every persisted successful run before any
@@ -282,7 +367,24 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                     "Cannot report incompatible independent PAsymSwap deterministic artifact "
                     "identity across seeds"
                 )
-    validate_aggregate_against_records(aggregate, records)
+    elif is_target_context_pasym_swap:
+        # Persistence sorts keys lexicographically. Restore only the six
+        # known finite-horizon mappings on strict validation copies before
+        # invoking Task 8's order-sensitive deep validator.
+        canonical_records = tuple(canonical_target_context_record(record) for record in records)
+        expected_result_hash: str | None = None
+        for record in canonical_records:
+            summary, _, _ = validate_persisted_target_context_pasym_swap_record(record)
+            target_summaries.append(summary)
+            if expected_result_hash is None:
+                expected_result_hash = summary.deterministic_result_hash
+            elif summary.deterministic_result_hash != expected_result_hash:
+                raise ValueError(
+                    "Cannot report incompatible target-context deterministic result hash "
+                    "across seeds"
+                )
+        records_for_validation = canonical_records
+    validate_aggregate_against_records(aggregate, records_for_validation)
     sample_definition = (
         records[0].spec.sample_definition
         if records
@@ -296,19 +398,19 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     lines = [
         "# Thermo experiment report",
         "",
-        f"- Experiment: `{aggregate.experiment_id}`",
-        f"- Backend: `{aggregate.backend_id.value}`",
-        f"- Evidence class: `{aggregate.evidence_class.value}`",
-        f"- Statistical semantics: `{aggregate.statistical_semantics.value}`",
-        f"- Completion state: `{aggregate.completion_state.value}`",
-        f"- Model hash: `{aggregate.model_hash}`",
-        f"- Non-seed configuration hash: `{aggregate.run_config_hash}`",
+        f"- Experiment: {_markdown_code_span(aggregate.experiment_id)}",
+        f"- Backend: {_markdown_code_span(aggregate.backend_id.value)}",
+        f"- Evidence class: {_markdown_code_span(aggregate.evidence_class.value)}",
+        f"- Statistical semantics: {_markdown_code_span(aggregate.statistical_semantics.value)}",
+        f"- Completion state: {_markdown_code_span(aggregate.completion_state.value)}",
+        f"- Model hash: {_markdown_code_span(aggregate.model_hash)}",
+        f"- Non-seed configuration hash: {_markdown_code_span(aggregate.run_config_hash)}",
         f"- Seeds: {seed_list} ({_run_set_description(aggregate)})",
         f"- Completed/failed: {aggregate.completed_runs}/{aggregate.failed_runs}",
         "",
         "## Sample definition",
         "",
-        sample_definition,
+        _markdown_block_text(sample_definition),
         "",
         (
             "This record contains deterministic complete-distribution variants. Resolution, "
@@ -320,8 +422,14 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 "compiled artifacts, and exact horizons are deterministic identity fields and "
                 "do not receive Student-t intervals."
                 if is_independent_pasym_swap
-                else "Recorded Markov-chain states are not described as independent samples. "
-                "Independent seeded runs are the replication unit for confidence intervals."
+                else (
+                    "Only empirical THRML evidence, sampled acceptance, cache state, and timing "
+                    "vary by seed; the target trace, profiles, paired artifacts, optimizer "
+                    "observations, and exact evaluations are deterministic identity fields."
+                    if is_target_context_pasym_swap
+                    else "Recorded Markov-chain states are not described as independent samples. "
+                    "Independent seeded runs are the replication unit for confidence intervals."
+                )
             )
         ),
         "",
@@ -334,24 +442,26 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         provenance = aggregate.provenance_summary
         lines.extend(
             (
-                f"- Python: `{provenance.python_version}`",
-                f"- Platform: `{provenance.platform}`",
-                f"- JAX/JAXLIB: `{provenance.jax_version}` / `{provenance.jaxlib_version}`",
-                f"- JAX backend: `{provenance.jax_backend}`",
-                "- JAX devices: " + ", ".join(f"`{item}`" for item in provenance.jax_devices),
-                f"- JAX x64 enabled: `{str(provenance.jax_enable_x64).lower()}`",
-                f"- Numeric dtype: `{provenance.numeric_dtype}`",
-                f"- Git commit: `{provenance.git_commit or 'unavailable'}`",
-                "- Git dirty: `"
-                + (
+                f"- Python: {_markdown_code_span(provenance.python_version)}",
+                f"- Platform: {_markdown_code_span(provenance.platform)}",
+                "- JAX/JAXLIB: "
+                f"{_markdown_code_span(provenance.jax_version)} / "
+                f"{_markdown_code_span(provenance.jaxlib_version)}",
+                f"- JAX backend: {_markdown_code_span(provenance.jax_backend)}",
+                "- JAX devices: "
+                + ", ".join(_markdown_code_span(item) for item in provenance.jax_devices),
+                "- JAX x64 enabled: " + _markdown_code_span(str(provenance.jax_enable_x64).lower()),
+                f"- Numeric dtype: {_markdown_code_span(provenance.numeric_dtype)}",
+                "- Git commit: " + _markdown_code_span(provenance.git_commit or "unavailable"),
+                "- Git dirty: "
+                + _markdown_code_span(
                     str(provenance.git_dirty).lower()
                     if provenance.git_dirty is not None
                     else "unavailable"
-                )
-                + "`",
+                ),
                 "- Packages: "
                 + ", ".join(
-                    f"`{package.distribution}=={package.version}`"
+                    _markdown_code_span(f"{package.distribution}=={package.version}")
                     for package in provenance.packages
                 ),
             )
@@ -373,15 +483,85 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                         (
                             "",
                             "Aggregate completion is "
-                            f"`{aggregate.completion_state.value}`; failed seeds "
+                            f"{_markdown_code_span(aggregate.completion_state.value)}; "
+                            "failed seeds "
                             "are excluded from this selected successful record's gate table and "
                             "from seed aggregate calculations.",
                         )
                     )
+    if is_target_context_pasym_swap:
+        lines.extend(
+            (
+                "",
+                "Only the empirical THRML K=30 residual is eligible for a cross-seed "
+                "interval. Deterministic evidence is rendered once from the first successful "
+                "persisted record, when one exists, after every successful record has passed "
+                "deep validation and deterministic-hash comparison.",
+            )
+        )
+        if records:
+            lines.extend(("", *render_target_context_pasym_swap_section(records[0])))
+        completed_seeds = tuple(record.spec.seed for record in records)
+        failed_seeds = tuple(failure.seed for failure in aggregate.failures)
+        all_requested_passed = (
+            aggregate.completion_state is CompletionState.COMPLETE
+            and len(target_summaries) == aggregate.requested_runs
+            and all(summary.seed_acceptance.passed for summary in target_summaries)
+        )
+        acceptance_statement = (
+            "- All requested seeds completed and passed: yes."
+            if all_requested_passed
+            else "- Acceptance applies only to completed seeds; one or more requested seeds failed."
+            if records
+            else "- No requested seed completed; no seed acceptance evidence is available."
+        )
+        lines.extend(
+            (
+                "",
+                "### Acceptance and seed completeness",
+                "",
+                f"- Seed partition: requested={aggregate.seeds}; completed={completed_seeds}; "
+                f"failed={failed_seeds}.",
+                f"- Completion state: {_markdown_code_span(aggregate.completion_state.value)}.",
+                acceptance_statement,
+                (
+                    "- Only empirical THRML evidence, sampled acceptance, cache state, and "
+                    "timing vary by seed. Deterministic values are not treated as replicated "
+                    "statistics."
+                ),
+                "",
+                "### Evidence classes",
+                "",
+                (
+                    "Exact evaluations are `exact_reference` for frozen software-derived "
+                    "models. The target marginal, occurrence trace, and pooled profiles are "
+                    "exact references for the checked target process and initial state."
+                ),
+                (
+                    "Optimization, THRML sampling, and timing are `software_simulation`. "
+                    "All-context and zero-support diagnostics are exact evaluations of those "
+                    "software-derived artifacts, not physical measurements."
+                ),
+                "",
+                "### Deferred scope and explicit exclusions",
+                "",
+                "- model-context matching was not evaluated.",
+                "- REINFORCE and other trajectory-level refinement were not evaluated.",
+                "- A complete compiled 25-site rollout was not executed.",
+                "- This is not official Thermalizers compatibility or hosted simulation.",
+                "- This is not Z1 or other physical hardware evidence.",
+            )
+        )
     lines.extend(
         (
             "",
-            "## Scalar results" if is_weighted_graph_walk else "## Scalar results across seeds",
+            (
+                "## Scalar results"
+                if is_weighted_graph_walk
+                else "## Sampled scalar results across seeds"
+                if is_target_context_pasym_swap
+                else "## Scalar results across seeds"
+            ),
             "",
         )
     )
@@ -396,6 +576,14 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
         if records:
             lines.extend(("", *_weighted_graph_walk_section(records[0])))
+    elif is_target_context_pasym_swap:
+        lines.extend(
+            (
+                "",
+                "The interval contract above applies only to the independently seeded empirical "
+                "THRML residual. A single successful seed receives no manufactured interval.",
+            )
+        )
     else:
         lines.extend(
             (
@@ -410,11 +598,15 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
     if aggregate.omitted_metrics:
         lines.extend(("", "## Omitted aggregate metrics", ""))
-        lines.extend(f"- `{name}`: {reason}" for name, reason in aggregate.omitted_metrics.items())
+        lines.extend(
+            f"- {_markdown_code_span(name)}: {_markdown_text(reason)}"
+            for name, reason in aggregate.omitted_metrics.items()
+        )
     if aggregate.failures:
         lines.extend(("", "## Failures", ""))
         lines.extend(
-            f"- Seed {failure.seed}: `{failure.error_type}` — {_markdown_text(failure.message)}"
+            f"- Seed {failure.seed}: {_markdown_code_span(failure.error_type)} — "
+            f"{_markdown_text(failure.message)}"
             for failure in aggregate.failures
         )
     lines.extend(
@@ -422,8 +614,9 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
             "",
             "## Evidence caveat",
             "",
-            f"This report contains `{aggregate.evidence_class.value}` evidence from "
-            f"`{aggregate.backend_id.value}`. It is not a physical Z1 or TSU hardware measurement. "
+            f"This report contains {_markdown_code_span(aggregate.evidence_class.value)} evidence "
+            f"from {_markdown_code_span(aggregate.backend_id.value)}. It is not a physical Z1 or "
+            "TSU hardware measurement. "
             "Any calibrated projection must remain in a separate projection record.",
             "",
             "## Machine-readable artifacts",

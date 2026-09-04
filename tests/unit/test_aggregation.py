@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 
 import pytest
@@ -11,15 +12,50 @@ from thermo_lab.aggregate import (
     aggregate_run_records,
     validate_aggregate_against_records,
 )
+from thermo_lab.backends.thrml_target_context_pasym_swap import (
+    ThrmlTargetContextPAsymSwapBackend,
+)
+from thermo_lab.config import experiment_config_path, load_experiment_config
 from thermo_lab.evidence import BackendId, EvidenceClass
+from thermo_lab.hashing import to_json_value
 from thermo_lab.records import (
     ExperimentSpec,
     MetricObservation,
     PackageProvenance,
+    RunRecord,
     RuntimeProvenance,
     RunTiming,
     build_run_record,
 )
+
+TARGET_CONTEXT_CONFIG = experiment_config_path("thrml-target-context-pasym-swap.toml")
+TARGET_CONTEXT_TIMING_PREFIX = (
+    "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
+    "warm launch, then aggregate synchronized steady-state execution"
+)
+
+
+@pytest.fixture(scope="module")
+def target_context_records() -> tuple[RunRecord, RunRecord, RunRecord]:
+    config = load_experiment_config(TARGET_CONTEXT_CONFIG)
+    backend = ThrmlTargetContextPAsymSwapBackend(Path(__file__).parents[2])
+    return tuple(backend.run(config.to_spec(seed=seed)) for seed in (0, 1, 2))  # type: ignore[return-value]
+
+
+def _target_context_aggregate(records: tuple[RunRecord, ...]) -> AggregateRecord:
+    seeds = tuple(record.spec.seed for record in records)
+    return aggregate_run_records(
+        records,
+        requested_seeds=seeds,
+        run_record_paths=tuple(f"runs/seed-{seed:010d}.json" for seed in seeds),
+        source_config="configs/experiments/thrml-target-context-pasym-swap.toml",
+    )
+
+
+def _mutated_target_record(record: RunRecord, mutation) -> RunRecord:
+    payload = copy.deepcopy(record.model_dump(mode="json", by_alias=True))
+    mutation(payload)
+    return RunRecord.model_validate(payload)
 
 
 def _record(
@@ -282,6 +318,296 @@ def test_independent_pasym_swap_rejects_cross_seed_artifact_drift() -> None:
             run_record_paths=("runs/seed-0000000000.json", "runs/seed-0000000001.json"),
             source_config="configs/experiments/thrml-independent-pasym-swap.toml",
         )
+
+
+def test_target_context_aggregates_only_sampled_fidelity(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    aggregate = _target_context_aggregate(target_context_records)
+
+    assert set(aggregate.metric_aggregates) == {"maximum_empirical_k30_residual"}
+    assert (
+        aggregate.metric_aggregates["maximum_empirical_k30_residual"].interval_method
+        == "two-sided Student-t across independent seeds"
+    )
+    assert aggregate.omitted_metrics == {
+        "acceptance_passed": (
+            "deterministic acceptance identity is not an independently seeded sampled cross-check"
+        ),
+        "baseline_occurrence_weighted_equilibrium_kl": (
+            "deterministic exact target-context diagnostic is not an independently seeded "
+            "sampled cross-check"
+        ),
+        "baseline_occurrence_weighted_equilibrium_tv": (
+            "deterministic exact target-context diagnostic is not an independently seeded "
+            "sampled cross-check"
+        ),
+        "baseline_optimizer_seconds": (
+            "per-seed optimizer/cache timing is not an independently seeded sampled cross-check"
+        ),
+        "maximum_paired_k30_equilibrium_residual": (
+            "deterministic exact target-context diagnostic is not an independently seeded "
+            "sampled cross-check"
+        ),
+        "occurrence_weighted_equilibrium_kl_improvement": (
+            "deterministic exact target-context diagnostic is not an independently seeded "
+            "sampled cross-check"
+        ),
+        "target_context_occurrence_weighted_equilibrium_kl": (
+            "deterministic exact target-context diagnostic is not an independently seeded "
+            "sampled cross-check"
+        ),
+        "target_context_occurrence_weighted_equilibrium_tv": (
+            "deterministic exact target-context diagnostic is not an independently seeded "
+            "sampled cross-check"
+        ),
+        "target_context_optimizer_seconds": (
+            "per-seed optimizer/cache timing is not an independently seeded sampled cross-check"
+        ),
+        "target_context_pasym_swap": (
+            "nested target-context evidence is retained only in per-run records"
+        ),
+        "timing.compile_seconds": (
+            "per-seed synchronized JAX timing is not an independently seeded sampled cross-check"
+        ),
+        "timing.execution_seconds": (
+            "per-seed synchronized JAX timing is not an independently seeded sampled cross-check"
+        ),
+    }
+    assert aggregate.provenance_summary is not None
+    assert aggregate.provenance_summary.numeric_dtype == "exact=float64; thrml=float32"
+    assert ("thrml", "0.1.4") in {
+        (package.distribution, package.version) for package in aggregate.provenance_summary.packages
+    }
+
+
+def test_target_context_one_seed_omits_interval_with_sample_count_reason(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    aggregate = _target_context_aggregate((target_context_records[0],))
+
+    sampled = aggregate.metric_aggregates["maximum_empirical_k30_residual"]
+    assert sampled.count == 1
+    assert sampled.confidence_interval is None
+    assert sampled.interval_unavailable_reason == "requires at least two independent seeded runs"
+
+
+def test_target_context_normalizes_only_known_synchronized_jax_timing_suffixes(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    first, second, _ = target_context_records
+    assert first.timing.timing_method == (
+        TARGET_CONTEXT_TIMING_PREFIX + "; JAX lower().compile() measured once for shared shapes"
+    )
+    assert second.timing.timing_method == (
+        TARGET_CONTEXT_TIMING_PREFIX + "; JAX executable reused from in-process shape cache"
+    )
+
+    _target_context_aggregate((first, second))
+
+    unknown = second.model_copy(
+        update={
+            "timing": second.timing.model_copy(
+                update={"timing_method": TARGET_CONTEXT_TIMING_PREFIX + "; unknown cache path"}
+            )
+        }
+    )
+    with pytest.raises(ValueError, match="timing method"):
+        _target_context_aggregate((unknown,))
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_error"),
+    (
+        (
+            lambda record: record.model_copy(update={"backend_id": BackendId.TORX_STATEVECTOR}),
+            "thrml_local backend",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={"evidence_class": EvidenceClass.EXACT_REFERENCE}
+            ),
+            "software_simulation evidence",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={
+                    "spec": record.spec.model_copy(
+                        update={"sample_definition": "forged sample definition"}
+                    )
+                }
+            ),
+            "sample definition",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={"timing": record.timing.model_copy(update={"synchronized": False})}
+            ),
+            "synchronized timing",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={"timing": record.timing.model_copy(update={"source": "forged clock"})}
+            ),
+            "timing source",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={"timing": record.timing.model_copy(update={"unit": "cycles"})}
+            ),
+            "timing unit",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={
+                    "provenance": record.provenance.model_copy(
+                        update={
+                            "packages": tuple(
+                                package.model_copy(update={"version": "0.1.5"})
+                                if package.distribution == "thrml"
+                                else package
+                                for package in record.provenance.packages
+                            )
+                        }
+                    )
+                }
+            ),
+            "THRML 0.1.4",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={
+                    "spec": record.spec.model_copy(
+                        update={
+                            "model_parameters": {
+                                **to_json_value(record.spec.model_parameters),
+                                "thrml_dtype": "float64",
+                            }
+                        }
+                    )
+                }
+            ),
+            "thrml_dtype|float32",
+        ),
+        (
+            lambda record: record.model_copy(
+                update={"spec": record.spec.model_copy(update={"seed": -1})}
+            ),
+            "seed|nonnegative",
+        ),
+    ),
+    ids=(
+        "backend",
+        "evidence",
+        "sample_definition",
+        "synchronized",
+        "timing_source",
+        "timing_unit",
+        "thrml_package",
+        "dual_dtype",
+        "seed",
+    ),
+)
+def test_target_context_requires_exact_record_compatibility_contract(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord], mutation, expected_error: str
+) -> None:
+    invalid = mutation(target_context_records[0])
+
+    with pytest.raises(ValueError, match=expected_error):
+        _target_context_aggregate((invalid,))
+
+
+@pytest.mark.parametrize("synchronized", [1, "yes"], ids=["integer", "string"])
+def test_target_context_rejects_truthy_non_boolean_synchronization(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord], synchronized: object
+) -> None:
+    record = target_context_records[0]
+    invalid = record.model_copy(
+        update={"timing": record.timing.model_copy(update={"synchronized": synchronized})}
+    )
+
+    with pytest.raises(ValueError, match="synchronized timing"):
+        _target_context_aggregate((invalid,))
+
+
+@pytest.mark.parametrize("synchronized", [True, False], ids=["true", "false"])
+def test_target_context_synchronization_requires_literal_true(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord], synchronized: bool
+) -> None:
+    record = target_context_records[0]
+    candidate = record.model_copy(
+        update={"timing": record.timing.model_copy(update={"synchronized": synchronized})}
+    )
+
+    if synchronized:
+        aggregate = _target_context_aggregate((candidate,))
+        assert set(aggregate.metric_aggregates) == {"maximum_empirical_k30_residual"}
+    else:
+        with pytest.raises(ValueError, match="synchronized timing"):
+            _target_context_aggregate((candidate,))
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"]["trace"][0][
+            "context_weights"
+        ].__setitem__(0, 0.5),
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"]["profiles"][
+            0
+        ].__setitem__("multiplicity", 11),
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"][
+            "occurrence_mapping"
+        ][0].__setitem__("profile_hash", "sha256:" + "0" * 64),
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"]["pairs"][0][
+            "target_context"
+        ]["optimization"]["attempts"][0].__setitem__("objective", 99.0),
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"]["pairs"][0][
+            "baseline"
+        ]["exact"]["equilibrium_conditional"][0].__setitem__(0, 0.0),
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"]["pairs"][0][
+            "target_context"
+        ]["sampled_k30"]["counts"][0].__setitem__(0, 0),
+        lambda payload: payload["metrics"][
+            "baseline_occurrence_weighted_equilibrium_kl"
+        ].__setitem__(
+            "value",
+            payload["metrics"]["baseline_occurrence_weighted_equilibrium_kl"]["value"] + 0.01,
+        ),
+        lambda payload: payload["metrics"]["target_context_pasym_swap"]["value"].__setitem__(
+            "deterministic_result_hash", "sha256:" + "0" * 64
+        ),
+    ),
+    ids=("trace", "profile", "mapping", "attempt", "exact_table", "counts", "scalar", "hash"),
+)
+def test_target_context_rejects_all_nested_tampering_before_aggregation(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord], mutation
+) -> None:
+    mutated = _mutated_target_record(target_context_records[0], mutation)
+
+    with pytest.raises(ValueError):
+        _target_context_aggregate((mutated,))
+
+
+def test_target_context_rejects_cross_seed_deterministic_result_drift(
+    target_context_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    first, second, _ = target_context_records
+    payload = to_json_value(second.metrics["target_context_pasym_swap"].value)
+    payload["deterministic_result_hash"] = "sha256:" + "0" * 64
+    drifted = second.model_copy(
+        update={
+            "metrics": {
+                **dict(second.metrics),
+                "target_context_pasym_swap": second.metrics["target_context_pasym_swap"].model_copy(
+                    update={"value": payload}
+                ),
+            }
+        }
+    )
+
+    with pytest.raises(ValueError, match="deterministic|hash"):
+        _target_context_aggregate((first, drifted))
 
 
 def test_deterministic_identity_has_no_replication_interval_contract() -> None:

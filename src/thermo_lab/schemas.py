@@ -16,6 +16,7 @@ from pydantic import (
     model_validator,
 )
 
+from thermo_lab.hashing import to_json_value
 from thermo_lab.pasym_swap import COLOR_ORDER, COORDINATE_PAIR_CLASSES, PAPER_SOURCE, WORD_ORDER
 
 ISING_ENERGY_CONVENTION = "-beta*(sum(b_i*s_i)+sum(J_ij*s_i*s_j))"
@@ -57,6 +58,7 @@ _INITIALIZATIONS = (
     (0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05),
     (-0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05),
 )
+_TARGET_INITIAL_OCCUPANCY = (1.0,) + (0.0,) * 24
 
 
 class StrictSchema(BaseModel):
@@ -412,6 +414,152 @@ def validate_independent_pasym_swap_request(
         raise ValueError("seed must be a nonnegative integer")
     validated_model = PAsymSwapModelConfig.model_validate(model.model_dump(mode="json"))
     validated_run = IndependentCompilerRunConfig.model_validate(run.model_dump(mode="json"))
+    if validated_model.macrosteps != 10 or validated_run.deployment_horizon != 30:
+        raise ValueError("PAsymSwap schedule and deployment horizon are fixed")
+
+
+ParameterVector9 = tuple[
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+    StrictFloat,
+]
+
+
+class TargetContextCompilerRunConfig(StrictSchema):
+    """Immutable, target-context-specific compiler input schedule."""
+
+    initial_state: Literal["single_particle"]
+    initial_particle_site: tuple[StrictInt, StrictInt]
+    initial_occupancy_order: Literal["[(x,y) for x in 0..4 for y in 0..4]"]
+    initial_occupancy: tuple[StrictFloat, ...]
+    context_source: Literal["exact_target_pre_gate"]
+    context_reduction: Literal["equal_occurrence_mean_by_target_hash"]
+    zero_support_policy: Literal["exact_unsmoothed"]
+    warm_start_policy: Literal["paired_uniform_artifact_then_three_fixed_restarts"]
+    optimizer: Literal["scipy_lbfgsb"]
+    maxiter: Literal[2000]
+    maxls: Literal[50]
+    ftol: StrictFloat
+    gtol: StrictFloat
+    projected_gradient_tolerance: StrictFloat
+    initializations: tuple[ParameterVector9, ParameterVector9, ParameterVector9]
+    restart_selection: Literal["minimum_objective_then_lexicographic_parameters"]
+    horizons: tuple[StrictInt, StrictInt, StrictInt, StrictInt, StrictInt, StrictInt]
+    deployment_horizon: Literal[30]
+    reset_distribution: Literal["uniform_over_8_free_states"]
+    sweep_order: tuple[Literal["hidden", "outputs"], Literal["hidden", "outputs"]]
+    chain_count_per_context: Literal[4096]
+    samples_per_chain: Literal[1]
+    steps_per_sample: Literal[1]
+    key_policy: Literal[
+        "fold seed with target hash, profile hash, and input index; split init and sampling keys"
+    ]
+    baseline_context_weights: tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat]
+    exact_normalization_tolerance: StrictFloat
+    baseline_median_equilibrium_tv_tolerance: StrictFloat
+    baseline_worst_equilibrium_tv_tolerance: StrictFloat
+    k30_equilibrium_tv_tolerance: StrictFloat
+    thrml_k30_tv_tolerance: StrictFloat
+    profile_kl_non_regression_tolerance: StrictFloat
+    minimum_occurrence_weighted_kl_improvement: StrictFloat
+
+    @field_validator(
+        "ftol",
+        "gtol",
+        "projected_gradient_tolerance",
+        "exact_normalization_tolerance",
+        "baseline_median_equilibrium_tv_tolerance",
+        "baseline_worst_equilibrium_tv_tolerance",
+        "k30_equilibrium_tv_tolerance",
+        "thrml_k30_tv_tolerance",
+        "profile_kl_non_regression_tolerance",
+        "minimum_occurrence_weighted_kl_improvement",
+        mode="before",
+    )
+    @classmethod
+    def validate_float_encoding(cls, value: object, info) -> object:
+        return _require_json_float(value, info.field_name)
+
+    @field_validator("initial_occupancy", mode="before")
+    @classmethod
+    def validate_occupancy_encoding(cls, value: object) -> object:
+        return _tuple_json_lists(_require_json_float_list(value, "initial_occupancy"))
+
+    @field_validator("initializations", mode="before")
+    @classmethod
+    def validate_initialization_encoding(cls, value: object) -> object:
+        return _tuple_json_lists(_require_json_float_matrix(value, "initializations"))
+
+    @field_validator("baseline_context_weights", mode="before")
+    @classmethod
+    def validate_baseline_weight_encoding(cls, value: object) -> object:
+        return _tuple_json_lists(_require_json_float_list(value, "baseline_context_weights"))
+
+    @field_validator("initial_particle_site", "horizons", "sweep_order", mode="before")
+    @classmethod
+    def freeze_scientific_sequences(cls, value: object) -> object:
+        return _tuple_json_lists(value)
+
+    @model_validator(mode="after")
+    def validate_target_context_schedule(self) -> "TargetContextCompilerRunConfig":
+        if self.initial_particle_site != (0, 0):
+            raise ValueError("initial_particle_site must be the checked origin")
+        if self.initial_occupancy != _TARGET_INITIAL_OCCUPANCY:
+            raise ValueError("initial_occupancy must be the checked one-particle state")
+        if self.ftol != 1e-12 or self.gtol != 1e-9 or self.projected_gradient_tolerance != 1e-6:
+            raise ValueError("optimizer tolerances must match the checked compiler schedule")
+        if self.initializations != _INITIALIZATIONS:
+            raise ValueError("initializations must be the three checked deterministic restarts")
+        if self.horizons != (1, 2, 4, 8, 16, 30):
+            raise ValueError("horizons must be the checked ascending finite-horizon schedule")
+        if self.sweep_order != ("hidden", "outputs"):
+            raise ValueError("sweep_order must update hidden then outputs")
+        if self.baseline_context_weights != (0.25, 0.25, 0.25, 0.25):
+            raise ValueError(
+                "baseline_context_weights must be uniform over the four input contexts"
+            )
+        expected_tolerances = (1e-12, 0.15, 0.35, 0.05, 0.10, 1e-12, 1e-8)
+        observed_tolerances = (
+            self.exact_normalization_tolerance,
+            self.baseline_median_equilibrium_tv_tolerance,
+            self.baseline_worst_equilibrium_tv_tolerance,
+            self.k30_equilibrium_tv_tolerance,
+            self.thrml_k30_tv_tolerance,
+            self.profile_kl_non_regression_tolerance,
+            self.minimum_occurrence_weighted_kl_improvement,
+        )
+        if observed_tolerances != expected_tolerances:
+            raise ValueError("acceptance tolerances must match the checked release thresholds")
+        if any(not math.isfinite(value) or value <= 0.0 for value in observed_tolerances):
+            raise ValueError("tolerances must be positive finite numbers")
+        return self
+
+
+def validate_target_context_pasym_swap_request(
+    model: PAsymSwapModelConfig,
+    run: TargetContextCompilerRunConfig,
+    seed: int,
+) -> None:
+    """Validate the strict target-context compiler request at its public boundary."""
+
+    if not isinstance(model, PAsymSwapModelConfig):
+        raise TypeError("model must be a PAsymSwapModelConfig")
+    if not isinstance(run, TargetContextCompilerRunConfig):
+        raise TypeError("run must be a TargetContextCompilerRunConfig")
+    if type(seed) is not int or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    validated_model = PAsymSwapModelConfig.model_validate(
+        to_json_value(model.model_dump(mode="json"))
+    )
+    validated_run = TargetContextCompilerRunConfig.model_validate(
+        to_json_value(run.model_dump(mode="json"))
+    )
     if validated_model.macrosteps != 10 or validated_run.deployment_horizon != 30:
         raise ValueError("PAsymSwap schedule and deployment horizon are fixed")
 

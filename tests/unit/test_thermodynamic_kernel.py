@@ -8,6 +8,8 @@ from thermo_lab.thermodynamic_kernel import (
     KernelParameters,
     bits_to_spins,
     conditional_tv,
+    context_weighted_kl,
+    context_weighted_tv,
     equilibrium_conditional,
     finite_horizon_conditional,
     joint_energy,
@@ -285,6 +287,105 @@ def test_uniform_context_kl_rejects_a_nonpositive_model_probability() -> None:
 
     with pytest.raises(ValueError, match="model"):
         uniform_context_kl(target, model)
+
+
+def test_context_weighted_kl_uses_natural_logs_and_zero_context_contributions() -> None:
+    target = np.asarray(
+        (
+            (0.5, 0.5, 0.0, 0.0),
+            (0.0, 0.5, 0.5, 0.0),
+            (0.0, 0.25, 0.75, 0.0),
+            (1.0, 0.0, 0.0, 0.0),
+        ),
+        dtype=np.float64,
+    )
+    model = np.asarray(
+        (
+            (0.25, 0.75, 0.0, 0.0),
+            (0.25, 0.25, 0.5, 0.0),
+            (0.0, 0.25, 0.75, 0.0),
+            (0.0, 0.5, 0.5, 0.0),
+        ),
+        dtype=np.float64,
+    )
+    weights = np.asarray((0.6, 0.25, 0.15, 0.0), dtype=np.float64)
+    expected = math.fsum(
+        weight
+        * math.fsum(
+            probability * (math.log(probability) - math.log(model_row[index]))
+            for index, probability in enumerate(target_row)
+            if probability > 0.0
+        )
+        for weight, target_row, model_row in zip(weights, target, model, strict=True)
+        if weight > 0.0
+    )
+
+    assert context_weighted_kl(target, model, weights) == pytest.approx(expected, abs=1e-15)
+
+
+def test_context_weighted_metrics_use_fixed_order_without_mutating_fresh_payloads() -> None:
+    target = np.asarray(
+        (
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 0.8, 0.2, 0.0),
+            (0.0, 0.4, 0.6, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=np.float64,
+    )
+    model = np.asarray(
+        (
+            (0.7, 0.1, 0.1, 0.1),
+            (0.1, 0.4, 0.4, 0.1),
+            (0.2, 0.2, 0.5, 0.1),
+            (0.1, 0.1, 0.1, 0.7),
+        ),
+        dtype=np.float64,
+    )
+    weights = np.asarray((0.6, 0.25, 0.15, 0.0), dtype=np.float64)
+    target_before, model_before, weights_before = target.copy(), model.copy(), weights.copy()
+    row_tv = tuple(
+        0.5 * math.fsum(abs(left - right) for left, right in zip(left_row, right_row, strict=True))
+        for left_row, right_row in zip(target, model, strict=True)
+    )
+    expected_tv = math.fsum(weight * value for weight, value in zip(weights, row_tv, strict=True))
+    legacy_summary = uniform_context_kl(target, model)
+    legacy_summary_text = f"{legacy_summary:.17g}"
+
+    assert context_weighted_tv(target, model, weights) == pytest.approx(expected_tv, abs=1e-15)
+    context_weighted_kl(target, model, weights)
+    assert uniform_context_kl(target, model) == legacy_summary
+    assert f"{uniform_context_kl(target, model):.17g}" == legacy_summary_text
+    np.testing.assert_array_equal(target, target_before)
+    np.testing.assert_array_equal(model, model_before)
+    np.testing.assert_array_equal(weights, weights_before)
+
+
+def test_context_weighted_kl_rejects_zero_model_on_positive_weighted_target_support() -> None:
+    target = np.asarray(((0.5, 0.5, 0.0, 0.0),) * 4, dtype=np.float64)
+    model = np.asarray(((1.0, 0.0, 0.0, 0.0),) * 4, dtype=np.float64)
+
+    with pytest.raises(ValueError, match="model"):
+        context_weighted_kl(target, model, np.asarray((0.25, 0.25, 0.25, 0.25)))
+
+
+@pytest.mark.parametrize(
+    "weights",
+    [
+        np.asarray((0.25, 0.25, 0.25)),
+        np.asarray((0.25, 0.25, 0.25, 0.25000001)),
+        np.asarray((0.25, 0.25, -0.25, 0.75)),
+        np.asarray((0.25, 0.25, 0.25, float("nan"))),
+        np.asarray((0.25, 0.25, 0.25, float("inf"))),
+    ],
+)
+def test_context_weighted_metrics_reject_invalid_context_distributions(weights: np.ndarray) -> None:
+    conditional = np.full((4, 4), 0.25, dtype=np.float64)
+
+    with pytest.raises(ValueError, match="context_weights"):
+        context_weighted_kl(conditional, conditional, weights)
+    with pytest.raises(ValueError, match="context_weights"):
+        context_weighted_tv(conditional, conditional, weights)
 
 
 def test_conditional_tv_returns_one_value_per_normalized_context() -> None:
