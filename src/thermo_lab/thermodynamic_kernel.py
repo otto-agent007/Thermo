@@ -278,6 +278,53 @@ def _checked_conditional(values: NDArray[np.generic], *, name: str) -> NDArray[n
     return conditional
 
 
+def _checked_context_distribution(values: NDArray[np.generic]) -> NDArray[np.float64]:
+    try:
+        checked = np.asarray(values, dtype=np.float64)
+    except (TypeError, ValueError) as error:
+        raise ValueError("context_weights must be a numeric distribution") from error
+    if checked.shape != (4,):
+        raise ValueError("context_weights must contain exactly four weights")
+    if not np.all(np.isfinite(checked)) or np.any(checked < 0.0):
+        raise ValueError("context_weights must be finite and nonnegative")
+    if not np.isclose(checked.sum(), 1.0, rtol=0.0, atol=1e-12):
+        raise ValueError("context_weights must sum to one")
+    return checked
+
+
+def context_weighted_kl(
+    target: NDArray[np.generic], model: NDArray[np.generic], context_weights: NDArray[np.generic]
+) -> float:
+    """Return target-context-weighted target-to-model KL in natural-log nats."""
+
+    checked_target = _checked_conditional(target, name="target")
+    checked_model = _checked_conditional(model, name="model")
+    weights = _checked_context_distribution(context_weights)
+    positive_target = (checked_target > 0.0) & (weights[:, np.newaxis] > 0.0)
+    if np.any(checked_model[positive_target] <= 0.0):
+        raise ValueError("model probabilities must be strictly positive on weighted target support")
+
+    terms = np.zeros((4, 4), dtype=np.float64)
+    terms[positive_target] = checked_target[positive_target] * (
+        np.log(checked_target[positive_target]) - np.log(checked_model[positive_target])
+    )
+    return math.fsum(
+        float(weight * value) for weight, value in zip(weights, terms.sum(axis=1), strict=True)
+    )
+
+
+def context_weighted_tv(
+    target: NDArray[np.generic], model: NDArray[np.generic], context_weights: NDArray[np.generic]
+) -> float:
+    """Return target-context-weighted mean of canonical row total variations."""
+
+    checked_target = _checked_conditional(target, name="target")
+    checked_model = _checked_conditional(model, name="model")
+    row_tv = 0.5 * np.abs(checked_target - checked_model).sum(axis=1)
+    weights = _checked_context_distribution(context_weights)
+    return math.fsum(float(weight * value) for weight, value in zip(weights, row_tv, strict=True))
+
+
 def uniform_context_kl(target: NDArray[np.generic], model: NDArray[np.generic]) -> float:
     """Return uniform-context target-to-model KL without target smoothing."""
 

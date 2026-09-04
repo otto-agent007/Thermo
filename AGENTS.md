@@ -60,5 +60,13 @@ uv run thermo-lab run \
   configs/experiments/thrml-independent-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/independent-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/thrml-target-context-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/target-context-pasym-swap
 uv build
+python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
+  "configs/experiments/thrml-target-context-pasym-swap.toml"
+python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
+  "configs/experiments/thrml-target-context-pasym-swap.toml"
 ```

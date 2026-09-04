@@ -19,12 +19,14 @@ from thermo_lab.schemas import (
     IndependentCompilerRunConfig,
     IsingModelConfig,
     PAsymSwapModelConfig,
+    TargetContextCompilerRunConfig,
     ThrmlRunConfig,
     TorxModelConfig,
     TorxRunConfig,
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
     validate_independent_pasym_swap_request,
+    validate_target_context_pasym_swap_request,
     validate_weighted_graph_request,
 )
 
@@ -35,12 +37,18 @@ INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION = (
     "One independently seeded THRML cross-check using 4,096 chains per input context "
     "over every frozen compiled kernel at 30 complete two-color Gibbs sweeps."
 )
+TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
+TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION = (
+    "One independently seeded THRML cross-check using 4,096 chains per input context "
+    "over every frozen target-context kernel at 30 complete two-color Gibbs sweeps."
+)
 
 _EXPERIMENT_BACKENDS = {
     "torx.two_gate_statevector.v1": BackendId.TORX_STATEVECTOR,
     WEIGHTED_GRAPH_WALK_EXPERIMENT_ID: BackendId.TORX_STATEVECTOR,
     "thrml.ising_chain_exact_validation.v1": BackendId.THRML_LOCAL,
     INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
+    TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
 }
 
 
@@ -61,6 +69,23 @@ def independent_pasym_swap_non_seed_config_hash(
             "experiment_id": INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID,
             "backend": BackendId.THRML_LOCAL,
             "sample_definition": INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION,
+            "model": model.model_dump(mode="json"),
+            "run": run.model_dump(mode="json"),
+        }
+    )
+
+
+def target_context_pasym_swap_non_seed_config_hash(
+    model: PAsymSwapModelConfig, run: TargetContextCompilerRunConfig
+) -> str:
+    """Derive the target-context compiler request identity without loading TOML."""
+
+    return canonical_sha256(
+        {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "experiment_id": TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+            "backend": BackendId.THRML_LOCAL,
+            "sample_definition": TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
             "model": model.model_dump(mode="json"),
             "run": run.model_dump(mode="json"),
         }
@@ -132,6 +157,14 @@ class ExperimentConfig(FrozenModel):
             model_config = PAsymSwapModelConfig.model_validate(model)
             run_config = IndependentCompilerRunConfig.model_validate(run)
             validate_independent_pasym_swap_request(model_config, run_config, self.seed)
+        elif self.experiment_id == TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+            if self.sample_definition != TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION:
+                raise ValueError(
+                    "target-context PAsymSwap sample_definition must match the checked value"
+                )
+            model_config = PAsymSwapModelConfig.model_validate(model)
+            run_config = TargetContextCompilerRunConfig.model_validate(run)
+            validate_target_context_pasym_swap_request(model_config, run_config, self.seed)
         elif self.backend is BackendId.TORX_STATEVECTOR:
             TorxModelConfig.model_validate(model)
             TorxRunConfig.model_validate(run)

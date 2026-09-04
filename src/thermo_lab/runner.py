@@ -11,14 +11,20 @@ from thermo_lab.aggregate import (
     RunFailure,
     aggregate_run_records,
 )
-from thermo_lab.config import ExperimentConfig, dump_experiment_config, load_experiment_config
+from thermo_lab.config import (
+    TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+    ExperimentConfig,
+    dump_experiment_config,
+    load_experiment_config,
+)
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.provenance import find_repository_root
 from thermo_lab.record_schemas import write_record_schemas
 from thermo_lab.records import RunRecord
-from thermo_lab.reporting import write_report_from_persisted
+from thermo_lab.reporting import render_report
 from thermo_lab.schemas import WEIGHTED_GRAPH_WALK_EXPERIMENT_ID
+from thermo_lab.target_context_pasym_swap_reporting import canonical_target_context_record
 
 if TYPE_CHECKING:
     from thermo_lab.backends.base import ExperimentBackend
@@ -68,6 +74,7 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
     from thermo_lab.backends import (
         ThrmlIndependentPAsymSwapBackend,
         ThrmlLocalBackend,
+        ThrmlTargetContextPAsymSwapBackend,
         TorxStateVectorBackend,
         TorxWeightedGraphWalkBackend,
     )
@@ -76,6 +83,8 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
         return TorxWeightedGraphWalkBackend(repository_root)
     if config.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
         return ThrmlIndependentPAsymSwapBackend(repository_root)
+    if config.experiment_id == TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        return ThrmlTargetContextPAsymSwapBackend(repository_root)
     if config.backend is BackendId.TORX_STATEVECTOR:
         return TorxStateVectorBackend(repository_root)
     if config.backend is BackendId.THRML_LOCAL:
@@ -133,7 +142,6 @@ def run_experiment(
 
     repository_root = find_repository_root(Path.cwd())
     backend = _backend(config, repository_root)
-    records: list[RunRecord] = []
     relative_paths: list[str] = []
     failures: list[RunFailure] = []
     for seed in selected_seeds:
@@ -141,7 +149,6 @@ def run_experiment(
             record = backend.execute(config.to_spec(seed=seed)).record
             relative = f"runs/seed-{seed:010d}.json"
             record.write_json(output_dir / relative)
-            records.append(record)
             relative_paths.append(relative)
         except Exception as error:  # noqa: BLE001 - orchestration must preserve failed seed state
             failures.append(
@@ -152,16 +159,24 @@ def run_experiment(
                 )
             )
 
+    persisted_records = tuple(
+        RunRecord.model_validate_json((output_dir / path).read_text(encoding="utf-8"))
+        for path in relative_paths
+    )
+    if config.experiment_id == TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        persisted_records = tuple(
+            canonical_target_context_record(record) for record in persisted_records
+        )
+
     aggregate = aggregate_run_records(
-        records,
+        persisted_records,
         requested_seeds=selected_seeds,
         run_record_paths=tuple(relative_paths),
         source_config=_source_identifier(config_path),
         failures=tuple(failures),
-        failed_identity=_failed_identity(config) if not records else None,
+        failed_identity=_failed_identity(config) if not persisted_records else None,
     )
+    report_text = render_report(aggregate, persisted_records)
+    atomic_write_text(output_dir / aggregate.report_generation.report_path, report_text)
     aggregate.write_json(output_dir / "aggregate.json")
-    write_report_from_persisted(output_dir)
-    return AggregateRecord.model_validate_json(
-        (output_dir / "aggregate.json").read_text(encoding="utf-8")
-    )
+    return aggregate

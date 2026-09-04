@@ -11,10 +11,24 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import thrml
-from thrml import Block, SamplingSchedule, SpinNode, sample_states
-from thrml.models import IsingEBM, IsingSamplingProgram
+from thrml import sample_states
 
 from thermo_lab.backends.base import ExecutionResult
+from thermo_lab.backends.thrml_pasym_swap import (
+    CHAIN_COUNT as _CHAIN_COUNT,
+)
+from thermo_lab.backends.thrml_pasym_swap import (
+    SAMPLER_CACHE_KEY as _SAMPLER_CACHE_KEY,
+)
+from thermo_lab.backends.thrml_pasym_swap import (
+    compiled_sampler,
+    digest_words,
+    output_word_counts,
+    parameters_for_thrml,
+    shared_sampler,
+    synchronize_tree,
+    uniform_free_state,
+)
 from thermo_lab.config import (
     INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID,
     INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION,
@@ -50,18 +64,11 @@ from thermo_lab.schemas import (
 )
 from thermo_lab.thermodynamic_kernel import equilibrium_conditional, finite_horizon_conditional
 
-_CHAIN_COUNT = 4096
-_SCHEDULE = SamplingSchedule(n_warmup=30, n_samples=1, steps_per_sample=1)
-_SAMPLER_CACHE_KEY = ("0.1.4", "thermo_k3_2_v1", 30, 1, 1, "float32", _CHAIN_COUNT)
-
 
 def _digest_words(target_hash: str) -> tuple[int, int, int, int, int, int, int, int]:
     """Parse either a canonical ``sha256:`` digest or raw 64-hex test digest."""
 
-    digest = target_hash.removeprefix("sha256:") if isinstance(target_hash, str) else ""
-    if len(digest) != 64 or any(character not in "0123456789abcdefABCDEF" for character in digest):
-        raise ValueError("target_hash must be a SHA-256 digest")
-    return tuple(int(digest[index : index + 8], 16) for index in range(0, 64, 8))  # type: ignore[return-value]
+    return digest_words(target_hash, name="target_hash")
 
 
 def artifact_keys(
@@ -82,20 +89,6 @@ def artifact_keys(
 _artifact_keys = artifact_keys
 
 
-def uniform_free_state(
-    key: jax.Array, *, chain_count: int = _CHAIN_COUNT
-) -> tuple[jax.Array, jax.Array]:
-    """Return independent Boolean hidden/output states with p(True) exactly 0.5."""
-
-    if type(chain_count) is not int or chain_count <= 0:
-        raise ValueError("chain_count must be a positive integer")
-    hidden_key, outputs_key = jax.random.split(key)
-    return (
-        jax.random.bernoulli(hidden_key, p=0.5, shape=(chain_count, 1)),
-        jax.random.bernoulli(outputs_key, p=0.5, shape=(chain_count, 2)),
-    )
-
-
 def _settings(model: PAsymSwapModelConfig, run: IndependentCompilerRunConfig) -> CompilerSettings:
     return CompilerSettings(
         parameter_cap=model.parameter_cap,
@@ -114,56 +107,17 @@ def _table(values: np.ndarray) -> tuple[tuple[float, float, float, float], ...]:
 
 
 def _parameters_for_thrml(artifact: CompiledKernelArtifact) -> tuple[jax.Array, jax.Array]:
-    parameters = artifact.parameters.values
-    biases = jnp.asarray((0.0, 0.0, *parameters[:3]), dtype=jnp.float32)
-    weights = jnp.asarray(parameters[3:], dtype=jnp.float32)
-    return biases, weights
+    """Preserve the independent backend's artifact-typed conversion wrapper."""
+
+    return parameters_for_thrml(artifact.parameters)
 
 
 def _shared_sampler() -> Callable[
     [jax.Array, jax.Array, jax.Array, jax.Array, jax.Array, jax.Array], jax.Array
 ]:
-    """Create the one public-API, single-chain-vmapped THRML sampler."""
+    """Preserve the independent backend's patchable sampler-construction seam."""
 
-    input_0, input_1, hidden, output_0, output_1 = (SpinNode() for _ in range(5))
-    inputs = Block([input_0, input_1])
-    hidden_block = Block([hidden])
-    outputs = Block([output_0, output_1])
-    edges = [
-        (input_0, output_0),
-        (input_0, output_1),
-        (input_1, output_0),
-        (input_1, output_1),
-        (hidden, output_0),
-        (hidden, output_1),
-    ]
-
-    def single_chain(
-        biases: jax.Array,
-        weights: jax.Array,
-        key: jax.Array,
-        hidden_state: jax.Array,
-        output_state: jax.Array,
-        clamped_input: jax.Array,
-    ) -> jax.Array:
-        model = IsingEBM(
-            [input_0, input_1, hidden, output_0, output_1],
-            edges,
-            biases,
-            weights,
-            beta=jnp.asarray(1.0, dtype=jnp.float32),
-        )
-        program = IsingSamplingProgram(model, [hidden_block, outputs], [inputs])
-        return sample_states(
-            key,
-            program,
-            _SCHEDULE,
-            [hidden_state, output_state],
-            [clamped_input],
-            [outputs],
-        )[0]
-
-    return jax.jit(jax.vmap(single_chain, in_axes=(None, None, 0, 0, 0, 0)))
+    return shared_sampler(sample_states_function=sample_states)
 
 
 @dataclass(frozen=True)
@@ -266,16 +220,13 @@ class ThrmlIndependentPAsymSwapBackend:
         cached = self._sampler_cache.get(_SAMPLER_CACHE_KEY)
         if cached is not None:
             return cached, 0.0, True
-        sampler = _shared_sampler()
         biases, weights = _parameters_for_thrml(exemplar)
-        keys = jax.random.split(jax.random.key(0), _CHAIN_COUNT)
-        hidden, outputs = uniform_free_state(jax.random.key(1))
-        clamp = jnp.zeros((_CHAIN_COUNT, 2), dtype=jnp.bool_)
-        started = time.perf_counter()
-        executable = sampler.lower(biases, weights, keys, hidden, outputs, clamp).compile()
-        compile_seconds = time.perf_counter() - started
-        self._sampler_cache[_SAMPLER_CACHE_KEY] = executable
-        return executable, compile_seconds, False
+        return compiled_sampler(
+            self._sampler_cache,
+            biases,
+            weights,
+            sampler_factory=_shared_sampler,
+        )
 
     def execute(self, spec: ExperimentSpec) -> ExecutionResult:
         model, run, request_hash = self._checked_request(spec)
@@ -348,21 +299,14 @@ class ThrmlIndependentPAsymSwapBackend:
                     executable(biases, weights, keys, hidden, outputs, clamp),
                 )
             )
-        jax.tree.map(lambda value: value.block_until_ready(), [item[3] for item in measured])
+        synchronize_tree([item[3] for item in measured])
         execution_seconds = time.perf_counter() - started
 
         empirical: dict[str, list[tuple[int, int, int, int]]] = {
             target.target_hash: [(0, 0, 0, 0)] * 4 for target in deterministic.targets
         }
         for _, target, input_index, observed in measured:
-            chains = np.asarray(observed, dtype=bool)
-            if chains.shape != (_CHAIN_COUNT, 1, 2):
-                raise RuntimeError(f"THRML output shape must be (4096, 1, 2), found {chains.shape}")
-            outputs = np.squeeze(chains, axis=1)
-            words = 2 * outputs[:, 0].astype(np.int8) + outputs[:, 1].astype(np.int8)
-            counts = tuple(int(value) for value in np.bincount(words, minlength=4))
-            if sum(counts) != _CHAIN_COUNT:
-                raise RuntimeError("THRML histogram must contain exactly 4096 chains")
+            counts = output_word_counts(observed)
             empirical[target.target_hash][input_index] = counts  # type: ignore[assignment]
 
         results: list[CompiledKernelResult] = []
