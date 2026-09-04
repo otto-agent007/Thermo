@@ -3,12 +3,12 @@ from dataclasses import FrozenInstanceError, replace
 
 import pytest
 
-from thermo_lab.pasym_swap import build_paper_fixture
 from thermo_lab.target_context import (
     aggregate_shared_context_loss,
     build_exact_target_contexts,
     validate_exact_target_contexts,
 )
+from thermo_lab.pasym_swap import build_paper_fixture
 
 
 def test_canonical_target_context_trajectory_is_exact_and_unsmoothed() -> None:
