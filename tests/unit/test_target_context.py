@@ -1,5 +1,5 @@
-from dataclasses import FrozenInstanceError, replace
 import math
+from dataclasses import FrozenInstanceError, replace
 
 import pytest
 
@@ -81,15 +81,15 @@ def test_shared_profile_average_is_exactly_the_occurrence_objective() -> None:
 def test_profiles_partition_occurrences_in_canonical_order() -> None:
     trajectory = build_exact_target_contexts()
 
-    flattened = sorted(index for profile in trajectory.profiles for index in profile.occurrence_indices)
+    flattened = sorted(
+        index for profile in trajectory.profiles for index in profile.occurrence_indices
+    )
     assert flattened == list(range(500))
     assert tuple(profile.target_hash for profile in trajectory.profiles) == tuple(
         sorted(profile.target_hash for profile in trajectory.profiles)
     )
     for profile in trajectory.profiles:
-        selected = tuple(
-            trajectory.occurrences[index] for index in profile.occurrence_indices
-        )
+        selected = tuple(trajectory.occurrences[index] for index in profile.occurrence_indices)
         assert all(item.target_hash == profile.target_hash for item in selected)
         assert profile.context_hashes == tuple(item.context_hash for item in selected)
         assert profile.occurrence_count == len(selected)
@@ -102,11 +102,12 @@ def test_profiles_partition_occurrences_in_canonical_order() -> None:
 
 def test_target_context_records_are_frozen() -> None:
     trajectory = build_exact_target_contexts()
+    occurrence = trajectory.occurrences[0]
 
     with pytest.raises(FrozenInstanceError):
         trajectory.initial_site = (1, 1)  # type: ignore[misc]
     with pytest.raises(FrozenInstanceError):
-        trajectory.occurrences[0].context_weights = (0.25, 0.25, 0.25, 0.25)  # type: ignore[misc]
+        occurrence.context_weights = (0.25, 0.25, 0.25, 0.25)  # type: ignore[misc]
 
 
 def test_validation_rejects_mutated_occurrence_weight() -> None:
@@ -126,5 +127,5 @@ def test_validation_rejects_mutated_occurrence_weight() -> None:
 def test_checked_target_context_rejects_noncanonical_initial_site(
     initial_site: tuple[int, int],
 ) -> None:
-    with pytest.raises(ValueError, match="initial_site must be exactly \(0, 0\)"):
+    with pytest.raises(ValueError, match=r"initial_site must be exactly \(0, 0\)"):
         build_exact_target_contexts(initial_site=initial_site)
