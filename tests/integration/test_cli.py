@@ -1,6 +1,7 @@
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -9,6 +10,7 @@ from thermo_lab.cli import main
 
 ROOT = Path(__file__).parents[2]
 TORX_CONFIG = ROOT / "configs/experiments/torx-two-gate.toml"
+PASYM_SWAP_CONFIG = ROOT / "configs/experiments/thrml-independent-pasym-swap.toml"
 
 
 def test_run_cli_uses_config_seed_by_default(tmp_path: Path) -> None:
@@ -58,6 +60,49 @@ def test_seed_and_seeds_are_mutually_exclusive(tmp_path: Path) -> None:
         )
 
     assert error.value.code == 2
+
+
+def test_run_cli_forwards_independent_compiler_seed_list(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import thermo_lab.runner as runner
+
+    captured: dict[str, object] = {}
+
+    def fake_run_experiment(config_path, output_dir, *, seeds, overwrite):
+        captured.update(
+            config_path=config_path,
+            output_dir=output_dir,
+            seeds=seeds,
+            overwrite=overwrite,
+        )
+        return SimpleNamespace(
+            completed_runs=3,
+            failed_runs=0,
+            seeds=(0, 1, 2),
+            completion_state=SimpleNamespace(value="complete"),
+        )
+
+    monkeypatch.setattr(runner, "run_experiment", fake_run_experiment)
+
+    result = main(
+        [
+            "run",
+            str(PASYM_SWAP_CONFIG),
+            "--seeds",
+            "0,1,2",
+            "--output-dir",
+            str(tmp_path),
+        ]
+    )
+
+    assert result == 0
+    assert captured == {
+        "config_path": PASYM_SWAP_CONFIG,
+        "output_dir": tmp_path,
+        "seeds": (0, 1, 2),
+        "overwrite": False,
+    }
 
 
 @pytest.mark.parametrize("value", ["1,1", "", "1,-2", "1,nope"])

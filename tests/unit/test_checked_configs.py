@@ -11,16 +11,26 @@ from thermo_lab.config import (
     load_experiment_config,
 )
 from thermo_lab.evidence import BackendId
-from thermo_lab.experiments import ising_chain_spec, torx_smoke_spec, weighted_graph_walk_spec
+from thermo_lab.experiments import (
+    independent_pasym_swap_spec,
+    ising_chain_spec,
+    torx_smoke_spec,
+    weighted_graph_walk_spec,
+)
 
 ROOT = Path(__file__).parents[2]
 TORX_CONFIG = ROOT / "configs/experiments/torx-two-gate.toml"
 THRML_CONFIG = ROOT / "configs/experiments/thrml-ising-chain.toml"
 GRAPH_CONFIG = ROOT / "configs/experiments/torx-weighted-graph-walk.toml"
+PASYM_SWAP_CONFIG = ROOT / "configs/experiments/thrml-independent-pasym-swap.toml"
 
 
 def test_config_locator_resolves_authoritative_checked_files() -> None:
     assert experiment_config_path("torx-two-gate.toml").read_bytes() == TORX_CONFIG.read_bytes()
+    assert (
+        experiment_config_path("thrml-independent-pasym-swap.toml").read_bytes()
+        == PASYM_SWAP_CONFIG.read_bytes()
+    )
 
 
 @pytest.mark.parametrize(
@@ -28,6 +38,11 @@ def test_config_locator_resolves_authoritative_checked_files() -> None:
     [
         (TORX_CONFIG, BackendId.TORX_STATEVECTOR, "torx.two_gate_statevector.v1"),
         (THRML_CONFIG, BackendId.THRML_LOCAL, "thrml.ising_chain_exact_validation.v1"),
+        (
+            PASYM_SWAP_CONFIG,
+            BackendId.THRML_LOCAL,
+            "thrml.independent_pasym_swap_compilation.v1",
+        ),
     ],
 )
 def test_checked_config_loads_as_executable_input(
@@ -45,6 +60,7 @@ def test_convenience_factories_use_checked_configs() -> None:
     assert ising_chain_spec() == load_experiment_config(THRML_CONFIG).to_spec()
     assert ising_chain_spec(seed=9, n_samples=33).seed == 9
     assert ising_chain_spec(seed=9, n_samples=33).run_parameters["n_samples"] == 33
+    assert independent_pasym_swap_spec() == load_experiment_config(PASYM_SWAP_CONFIG).to_spec()
 
 
 @pytest.mark.parametrize(

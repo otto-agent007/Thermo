@@ -39,10 +39,18 @@ See [the experiment specification](experiments/biased-random-walk.md).
 
 - [x] published five-node continuous reference and discretized Torx target
 - [x] resolution sweep, edge-order sensitivity, trajectory error, and invariant checks
-- [ ] independently compiled thermodynamic kernels
-- [ ] context matching, trajectory refinement, and finite-Gibbs-horizon comparison
+- [x] independently compiled thermodynamic kernels
+- [ ] context matching
+- [ ] trajectory refinement
+- [ ] full finite-Gibbs-horizon composed-program comparison
 
-## Phase 3 — Narrow Thermalizers-compatible research compiler
+The completed item is only the atomic method-level reconstruction: independently
+compiled five-spin PAsymSwap kernels from the separate 5 by 5 Thermalizers
+fixture, evaluated against exact equilibrium and finite horizons. It is not
+the existing five-node Torx weighted-graph paper baseline and does not claim a
+composed 25-site program comparison.
+
+## Phase 3 — Narrow Thermalizers-informed research compiler
 
 Only if official source is still unavailable and the reproduction requires it:
 
@@ -53,7 +61,7 @@ Only if official source is still unavailable and the reproduction requires it:
 - finite-Gibbs-horizon evaluation.
 
 This prototype remains replaceable and deliberately narrower than a production
-compiler.
+compiler; it does not claim official Thermalizers compatibility.
 
 ## Phase 4 — Topology-aware meta-EBM flagship
 
