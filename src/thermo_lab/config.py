@@ -39,9 +39,7 @@ INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION = (
     "One independently seeded THRML cross-check using 4,096 chains per input context "
     "over every frozen compiled kernel at 30 complete two-color Gibbs sweeps."
 )
-TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = (
-    "thrml.target_context_pasym_swap_compilation.v1"
-)
+TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
 TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION = (
     "One independently seeded THRML cross-check using 4,096 chains per input context "
     "over every exact target-context compiled kernel at 30 complete two-color Gibbs "

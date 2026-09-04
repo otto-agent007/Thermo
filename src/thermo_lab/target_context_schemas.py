@@ -94,9 +94,7 @@ class TargetContextCompilerRunConfig(StrictSchema):
     @field_validator("baseline_context_weights", mode="before")
     @classmethod
     def validate_baseline_context_weight_encoding(cls, value: object) -> object:
-        return _tuple_json_lists(
-            _require_json_float_list(value, "baseline_context_weights")
-        )
+        return _tuple_json_lists(_require_json_float_list(value, "baseline_context_weights"))
 
     @field_validator("initializations", mode="before")
     @classmethod
@@ -116,11 +114,7 @@ class TargetContextCompilerRunConfig(StrictSchema):
             raise ValueError(
                 "baseline_context_weights must be uniform over the four input contexts"
             )
-        if (
-            self.ftol != 1e-12
-            or self.gtol != 1e-9
-            or self.projected_gradient_tolerance != 1e-6
-        ):
+        if self.ftol != 1e-12 or self.gtol != 1e-9 or self.projected_gradient_tolerance != 1e-6:
             raise ValueError("optimizer tolerances must match the checked compiler schedule")
         if self.initializations != _INITIALIZATIONS:
             raise ValueError("initializations must be the three checked deterministic restarts")
@@ -157,8 +151,6 @@ def validate_target_context_pasym_swap_request(
     if type(seed) is not int or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
     validated_model = PAsymSwapModelConfig.model_validate(model.model_dump(mode="json"))
-    validated_run = TargetContextCompilerRunConfig.model_validate(
-        run.model_dump(mode="json")
-    )
+    validated_run = TargetContextCompilerRunConfig.model_validate(run.model_dump(mode="json"))
     if validated_model.macrosteps != 10 or validated_run.deployment_horizon != 30:
         raise ValueError("PAsymSwap schedule and deployment horizon are fixed")

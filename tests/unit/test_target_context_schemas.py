@@ -206,13 +206,9 @@ def test_target_context_request_validation_rejects_constructed_bypasses() -> Non
     forged_run = target_run_config().model_construct(**forged_run_payload)
 
     with pytest.raises(ValueError, match="parameter_cap"):
-        target_schemas_module.validate_target_context_pasym_swap_request(
-            forged_model, run, seed=0
-        )
+        target_schemas_module.validate_target_context_pasym_swap_request(forged_model, run, seed=0)
     with pytest.raises(ValueError, match="zero_support_policy"):
-        target_schemas_module.validate_target_context_pasym_swap_request(
-            model, forged_run, seed=0
-        )
+        target_schemas_module.validate_target_context_pasym_swap_request(model, forged_run, seed=0)
     with pytest.raises(TypeError, match="PAsymSwapModelConfig"):
         target_schemas_module.validate_target_context_pasym_swap_request(
             checked_model(), run, seed=0
