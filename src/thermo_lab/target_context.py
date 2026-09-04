@@ -125,9 +125,7 @@ def _checked_four_values(values: object, *, name: str) -> tuple[float, float, fl
     return (checked[0], checked[1], checked[2], checked[3])
 
 
-def _checked_context_weights(
-    values: object, *, name: str, tolerance: float
-) -> ContextWeights:
+def _checked_context_weights(values: object, *, name: str, tolerance: float) -> ContextWeights:
     checked = _checked_four_values(values, name=name)
     if any(value < 0.0 for value in checked):
         raise ValueError(f"{name} must be nonnegative")
@@ -139,9 +137,7 @@ def _checked_context_weights(
     return checked
 
 
-def _checked_distribution(
-    values: object, *, name: str, tolerance: float
-) -> SiteDistribution:
+def _checked_distribution(values: object, *, name: str, tolerance: float) -> SiteDistribution:
     if (
         not isinstance(values, Sequence)
         or isinstance(values, (str, bytes, bytearray))
@@ -376,9 +372,7 @@ def _derive_exact_target_contexts(
     profiles: list[TargetContextProfile] = []
     for target_hash in sorted(targets):
         selected = tuple(
-            occurrence
-            for occurrence in occurrence_records
-            if occurrence.target_hash == target_hash
+            occurrence for occurrence in occurrence_records if occurrence.target_hash == target_hash
         )
         if not selected:
             raise ValueError(f"target-context profile {target_hash!r} has no occurrences")
@@ -386,9 +380,7 @@ def _derive_exact_target_contexts(
         context_hashes = tuple(occurrence.context_hash for occurrence in selected)
         context_weights = _checked_context_weights(
             tuple(
-                math.fsum(
-                    occurrence.context_weights[context_index] for occurrence in selected
-                )
+                math.fsum(occurrence.context_weights[context_index] for occurrence in selected)
                 / len(selected)
                 for context_index in range(len(WORD_ORDER))
             ),
@@ -485,8 +477,7 @@ def validate_exact_target_contexts(
             )
     if len(trajectory.profiles) != len(expected.profiles):
         raise ValueError(
-            "target-context trajectory must contain exactly "
-            f"{len(expected.profiles)} profiles"
+            f"target-context trajectory must contain exactly {len(expected.profiles)} profiles"
         )
     for expected_profile, observed_profile in zip(
         expected.profiles, trajectory.profiles, strict=True
@@ -497,9 +488,7 @@ def validate_exact_target_contexts(
                 "does not match its canonical occurrence aggregation"
             )
     if trajectory.final_site_distribution != expected.final_site_distribution:
-        raise ValueError(
-            "target-context final site distribution does not match exact propagation"
-        )
+        raise ValueError("target-context final site distribution does not match exact propagation")
     if trajectory.trajectory_hash != expected.trajectory_hash:
         raise ValueError("target-context trajectory hash is stale or noncanonical")
     return trajectory
