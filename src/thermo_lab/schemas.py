@@ -508,6 +508,15 @@ class TargetContextCompilerRunConfig(StrictSchema):
 
     @model_validator(mode="after")
     def validate_target_context_schedule(self) -> "TargetContextCompilerRunConfig":
+        if (
+            type(self) is TargetContextCompilerRunConfig
+            and self.context_source != "exact_target_pre_gate"
+        ):
+            raise ValueError("context_source must use the checked exact target trace")
+        if type(self) is TargetContextCompilerRunConfig and (
+            self.warm_start_policy != "paired_uniform_artifact_then_three_fixed_restarts"
+        ):
+            raise ValueError("warm_start_policy must use the paired uniform artifact")
         if self.initial_particle_site != (0, 0):
             raise ValueError("initial_particle_site must be the checked origin")
         if self.initial_occupancy != _TARGET_INITIAL_OCCUPANCY:
@@ -558,6 +567,50 @@ def validate_target_context_pasym_swap_request(
         to_json_value(model.model_dump(mode="json"))
     )
     validated_run = TargetContextCompilerRunConfig.model_validate(
+        to_json_value(run.model_dump(mode="json"))
+    )
+    if validated_model.macrosteps != 10 or validated_run.deployment_horizon != 30:
+        raise ValueError("PAsymSwap schedule and deployment horizon are fixed")
+
+
+class ModelContextCompilerRunConfig(TargetContextCompilerRunConfig):
+    """Checked one-pass mean-field model-context compiler schedule."""
+
+    context_source: Literal["mean_field_model_pre_gate"]
+    model_trace_policy: Literal["one_pass_first_moment_factorization"]
+    upstream_artifact_policy: Literal["rebuild_checked_target_context_artifacts"]
+    warm_start_policy: Literal["paired_target_context_artifact_then_three_fixed_restarts"]
+
+    @model_validator(mode="after")
+    def validate_model_context_schedule(self) -> "ModelContextCompilerRunConfig":
+        if self.context_source != "mean_field_model_pre_gate":
+            raise ValueError("context_source must use the checked mean-field model trace")
+        if self.model_trace_policy != "one_pass_first_moment_factorization":
+            raise ValueError("model_trace_policy must be one-pass first-moment factorization")
+        if self.upstream_artifact_policy != "rebuild_checked_target_context_artifacts":
+            raise ValueError("upstream artifacts must be rebuilt from checked inputs")
+        if self.warm_start_policy != "paired_target_context_artifact_then_three_fixed_restarts":
+            raise ValueError("warm_start_policy must use the paired target-context artifact")
+        return self
+
+
+def validate_model_context_pasym_swap_request(
+    model: PAsymSwapModelConfig,
+    run: ModelContextCompilerRunConfig,
+    seed: int,
+) -> None:
+    """Validate the strict model-context compiler request at its public boundary."""
+
+    if not isinstance(model, PAsymSwapModelConfig):
+        raise TypeError("model must be a PAsymSwapModelConfig")
+    if not isinstance(run, ModelContextCompilerRunConfig):
+        raise TypeError("run must be a ModelContextCompilerRunConfig")
+    if type(seed) is not int or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    validated_model = PAsymSwapModelConfig.model_validate(
+        to_json_value(model.model_dump(mode="json"))
+    )
+    validated_run = ModelContextCompilerRunConfig.model_validate(
         to_json_value(run.model_dump(mode="json"))
     )
     if validated_model.macrosteps != 10 or validated_run.deployment_horizon != 30:
