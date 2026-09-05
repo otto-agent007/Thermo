@@ -39,8 +39,11 @@ def test_model_trace_uses_factorized_endpoint_means() -> None:
     trace = derive_model_context_trace(fixture, artifacts, initial_occupancy=(1.0,) + (0.0,) * 24)
     assert trace.occurrences[0].context_weights == (0.0, 0.0, 1.0, 0.0)
 
+
 def test_model_trace_uses_artifact_conditional_not_paper_target() -> None:
-    assert altered_trace.occurrences[1].context_weights != paper_trace.occurrences[1].context_weights
+    assert (
+        altered_trace.occurrences[1].context_weights != paper_trace.occurrences[1].context_weights
+    )
 ```
 
 Also test disjoint and overlapping updates, invalid tables/means, no mutation, canonical order, trace hash stability, 500 occurrences, 37 profiles, and the checked multiplicity histogram.
@@ -203,4 +206,3 @@ Verify both built archives contain `configs/experiments/thrml-model-context-pasy
 git add README.md AGENTS.md docs .github tests
 git commit -m "docs: publish model-context compiler study"
 ```
-
