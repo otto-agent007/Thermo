@@ -35,7 +35,7 @@ jobs:
         run: uv run pytest -m "not slow"
       - name: Build package artifacts
         run: uv build
-      - name: Verify context-matching configs in package artifacts
+      - name: Verify checked study configs in package artifacts
         run: |
           python - <<'PY'
           import glob
@@ -45,6 +45,7 @@ jobs:
           configs = (
               "configs/experiments/thrml-target-context-pasym-swap.toml",
               "configs/experiments/thrml-model-context-pasym-swap.toml",
+              "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
           )
           wheel, = glob.glob("dist/thermo_lab-*.whl")
           sdist, = glob.glob("dist/thermo_lab-*.tar.gz")
@@ -80,3 +81,9 @@ jobs:
           configs/experiments/thrml-model-context-pasym-swap.toml
           --seeds 0,1,2
           --output-dir "${RUNNER_TEMP}/model-context-pasym-swap"
+      - name: Run exact-categorical trajectory REINFORCE estimator study
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml
+          --seeds 0,1,2
+          --output-dir "${RUNNER_TEMP}/trajectory-reinforce-estimator"

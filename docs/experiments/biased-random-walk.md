@@ -130,6 +130,41 @@ composed-program comparison across all 500 occurrences on 25 sites remain
 deferred. The study also does not evaluate official Thermalizers, hosted
 simulation, physical Z1, or TSU hardware.
 
+## Exact trajectory-level estimator contract
+
+The checked estimator study is a deliberately bounded prerequisite for the
+still-open refinement variant. It composes two overlapping occurrences of one
+shared five-spin `K_(3,2)` kernel on three visible sites. Exact enumeration
+checks the trajectory-score gradient against an independently derived
+expected-reference identity, untied occurrence finite differences, and a tied
+shared-parameter finite difference. The exact terminal law also determines the
+particle-number leakage and signed mass drift.
+
+Each release seed is one independent batch of 65,536 augmented trajectories.
+Every sample contains two propagated main exact-categorical draws and one
+independent, same-parent, non-propagated reference draw per occurrence. The
+reported shared-gradient standard error is reconstructed from occurrence
+second moments and cross-products, so it retains the within-trajectory
+covariance created by summing the two shared-parameter contributions. The
+sampled comparison is non-gating; only deterministic exact identities define
+acceptance, and independently seeded batches are the replication units.
+
+The command is:
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-estimator
+```
+
+This contract does not update the shared parameters, test optimization or
+trajectory improvement, run the 25-site 500-occurrence fixture, or establish
+unbiasedness for a finite-Gibbs sampler. Its seeded categorical draws are
+NumPy `software_simulation`, not THRML, official Thermalizers, hosted
+simulation, or physical Z1/TSU evidence. Trajectory-level REINFORCE refinement
+and the full finite-Gibbs-horizon composed-program comparison remain open.
+
 ## Metrics
 
 - conditional KL and total variation by input context;

@@ -12,9 +12,12 @@ from numpy.typing import NDArray
 from scipy.optimize import minimize
 
 from thermo_lab.hashing import canonical_sha256
-from thermo_lab.pasym_swap import WORD_ORDER
 from thermo_lab.schemas import PARAMETER_ORDER
-from thermo_lab.thermodynamic_kernel import KernelParameters, equilibrium_conditional
+from thermo_lab.thermodynamic_kernel import (
+    KernelParameters,
+    equilibrium_conditional,
+    sufficient_statistics,
+)
 
 _LOGICAL_ROLE_ORDER = ("input_0", "input_1", "hidden_0", "output_0", "output_1")
 _TOPOLOGY_ID = "thermo_k3_2_v1"
@@ -213,27 +216,6 @@ class CompiledKernelArtifact:
         }
 
 
-def _sufficient_statistics(
-    input_index: int, hidden_spin: float, output_index: int
-) -> NDArray[np.float64]:
-    input_0, input_1 = 2.0 * np.asarray(WORD_ORDER[input_index], dtype=np.float64) - 1.0
-    output_0, output_1 = 2.0 * np.asarray(WORD_ORDER[output_index], dtype=np.float64) - 1.0
-    return np.asarray(
-        (
-            hidden_spin,
-            output_0,
-            output_1,
-            input_0 * output_0,
-            input_0 * output_1,
-            input_1 * output_0,
-            input_1 * output_1,
-            hidden_spin * output_0,
-            hidden_spin * output_1,
-        ),
-        dtype=np.float64,
-    )
-
-
 def _model_statistics(
     values: NDArray[np.float64],
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
@@ -245,8 +227,8 @@ def _model_statistics(
         log_weights = np.empty((4, 2), dtype=np.float64)
         statistics = np.empty((4, 2, _N_PARAMETERS), dtype=np.float64)
         for output_index in range(4):
-            for hidden_index, hidden_spin in enumerate((-1.0, 1.0)):
-                feature = _sufficient_statistics(input_index, hidden_spin, output_index)
+            for hidden_index, hidden_bit in enumerate((0, 1)):
+                feature = sufficient_statistics(input_index, hidden_bit, output_index)
                 statistics[output_index, hidden_index] = feature
                 log_weights[output_index, hidden_index] = float(np.dot(values, feature))
             hidden_log_normalizer = np.logaddexp.reduce(log_weights[output_index])

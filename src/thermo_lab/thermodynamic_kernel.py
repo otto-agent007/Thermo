@@ -97,6 +97,45 @@ def _checked_input_index(input_index: int) -> int:
     return input_index
 
 
+def _checked_output_index(output_index: int) -> int:
+    if type(output_index) is not int or output_index not in range(len(WORD_ORDER)):
+        raise ValueError("output_index must be a canonical output word index")
+    return output_index
+
+
+def _checked_hidden_bit(hidden_bit: int) -> int:
+    if type(hidden_bit) is not int or hidden_bit not in (0, 1):
+        raise ValueError("hidden_bit must be a canonical hidden bit")
+    return hidden_bit
+
+
+def sufficient_statistics(
+    input_index: int, hidden_bit: int, output_index: int
+) -> NDArray[np.float64]:
+    """Return the canonical nine sufficient statistics for one joint state."""
+
+    checked_input_index = _checked_input_index(input_index)
+    checked_hidden_bit = _checked_hidden_bit(hidden_bit)
+    checked_output_index = _checked_output_index(output_index)
+    input_0, input_1 = bits_to_spins(WORD_ORDER[checked_input_index]).astype(np.float64)
+    output_0, output_1 = bits_to_spins(WORD_ORDER[checked_output_index]).astype(np.float64)
+    hidden = float(2 * checked_hidden_bit - 1)
+    return np.asarray(
+        (
+            hidden,
+            output_0,
+            output_1,
+            input_0 * output_0,
+            input_0 * output_1,
+            input_1 * output_0,
+            input_1 * output_1,
+            hidden * output_0,
+            hidden * output_1,
+        ),
+        dtype=np.float64,
+    )
+
+
 def _normalized_probabilities(
     log_weights: NDArray[np.float64], *, name: str
 ) -> NDArray[np.float64]:
@@ -236,30 +275,38 @@ def finite_horizon_conditional(
 def equilibrium_conditional(parameters: KernelParameters, beta: float = 1.0) -> NDArray[np.float64]:
     """Enumerate the exact input-major equilibrium output conditional in float64."""
 
+    joint = equilibrium_joint_conditional(parameters, beta=beta)
+    return joint.reshape(len(WORD_ORDER), 2, len(WORD_ORDER)).sum(axis=1)
+
+
+def equilibrium_joint_conditional(
+    parameters: KernelParameters, beta: float = 1.0
+) -> NDArray[np.float64]:
+    """Enumerate the exact input-major joint hidden/output conditional in float64."""
+
     if not isinstance(parameters, KernelParameters):
         raise TypeError("parameters must be KernelParameters")
     checked_beta = _checked_beta(beta)
 
-    conditional = np.empty((4, 4), dtype=np.float64)
+    joint = np.empty((len(WORD_ORDER), 2 * len(WORD_ORDER)), dtype=np.float64)
     for input_index, input_bits in enumerate(WORD_ORDER):
-        input_spins = bits_to_spins(input_bits)
-        log_affinities = np.empty(4, dtype=np.float64)
-        for output_index, output_bits in enumerate(WORD_ORDER):
-            output_spins = bits_to_spins(output_bits)
-            hidden_negative = np.asarray(
-                (input_spins[0], input_spins[1], -1, output_spins[0], output_spins[1]),
-                dtype=np.int8,
-            )
-            hidden_positive = np.asarray(
-                (input_spins[0], input_spins[1], 1, output_spins[0], output_spins[1]),
-                dtype=np.int8,
-            )
-            log_affinities[output_index] = np.logaddexp(
-                -checked_beta * joint_energy(parameters, hidden_negative),
-                -checked_beta * joint_energy(parameters, hidden_positive),
-            )
-        conditional[input_index] = np.exp(log_affinities - np.logaddexp.reduce(log_affinities))
-    return conditional
+        log_weights = np.empty(2 * len(WORD_ORDER), dtype=np.float64)
+        for hidden_bit in (0, 1):
+            for output_index, output_bits in enumerate(WORD_ORDER):
+                state_index = hidden_bit * len(WORD_ORDER) + output_index
+                log_weights[state_index] = -checked_beta * joint_energy(
+                    parameters, _spins_for_state(input_bits, hidden_bit, output_bits)
+                )
+        joint[input_index] = _normalized_probabilities(
+            log_weights, name="equilibrium joint conditional"
+        )
+
+    if not np.all(np.isfinite(joint)) or np.any(joint < 0.0):
+        raise ValueError("equilibrium joint conditional must be finite and nonnegative")
+    if not np.allclose(joint.sum(axis=1), 1.0, rtol=0.0, atol=1e-12):
+        raise ValueError("equilibrium joint conditional rows must sum to one")
+    joint.setflags(write=False)
+    return joint
 
 
 def _checked_conditional(values: NDArray[np.generic], *, name: str) -> NDArray[np.float64]:

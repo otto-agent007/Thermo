@@ -16,8 +16,15 @@ from pydantic import (
     model_validator,
 )
 
-from thermo_lab.hashing import to_json_value
-from thermo_lab.pasym_swap import COLOR_ORDER, COORDINATE_PAIR_CLASSES, PAPER_SOURCE, WORD_ORDER
+from thermo_lab.hashing import canonical_sha256, to_json_value
+from thermo_lab.pasym_swap import (
+    COLOR_ORDER,
+    COORDINATE_PAIR_CLASSES,
+    PAPER_SOURCE,
+    WORD_ORDER,
+    build_pasym_swap_conditional,
+    hop_probability,
+)
 
 ISING_ENERGY_CONVENTION = "-beta*(sum(b_i*s_i)+sum(J_ij*s_i*s_j))"
 ISING_SPIN_VALUES = [-1, 1]
@@ -59,6 +66,14 @@ _INITIALIZATIONS = (
     (-0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05, 0.05, -0.05),
 )
 _TARGET_INITIAL_OCCUPANCY = (1.0,) + (0.0,) * 24
+_TRAJECTORY_SITE_ORDER = ("site_0", "site_1", "site_2")
+_TRAJECTORY_ROLE_ORDER = ("input_0", "input_1", "hidden_0", "output_0", "output_1")
+_TRAJECTORY_JOINT_OUTCOME_ORDER = tuple(
+    (hidden, output_0, output_1) for hidden in (0, 1) for output_0 in (0, 1) for output_1 in (0, 1)
+)
+_TRAJECTORY_PARAMETERS = (0.25, -0.35, 0.20, 0.45, -0.30, -0.40, 0.25, 0.30, -0.20)
+_TRAJECTORY_TARGET_EDGE = ((0, 0), (1, 0))
+_TRAJECTORY_OCCURRENCES = ((0, 1), (1, 2))
 
 
 class StrictSchema(BaseModel):
@@ -68,6 +83,184 @@ class StrictSchema(BaseModel):
         frozen=True,
         strict=True,
     )
+
+
+class TrajectoryReinforceModelConfig(StrictSchema):
+    """Immutable scientific model inputs for the exact three-site fixture."""
+
+    source_reference: Literal[PAPER_SOURCE]
+    site_order: tuple[str, ...]
+    word_order: tuple[tuple[StrictInt, StrictInt], ...]
+    role_order: tuple[str, ...]
+    joint_outcome_order: tuple[tuple[StrictInt, StrictInt, StrictInt], ...]
+    parameter_order: tuple[str, ...]
+    shared_parameter_vector: tuple[
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+        StrictFloat,
+    ]
+    beta: StrictFloat
+    parameter_cap: StrictFloat
+    exact_dtype: Literal["float64"]
+    target_edge: tuple[tuple[StrictInt, StrictInt], tuple[StrictInt, StrictInt]]
+    target_probabilities: tuple[StrictFloat, StrictFloat]
+    target_conditional: tuple[
+        tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+        tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+        tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+        tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat],
+    ]
+    target_hash: str
+
+    @field_validator(
+        "site_order",
+        "word_order",
+        "role_order",
+        "joint_outcome_order",
+        "parameter_order",
+        "target_edge",
+        mode="before",
+    )
+    @classmethod
+    def freeze_sequences(cls, value: object) -> object:
+        return _tuple_json_lists(value)
+
+    @field_validator("shared_parameter_vector", "target_probabilities", mode="before")
+    @classmethod
+    def validate_float_vectors(cls, value: object, info) -> object:
+        return _tuple_json_lists(_require_json_float_list(value, info.field_name))
+
+    @field_validator("target_conditional", mode="before")
+    @classmethod
+    def validate_target_matrix(cls, value: object) -> object:
+        return _tuple_json_lists(_require_json_float_matrix(value, "target_conditional"))
+
+    @field_validator("beta", "parameter_cap", mode="before")
+    @classmethod
+    def validate_float_scalars(cls, value: object, info) -> object:
+        return _require_json_float(value, info.field_name)
+
+    @model_validator(mode="after")
+    def validate_checked_model(self) -> "TrajectoryReinforceModelConfig":
+        expected_sequences = {
+            "site_order": _TRAJECTORY_SITE_ORDER,
+            "word_order": WORD_ORDER,
+            "role_order": _TRAJECTORY_ROLE_ORDER,
+            "joint_outcome_order": _TRAJECTORY_JOINT_OUTCOME_ORDER,
+            "parameter_order": PARAMETER_ORDER,
+            "target_edge": _TRAJECTORY_TARGET_EDGE,
+        }
+        for name, expected in expected_sequences.items():
+            if getattr(self, name) != expected:
+                raise ValueError(f"{name} must match the checked trajectory fixture")
+        if self.shared_parameter_vector != _TRAJECTORY_PARAMETERS:
+            raise ValueError("shared_parameter_vector must match the checked trajectory fixture")
+        if self.beta != 1.0 or self.parameter_cap != 2.0:
+            raise ValueError("beta and parameter_cap must match the checked trajectory fixture")
+        probabilities = (
+            hop_probability(*self.target_edge),
+            hop_probability(*reversed(self.target_edge)),
+        )
+        conditional = build_pasym_swap_conditional(*probabilities)
+        target_hash = canonical_sha256({"word_order": WORD_ORDER, "conditional": conditional})
+        if self.target_probabilities != probabilities:
+            raise ValueError("target_probabilities must be rebuilt from the checked target edge")
+        if self.target_conditional != conditional:
+            raise ValueError("target_conditional must be rebuilt from the checked target edge")
+        if self.target_hash != target_hash:
+            raise ValueError("target_hash must be rebuilt from the checked target conditional")
+        return self
+
+
+class TrajectoryReinforceRunConfig(StrictSchema):
+    """Immutable exact-oracle and categorical-sampling schedule."""
+
+    initial_state: tuple[StrictInt, StrictInt, StrictInt]
+    occurrences: tuple[tuple[StrictInt, StrictInt], tuple[StrictInt, StrictInt]]
+    objective_policy: Literal["squared_terminal_occupancy_error"]
+    reward_policy: Literal["exact_current_model_occupancy_linearization"]
+    reference_policy: Literal["independent_same_parent_non_propagated"]
+    main_path_count: Literal[64]
+    augmented_path_count: Literal[4096]
+    finite_difference_step: StrictFloat
+    exact_tolerance: StrictFloat
+    finite_difference_tolerance: StrictFloat
+    batch_size: Literal[65536]
+    release_seeds: tuple[StrictInt, StrictInt, StrictInt]
+    rng_family: Literal["numpy.random.Generator(PCG64)"]
+    stream_policy: Literal[
+        "SeedSequence(seed).spawn(4) in main_0, reference_0, main_1, reference_1 order"
+    ]
+    moment_policy: Literal["component sums, sum squares, and occurrence cross-products in float64"]
+
+    @field_validator("main_path_count", "augmented_path_count", "batch_size", mode="before")
+    @classmethod
+    def validate_integer_literal_encoding(cls, value: object, info) -> object:
+        if type(value) is not int:
+            raise ValueError(f"{info.field_name} must be encoded as a JSON integer")
+        return value
+
+    @field_validator("initial_state", "occurrences", "release_seeds", mode="before")
+    @classmethod
+    def freeze_sequences(cls, value: object) -> object:
+        return _tuple_json_lists(value)
+
+    @field_validator(
+        "finite_difference_step",
+        "exact_tolerance",
+        "finite_difference_tolerance",
+        mode="before",
+    )
+    @classmethod
+    def validate_float_scalars(cls, value: object, info) -> object:
+        return _require_json_float(value, info.field_name)
+
+    @model_validator(mode="after")
+    def validate_checked_schedule(self) -> "TrajectoryReinforceRunConfig":
+        if self.initial_state != (1, 0, 0):
+            raise ValueError("initial_state must match the checked trajectory fixture")
+        if self.occurrences != _TRAJECTORY_OCCURRENCES:
+            raise ValueError("occurrences must match the checked ordered factor uses")
+        if self.release_seeds != (0, 1, 2):
+            raise ValueError("release_seeds must match the checked independent replications")
+        if (
+            self.finite_difference_step,
+            self.exact_tolerance,
+            self.finite_difference_tolerance,
+        ) != (1e-6, 1e-12, 1e-7):
+            raise ValueError("numerical settings must match the checked trajectory fixture")
+        return self
+
+
+def validate_trajectory_reinforce_request(
+    model: TrajectoryReinforceModelConfig,
+    run: TrajectoryReinforceRunConfig,
+    seed: int,
+) -> None:
+    """Deeply validate the exact trajectory request and its release seed."""
+
+    if not isinstance(model, TrajectoryReinforceModelConfig):
+        raise TypeError("model must be a TrajectoryReinforceModelConfig")
+    if not isinstance(run, TrajectoryReinforceRunConfig):
+        raise TypeError("run must be a TrajectoryReinforceRunConfig")
+    if type(seed) is not int or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    validated_model = TrajectoryReinforceModelConfig.model_validate(
+        to_json_value(model.model_dump(mode="json"))
+    )
+    validated_run = TrajectoryReinforceRunConfig.model_validate(
+        to_json_value(run.model_dump(mode="json"))
+    )
+    if seed not in validated_run.release_seeds:
+        raise ValueError("seed must be one of the checked release_seeds")
+    if validated_model.beta * validated_run.finite_difference_step <= 0.0:
+        raise ValueError("beta and finite_difference_step must remain positive")
 
 
 def _require_json_float(value: object, field_name: str) -> object:

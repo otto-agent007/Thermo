@@ -169,9 +169,7 @@ Define frozen dataclasses whose `__post_init__` methods copy arrays to finite re
 ```python
 occupancy[i] = math.fsum(probability * state[i] for state, probability in rows)
 expected_mass = math.fsum(probability * sum(state) for state, probability in rows)
-particle_number_leakage = math.fsum(
-    probability for state, probability in rows if sum(state) != 1
-)
+particle_number_leakage = math.fsum(probability for state, probability in rows if sum(state) != 1)
 signed_mass_drift = expected_mass - 1.0
 ```
 
@@ -197,9 +195,7 @@ The shared structure is explicit:
 
 ```python
 score_occurrences = tuple(enumerate_score(occurrence) for occurrence in range(2))
-reference_occurrences = tuple(
-    enumerate_main_and_reference(occurrence) for occurrence in range(2)
-)
+reference_occurrences = tuple(enumerate_main_and_reference(occurrence) for occurrence in range(2))
 score_shared = componentwise_fsum(score_occurrences)
 reference_shared = componentwise_fsum(reference_occurrences)
 fd_occurrences = finite_difference_untied_objective(phi, step=1e-6)
@@ -278,7 +274,7 @@ def build_shared_gradient_estimate(
 Set negative derived variance to zero only when its magnitude is within:
 
 ```python
-roundoff_tolerance = 64 * np.finfo(np.float64).eps * max(1.0, abs(Q), abs(S*S/B))
+roundoff_tolerance = 64 * np.finfo(np.float64).eps * max(1.0, abs(Q), abs(S * S / B))
 ```
 
 Raise otherwise. Apply the analogous scale to centered Cauchy-Schwarz comparisons.
@@ -342,6 +338,7 @@ class BackendId(StrEnum):
     # existing values remain unchanged
     NUMPY_EXACT_CATEGORICAL = "numpy_exact_categorical"
 
+
 _ALLOWED_BACKEND_EVIDENCE[BackendId.NUMPY_EXACT_CATEGORICAL] = frozenset(
     {EvidenceClass.SOFTWARE_SIMULATION}
 )
@@ -365,12 +362,9 @@ One independently seeded batch of 65,536 augmented two-occurrence trajectories; 
 Register the exact experiment/backend pair before generic backend fallbacks. Parse the new model/run schemas in `ExperimentConfig.validate_supported_experiment`. Build the non-seed hash from schema version, ID, backend, sample definition, and typed model/run dumps. Factory loads the packaged TOML and returns its immutable spec.
 
 ```python
-TRAJECTORY_REINFORCE_EXPERIMENT_ID = (
-    "numpy.trajectory_reinforce_pasym_swap_estimator.v1"
-)
-_EXPERIMENT_BACKENDS[TRAJECTORY_REINFORCE_EXPERIMENT_ID] = (
-    BackendId.NUMPY_EXACT_CATEGORICAL
-)
+TRAJECTORY_REINFORCE_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_estimator.v1"
+_EXPERIMENT_BACKENDS[TRAJECTORY_REINFORCE_EXPERIMENT_ID] = BackendId.NUMPY_EXACT_CATEGORICAL
+
 
 def trajectory_reinforce_pasym_swap_spec() -> ExperimentSpec:
     return load_experiment_config(
@@ -485,9 +479,7 @@ if config.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
 Define:
 
 ```python
-_TRAJECTORY_REINFORCE_SAMPLED_METRICS = frozenset(
-    {"maximum_absolute_shared_gradient_error"}
-)
+_TRAJECTORY_REINFORCE_SAMPLED_METRICS = frozenset({"maximum_absolute_shared_gradient_error"})
 _TRAJECTORY_REINFORCE_OMITTED_METRIC_REASONS = {
     "trajectory_reinforce_summary": "nested exact and sampled gradient evidence is retained only in per-run records",
     "acceptance_passed": "deterministic exact estimator identity is not an independently seeded sampled cross-check",

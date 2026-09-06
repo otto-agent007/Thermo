@@ -11,11 +11,56 @@ from thermo_lab.thermodynamic_kernel import (
     context_weighted_kl,
     context_weighted_tv,
     equilibrium_conditional,
+    equilibrium_joint_conditional,
     finite_horizon_conditional,
     joint_energy,
     one_sweep_transition,
+    sufficient_statistics,
     uniform_context_kl,
 )
+
+CHECKED_PARAMETERS = (0.25, -0.35, 0.20, 0.45, -0.30, -0.40, 0.25, 0.30, -0.20)
+
+
+def test_sufficient_statistics_follow_parameter_order() -> None:
+    actual = sufficient_statistics(input_index=2, hidden_bit=1, output_index=1)
+
+    np.testing.assert_array_equal(actual, [1, -1, 1, -1, 1, 1, -1, -1, 1])
+
+
+@pytest.mark.parametrize("input_index", [-1, 4, True, 1.0, "1"])
+def test_sufficient_statistics_rejects_noncanonical_input_indices(input_index: object) -> None:
+    with pytest.raises(ValueError, match="input_index"):
+        sufficient_statistics(input_index, 1, 1)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("hidden_bit", [-1, 2, True, 1.0, "1"])
+def test_sufficient_statistics_rejects_noncanonical_hidden_bits(hidden_bit: object) -> None:
+    with pytest.raises(ValueError, match="hidden_bit"):
+        sufficient_statistics(2, hidden_bit, 1)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("output_index", [-1, 4, True, 1.0, "1"])
+def test_sufficient_statistics_rejects_noncanonical_output_indices(output_index: object) -> None:
+    with pytest.raises(ValueError, match="output_index"):
+        sufficient_statistics(2, 1, output_index)  # type: ignore[arg-type]
+
+
+def test_equilibrium_joint_conditional_marginalizes_to_public_output_table() -> None:
+    parameters = KernelParameters(CHECKED_PARAMETERS)
+
+    joint = equilibrium_joint_conditional(parameters, beta=1.0)
+
+    assert joint.shape == (4, 8)
+    assert joint.dtype == np.float64
+    assert not joint.flags.writeable
+    np.testing.assert_allclose(joint.sum(axis=1), 1.0, rtol=0.0, atol=1e-12)
+    np.testing.assert_allclose(
+        joint.reshape(4, 2, 4).sum(axis=1),
+        equilibrium_conditional(parameters, beta=1.0),
+        rtol=0.0,
+        atol=1e-15,
+    )
 
 
 def test_joint_energy_uses_canonical_parameter_order() -> None:

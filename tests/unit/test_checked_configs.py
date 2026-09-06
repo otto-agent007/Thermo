@@ -18,6 +18,9 @@ from thermo_lab.experiments import (
     torx_smoke_spec,
     weighted_graph_walk_spec,
 )
+from thermo_lab.experiments.trajectory_reinforce_pasym_swap import (
+    trajectory_reinforce_pasym_swap_spec,
+)
 
 ROOT = Path(__file__).parents[2]
 TORX_CONFIG = ROOT / "configs/experiments/torx-two-gate.toml"
@@ -25,6 +28,9 @@ THRML_CONFIG = ROOT / "configs/experiments/thrml-ising-chain.toml"
 GRAPH_CONFIG = ROOT / "configs/experiments/torx-weighted-graph-walk.toml"
 PASYM_SWAP_CONFIG = ROOT / "configs/experiments/thrml-independent-pasym-swap.toml"
 TARGET_CONTEXT_PASYM_SWAP_CONFIG = ROOT / "configs/experiments/thrml-target-context-pasym-swap.toml"
+TRAJECTORY_REINFORCE_CONFIG = (
+    ROOT / "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml"
+)
 
 
 def test_config_locator_resolves_authoritative_checked_files() -> None:
@@ -36,6 +42,10 @@ def test_config_locator_resolves_authoritative_checked_files() -> None:
     assert (
         experiment_config_path("thrml-target-context-pasym-swap.toml").read_bytes()
         == TARGET_CONTEXT_PASYM_SWAP_CONFIG.read_bytes()
+    )
+    assert (
+        experiment_config_path("numpy-trajectory-reinforce-pasym-swap.toml").read_bytes()
+        == TRAJECTORY_REINFORCE_CONFIG.read_bytes()
     )
 
 
@@ -53,6 +63,11 @@ def test_config_locator_resolves_authoritative_checked_files() -> None:
             TARGET_CONTEXT_PASYM_SWAP_CONFIG,
             BackendId.THRML_LOCAL,
             "thrml.target_context_pasym_swap_compilation.v1",
+        ),
+        (
+            TRAJECTORY_REINFORCE_CONFIG,
+            BackendId.NUMPY_EXACT_CATEGORICAL,
+            "numpy.trajectory_reinforce_pasym_swap_estimator.v1",
         ),
     ],
 )
@@ -75,6 +90,10 @@ def test_convenience_factories_use_checked_configs() -> None:
     assert (
         target_context_pasym_swap_spec()
         == load_experiment_config(TARGET_CONTEXT_PASYM_SWAP_CONFIG).to_spec()
+    )
+    assert (
+        trajectory_reinforce_pasym_swap_spec()
+        == load_experiment_config(TRAJECTORY_REINFORCE_CONFIG).to_spec()
     )
 
 

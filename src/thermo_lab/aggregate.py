@@ -26,6 +26,7 @@ from thermo_lab.config import (
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
     TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
+    TRAJECTORY_REINFORCE_EXPERIMENT_ID,
     model_context_pasym_swap_non_seed_config_hash,
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
@@ -45,6 +46,9 @@ from thermo_lab.schemas import (
 )
 from thermo_lab.target_context_pasym_swap_results import (
     validate_target_context_pasym_swap_observations,
+)
+from thermo_lab.trajectory_reinforce_reporting import (
+    validate_persisted_trajectory_reinforce_record,
 )
 
 AGGREGATE_SCHEMA_VERSION = "1.1.0"
@@ -153,6 +157,18 @@ _MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX = (
 _MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES = (
     "; JAX lower().compile() measured once for shared shapes",
     "; JAX executable reused from in-process shape cache",
+)
+_TRAJECTORY_REINFORCE_SAMPLED_METRICS = frozenset({"maximum_absolute_shared_gradient_error"})
+_TRAJECTORY_REINFORCE_OMITTED_METRIC_REASONS = {
+    "trajectory_reinforce_summary": (
+        "nested exact and sampled gradient evidence is retained only in per-run records"
+    ),
+    "acceptance_passed": (
+        "deterministic exact estimator identity is not an independently seeded sampled cross-check"
+    ),
+}
+_TRAJECTORY_REINFORCE_TIMING_OMISSION_REASON = (
+    "exact-categorical execution timing is not a scientific replication metric"
 )
 
 
@@ -503,6 +519,8 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
     elif record.spec.experiment_id == MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
         deterministic_identity = _model_context_deterministic_identity(record)
         timing_method = _model_context_timing_method(record)
+    elif record.spec.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
+        deterministic_identity = _trajectory_reinforce_deterministic_identity(record)
     return (
         record.spec.experiment_id,
         record.backend_id,
@@ -660,6 +678,19 @@ def _model_context_deterministic_identity(record: RunRecord) -> str:
     return summary.deterministic_result_hash
 
 
+def _trajectory_reinforce_deterministic_identity(
+    record: RunRecord,
+) -> tuple[str, str, str]:
+    """Deeply validate one exact-categorical trajectory record before aggregation."""
+
+    summary, _, _ = validate_persisted_trajectory_reinforce_record(record)
+    return (
+        summary.deterministic.deterministic_result_digest,
+        summary.deterministic.request_hash,
+        summary.sample.sample_definition,
+    )
+
+
 def _dtype_compatibility_signature(record: RunRecord) -> str:
     """Return the declared numeric representation without conflating exact and THRML paths."""
 
@@ -672,6 +703,8 @@ def _dtype_compatibility_signature(record: RunRecord) -> str:
             f"exact={record.spec.model_parameters.get('exact_dtype')}; "
             f"thrml={record.spec.model_parameters.get('thrml_dtype')}"
         )
+    if record.spec.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
+        return f"exact={record.spec.model_parameters.get('exact_dtype')}"
     return str(record.spec.model_parameters.get("numeric_dtype"))
 
 
@@ -691,6 +724,13 @@ def _target_context_pasym_swap_omission_reason(name: str) -> str:
 
 def _model_context_pasym_swap_omission_reason(name: str) -> str:
     return _MODEL_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
+        name,
+        "metric is not declared an independently seeded sampled cross-check",
+    )
+
+
+def _trajectory_reinforce_omission_reason(name: str) -> str:
+    return _TRAJECTORY_REINFORCE_OMITTED_METRIC_REASONS.get(
         name,
         "metric is not declared an independently seeded sampled cross-check",
     )
@@ -812,6 +852,12 @@ def derive_aggregate_fields(
             ):
                 omitted_metrics[name] = _model_context_pasym_swap_omission_reason(name)
                 continue
+            if (
+                experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID
+                and name not in _TRAJECTORY_REINFORCE_SAMPLED_METRICS
+            ):
+                omitted_metrics[name] = _trajectory_reinforce_omission_reason(name)
+                continue
             omission_reason = _INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(name)
             if (
                 experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
@@ -875,6 +921,11 @@ def derive_aggregate_fields(
             )
             omitted_metrics["timing.execution_seconds"] = (
                 _MODEL_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+        elif experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
+            omitted_metrics["timing.compile_seconds"] = _TRAJECTORY_REINFORCE_TIMING_OMISSION_REASON
+            omitted_metrics["timing.execution_seconds"] = (
+                _TRAJECTORY_REINFORCE_TIMING_OMISSION_REASON
             )
         else:
             timing_method = records[0].timing.timing_method

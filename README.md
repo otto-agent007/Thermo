@@ -43,6 +43,10 @@ uv run thermo-lab run \
   configs/experiments/thrml-model-context-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/model-context-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-estimator
 uv run pytest
 ```
 
@@ -104,6 +108,16 @@ The propagation is a first-moment factorization, not an exact 25-site joint
 rollout or a fixed-point iteration. Trajectory-level REINFORCE, the complete
 finite-horizon composed program, official Thermalizers, hosted simulation,
 and physical Z1 or TSU hardware remain unevaluated.
+
+The checked trajectory-level REINFORCE estimator command validates a bounded
+three-site, two-occurrence exact-categorical microcircuit with one shared
+kernel. It compares the exact trajectory-score gradient with an independent
+expected-reference identity and finite differences, then reports non-gating
+seeded Monte Carlo estimates with covariance-aware uncertainty for the summed
+shared gradient. It does not update parameters, perform trajectory-level
+refinement, run the 25-site program, or establish finite-Gibbs-horizon
+unbiasedness. The sampled result is local NumPy `software_simulation` evidence,
+not THRML, official Thermalizers, hosted simulation, or physical hardware.
 
 ## Research contract
 

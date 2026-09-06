@@ -24,16 +24,29 @@ from thermo_lab.schemas import (
     ThrmlRunConfig,
     TorxModelConfig,
     TorxRunConfig,
+    TrajectoryReinforceModelConfig,
+    TrajectoryReinforceRunConfig,
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
     validate_independent_pasym_swap_request,
     validate_model_context_pasym_swap_request,
     validate_target_context_pasym_swap_request,
+    validate_trajectory_reinforce_request,
     validate_weighted_graph_request,
 )
 
 CONFIG_SCHEMA_VERSION = "1.0.0"
-SupportedBackend = Literal[BackendId.TORX_STATEVECTOR, BackendId.THRML_LOCAL]
+SupportedBackend = Literal[
+    BackendId.NUMPY_EXACT_CATEGORICAL,
+    BackendId.TORX_STATEVECTOR,
+    BackendId.THRML_LOCAL,
+]
+TRAJECTORY_REINFORCE_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_estimator.v1"
+TRAJECTORY_REINFORCE_SAMPLE_DEFINITION = (
+    "One independently seeded batch of 65,536 augmented two-occurrence trajectories; "
+    "each sample contains two propagated main exact-categorical joint-kernel draws and "
+    "one independent same-parent non-propagated reference draw per occurrence."
+)
 INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
 INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION = (
     "One independently seeded THRML cross-check using 4,096 chains per input context "
@@ -51,6 +64,7 @@ MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION = (
 )
 
 _EXPERIMENT_BACKENDS = {
+    TRAJECTORY_REINFORCE_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
     "torx.two_gate_statevector.v1": BackendId.TORX_STATEVECTOR,
     WEIGHTED_GRAPH_WALK_EXPERIMENT_ID: BackendId.TORX_STATEVECTOR,
     "thrml.ising_chain_exact_validation.v1": BackendId.THRML_LOCAL,
@@ -58,6 +72,29 @@ _EXPERIMENT_BACKENDS = {
     TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
 }
+
+
+def trajectory_reinforce_non_seed_config_hash(
+    model: TrajectoryReinforceModelConfig, run: TrajectoryReinforceRunConfig
+) -> str:
+    """Derive the exact trajectory request identity without its release seed."""
+
+    if not isinstance(model, TrajectoryReinforceModelConfig):
+        raise TypeError("model must be a TrajectoryReinforceModelConfig")
+    if not isinstance(run, TrajectoryReinforceRunConfig):
+        raise TypeError("run must be a TrajectoryReinforceRunConfig")
+    validated_model = TrajectoryReinforceModelConfig.model_validate(model.model_dump(mode="json"))
+    validated_run = TrajectoryReinforceRunConfig.model_validate(run.model_dump(mode="json"))
+    return canonical_sha256(
+        {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "experiment_id": TRAJECTORY_REINFORCE_EXPERIMENT_ID,
+            "backend": BackendId.NUMPY_EXACT_CATEGORICAL,
+            "sample_definition": TRAJECTORY_REINFORCE_SAMPLE_DEFINITION,
+            "model": validated_model.model_dump(mode="json"),
+            "run": validated_run.model_dump(mode="json"),
+        }
+    )
 
 
 def _config_search_roots() -> tuple[Path, ...]:
@@ -174,7 +211,15 @@ class ExperimentConfig(FrozenModel):
             )
         model = to_json_value(self.model_parameters)
         run = to_json_value(self.run_parameters)
-        if self.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
+        if self.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
+            if self.sample_definition != TRAJECTORY_REINFORCE_SAMPLE_DEFINITION:
+                raise ValueError(
+                    "trajectory REINFORCE sample_definition must match the checked value"
+                )
+            model_config = TrajectoryReinforceModelConfig.model_validate(model)
+            run_config = TrajectoryReinforceRunConfig.model_validate(run)
+            validate_trajectory_reinforce_request(model_config, run_config, self.seed)
+        elif self.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
             graph_model = WeightedGraphModelConfig.model_validate(model)
             graph_run = WeightedGraphRunConfig.model_validate(run)
             validate_weighted_graph_request(graph_model, graph_run, self.seed)

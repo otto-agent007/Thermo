@@ -12,10 +12,15 @@ from thermo_lab.aggregate import (
     aggregate_run_records,
     validate_aggregate_against_records,
 )
+from thermo_lab.backends.numpy_exact_categorical import NumpyExactCategoricalBackend
 from thermo_lab.backends.thrml_target_context_pasym_swap import (
     ThrmlTargetContextPAsymSwapBackend,
 )
-from thermo_lab.config import experiment_config_path, load_experiment_config
+from thermo_lab.config import (
+    TRAJECTORY_REINFORCE_SAMPLE_DEFINITION,
+    experiment_config_path,
+    load_experiment_config,
+)
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import to_json_value
 from thermo_lab.records import (
@@ -29,6 +34,7 @@ from thermo_lab.records import (
 )
 
 TARGET_CONTEXT_CONFIG = experiment_config_path("thrml-target-context-pasym-swap.toml")
+TRAJECTORY_REINFORCE_CONFIG = experiment_config_path("numpy-trajectory-reinforce-pasym-swap.toml")
 TARGET_CONTEXT_TIMING_PREFIX = (
     "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
     "warm launch, then aggregate synchronized steady-state execution"
@@ -42,6 +48,13 @@ def target_context_records() -> tuple[RunRecord, RunRecord, RunRecord]:
     return tuple(backend.run(config.to_spec(seed=seed)) for seed in (0, 1, 2))  # type: ignore[return-value]
 
 
+@pytest.fixture(scope="module")
+def trajectory_reinforce_records() -> tuple[RunRecord, RunRecord, RunRecord]:
+    config = load_experiment_config(TRAJECTORY_REINFORCE_CONFIG)
+    backend = NumpyExactCategoricalBackend(Path(__file__).parents[2])
+    return tuple(backend.run(config.to_spec(seed=seed)) for seed in (0, 1, 2))  # type: ignore[return-value]
+
+
 def _target_context_aggregate(records: tuple[RunRecord, ...]) -> AggregateRecord:
     seeds = tuple(record.spec.seed for record in records)
     return aggregate_run_records(
@@ -49,6 +62,16 @@ def _target_context_aggregate(records: tuple[RunRecord, ...]) -> AggregateRecord
         requested_seeds=seeds,
         run_record_paths=tuple(f"runs/seed-{seed:010d}.json" for seed in seeds),
         source_config="configs/experiments/thrml-target-context-pasym-swap.toml",
+    )
+
+
+def _trajectory_reinforce_aggregate(records: tuple[RunRecord, ...]) -> AggregateRecord:
+    seeds = tuple(record.spec.seed for record in records)
+    return aggregate_run_records(
+        records,
+        requested_seeds=seeds,
+        run_record_paths=tuple(f"runs/seed-{seed:010d}.json" for seed in seeds),
+        source_config="configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
     )
 
 
@@ -379,6 +402,62 @@ def test_target_context_aggregates_only_sampled_fidelity(
     assert ("thrml", "0.1.4") in {
         (package.distribution, package.version) for package in aggregate.provenance_summary.packages
     }
+
+
+def test_trajectory_reinforce_aggregates_only_the_predeclared_sampled_scalar(
+    trajectory_reinforce_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    aggregate = _trajectory_reinforce_aggregate(trajectory_reinforce_records)
+
+    assert set(aggregate.metric_aggregates) == {"maximum_absolute_shared_gradient_error"}
+    sampled = aggregate.metric_aggregates["maximum_absolute_shared_gradient_error"]
+    assert sampled.count == 3
+    assert sampled.evidence_class is EvidenceClass.SOFTWARE_SIMULATION
+    assert sampled.interval_method == "two-sided Student-t across independent seeds"
+    assert aggregate.omitted_metrics == {
+        "acceptance_passed": (
+            "deterministic exact estimator identity is not an independently seeded sampled "
+            "cross-check"
+        ),
+        "timing.compile_seconds": (
+            "exact-categorical execution timing is not a scientific replication metric"
+        ),
+        "timing.execution_seconds": (
+            "exact-categorical execution timing is not a scientific replication metric"
+        ),
+        "trajectory_reinforce_summary": (
+            "nested exact and sampled gradient evidence is retained only in per-run records"
+        ),
+    }
+    assert all(
+        record.spec.sample_definition == TRAJECTORY_REINFORCE_SAMPLE_DEFINITION
+        for record in trajectory_reinforce_records
+    )
+
+
+@pytest.mark.parametrize(
+    ("metric", "field", "value"),
+    (
+        ("maximum_absolute_shared_gradient_error", "evidence_class", "exact_reference"),
+        ("maximum_absolute_shared_gradient_error", "method", "forged physical method"),
+        ("maximum_absolute_shared_gradient_error", "source", "forged source"),
+        ("maximum_absolute_shared_gradient_error", "unit", "joules"),
+        ("maximum_absolute_shared_gradient_error", "notes", "forged notes"),
+        ("acceptance_passed", "method", "forged acceptance method"),
+    ),
+)
+def test_trajectory_aggregate_rejects_forged_metric_metadata(
+    trajectory_reinforce_records: tuple[RunRecord, RunRecord, RunRecord],
+    metric: str,
+    field: str,
+    value: object,
+) -> None:
+    payload = copy.deepcopy(trajectory_reinforce_records[0].model_dump(mode="json", by_alias=True))
+    payload["metrics"][metric][field] = value
+    forged = RunRecord.model_validate(payload)
+
+    with pytest.raises(ValueError, match="metadata|checked contract"):
+        _trajectory_reinforce_aggregate((forged,))
 
 
 def test_target_context_one_seed_omits_interval_with_sample_count_reason(

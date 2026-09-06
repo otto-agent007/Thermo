@@ -14,6 +14,7 @@ from thermo_lab.aggregate import (
 from thermo_lab.config import (
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+    TRAJECTORY_REINFORCE_EXPERIMENT_ID,
     ExperimentConfig,
     dump_experiment_config,
     load_experiment_config,
@@ -73,6 +74,7 @@ def _existing_completed(output_dir: Path) -> bool:
 
 def _backend(config: ExperimentConfig, repository_root: Path | None) -> ExperimentBackend:
     from thermo_lab.backends import (
+        NumpyExactCategoricalBackend,
         ThrmlIndependentPAsymSwapBackend,
         ThrmlLocalBackend,
         ThrmlModelContextPAsymSwapBackend,
@@ -81,6 +83,8 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
         TorxWeightedGraphWalkBackend,
     )
 
+    if config.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
+        return NumpyExactCategoricalBackend(repository_root)
     if config.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
         return TorxWeightedGraphWalkBackend(repository_root)
     if config.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:
@@ -99,11 +103,12 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
 def _failed_identity(
     config: ExperimentConfig,
 ) -> tuple[str, BackendId, EvidenceClass, str, str]:
-    evidence = (
-        EvidenceClass.EXACT_REFERENCE
-        if config.backend is BackendId.TORX_STATEVECTOR
-        else EvidenceClass.SOFTWARE_SIMULATION
-    )
+    if config.backend is BackendId.NUMPY_EXACT_CATEGORICAL:
+        evidence = EvidenceClass.SOFTWARE_SIMULATION
+    elif config.backend is BackendId.TORX_STATEVECTOR:
+        evidence = EvidenceClass.EXACT_REFERENCE
+    else:
+        evidence = EvidenceClass.SOFTWARE_SIMULATION
     spec = config.to_spec()
     return (
         config.experiment_id,
