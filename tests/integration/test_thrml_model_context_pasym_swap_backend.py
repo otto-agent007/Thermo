@@ -6,9 +6,11 @@ from thermo_lab.backends.thrml_model_context_pasym_swap import (
     ThrmlModelContextPAsymSwapBackend,
 )
 from thermo_lab.config import model_context_pasym_swap_non_seed_config_hash
+from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.experiments.model_context_pasym_swap import model_context_pasym_swap_spec
 from thermo_lab.experiments.target_context_pasym_swap import target_context_pasym_swap_spec
 from thermo_lab.model_context_pasym_swap_results import (
+    validate_model_context_pasym_swap_summary,
     validate_model_context_profile_result,
     validate_model_context_schedule_acceptance,
 )
@@ -78,3 +80,25 @@ def test_model_context_backend_cross_checks_all_model_kernels_with_thrml_samplin
         and all(sum(row) == 4096 for row in sample.sampled_k30.counts)
         for sample in sampled.profile_samples
     )
+
+
+def test_model_context_backend_emits_one_standard_run_record() -> None:
+    result = ThrmlModelContextPAsymSwapBackend().execute(model_context_pasym_swap_spec(seed=0))
+    record = result.record
+    summary = validate_model_context_pasym_swap_summary(
+        record.metrics["model_context_pasym_swap_summary"].value
+    )
+
+    assert record.backend_id is BackendId.THRML_LOCAL
+    assert record.evidence_class is EvidenceClass.SOFTWARE_SIMULATION
+    assert set(record.metrics) == {
+        "model_context_pasym_swap_summary",
+        "maximum_empirical_k30_residual",
+    }
+    assert record.metrics["maximum_empirical_k30_residual"].value == (
+        summary.maximum_empirical_k30_residual
+    )
+    assert summary.acceptance_passed
+    assert record.timing.synchronized
+    assert "148 keyed 4096-chain" in record.timing.timing_method
+    assert "excludes compilation" in record.timing.timing_method

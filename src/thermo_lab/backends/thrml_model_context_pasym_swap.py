@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +13,7 @@ import jax.numpy as jnp
 import numpy as np
 import thrml
 
+from thermo_lab.backends.base import ExecutionResult
 from thermo_lab.backends.thrml_pasym_swap import (
     SAMPLER_CACHE_KEY,
     compiled_sampler,
@@ -32,6 +34,7 @@ from thermo_lab.config import (
     load_experiment_config,
     model_context_pasym_swap_non_seed_config_hash,
 )
+from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.independent_compiler import CompiledKernelArtifact, CompilerSettings
 from thermo_lab.model_context import (
@@ -48,18 +51,30 @@ from thermo_lab.model_context_compiler import (
     compile_model_context,
 )
 from thermo_lab.model_context_pasym_swap_results import (
+    ConditionalTable,
     ModelContextProfileResult,
+    ModelContextProfileSampleResult,
     ModelContextScheduleAcceptance,
+    build_model_context_pasym_swap_summary,
     build_model_context_profile_result,
     derive_model_context_schedule_acceptance,
+    validate_model_context_pasym_swap_summary,
 )
-from thermo_lab.pasym_swap import WORD_ORDER, PAsymSwapTarget, build_paper_fixture
+from thermo_lab.pasym_swap import PAPER_SOURCE, WORD_ORDER, PAsymSwapTarget, build_paper_fixture
 from thermo_lab.pasym_swap_context import (
     PooledTargetContextProfile,
     derive_target_context_trace,
     pool_target_context_profiles,
 )
-from thermo_lab.records import ExperimentSpec
+from thermo_lab.provenance import collect_runtime_provenance
+from thermo_lab.records import (
+    RUN_TIMING_SOURCE,
+    ExperimentSpec,
+    MetricObservation,
+    RunRecord,
+    RunTiming,
+    build_run_record,
+)
 from thermo_lab.schemas import (
     ModelContextCompilerRunConfig,
     PAsymSwapModelConfig,
@@ -73,10 +88,19 @@ from thermo_lab.target_context_pasym_swap_results import (
 )
 from thermo_lab.thermodynamic_kernel import equilibrium_conditional
 
+_SUMMARY_METHOD = "bounded model-context PAsymSwap exact-plus-THRML study"
+_SAMPLE_METHOD = "independently seeded 4096-chain THRML cross-check"
+_TIMING_PREFIX = (
+    "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
+    "warm launch, then 148 keyed 4096-chain K=30 synchronized sampling launches; "
+    "excludes compilation, configuration loading, lineage reconstruction, exact evaluation, "
+    "provenance collection, persistence, aggregation, and reporting"
+)
+
 
 @dataclass(frozen=True)
 class ModelContextPreparedArtifacts:
-    """Checked, in-memory inputs for the later sampling and reporting slice."""
+    """Checked, in-memory inputs shared by exact evaluation and sampling."""
 
     baseline_artifacts: tuple[CompiledKernelArtifact, ...]
     target_context_artifacts: tuple[TargetContextCompiledKernelArtifact, ...]
@@ -101,6 +125,7 @@ class ModelContextProfileSample:
     target_hash: str
     profile_hash: str
     model_context_artifact_hash: str
+    exact_k30_conditional: ConditionalTable
     sampled_k30: SampledK30Evaluation
 
 
@@ -184,7 +209,10 @@ def _checked_model_artifact(
 
 
 class ThrmlModelContextPAsymSwapBackend:
-    """Own the checked deterministic lineage before sampling and runner integration."""
+    """Execute and publish the checked model-context PAsymSwap study."""
+
+    backend_id = BackendId.THRML_LOCAL
+    evidence_class = EvidenceClass.SOFTWARE_SIMULATION
 
     def __init__(self, repository_root: Path | None = None) -> None:
         self.repository_root = repository_root
@@ -242,11 +270,7 @@ class ThrmlModelContextPAsymSwapBackend:
         return model, run, request_hash, upstream
 
     def prepare(self, spec: ExperimentSpec) -> ModelContextPreparedArtifacts:
-        """Rebuild exact upstream artifacts and compile the one-pass model-context study.
-
-        This deliberately stops before THRML sampling, result validation, and runner protocol
-        integration, which belong to the next slice.
-        """
+        """Rebuild upstream artifacts and compile the one-pass model-context study."""
 
         model, run, _, upstream_spec = self.checked_request(spec)
         (
@@ -338,6 +362,16 @@ class ThrmlModelContextPAsymSwapBackend:
 
         model, run, _, _ = self.checked_request(spec)
         prepared = self.prepare(spec)
+        return self._evaluate_prepared(model, run, prepared)
+
+    def _evaluate_prepared(
+        self,
+        model: PAsymSwapModelConfig,
+        run: ModelContextCompilerRunConfig,
+        prepared: ModelContextPreparedArtifacts,
+    ) -> ModelContextExactEvidence:
+        """Derive exact evidence from one already checked compiled lineage."""
+
         fixture = build_paper_fixture()
         targets = {target.target_hash: target for target in fixture.targets}
         baseline_by_target = {
@@ -387,7 +421,20 @@ class ThrmlModelContextPAsymSwapBackend:
 
         model, run, _, _ = self.checked_request(spec)
         prepared = self.prepare(spec)
-        executable = self._executable(prepared.model_context_artifacts[0])
+        executable, _, _ = self._executable(prepared.model_context_artifacts[0])
+        evidence, _ = self._sample_prepared(spec, model, run, prepared, executable)
+        return evidence
+
+    def _sample_prepared(
+        self,
+        spec: ExperimentSpec,
+        model: PAsymSwapModelConfig,
+        run: ModelContextCompilerRunConfig,
+        prepared: ModelContextPreparedArtifacts,
+        executable: Callable[..., jax.Array],
+    ) -> tuple[ModelContextSamplingEvidence, float]:
+        """Sample one prepared lineage and return synchronized execution seconds."""
+
         root_key = jax.random.key(spec.seed)
         launches: list[
             tuple[
@@ -425,11 +472,13 @@ class ThrmlModelContextPAsymSwapBackend:
 
         _, _, biases, weights, keys, hidden, outputs, clamp = launches[0]
         executable(biases, weights, keys, hidden, outputs, clamp).block_until_ready()
+        started = time.perf_counter()
         observed = [
             (profile, input_index, executable(biases, weights, keys, hidden, outputs, clamp))
             for profile, input_index, biases, weights, keys, hidden, outputs, clamp in launches
         ]
         synchronize_tree([values for _, _, values in observed])
+        execution_seconds = time.perf_counter() - started
         counts: dict[str, list[tuple[int, int, int, int]]] = {
             profile.target_hash: [(0, 0, 0, 0)] * 4 for profile in prepared.model_profiles
         }
@@ -438,45 +487,138 @@ class ThrmlModelContextPAsymSwapBackend:
                 values, chain_count=run.chain_count_per_context
             )
         targets = {target.target_hash: target for target in build_paper_fixture().targets}
-        samples = tuple(
-            ModelContextProfileSample(
-                target_hash=profile.target_hash,
-                profile_hash=profile.profile_hash,
-                model_context_artifact_hash=artifact.artifact_hash,
-                sampled_k30=derive_sampled_k30_evaluation(
-                    counts[profile.target_hash],
-                    derive_exact_kernel_evaluation(
-                        artifact.parameters.values,
-                        targets[profile.target_hash].conditional,
-                        beta=model.beta,
-                    ).finite_horizon_conditionals[run.deployment_horizon],
-                    chain_count=run.chain_count_per_context,
-                ),
+        samples: list[ModelContextProfileSample] = []
+        for profile, artifact in zip(
+            prepared.model_profiles, prepared.model_context_artifacts, strict=True
+        ):
+            exact_k30 = derive_exact_kernel_evaluation(
+                artifact.parameters.values,
+                targets[profile.target_hash].conditional,
+                beta=model.beta,
+            ).finite_horizon_conditionals[run.deployment_horizon]
+            samples.append(
+                ModelContextProfileSample(
+                    target_hash=profile.target_hash,
+                    profile_hash=profile.profile_hash,
+                    model_context_artifact_hash=artifact.artifact_hash,
+                    exact_k30_conditional=exact_k30,
+                    sampled_k30=derive_sampled_k30_evaluation(
+                        counts[profile.target_hash],
+                        exact_k30,
+                        chain_count=run.chain_count_per_context,
+                    ),
+                )
             )
-            for profile, artifact in zip(
-                prepared.model_profiles, prepared.model_context_artifacts, strict=True
-            )
-        )
+        profile_samples = tuple(samples)
         maximum = max(
             residual
-            for sample in samples
+            for sample in profile_samples
             for residual in sample.sampled_k30.empirical_to_exact_k30_tv
         )
-        return ModelContextSamplingEvidence(
-            profile_samples=samples,
-            maximum_empirical_k30_residual=maximum,
-            passed=maximum <= run.thrml_k30_tv_tolerance,
+        return (
+            ModelContextSamplingEvidence(
+                profile_samples=profile_samples,
+                maximum_empirical_k30_residual=maximum,
+                passed=maximum <= run.thrml_k30_tv_tolerance,
+            ),
+            execution_seconds,
         )
 
-    def _executable(self, exemplar: ModelContextCompiledKernelArtifact) -> Callable[..., jax.Array]:
+    def _executable(
+        self, exemplar: ModelContextCompiledKernelArtifact
+    ) -> tuple[Callable[..., jax.Array], float, bool]:
         cached = self._sampler_cache.get(SAMPLER_CACHE_KEY)
         if cached is not None:
-            return cached
+            return cached, 0.0, True
         biases, weights = parameters_for_thrml(exemplar.parameters)
-        executable, _, _ = compiled_sampler(
+        return compiled_sampler(
             self._sampler_cache, biases, weights, sampler_factory=shared_sampler
         )
-        return executable
+
+    @staticmethod
+    def _publication_samples(
+        sampled: ModelContextSamplingEvidence,
+    ) -> tuple[ModelContextProfileSampleResult, ...]:
+        return tuple(
+            ModelContextProfileSampleResult(
+                target_hash=sample.target_hash,
+                profile_hash=sample.profile_hash,
+                model_context_artifact_hash=sample.model_context_artifact_hash,
+                exact_k30_conditional=sample.exact_k30_conditional,
+                sampled_k30=sample.sampled_k30,
+            )
+            for sample in sampled.profile_samples
+        )
+
+    def run(self, spec: ExperimentSpec) -> RunRecord:
+        """Execute one checked request and return its immutable run record."""
+
+        return self.execute(spec).record
+
+    def execute(self, spec: ExperimentSpec) -> ExecutionResult:
+        """Compile once, sample once, and publish strict exact-plus-empirical evidence."""
+
+        model, run, request_hash, _ = self.checked_request(spec)
+        prepared = self.prepare(spec)
+        exact = self._evaluate_prepared(model, run, prepared)
+        executable, compile_seconds, reused_executable = self._executable(
+            prepared.model_context_artifacts[0]
+        )
+        sampled, execution_seconds = self._sample_prepared(spec, model, run, prepared, executable)
+        summary = validate_model_context_pasym_swap_summary(
+            build_model_context_pasym_swap_summary(
+                request_hash=request_hash,
+                profile_results=exact.profile_results,
+                schedule_acceptance=exact.acceptance,
+                profile_samples=self._publication_samples(sampled),
+                thrml_k30_tv_tolerance=run.thrml_k30_tv_tolerance,
+            )
+        )
+        if not summary.acceptance_passed:
+            raise RuntimeError(
+                "model-context acceptance failed "
+                f"seed={spec.seed} exact={summary.exact_acceptance_passed} "
+                f"empirical={summary.empirical_acceptance_passed} "
+                f"maximum_empirical_k30_residual={summary.maximum_empirical_k30_residual} "
+                f"bound={summary.thrml_k30_tv_tolerance}"
+            )
+
+        timing_method = _TIMING_PREFIX
+        if reused_executable:
+            timing_method += "; JAX executable reused from in-process shape cache"
+        else:
+            timing_method += "; JAX lower().compile() measured once for shared shapes"
+        metrics = {
+            "model_context_pasym_swap_summary": MetricObservation(
+                value=summary,
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=_SUMMARY_METHOD,
+                source=PAPER_SOURCE,
+            ),
+            "maximum_empirical_k30_residual": MetricObservation(
+                value=summary.maximum_empirical_k30_residual,
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method=_SAMPLE_METHOD,
+                source=PAPER_SOURCE,
+            ),
+        }
+        record = build_run_record(
+            backend_id=self.backend_id,
+            evidence_class=self.evidence_class,
+            spec=spec,
+            provenance=collect_runtime_provenance(self.repository_root),
+            timing=RunTiming(
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                unit="seconds",
+                source=RUN_TIMING_SOURCE,
+                compile_seconds=compile_seconds,
+                execution_seconds=execution_seconds,
+                synchronized=True,
+                timing_method=timing_method,
+            ),
+            metrics=metrics,
+        )
+        return ExecutionResult.build(record)
 
     @staticmethod
     def _profile_result(

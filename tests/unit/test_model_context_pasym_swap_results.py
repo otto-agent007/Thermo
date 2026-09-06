@@ -2,6 +2,7 @@
 
 import pytest
 
+import thermo_lab.model_context_pasym_swap_results as results_module
 from thermo_lab.hashing import canonical_sha256
 from thermo_lab.model_context_pasym_swap_results import (
     build_model_context_profile_result,
@@ -10,6 +11,7 @@ from thermo_lab.model_context_pasym_swap_results import (
     validate_model_context_profile_result,
     validate_model_context_schedule_acceptance,
 )
+from thermo_lab.target_context_pasym_swap_results import derive_sampled_k30_evaluation
 
 
 def test_model_context_acceptance_uses_occurrence_weighted_improvement() -> None:
@@ -33,7 +35,7 @@ def _identity_table() -> tuple[tuple[float, float, float, float], ...]:
     )
 
 
-def _profile_result(label: str = "one", multiplicity: int = 10):
+def _profile_result(label: str = "one", multiplicity: int = 10, *, trace_hash: str | None = None):
     target = _identity_table()
     target_context = ((0.75, 0.25, 0.0, 0.0), (0.5, 0.5, 0.0, 0.0), target[2], target[3])
     model_context = ((0.5, 0.5, 0.0, 0.0), target[1], target[2], target[3])
@@ -41,7 +43,7 @@ def _profile_result(label: str = "one", multiplicity: int = 10):
         target_hash=_sha(f"target:{label}"),
         target_profile_hash=_sha(f"target-profile:{label}"),
         model_profile_hash=_sha(f"model-profile:{label}"),
-        model_trace_hash=_sha(f"trace:{label}"),
+        model_trace_hash=trace_hash or _sha(f"trace:{label}"),
         upstream_target_context_artifact_hash=_sha(f"upstream:{label}"),
         multiplicity=multiplicity,
         target_profile_weights=(1.0, 0.0, 0.0, 0.0),
@@ -143,3 +145,102 @@ def test_schedule_acceptance_requires_all_37_profiles_and_500_occurrences() -> N
     forged = acceptance.model_copy(update={"target_profile_degradation_count": 0})
     with pytest.raises(ValueError, match="target_profile_degradation_count"):
         validate_model_context_schedule_acceptance(forged, profiles)
+
+
+def _publication_evidence():
+    trace_hash = _sha("publication-trace")
+    profiles = (
+        tuple(_profile_result(f"ten:{index}", 10, trace_hash=trace_hash) for index in range(26))
+        + tuple(_profile_result(f"twenty:{index}", 20, trace_hash=trace_hash) for index in range(9))
+        + tuple(_profile_result(f"thirty:{index}", 30, trace_hash=trace_hash) for index in range(2))
+    )
+    ordered = tuple(sorted(profiles, key=lambda item: item.target_hash))
+    exact_k30 = (
+        (0.47, 0.53, 0.0, 0.0),
+        (0.0, 1.0, 0.0, 0.0),
+        (0.0, 0.0, 1.0, 0.0),
+        (0.0, 0.0, 0.0, 1.0),
+    )
+    counts = (
+        (1925, 2171, 0, 0),
+        (0, 4096, 0, 0),
+        (0, 0, 4096, 0),
+        (0, 0, 0, 4096),
+    )
+    samples = tuple(
+        results_module.ModelContextProfileSampleResult(
+            target_hash=profile.target_hash,
+            profile_hash=profile.model_profile_hash,
+            model_context_artifact_hash=profile.model_context.artifact_hash,
+            exact_k30_conditional=exact_k30,
+            sampled_k30=derive_sampled_k30_evaluation(counts, exact_k30),
+        )
+        for profile in ordered
+    )
+    return ordered, derive_model_context_schedule_acceptance(ordered), samples
+
+
+def _publication_summary():
+    profiles, acceptance, samples = _publication_evidence()
+    return results_module.build_model_context_pasym_swap_summary(
+        request_hash=_sha("request"),
+        profile_results=profiles,
+        schedule_acceptance=acceptance,
+        profile_samples=samples,
+        thrml_k30_tv_tolerance=0.10,
+    )
+
+
+def test_model_context_publication_summary_round_trips_strict_evidence() -> None:
+    summary = _publication_summary()
+
+    assert (
+        results_module.validate_model_context_pasym_swap_summary(summary.model_dump(mode="json"))
+        == summary
+    )
+    assert len(summary.profile_results) == 37
+    assert len(summary.profile_samples) == 37
+    assert summary.model_trace_hash == _sha("publication-trace")
+    assert summary.acceptance_passed
+
+
+def test_model_context_publication_summary_rejects_changed_integer_count() -> None:
+    payload = _publication_summary().model_dump(mode="json")
+    payload["profile_samples"][0]["sampled_k30"]["counts"][0][0] -= 1
+    payload["profile_samples"][0]["sampled_k30"]["counts"][0][1] += 1
+
+    with pytest.raises(ValueError, match="conditional|residual"):
+        results_module.validate_model_context_pasym_swap_summary(payload)
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda payload: payload["profile_samples"][0].__setitem__(
+                "model_context_artifact_hash", _sha("forged-artifact")
+            ),
+            "model_context_artifact_hash",
+        ),
+        (
+            lambda payload: payload.__setitem__("maximum_empirical_k30_residual", 0.0),
+            "maximum_empirical_k30_residual",
+        ),
+        (
+            lambda payload: payload.__setitem__("empirical_acceptance_passed", False),
+            "empirical_acceptance_passed",
+        ),
+        (
+            lambda payload: payload.__setitem__("thrml_k30_tv_tolerance", 0.01),
+            "summary_hash",
+        ),
+    ],
+)
+def test_model_context_publication_summary_rejects_top_level_tampering(
+    mutate, message: str
+) -> None:
+    payload = _publication_summary().model_dump(mode="json")
+    mutate(payload)
+
+    with pytest.raises(ValueError, match=message):
+        results_module.validate_model_context_pasym_swap_summary(payload)

@@ -12,6 +12,7 @@ from thermo_lab.aggregate import (
     aggregate_run_records,
 )
 from thermo_lab.config import (
+    MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     ExperimentConfig,
     dump_experiment_config,
@@ -74,6 +75,7 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
     from thermo_lab.backends import (
         ThrmlIndependentPAsymSwapBackend,
         ThrmlLocalBackend,
+        ThrmlModelContextPAsymSwapBackend,
         ThrmlTargetContextPAsymSwapBackend,
         TorxStateVectorBackend,
         TorxWeightedGraphWalkBackend,
@@ -85,6 +87,8 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
         return ThrmlIndependentPAsymSwapBackend(repository_root)
     if config.experiment_id == TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
         return ThrmlTargetContextPAsymSwapBackend(repository_root)
+    if config.experiment_id == MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        return ThrmlModelContextPAsymSwapBackend(repository_root)
     if config.backend is BackendId.TORX_STATEVECTOR:
         return TorxStateVectorBackend(repository_root)
     if config.backend is BackendId.THRML_LOCAL:
