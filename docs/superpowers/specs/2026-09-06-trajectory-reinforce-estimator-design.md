@@ -176,8 +176,16 @@ The scalar objective is
 D(phi) = sum_i (m_i(phi) - t_i)^2.
 ```
 
-Record terminal target/model occupancies, total target/model occupancy,
-particle-number leakage, and the scalar objective. Only the objective defines
+Persist each terminal distribution over all eight visible states in binary
+lexicographic order. With `N(z) = z[0] + z[1] + z[2]`, derive separately:
+
+- particle-number leakage `P(N != 1)`, a probability in `[0, 1]`; and
+- signed expected mass drift `E[N] - 1`, which can vanish despite leakage.
+
+Record these quantities for both target and model, alongside terminal
+occupancies, total expected occupancy, and the scalar objective. Recompute
+them from the persisted terminal distributions during validation; never infer
+leakage from occupancy means alone. Only the objective defines
 the gradient. Leakage is a required diagnostic and is not silently projected
 away by conditioning onto the one-particle sector.
 
@@ -223,6 +231,14 @@ and relative tolerance.
 
 ### Central finite-difference gradient
 
+Define the untied objective `D_u(phi_0, phi_1)` using the same composition but
+separate parameter vectors for the two occurrences, with the target `t` fixed.
+The tied objective is `D(phi) = D_u(phi, phi)`. For each occurrence `ell` and
+parameter `j`, compute the central difference of `D_u` perturbing only
+`phi_ell[j]`, evaluated at `(phi_0, phi_1) = (phi, phi)`. Persist both occurrence
+vectors and their component-wise sum. Independently compute the tied derivative
+by perturbing both occurrences together:
+
 Recompute the scalar objective at `phi_j + h` and `phi_j - h` for each of the
 nine shared parameters, using a checked `h = 1e-6` and no score-function code.
 The finite-difference vector is
@@ -239,6 +255,11 @@ validation tolerance, not an exact-identity tolerance. The checked maximum
 absolute tolerance is `1e-7`; the design fixture has been confirmed to remain
 well inside the parameter cap under both perturbations and to produce a
 nonzero objective and nonzero gradient components.
+
+Require each untied finite-difference occurrence vector to agree with its exact
+score contribution, its sum to agree with the exact shared gradient, and the
+independently computed tied finite difference to agree with both shared sums,
+all within the checked maximum absolute tolerance `1e-7`.
 
 ## Seeded Monte Carlo Cross-Check
 
@@ -261,6 +282,20 @@ sample mean, unbiased component variance, standard error, absolute error from
 the exact expected estimator, and maximum absolute error from those aggregates.
 Do not persist per-trajectory samples or RNG state.
 
+Also persist the nine component-wise cross-product sums
+`C_j = sum_n g_hat_0[n,j] * g_hat_1[n,j]`. Derive the shared sum of squares as
+`Q_shared,j = Q_0,j + Q_1,j + 2*C_j`; it is not `Q_0,j + Q_1,j`.
+For sample count `B`, sum `S`, and sum of squares `Q`, derive unbiased sample
+variance `(Q - S*S/B)/(B - 1)` and standard error `sqrt(variance/B)`.
+Require `B >= 2`, finite aggregates, nonnegative sums of squares, and the
+Cauchy-Schwarz consistency bounds on centered cross-products. Specify a
+scale-aware floating-point tolerance for roundoff in these identities during
+implementation; reject material violations and document any roundoff-only
+zeroing before square roots. Recompute shared moments from occurrence moments
+and cross-products on reload rather than trusting independently supplied shared
+variance. Cross-products are source observations, not derivable from the two
+occurrence marginal moments or authenticated merely by a digest.
+
 The stochastic comparison is deliberately non-gating. Its purpose is to show
 the estimator's scale and variance and to detect gross sampling mistakes during
 development. Exact enumeration, not a confidence interval that can fail by
@@ -279,8 +314,10 @@ context-matching schemas. The deterministic reference contains:
 - target edge, target probabilities, target conditional, and target hash;
 - shared model parameters, beta, cap, finite-difference step, and tolerances;
 - exact target/model terminal occupancy and leakage diagnostics;
+- eight-state terminal distributions and separately derived signed mass drift;
 - scalar objective and effective-reward coefficient;
 - both occurrence gradients and shared gradient from all three oracles;
+- the independent tied finite-difference vector and its comparison errors;
 - component-wise comparison errors and exact acceptance; and
 - a deterministic-result digest over all preceding scientific fields.
 
@@ -289,6 +326,7 @@ Each seeded sample result contains:
 - the deterministic-result digest and seed;
 - checked batch size and exact sample definition;
 - occurrence and shared sufficient aggregates;
+- component-wise cross-product sums between the two occurrence estimates;
 - recomputed means, variances, standard errors, and errors; and
 - a per-seed digest that includes the source aggregates.
 
@@ -368,11 +406,15 @@ Write tests before implementation for:
 - exact normalization and hidden marginalization for all four inputs;
 - canonical two-occurrence state propagation and untouched-site behavior;
 - target terminal occupancy from a small direct calculation;
+- leakage and signed mass drift from terminal distributions, including equal
+  probability on `000` and `110` (zero mass drift but leakage one);
 - exact model objective from independent brute-force trajectory enumeration;
 - occurrence-local score gradients and their shared-parameter sum;
 - the 4096-state one-reference expectation identity;
 - a failure when a reference is drawn from a different parent or propagated;
 - central finite differences that cannot call score-gradient code;
+- untied occurrence finite differences, their sum, and the independently
+  perturbed tied finite difference agreeing with the exact score gradients;
 - beta handling, including a test that would fail if the score omits beta when
   a non-unit test-only beta is used;
 - parameter-sharing accumulation versus an intentionally untied comparison;
@@ -380,6 +422,8 @@ Write tests before implementation for:
 - sufficient-aggregate algebra and deep reload rejection after representative
   tampering with counts, sums, sums of squares, derived errors, hashes, vector
   ordering, pass flags, or tolerances;
+- shared variance with nonzero occurrence covariance, tampered cross-products,
+  inconsistent shared second moments, and invalid centered-moment bounds;
 - report generation from reloaded records without sampling or optimization;
 - evidence labels, non-gating Monte Carlo language, and all excluded claims;
 - per-seed failure behavior and atomic report/aggregate publication; and
