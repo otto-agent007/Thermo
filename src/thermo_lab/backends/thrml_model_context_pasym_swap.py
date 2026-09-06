@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+import jax
+import jax.numpy as jnp
 import numpy as np
 import thrml
 
+from thermo_lab.backends.thrml_pasym_swap import (
+    SAMPLER_CACHE_KEY,
+    compiled_sampler,
+    fold_digest,
+    output_word_counts,
+    parameters_for_thrml,
+    shared_sampler,
+    synchronize_tree,
+    uniform_free_state,
+)
 from thermo_lab.backends.thrml_target_context_pasym_swap import (
     ThrmlTargetContextPAsymSwapBackend,
 )
@@ -40,7 +53,7 @@ from thermo_lab.model_context_pasym_swap_results import (
     build_model_context_profile_result,
     derive_model_context_schedule_acceptance,
 )
-from thermo_lab.pasym_swap import PAsymSwapTarget, build_paper_fixture
+from thermo_lab.pasym_swap import WORD_ORDER, PAsymSwapTarget, build_paper_fixture
 from thermo_lab.pasym_swap_context import (
     PooledTargetContextProfile,
     derive_target_context_trace,
@@ -53,7 +66,11 @@ from thermo_lab.schemas import (
     validate_model_context_pasym_swap_request,
 )
 from thermo_lab.target_context_compiler import TargetContextCompiledKernelArtifact
-from thermo_lab.target_context_pasym_swap_results import derive_exact_kernel_evaluation
+from thermo_lab.target_context_pasym_swap_results import (
+    SampledK30Evaluation,
+    derive_exact_kernel_evaluation,
+    derive_sampled_k30_evaluation,
+)
 from thermo_lab.thermodynamic_kernel import equilibrium_conditional
 
 
@@ -75,6 +92,41 @@ class ModelContextExactEvidence:
 
     profile_results: tuple[ModelContextProfileResult, ...]
     acceptance: ModelContextScheduleAcceptance
+
+
+@dataclass(frozen=True)
+class ModelContextProfileSample:
+    """One keyed THRML cross-check for a frozen model-context artifact."""
+
+    target_hash: str
+    profile_hash: str
+    model_context_artifact_hash: str
+    sampled_k30: SampledK30Evaluation
+
+
+@dataclass(frozen=True)
+class ModelContextSamplingEvidence:
+    """Non-persisted empirical fidelity evidence for the 37 model profiles."""
+
+    profile_samples: tuple[ModelContextProfileSample, ...]
+    maximum_empirical_k30_residual: float
+    passed: bool
+
+
+def model_context_artifact_keys(
+    root_key: jax.Array,
+    target_hash: str,
+    profile_hash: str,
+    input_index: int,
+) -> tuple[jax.Array, jax.Array]:
+    """Derive stable model-profile/input initialization and sampling keys."""
+
+    if type(input_index) is not int or input_index not in range(4):
+        raise ValueError("input_index must be a canonical two-bit input index")
+    key = fold_digest(root_key, target_hash, name="target_hash")
+    key = fold_digest(key, profile_hash, name="profile_hash")
+    key = jax.random.fold_in(key, input_index)
+    return jax.random.split(key)
 
 
 def _model_settings(
@@ -137,6 +189,7 @@ class ThrmlModelContextPAsymSwapBackend:
     def __init__(self, repository_root: Path | None = None) -> None:
         self.repository_root = repository_root
         self._target_backend = ThrmlTargetContextPAsymSwapBackend(repository_root)
+        self._sampler_cache: dict[tuple[object, ...], Callable[..., jax.Array]] = {}
 
     def checked_request(
         self, spec: ExperimentSpec
@@ -328,6 +381,102 @@ class ThrmlModelContextPAsymSwapBackend:
                 minimum_improvement=run.minimum_occurrence_weighted_kl_improvement,
             ),
         )
+
+    def sample(self, spec: ExperimentSpec) -> ModelContextSamplingEvidence:
+        """Cross-check each frozen model kernel against exact k=30 conditionals."""
+
+        model, run, _, _ = self.checked_request(spec)
+        prepared = self.prepare(spec)
+        executable = self._executable(prepared.model_context_artifacts[0])
+        root_key = jax.random.key(spec.seed)
+        launches: list[
+            tuple[
+                PooledModelContextProfile,
+                int,
+                jax.Array,
+                jax.Array,
+                jax.Array,
+                jax.Array,
+                jax.Array,
+                jax.Array,
+            ]
+        ] = []
+        for profile, artifact in zip(
+            prepared.model_profiles, prepared.model_context_artifacts, strict=True
+        ):
+            biases, weights = parameters_for_thrml(artifact.parameters)
+            for input_index, bits in enumerate(WORD_ORDER):
+                init_key, sampling_key = model_context_artifact_keys(
+                    root_key, profile.target_hash, profile.profile_hash, input_index
+                )
+                hidden, outputs = uniform_free_state(
+                    init_key, chain_count=run.chain_count_per_context
+                )
+                keys = jax.random.split(sampling_key, run.chain_count_per_context)
+                clamp = jnp.broadcast_to(
+                    jnp.asarray(bits, dtype=jnp.bool_),
+                    (run.chain_count_per_context, 2),
+                )
+                launches.append(
+                    (profile, input_index, biases, weights, keys, hidden, outputs, clamp)
+                )
+        if len(launches) != 148:
+            raise RuntimeError(f"model-context launch count observed={len(launches)} bound=148")
+
+        _, _, biases, weights, keys, hidden, outputs, clamp = launches[0]
+        executable(biases, weights, keys, hidden, outputs, clamp).block_until_ready()
+        observed = [
+            (profile, input_index, executable(biases, weights, keys, hidden, outputs, clamp))
+            for profile, input_index, biases, weights, keys, hidden, outputs, clamp in launches
+        ]
+        synchronize_tree([values for _, _, values in observed])
+        counts: dict[str, list[tuple[int, int, int, int]]] = {
+            profile.target_hash: [(0, 0, 0, 0)] * 4 for profile in prepared.model_profiles
+        }
+        for profile, input_index, values in observed:
+            counts[profile.target_hash][input_index] = output_word_counts(
+                values, chain_count=run.chain_count_per_context
+            )
+        targets = {target.target_hash: target for target in build_paper_fixture().targets}
+        samples = tuple(
+            ModelContextProfileSample(
+                target_hash=profile.target_hash,
+                profile_hash=profile.profile_hash,
+                model_context_artifact_hash=artifact.artifact_hash,
+                sampled_k30=derive_sampled_k30_evaluation(
+                    counts[profile.target_hash],
+                    derive_exact_kernel_evaluation(
+                        artifact.parameters.values,
+                        targets[profile.target_hash].conditional,
+                        beta=model.beta,
+                    ).finite_horizon_conditionals[run.deployment_horizon],
+                    chain_count=run.chain_count_per_context,
+                ),
+            )
+            for profile, artifact in zip(
+                prepared.model_profiles, prepared.model_context_artifacts, strict=True
+            )
+        )
+        maximum = max(
+            residual
+            for sample in samples
+            for residual in sample.sampled_k30.empirical_to_exact_k30_tv
+        )
+        return ModelContextSamplingEvidence(
+            profile_samples=samples,
+            maximum_empirical_k30_residual=maximum,
+            passed=maximum <= run.thrml_k30_tv_tolerance,
+        )
+
+    def _executable(self, exemplar: ModelContextCompiledKernelArtifact) -> Callable[..., jax.Array]:
+        cached = self._sampler_cache.get(SAMPLER_CACHE_KEY)
+        if cached is not None:
+            return cached
+        biases, weights = parameters_for_thrml(exemplar.parameters)
+        executable, _, _ = compiled_sampler(
+            self._sampler_cache, biases, weights, sampler_factory=shared_sampler
+        )
+        return executable
 
     @staticmethod
     def _profile_result(

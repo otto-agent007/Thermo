@@ -65,3 +65,16 @@ def test_model_context_backend_derives_checked_exact_profile_and_schedule_eviden
         validate_model_context_schedule_acceptance(evidence.acceptance, evidence.profile_results)
         == evidence.acceptance
     )
+
+
+def test_model_context_backend_cross_checks_all_model_kernels_with_thrml_sampling() -> None:
+    sampled = ThrmlModelContextPAsymSwapBackend().sample(model_context_pasym_swap_spec(seed=0))
+
+    assert len(sampled.profile_samples) == 37
+    assert sampled.maximum_empirical_k30_residual <= 0.10
+    assert sampled.passed
+    assert all(
+        sample.model_context_artifact_hash
+        and all(sum(row) == 4096 for row in sample.sampled_k30.counts)
+        for sample in sampled.profile_samples
+    )
