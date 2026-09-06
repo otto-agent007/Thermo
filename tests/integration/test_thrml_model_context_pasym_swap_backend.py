@@ -8,6 +8,10 @@ from thermo_lab.backends.thrml_model_context_pasym_swap import (
 from thermo_lab.config import model_context_pasym_swap_non_seed_config_hash
 from thermo_lab.experiments.model_context_pasym_swap import model_context_pasym_swap_spec
 from thermo_lab.experiments.target_context_pasym_swap import target_context_pasym_swap_spec
+from thermo_lab.model_context_pasym_swap_results import (
+    validate_model_context_profile_result,
+    validate_model_context_schedule_acceptance,
+)
 
 
 def test_model_context_backend_accepts_only_the_checked_model_context_request() -> None:
@@ -41,4 +45,23 @@ def test_model_context_backend_rebuilds_one_upstream_lineage_and_compiles_37_pro
         for artifact, profile in zip(
             prepared.model_context_artifacts, prepared.model_profiles, strict=True
         )
+    )
+
+
+def test_model_context_backend_derives_checked_exact_profile_and_schedule_evidence() -> None:
+    evidence = ThrmlModelContextPAsymSwapBackend().evaluate(model_context_pasym_swap_spec(seed=0))
+
+    assert len(evidence.profile_results) == 37
+    assert evidence.acceptance.occurrence_count == 500
+    assert evidence.acceptance.profile_count == 37
+    assert evidence.acceptance.model_context_optimizer_endpoints_passed
+    assert evidence.acceptance.exact_k30_acceptance_passed
+    assert evidence.acceptance.passed
+    assert all(
+        validate_model_context_profile_result(profile) == profile
+        for profile in evidence.profile_results
+    )
+    assert (
+        validate_model_context_schedule_acceptance(evidence.acceptance, evidence.profile_results)
+        == evidence.acceptance
     )

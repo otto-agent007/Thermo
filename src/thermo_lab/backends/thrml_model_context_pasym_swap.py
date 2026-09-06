@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,9 +20,10 @@ from thermo_lab.config import (
     model_context_pasym_swap_non_seed_config_hash,
 )
 from thermo_lab.hashing import canonical_sha256, to_json_value
-from thermo_lab.independent_compiler import CompilerSettings
+from thermo_lab.independent_compiler import CompiledKernelArtifact, CompilerSettings
 from thermo_lab.model_context import (
     ModelContextArtifact,
+    ModelContextOccurrence,
     ModelContextTrace,
     PooledModelContextProfile,
     derive_model_context_trace,
@@ -32,8 +34,18 @@ from thermo_lab.model_context_compiler import (
     ModelContextCompiledKernelArtifact,
     compile_model_context,
 )
+from thermo_lab.model_context_pasym_swap_results import (
+    ModelContextProfileResult,
+    ModelContextScheduleAcceptance,
+    build_model_context_profile_result,
+    derive_model_context_schedule_acceptance,
+)
 from thermo_lab.pasym_swap import PAsymSwapTarget, build_paper_fixture
-from thermo_lab.pasym_swap_context import derive_target_context_trace, pool_target_context_profiles
+from thermo_lab.pasym_swap_context import (
+    PooledTargetContextProfile,
+    derive_target_context_trace,
+    pool_target_context_profiles,
+)
 from thermo_lab.records import ExperimentSpec
 from thermo_lab.schemas import (
     ModelContextCompilerRunConfig,
@@ -41,6 +53,7 @@ from thermo_lab.schemas import (
     validate_model_context_pasym_swap_request,
 )
 from thermo_lab.target_context_compiler import TargetContextCompiledKernelArtifact
+from thermo_lab.target_context_pasym_swap_results import derive_exact_kernel_evaluation
 from thermo_lab.thermodynamic_kernel import equilibrium_conditional
 
 
@@ -48,10 +61,20 @@ from thermo_lab.thermodynamic_kernel import equilibrium_conditional
 class ModelContextPreparedArtifacts:
     """Checked, in-memory inputs for the later sampling and reporting slice."""
 
+    baseline_artifacts: tuple[CompiledKernelArtifact, ...]
     target_context_artifacts: tuple[TargetContextCompiledKernelArtifact, ...]
+    target_profiles: tuple[PooledTargetContextProfile, ...]
     model_trace: ModelContextTrace
     model_profiles: tuple[PooledModelContextProfile, ...]
     model_context_artifacts: tuple[ModelContextCompiledKernelArtifact, ...]
+
+
+@dataclass(frozen=True)
+class ModelContextExactEvidence:
+    """Exact, non-sampled profile evidence and checked schedule acceptance."""
+
+    profile_results: tuple[ModelContextProfileResult, ...]
+    acceptance: ModelContextScheduleAcceptance
 
 
 def _model_settings(
@@ -249,8 +272,132 @@ class ThrmlModelContextPAsymSwapBackend:
             for profile in model_profiles
         )
         return ModelContextPreparedArtifacts(
+            baseline_artifacts=baselines,
             target_context_artifacts=target_artifacts,
+            target_profiles=target_profiles,
             model_trace=model_trace,
             model_profiles=model_profiles,
             model_context_artifacts=model_artifacts,
+        )
+
+    def evaluate(self, spec: ExperimentSpec) -> ModelContextExactEvidence:
+        """Derive the checked exact three-way evidence without THRML sampling."""
+
+        model, run, _, _ = self.checked_request(spec)
+        prepared = self.prepare(spec)
+        fixture = build_paper_fixture()
+        targets = {target.target_hash: target for target in fixture.targets}
+        baseline_by_target = {
+            artifact.target_hash: artifact for artifact in prepared.baseline_artifacts
+        }
+        target_by_target = {
+            artifact.target_hash: artifact for artifact in prepared.target_context_artifacts
+        }
+        target_profile_by_target = {
+            profile.target_hash: profile for profile in prepared.target_profiles
+        }
+        occurrences_by_target = {
+            target_hash: tuple(
+                occurrence
+                for occurrence in prepared.model_trace.occurrences
+                if occurrence.target_hash == target_hash
+            )
+            for target_hash in target_profile_by_target
+        }
+        results = tuple(
+            self._profile_result(
+                model=model,
+                run=run,
+                target=targets[profile.target_hash],
+                baseline=baseline_by_target[profile.target_hash],
+                target_context=target_by_target[profile.target_hash],
+                target_profile=target_profile_by_target[profile.target_hash],
+                model_profile=profile,
+                model_occurrences=occurrences_by_target[profile.target_hash],
+                model_artifact=artifact,
+            )
+            for profile, artifact in zip(
+                prepared.model_profiles, prepared.model_context_artifacts, strict=True
+            )
+        )
+        return ModelContextExactEvidence(
+            profile_results=results,
+            acceptance=derive_model_context_schedule_acceptance(
+                results,
+                non_regression_tolerance=run.profile_kl_non_regression_tolerance,
+                minimum_improvement=run.minimum_occurrence_weighted_kl_improvement,
+            ),
+        )
+
+    @staticmethod
+    def _profile_result(
+        *,
+        model: PAsymSwapModelConfig,
+        run: ModelContextCompilerRunConfig,
+        target: PAsymSwapTarget,
+        baseline: CompiledKernelArtifact,
+        target_context: TargetContextCompiledKernelArtifact,
+        target_profile: PooledTargetContextProfile,
+        model_profile: PooledModelContextProfile,
+        model_occurrences: tuple[ModelContextOccurrence, ...],
+        model_artifact: ModelContextCompiledKernelArtifact,
+    ) -> ModelContextProfileResult:
+        if (
+            baseline.target_hash != target.target_hash
+            or target_context.target_hash != target.target_hash
+            or model_profile.target_hash != target.target_hash
+            or target_profile.target_hash != target.target_hash
+            or model_artifact.target_hash != target.target_hash
+            or model_artifact.target_context_artifact_hash != target_context.artifact_hash
+            or model_profile.upstream_artifact_hash != target_context.artifact_hash
+            or len(model_occurrences) != model_profile.multiplicity
+        ):
+            raise ValueError("profile evidence has mismatched checked lineage")
+        baseline_exact = derive_exact_kernel_evaluation(
+            baseline.parameters.values, target.conditional, beta=model.beta
+        )
+        target_exact = derive_exact_kernel_evaluation(
+            target_context.parameters.values, target.conditional, beta=model.beta
+        )
+        model_exact = derive_exact_kernel_evaluation(
+            model_artifact.parameters.values, target.conditional, beta=model.beta
+        )
+
+        def residual(exact, horizon: int) -> float:
+            return float(max(exact.finite_horizon_to_equilibrium_tv[horizon]))
+
+        return build_model_context_profile_result(
+            target_hash=target.target_hash,
+            target_profile_hash=target_profile.profile_hash,
+            model_profile_hash=model_profile.profile_hash,
+            model_trace_hash=model_profile.trace_hash,
+            upstream_target_context_artifact_hash=target_context.artifact_hash,
+            multiplicity=model_profile.multiplicity,
+            target_profile_weights=target_profile.context_weights,
+            model_profile_weights=model_profile.context_weights,
+            target_conditional=target.conditional,
+            uniform_artifact_hash=baseline.artifact_hash,
+            uniform_conditional=baseline_exact.equilibrium_conditional,
+            target_context_artifact_hash=target_context.artifact_hash,
+            target_context_conditional=target_exact.equilibrium_conditional,
+            model_context_artifact_hash=model_artifact.artifact_hash,
+            model_context_conditional=model_exact.equilibrium_conditional,
+            model_trace_expected_occupancy_before=math.fsum(
+                occurrence.expected_occupancy_before for occurrence in model_occurrences
+            )
+            / model_profile.multiplicity,
+            model_trace_expected_occupancy_after=math.fsum(
+                occurrence.expected_occupancy_after for occurrence in model_occurrences
+            )
+            / model_profile.multiplicity,
+            target_context_k1_residual=residual(target_exact, 1),
+            target_context_k30_residual=residual(target_exact, 30),
+            model_context_k1_residual=residual(model_exact, 1),
+            model_context_k30_residual=residual(model_exact, 30),
+            model_context_optimizer_endpoint_passed=model_artifact.attempts[
+                model_artifact.selected_start_index
+            ].passed_checks,
+            non_regression_tolerance=run.profile_kl_non_regression_tolerance,
+            minimum_improvement=run.minimum_occurrence_weighted_kl_improvement,
+            k30_tolerance=run.k30_equilibrium_tv_tolerance,
         )
