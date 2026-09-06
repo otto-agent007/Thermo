@@ -18,7 +18,12 @@ from pydantic import (
 
 from thermo_lab.hashing import canonical_sha256
 from thermo_lab.records import FrozenModel
-from thermo_lab.target_context_pasym_swap_results import context_weighted_kl, context_weighted_tv
+from thermo_lab.target_context_pasym_swap_results import (
+    SampledK30Evaluation,
+    context_weighted_kl,
+    context_weighted_tv,
+    derive_sampled_k30_evaluation,
+)
 
 _SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 _TOLERANCE = 1e-12
@@ -544,5 +549,227 @@ def validate_model_context_schedule_acceptance(
         "passed",
     ):
         if getattr(parsed, name) != getattr(expected, name):
+            raise ValueError(f"persisted value differs at {name}")
+    return parsed
+
+
+class ModelContextProfileSampleResult(_StrictFrozenResultModel):
+    """Persisted exact reference and sampled K=30 evidence for one model profile."""
+
+    target_hash: str
+    profile_hash: str
+    model_context_artifact_hash: str
+    exact_k30_conditional: ConditionalTable
+    sampled_k30: SampledK30Evaluation
+
+    @field_validator("exact_k30_conditional", mode="before")
+    @classmethod
+    def normalize_exact_k30(cls, value: object) -> ConditionalTable:
+        return _table(value, name="exact_k30_conditional")
+
+    @model_validator(mode="after")
+    def validate_hashes(self) -> Self:
+        for name in ("target_hash", "profile_hash", "model_context_artifact_hash"):
+            _sha(getattr(self, name), name=name)
+        return self
+
+
+class ModelContextPAsymSwapSummary(_StrictFrozenResultModel):
+    """Complete exact and sampled evidence for one seeded model-context study."""
+
+    request_hash: str
+    model_trace_hash: str
+    profile_results: tuple[ModelContextProfileResult, ...]
+    profile_samples: tuple[ModelContextProfileSampleResult, ...]
+    schedule_acceptance: ModelContextScheduleAcceptance
+    maximum_empirical_k30_residual: StrictFloat
+    thrml_k30_tv_tolerance: StrictFloat
+    exact_acceptance_passed: StrictBool
+    empirical_acceptance_passed: StrictBool
+    acceptance_passed: StrictBool
+    deterministic_result_hash: str
+    summary_hash: str
+
+    @field_validator("profile_results", "profile_samples", mode="before")
+    @classmethod
+    def normalize_sequences(cls, value: object) -> object:
+        return _json_tuple(value)
+
+    @model_validator(mode="after")
+    def validate_structure(self) -> Self:
+        for name in (
+            "request_hash",
+            "model_trace_hash",
+            "deterministic_result_hash",
+            "summary_hash",
+        ):
+            _sha(getattr(self, name), name=name)
+        _finite(
+            self.maximum_empirical_k30_residual,
+            name="maximum_empirical_k30_residual",
+            nonnegative=True,
+        )
+        _finite(
+            self.thrml_k30_tv_tolerance,
+            name="thrml_k30_tv_tolerance",
+            nonnegative=True,
+        )
+        return self
+
+
+def _profile_sample_reference_payload(
+    sample: ModelContextProfileSampleResult,
+) -> dict[str, object]:
+    return {
+        "target_hash": sample.target_hash,
+        "profile_hash": sample.profile_hash,
+        "model_context_artifact_hash": sample.model_context_artifact_hash,
+        "exact_k30_conditional": sample.exact_k30_conditional,
+    }
+
+
+def build_model_context_pasym_swap_summary(
+    *,
+    request_hash: str,
+    profile_results: Sequence[ModelContextProfileResult],
+    schedule_acceptance: ModelContextScheduleAcceptance,
+    profile_samples: Sequence[ModelContextProfileSampleResult],
+    thrml_k30_tv_tolerance: float,
+) -> ModelContextPAsymSwapSummary:
+    """Build one canonical publication summary without importing backend types."""
+
+    _sha(request_hash, name="request_hash")
+    checked_profiles = tuple(
+        sorted(
+            (validate_model_context_profile_result(item) for item in profile_results),
+            key=lambda item: item.target_hash,
+        )
+    )
+    checked_acceptance = validate_model_context_schedule_acceptance(
+        schedule_acceptance, checked_profiles
+    )
+    checked_samples = tuple(sorted(profile_samples, key=lambda item: item.target_hash))
+    if len(checked_samples) != 37:
+        raise ValueError("publication summary requires exactly 37 profile samples")
+    model_trace_hashes = {profile.model_trace_hash for profile in checked_profiles}
+    if len(model_trace_hashes) != 1:
+        raise ValueError("publication summary requires one model trace hash")
+    model_trace_hash = next(iter(model_trace_hashes))
+    maximum = max(
+        residual
+        for sample in checked_samples
+        for residual in sample.sampled_k30.empirical_to_exact_k30_tv
+    )
+    exact_passed = checked_acceptance.passed
+    empirical_passed = maximum <= thrml_k30_tv_tolerance
+    deterministic_payload = {
+        "identity_version": "model_context_pasym_swap_deterministic.v1",
+        "request_hash": request_hash,
+        "model_trace_hash": model_trace_hash,
+        "profile_results": tuple(profile.model_dump(mode="json") for profile in checked_profiles),
+        "schedule_acceptance": checked_acceptance.model_dump(mode="json"),
+        "profile_sample_references": tuple(
+            _profile_sample_reference_payload(sample) for sample in checked_samples
+        ),
+    }
+    deterministic_hash = canonical_sha256(deterministic_payload)
+    payload: dict[str, object] = {
+        "request_hash": request_hash,
+        "model_trace_hash": model_trace_hash,
+        "profile_results": checked_profiles,
+        "profile_samples": checked_samples,
+        "schedule_acceptance": checked_acceptance,
+        "maximum_empirical_k30_residual": maximum,
+        "thrml_k30_tv_tolerance": thrml_k30_tv_tolerance,
+        "exact_acceptance_passed": exact_passed,
+        "empirical_acceptance_passed": empirical_passed,
+        "acceptance_passed": exact_passed and empirical_passed,
+        "deterministic_result_hash": deterministic_hash,
+    }
+    summary_hash = canonical_sha256(
+        {"identity_version": "model_context_pasym_swap_summary.v1", **payload}
+    )
+    return ModelContextPAsymSwapSummary(**payload, summary_hash=summary_hash)
+
+
+def validate_model_context_pasym_swap_summary(value: object) -> ModelContextPAsymSwapSummary:
+    """Deeply reload and recompute one persisted publication summary."""
+
+    if isinstance(value, ModelContextPAsymSwapSummary):
+        parsed = value
+    elif isinstance(value, Mapping):
+        parsed = ModelContextPAsymSwapSummary.model_validate(_json_tuple(value))
+    else:
+        raise TypeError("model-context PAsymSwap summary must be a mapping or result model")
+
+    profiles = tuple(validate_model_context_profile_result(item) for item in parsed.profile_results)
+    if tuple(profile.target_hash for profile in profiles) != tuple(
+        sorted(profile.target_hash for profile in profiles)
+    ):
+        raise ValueError("profile_results must use canonical target-hash order")
+    acceptance = validate_model_context_schedule_acceptance(parsed.schedule_acceptance, profiles)
+    if len(parsed.profile_samples) != 37:
+        raise ValueError("publication summary requires exactly 37 profile samples")
+
+    regenerated_samples: list[ModelContextProfileSampleResult] = []
+    for index, (profile, sample) in enumerate(zip(profiles, parsed.profile_samples, strict=True)):
+        if sample.target_hash != profile.target_hash:
+            raise ValueError(f"profile_samples[{index}].target_hash differs from exact profile")
+        if sample.profile_hash != profile.model_profile_hash:
+            raise ValueError(f"profile_samples[{index}].profile_hash differs from exact profile")
+        if sample.model_context_artifact_hash != profile.model_context.artifact_hash:
+            raise ValueError(
+                f"profile_samples[{index}].model_context_artifact_hash differs from exact profile"
+            )
+        exact_residual = max(
+            0.5
+            * math.fsum(
+                abs(actual - equilibrium) for actual, equilibrium in zip(row, base, strict=True)
+            )
+            for row, base in zip(
+                sample.exact_k30_conditional,
+                profile.model_context.equilibrium_conditional,
+                strict=True,
+            )
+        )
+        if not math.isclose(
+            exact_residual,
+            profile.model_context_k30_residual,
+            rel_tol=0.0,
+            abs_tol=_TOLERANCE,
+        ):
+            raise ValueError(
+                f"profile_samples[{index}].exact_k30_conditional differs from exact residual"
+            )
+        regenerated_sampled = derive_sampled_k30_evaluation(
+            sample.sampled_k30.counts,
+            sample.exact_k30_conditional,
+        )
+        if regenerated_sampled.conditional != sample.sampled_k30.conditional:
+            raise ValueError(f"profile_samples[{index}].sampled_k30.conditional is stale")
+        if (
+            regenerated_sampled.empirical_to_exact_k30_tv
+            != sample.sampled_k30.empirical_to_exact_k30_tv
+        ):
+            raise ValueError(f"profile_samples[{index}].sampled_k30 residual is stale")
+        regenerated_samples.append(sample.model_copy(update={"sampled_k30": regenerated_sampled}))
+
+    regenerated = build_model_context_pasym_swap_summary(
+        request_hash=parsed.request_hash,
+        profile_results=profiles,
+        schedule_acceptance=acceptance,
+        profile_samples=tuple(regenerated_samples),
+        thrml_k30_tv_tolerance=parsed.thrml_k30_tv_tolerance,
+    )
+    for name in (
+        "model_trace_hash",
+        "maximum_empirical_k30_residual",
+        "exact_acceptance_passed",
+        "empirical_acceptance_passed",
+        "acceptance_passed",
+        "deterministic_result_hash",
+        "summary_hash",
+    ):
+        if getattr(parsed, name) != getattr(regenerated, name):
             raise ValueError(f"persisted value differs at {name}")
     return parsed

@@ -17,6 +17,10 @@ from thermo_lab.graph_walk_results import (
     validate_weighted_graph_walk_observations,
 )
 from thermo_lab.hashing import to_json_value
+from thermo_lab.model_context_pasym_swap_reporting import (
+    render_model_context_pasym_swap_section,
+    validate_persisted_model_context_pasym_swap_record,
+)
 from thermo_lab.pasym_swap_reporting import (
     render_independent_pasym_swap_section,
     validate_persisted_independent_pasym_swap_record,
@@ -36,6 +40,7 @@ from thermo_lab.target_context_pasym_swap_reporting import (
 
 _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
 _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
+_MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.model_context_pasym_swap_compilation.v1"
 _LEGACY_SAMPLE_DEFINITIONS = frozenset(
     (
         "Exact final probability mass over basis states [00, 01, 10, 11]; not a Monte Carlo "
@@ -347,10 +352,12 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     is_target_context_pasym_swap = (
         aggregate.experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
     )
+    is_model_context_pasym_swap = aggregate.experiment_id == _MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
     target_summaries = []
+    model_summaries = []
     records_for_validation = records
     if is_independent_pasym_swap:
         # Aggregate scalar rederivation deliberately omits deterministic nested
@@ -384,6 +391,18 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                     "across seeds"
                 )
         records_for_validation = canonical_records
+    elif is_model_context_pasym_swap:
+        expected_result_hash: str | None = None
+        for record in records:
+            summary, _, _ = validate_persisted_model_context_pasym_swap_record(record)
+            model_summaries.append(summary)
+            if expected_result_hash is None:
+                expected_result_hash = summary.deterministic_result_hash
+            elif summary.deterministic_result_hash != expected_result_hash:
+                raise ValueError(
+                    "Cannot report incompatible model-context deterministic result hash "
+                    "across seeds"
+                )
     validate_aggregate_against_records(aggregate, records_for_validation)
     sample_definition = (
         records[0].spec.sample_definition
@@ -427,8 +446,15 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                     "vary by seed; the target trace, profiles, paired artifacts, optimizer "
                     "observations, and exact evaluations are deterministic identity fields."
                     if is_target_context_pasym_swap
-                    else "Recorded Markov-chain states are not described as independent samples. "
-                    "Independent seeded runs are the replication unit for confidence intervals."
+                    else (
+                        "Only empirical THRML counts, sampled acceptance, and timing vary by "
+                        "seed; the model trace, profiles, frozen artifacts, exact K=30 "
+                        "references, and exact acceptance are deterministic identity fields."
+                        if is_model_context_pasym_swap
+                        else "Recorded Markov-chain states are not described as independent "
+                        "samples. Independent seeded runs are the replication unit for "
+                        "confidence intervals."
+                    )
                 )
             )
         ),
@@ -552,6 +578,46 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 "- This is not Z1 or other physical hardware evidence.",
             )
         )
+    if is_model_context_pasym_swap:
+        completed_seeds = tuple(record.spec.seed for record in records)
+        failed_seeds = tuple(failure.seed for failure in aggregate.failures)
+        all_requested_passed = (
+            aggregate.completion_state is CompletionState.COMPLETE
+            and len(model_summaries) == aggregate.requested_runs
+            and all(summary.acceptance_passed for summary in model_summaries)
+        )
+        lines.extend(
+            (
+                "",
+                "Only the empirical THRML K=30 residual is eligible for a cross-seed "
+                "interval. Deterministic evidence is rendered once after every successful "
+                "record passes deep validation and deterministic-hash comparison.",
+            )
+        )
+        if records:
+            lines.extend(("", *render_model_context_pasym_swap_section(records[0])))
+        lines.extend(
+            (
+                "",
+                "### Acceptance and seed completeness",
+                "",
+                f"- Seed partition: requested={aggregate.seeds}; completed={completed_seeds}; "
+                f"failed={failed_seeds}.",
+                f"- Completion state: {_markdown_code_span(aggregate.completion_state.value)}.",
+                (
+                    "- All requested seeds completed and passed: yes."
+                    if all_requested_passed
+                    else "- Acceptance applies only to completed seeds; one or more requested "
+                    "seeds failed."
+                    if records
+                    else "- No requested seed completed; no acceptance evidence is available."
+                ),
+                (
+                    "- Only empirical THRML counts, sampled acceptance, and timing vary by "
+                    "seed. Deterministic values are not treated as replicated statistics."
+                ),
+            )
+        )
     lines.extend(
         (
             "",
@@ -559,7 +625,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 "## Scalar results"
                 if is_weighted_graph_walk
                 else "## Sampled scalar results across seeds"
-                if is_target_context_pasym_swap
+                if is_target_context_pasym_swap or is_model_context_pasym_swap
                 else "## Scalar results across seeds"
             ),
             "",
@@ -576,7 +642,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
         if records:
             lines.extend(("", *_weighted_graph_walk_section(records[0])))
-    elif is_target_context_pasym_swap:
+    elif is_target_context_pasym_swap or is_model_context_pasym_swap:
         lines.extend(
             (
                 "",

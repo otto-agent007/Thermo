@@ -22,15 +22,25 @@ from pydantic import (
     model_validator,
 )
 
-from thermo_lab.config import TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION
+from thermo_lab.config import (
+    MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+    MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
+    TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
+    model_context_pasym_swap_non_seed_config_hash,
+)
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import to_json_value
+from thermo_lab.model_context_pasym_swap_results import (
+    validate_model_context_pasym_swap_summary,
+)
 from thermo_lab.persistence import atomic_write_text
 from thermo_lab.records import RUN_TIMING_SOURCE, FrozenDict, FrozenModel, RunRecord
 from thermo_lab.schemas import (
     WEIGHTED_GRAPH_WALK_EXPERIMENT_ID,
+    ModelContextCompilerRunConfig,
     PAsymSwapModelConfig,
     TargetContextCompilerRunConfig,
+    validate_model_context_pasym_swap_request,
     validate_target_context_pasym_swap_request,
 )
 from thermo_lab.target_context_pasym_swap_results import (
@@ -122,6 +132,25 @@ _TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX = (
     "warm launch, then aggregate synchronized steady-state execution"
 )
 _TARGET_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES = (
+    "; JAX lower().compile() measured once for shared shapes",
+    "; JAX executable reused from in-process shape cache",
+)
+_MODEL_CONTEXT_PASYM_SWAP_SAMPLED_METRICS = frozenset({"maximum_empirical_k30_residual"})
+_MODEL_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS = {
+    "model_context_pasym_swap_summary": (
+        "nested model-context evidence is retained only in per-run records"
+    ),
+}
+_MODEL_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON = (
+    "per-seed synchronized JAX timing is not an independently seeded sampled cross-check"
+)
+_MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX = (
+    "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
+    "warm launch, then 148 keyed 4096-chain K=30 synchronized sampling launches; "
+    "excludes compilation, configuration loading, lineage reconstruction, exact evaluation, "
+    "provenance collection, persistence, aggregation, and reporting"
+)
+_MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES = (
     "; JAX lower().compile() measured once for shared shapes",
     "; JAX executable reused from in-process shape cache",
 )
@@ -471,6 +500,9 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
     elif record.spec.experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
         deterministic_identity = _target_context_deterministic_identity(record)
         timing_method = _target_context_timing_method(record)
+    elif record.spec.experiment_id == MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        deterministic_identity = _model_context_deterministic_identity(record)
+        timing_method = _model_context_timing_method(record)
     return (
         record.spec.experiment_id,
         record.backend_id,
@@ -571,12 +603,70 @@ def _target_context_deterministic_identity(record: RunRecord) -> str:
     return summary.deterministic_result_hash
 
 
+def _model_context_timing_method(record: RunRecord) -> str:
+    for suffix in _MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES:
+        if record.timing.timing_method == _MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX + suffix:
+            return _MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_PREFIX
+    raise ValueError(
+        "model-context timing method must use the synchronized sampling prefix and one "
+        "checked JAX compile/reuse suffix"
+    )
+
+
+def _model_context_deterministic_identity(record: RunRecord) -> str:
+    """Deeply validate one checked model-context record before aggregation."""
+
+    if record.spec.experiment_id != MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+        raise ValueError("record is not the checked model-context PAsymSwap experiment")
+    if record.spec.sample_definition != MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION:
+        raise ValueError("model-context sample definition differs from the checked value")
+    if record.backend_id is not BackendId.THRML_LOCAL:
+        raise ValueError("model-context records require the thrml_local backend")
+    if record.evidence_class is not EvidenceClass.SOFTWARE_SIMULATION:
+        raise ValueError("model-context records require software_simulation evidence")
+    if record.timing.synchronized is not True:
+        raise ValueError("model-context records require synchronized timing")
+    if record.timing.evidence_class is not EvidenceClass.SOFTWARE_SIMULATION:
+        raise ValueError("model-context timing requires software_simulation evidence")
+    if record.timing.source != RUN_TIMING_SOURCE or record.timing.unit != "seconds":
+        raise ValueError("model-context timing must use checked seconds provenance")
+    _model_context_timing_method(record)
+    if not any(
+        package.distribution == "thrml" and package.version == "0.1.4"
+        for package in record.provenance.packages
+    ):
+        raise ValueError("model-context runtime provenance requires pinned THRML 0.1.4")
+    if set(record.metrics) != {
+        "model_context_pasym_swap_summary",
+        "maximum_empirical_k30_residual",
+    }:
+        raise ValueError("model-context record must contain exactly the checked metric set")
+
+    model = PAsymSwapModelConfig.model_validate(to_json_value(record.spec.model_parameters))
+    run = ModelContextCompilerRunConfig.model_validate(to_json_value(record.spec.run_parameters))
+    validate_model_context_pasym_swap_request(model, run, record.spec.seed)
+    summary = validate_model_context_pasym_swap_summary(
+        record.metrics["model_context_pasym_swap_summary"].value
+    )
+    if summary.request_hash != model_context_pasym_swap_non_seed_config_hash(model, run):
+        raise ValueError("model-context request hash differs from checked inputs")
+    if summary.thrml_k30_tv_tolerance != run.thrml_k30_tv_tolerance:
+        raise ValueError("model-context THRML tolerance differs from checked inputs")
+    if (
+        record.metrics["maximum_empirical_k30_residual"].value
+        != summary.maximum_empirical_k30_residual
+    ):
+        raise ValueError("model-context scalar residual differs from structured summary")
+    return summary.deterministic_result_hash
+
+
 def _dtype_compatibility_signature(record: RunRecord) -> str:
     """Return the declared numeric representation without conflating exact and THRML paths."""
 
     if record.spec.experiment_id in {
         _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID,
         _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+        MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     }:
         return (
             f"exact={record.spec.model_parameters.get('exact_dtype')}; "
@@ -594,6 +684,13 @@ def _independent_pasym_swap_omission_reason(name: str) -> str | None:
 
 def _target_context_pasym_swap_omission_reason(name: str) -> str:
     return _TARGET_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
+        name,
+        "metric is not declared an independently seeded sampled cross-check",
+    )
+
+
+def _model_context_pasym_swap_omission_reason(name: str) -> str:
+    return _MODEL_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
         name,
         "metric is not declared an independently seeded sampled cross-check",
     )
@@ -709,6 +806,12 @@ def derive_aggregate_fields(
             ):
                 omitted_metrics[name] = _target_context_pasym_swap_omission_reason(name)
                 continue
+            if (
+                experiment_id == MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
+                and name not in _MODEL_CONTEXT_PASYM_SWAP_SAMPLED_METRICS
+            ):
+                omitted_metrics[name] = _model_context_pasym_swap_omission_reason(name)
+                continue
             omission_reason = _INDEPENDENT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(name)
             if (
                 experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID
@@ -765,6 +868,13 @@ def derive_aggregate_fields(
             )
             omitted_metrics["timing.execution_seconds"] = (
                 _TARGET_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+        elif experiment_id == MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
+            omitted_metrics["timing.compile_seconds"] = (
+                _MODEL_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
+            )
+            omitted_metrics["timing.execution_seconds"] = (
+                _MODEL_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
             )
         else:
             timing_method = records[0].timing.timing_method
