@@ -48,6 +48,7 @@ from thermo_lab.trajectory_reinforce import (
     build_exact_reference,
 )
 from thermo_lab.trajectory_reinforce_reporting import (
+    TRAJECTORY_REINFORCE_TIMING_METHOD,
     validate_persisted_trajectory_reinforce_record,
 )
 from thermo_lab.trajectory_reinforce_results import (
@@ -55,14 +56,6 @@ from thermo_lab.trajectory_reinforce_results import (
     build_trajectory_reinforce_deterministic_result,
     build_trajectory_reinforce_sample_result,
     build_trajectory_reinforce_summary,
-)
-
-_TIMING_METHOD = (
-    "NumPy Generator(PCG64) inverse-CDF exact categorical sampling of 65,536 augmented "
-    "trajectories using four independent streams in main_0, reference_0, main_1, reference_1 "
-    "order; synchronized CPU execution includes sampler setup and bounded-source model "
-    "validation; excludes deterministic reference construction and final sampled-summary/"
-    "run-record construction; does not use JAX, THRML, hosted simulation, or physical hardware"
 )
 
 
@@ -313,7 +306,7 @@ class NumpyExactCategoricalBackend:
                 compile_seconds=0.0,
                 execution_seconds=execution_seconds,
                 synchronized=True,
-                timing_method=_TIMING_METHOD,
+                timing_method=TRAJECTORY_REINFORCE_TIMING_METHOD,
             ),
             metrics={
                 "trajectory_reinforce_summary": MetricObservation(

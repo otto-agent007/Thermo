@@ -354,6 +354,7 @@ _REPORT_TAMPER_FAMILIES = (
     "metric set",
     "request hash",
     "timing prefix",
+    "timing suffix",
     "runtime provenance",
     "deep summary",
     "standalone sampled scalar",
@@ -382,6 +383,8 @@ def _tamper_report_source(payload: dict, family: str) -> None:
         ] = "sha256:" + "0" * 64
     elif family == "timing prefix":
         payload["timing"]["timing_method"] = "forged timing method"
+    elif family == "timing suffix":
+        payload["timing"]["timing_method"] += "; forged included operation"
     elif family == "runtime provenance":
         payload["provenance"]["jax_backend"] = "cpu"
     elif family == "deep summary":
@@ -404,6 +407,7 @@ def _tamper_report_source(payload: dict, family: str) -> None:
         "metric set",
         "request hash",
         "timing prefix",
+        "timing suffix",
         "runtime provenance",
         "deep summary",
         "standalone sampled scalar",

@@ -27,10 +27,12 @@ _SUMMARY_METHOD = "structured exact and NumPy exact-categorical estimator result
 _SAMPLED_SCALAR_METHOD = "NumPy PCG64 inverse-CDF sampled shared-gradient error"
 _ACCEPTANCE_METHOD = "exact identities and deterministic finite-difference acceptance"
 _ACCEPTANCE_NOTES = "Independent of Monte Carlo error and uncertainty."
-_TIMING_PREFIX = (
+TRAJECTORY_REINFORCE_TIMING_METHOD = (
     "NumPy Generator(PCG64) inverse-CDF exact categorical sampling of 65,536 augmented "
     "trajectories using four independent streams in main_0, reference_0, main_1, reference_1 "
-    "order"
+    "order; synchronized CPU execution includes sampler setup and bounded-source model "
+    "validation; excludes deterministic reference construction and final sampled-summary/"
+    "run-record construction; does not use JAX, THRML, hosted simulation, or physical hardware"
 )
 _METRICS = frozenset(
     {
@@ -130,7 +132,7 @@ def validate_persisted_trajectory_reinforce_record(
         or timing.unit != "seconds"
         or timing.compile_seconds != 0.0
         or timing.synchronized is not True
-        or not timing.timing_method.startswith(_TIMING_PREFIX)
+        or timing.timing_method != TRAJECTORY_REINFORCE_TIMING_METHOD
     ):
         raise ValueError("trajectory timing differs from the checked sampling boundary")
     _checked_runtime_provenance(record)
