@@ -238,6 +238,27 @@ class TrajectoryReinforceRunConfig(StrictSchema):
         return self
 
 
+class TrajectoryReinforceRefinementRunConfig(TrajectoryReinforceRunConfig):
+    """The checked estimator schedule plus one projected shared-parameter update."""
+
+    update_policy: Literal["one_projected_shared_gradient_descent_step"]
+    gradient_source: Literal["seeded_covariance_aware_shared_gradient_mean"]
+    learning_rate: StrictFloat
+    objective_evaluation_policy: Literal["exact_enumeration_before_and_after"]
+    improvement_policy: Literal["strict_objective_decrease"]
+
+    @field_validator("learning_rate", mode="before")
+    @classmethod
+    def validate_learning_rate_encoding(cls, value: object) -> object:
+        return _require_json_float(value, "learning_rate")
+
+    @model_validator(mode="after")
+    def validate_checked_update(self) -> "TrajectoryReinforceRefinementRunConfig":
+        if self.learning_rate != 0.25:
+            raise ValueError("learning_rate must match the checked one-step refinement")
+        return self
+
+
 def validate_trajectory_reinforce_request(
     model: TrajectoryReinforceModelConfig,
     run: TrajectoryReinforceRunConfig,
@@ -254,13 +275,29 @@ def validate_trajectory_reinforce_request(
     validated_model = TrajectoryReinforceModelConfig.model_validate(
         to_json_value(model.model_dump(mode="json"))
     )
+    run_payload = to_json_value(run.model_dump(mode="json"))
     validated_run = TrajectoryReinforceRunConfig.model_validate(
-        to_json_value(run.model_dump(mode="json"))
+        {name: run_payload[name] for name in TrajectoryReinforceRunConfig.model_fields}
     )
     if seed not in validated_run.release_seeds:
         raise ValueError("seed must be one of the checked release_seeds")
     if validated_model.beta * validated_run.finite_difference_step <= 0.0:
         raise ValueError("beta and finite_difference_step must remain positive")
+
+
+def validate_trajectory_reinforce_refinement_request(
+    model: TrajectoryReinforceModelConfig,
+    run: TrajectoryReinforceRefinementRunConfig,
+    seed: int,
+) -> None:
+    """Deeply validate the estimator fixture and its checked one-step update policy."""
+
+    if not isinstance(run, TrajectoryReinforceRefinementRunConfig):
+        raise TypeError("run must be a TrajectoryReinforceRefinementRunConfig")
+    validated = TrajectoryReinforceRefinementRunConfig.model_validate(
+        to_json_value(run.model_dump(mode="json"))
+    )
+    validate_trajectory_reinforce_request(model, validated, seed)
 
 
 def _require_json_float(value: object, field_name: str) -> object:

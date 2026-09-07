@@ -47,6 +47,10 @@ uv run thermo-lab run \
   configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/trajectory-reinforce-estimator
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-one-step
 uv run pytest
 ```
 
@@ -105,7 +109,8 @@ new kernel with its paired target-context kernel under the pooled model profile
 and separately checks exact and sampled `K = 30` residuals. This is a local
 kernel diagnostic, not evidence that the composed target program improves.
 The propagation is a first-moment factorization, not an exact 25-site joint
-rollout or a fixed-point iteration. Trajectory-level REINFORCE, the complete
+rollout or a fixed-point iteration. Full-program trajectory-level REINFORCE,
+the complete
 finite-horizon composed program, official Thermalizers, hosted simulation,
 and physical Z1 or TSU hardware remain unevaluated.
 
@@ -118,6 +123,15 @@ shared gradient. It does not update parameters, perform trajectory-level
 refinement, run the 25-site program, or establish finite-Gibbs-horizon
 unbiasedness. The sampled result is local NumPy `software_simulation` evidence,
 not THRML, official Thermalizers, hosted simulation, or physical hardware.
+
+The checked one-step refinement command keeps that same three-site,
+two-occurrence circuit and all estimator cross-checks. For every release seed,
+it takes one projected shared-gradient step with learning rate `0.25`, enforces
+the `[-2, 2]` parameter bounds, and exactly enumerates the declared objective
+before and after the update. The report records the raw and projected vectors,
+cap activity, objective delta, and a strict-improvement decision. This closes
+only the bounded one-step experiment; the 25-site and finite-Gibbs-horizon
+program-level studies remain open.
 
 ## Research contract
 

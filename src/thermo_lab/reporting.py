@@ -37,6 +37,10 @@ from thermo_lab.target_context_pasym_swap_reporting import (
     render_target_context_pasym_swap_section,
     validate_persisted_target_context_pasym_swap_record,
 )
+from thermo_lab.trajectory_reinforce_refinement_reporting import (
+    render_trajectory_refinement_section,
+    validate_persisted_trajectory_refinement_record,
+)
 from thermo_lab.trajectory_reinforce_reporting import (
     render_trajectory_reinforce_section,
     validate_persisted_trajectory_reinforce_record,
@@ -46,6 +50,7 @@ _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilatio
 _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
 _MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.model_context_pasym_swap_compilation.v1"
 _TRAJECTORY_REINFORCE_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_estimator.v1"
+_TRAJECTORY_REFINEMENT_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_one_step.v1"
 _LEGACY_SAMPLE_DEFINITIONS = frozenset(
     (
         "Exact final probability mass over basis states [00, 01, 10, 11]; not a Monte Carlo "
@@ -359,11 +364,13 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     )
     is_model_context_pasym_swap = aggregate.experiment_id == _MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
     is_trajectory_reinforce = aggregate.experiment_id == _TRAJECTORY_REINFORCE_EXPERIMENT_ID
+    is_trajectory_refinement = aggregate.experiment_id == _TRAJECTORY_REFINEMENT_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
     target_summaries = []
     model_summaries = []
+    refinement_summaries = []
     records_for_validation = records
     if is_independent_pasym_swap:
         # Aggregate scalar rederivation deliberately omits deterministic nested
@@ -421,6 +428,19 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 expected_identity = identity
             elif identity != expected_identity:
                 raise ValueError("Cannot report incompatible trajectory deterministic identities")
+    elif is_trajectory_refinement:
+        expected_identity: tuple[str, str] | None = None
+        for record in records:
+            summary, _, _ = validate_persisted_trajectory_refinement_record(record)
+            refinement_summaries.append(summary)
+            identity = (
+                summary.estimator.deterministic.request_hash,
+                summary.estimator.deterministic.deterministic_result_digest,
+            )
+            if expected_identity is None:
+                expected_identity = identity
+            elif identity != expected_identity:
+                raise ValueError("Cannot report incompatible refinement deterministic identities")
     validate_aggregate_against_records(aggregate, records_for_validation)
     sample_definition = (
         records[0].spec.sample_definition
@@ -473,9 +493,15 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                             "Each seed is one independent exact-categorical Monte Carlo batch; "
                             "individual augmented trajectories are not replication units."
                             if is_trajectory_reinforce
-                            else "Recorded Markov-chain states are not described as independent "
-                            "samples. Independent seeded runs are the replication unit for "
-                            "confidence intervals."
+                            else (
+                                "Seeds vary the sampled update; the initial objective and "
+                                "gradient oracles are deterministic, while every post-update "
+                                "objective is exactly evaluated at a seed-derived parameter vector."
+                                if is_trajectory_refinement
+                                else "Recorded chain states are not described as independent "
+                                "samples. Independent seeded runs are the replication unit for "
+                                "confidence intervals."
+                            )
                         )
                     )
                 )
@@ -653,6 +679,17 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 *render_trajectory_reinforce_section(records),
             )
         )
+    if is_trajectory_refinement:
+        lines.extend(
+            (
+                "",
+                "The sampled gradient error and seed-derived exact post-update objective scalars "
+                "are eligible for cross-seed intervals. The initial objective and deterministic "
+                "gradient checks remain identity evidence.",
+                "",
+                *render_trajectory_refinement_section(records),
+            )
+        )
     lines.extend(
         (
             "",
@@ -663,6 +700,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 if is_target_context_pasym_swap
                 or is_model_context_pasym_swap
                 or is_trajectory_reinforce
+                or is_trajectory_refinement
                 else "## Scalar results across seeds"
             ),
             "",
@@ -686,6 +724,22 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 "The interval contract above applies only to independently seeded "
                 "exact-categorical Monte Carlo batches. A single successful seed receives no "
                 "manufactured interval.",
+            )
+        )
+    elif is_trajectory_refinement:
+        all_requested_improved = (
+            aggregate.completion_state is CompletionState.COMPLETE
+            and len(refinement_summaries) == aggregate.requested_runs
+            and all(summary.acceptance_passed for summary in refinement_summaries)
+        )
+        lines.extend(
+            (
+                "",
+                "The intervals above use independently seeded training batches. Exact evaluation "
+                "of each resulting parameter vector determines improvement without a noisy "
+                "held-out estimate.",
+                "- All requested seeds completed, remained bounded, and strictly improved the "
+                f"objective: {'yes' if all_requested_improved else 'no'}.",
             )
         )
     elif is_target_context_pasym_swap or is_model_context_pasym_swap:
