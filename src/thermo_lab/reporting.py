@@ -37,10 +37,15 @@ from thermo_lab.target_context_pasym_swap_reporting import (
     render_target_context_pasym_swap_section,
     validate_persisted_target_context_pasym_swap_record,
 )
+from thermo_lab.trajectory_reinforce_reporting import (
+    render_trajectory_reinforce_section,
+    validate_persisted_trajectory_reinforce_record,
+)
 
 _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
 _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.target_context_pasym_swap_compilation.v1"
 _MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID = "thrml.model_context_pasym_swap_compilation.v1"
+_TRAJECTORY_REINFORCE_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_estimator.v1"
 _LEGACY_SAMPLE_DEFINITIONS = frozenset(
     (
         "Exact final probability mass over basis states [00, 01, 10, 11]; not a Monte Carlo "
@@ -353,6 +358,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         aggregate.experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
     )
     is_model_context_pasym_swap = aggregate.experiment_id == _MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
+    is_trajectory_reinforce = aggregate.experiment_id == _TRAJECTORY_REINFORCE_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
@@ -403,6 +409,18 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                     "Cannot report incompatible model-context deterministic result hash "
                     "across seeds"
                 )
+    elif is_trajectory_reinforce:
+        expected_identity: tuple[str, str] | None = None
+        for record in records:
+            summary, _, _ = validate_persisted_trajectory_reinforce_record(record)
+            identity = (
+                summary.deterministic.request_hash,
+                summary.deterministic.deterministic_result_digest,
+            )
+            if expected_identity is None:
+                expected_identity = identity
+            elif identity != expected_identity:
+                raise ValueError("Cannot report incompatible trajectory deterministic identities")
     validate_aggregate_against_records(aggregate, records_for_validation)
     sample_definition = (
         records[0].spec.sample_definition
@@ -451,9 +469,14 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                         "seed; the model trace, profiles, frozen artifacts, exact K=30 "
                         "references, and exact acceptance are deterministic identity fields."
                         if is_model_context_pasym_swap
-                        else "Recorded Markov-chain states are not described as independent "
-                        "samples. Independent seeded runs are the replication unit for "
-                        "confidence intervals."
+                        else (
+                            "Each seed is one independent exact-categorical Monte Carlo batch; "
+                            "individual augmented trajectories are not replication units."
+                            if is_trajectory_reinforce
+                            else "Recorded Markov-chain states are not described as independent "
+                            "samples. Independent seeded runs are the replication unit for "
+                            "confidence intervals."
+                        )
                     )
                 )
             )
@@ -618,6 +641,18 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 ),
             )
         )
+    if is_trajectory_reinforce:
+        lines.extend(
+            (
+                "",
+                "Only the maximum sampled shared-gradient error is eligible for a cross-seed "
+                "interval. Exact identities and exact vectors are deterministic; sampled vector "
+                "estimates are per-run software_simulation evidence and are excluded from "
+                "cross-seed aggregation.",
+                "",
+                *render_trajectory_reinforce_section(records),
+            )
+        )
     lines.extend(
         (
             "",
@@ -625,7 +660,9 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 "## Scalar results"
                 if is_weighted_graph_walk
                 else "## Sampled scalar results across seeds"
-                if is_target_context_pasym_swap or is_model_context_pasym_swap
+                if is_target_context_pasym_swap
+                or is_model_context_pasym_swap
+                or is_trajectory_reinforce
                 else "## Scalar results across seeds"
             ),
             "",
@@ -642,6 +679,15 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
         if records:
             lines.extend(("", *_weighted_graph_walk_section(records[0])))
+    elif is_trajectory_reinforce:
+        lines.extend(
+            (
+                "",
+                "The interval contract above applies only to independently seeded "
+                "exact-categorical Monte Carlo batches. A single successful seed receives no "
+                "manufactured interval.",
+            )
+        )
     elif is_target_context_pasym_swap or is_model_context_pasym_swap:
         lines.extend(
             (

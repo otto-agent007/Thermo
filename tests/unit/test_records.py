@@ -185,6 +185,54 @@ def test_record_rejects_physical_metric_hidden_in_software_run() -> None:
         )
 
 
+def test_exact_categorical_backend_enforces_run_and_metric_evidence() -> None:
+    build_run_record(
+        backend_id=BackendId.NUMPY_EXACT_CATEGORICAL,
+        evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+        spec=_spec(),
+        provenance=_provenance(),
+        timing=_timing(),
+        metrics={
+            "sampled": MetricObservation(
+                value=1.0,
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                method="NumPy exact-categorical sample",
+            ),
+            "oracle": MetricObservation(
+                value=1.0,
+                evidence_class=EvidenceClass.EXACT_REFERENCE,
+                method="bounded enumeration",
+            ),
+        },
+    )
+
+    with pytest.raises(ValidationError, match="cannot emit 'exact_reference'"):
+        build_run_record(
+            backend_id=BackendId.NUMPY_EXACT_CATEGORICAL,
+            evidence_class=EvidenceClass.EXACT_REFERENCE,
+            spec=_spec(),
+            provenance=_provenance(),
+            timing=_timing(),
+            metrics={},
+        )
+
+    with pytest.raises(ValidationError, match="cannot contain a 'calibrated_projection' metric"):
+        build_run_record(
+            backend_id=BackendId.NUMPY_EXACT_CATEGORICAL,
+            evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+            spec=_spec(),
+            provenance=_provenance(),
+            timing=_timing(),
+            metrics={
+                "projection": MetricObservation(
+                    value=1.0,
+                    evidence_class=EvidenceClass.CALIBRATED_PROJECTION,
+                    method="unsupported projection",
+                )
+            },
+        )
+
+
 def test_record_rejects_unsynchronized_timing() -> None:
     with pytest.raises(ValidationError, match="must synchronize"):
         build_run_record(

@@ -64,9 +64,29 @@ uv run thermo-lab run \
   configs/experiments/thrml-target-context-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/target-context-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/thrml-model-context-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/model-context-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-estimator
 uv build
 python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/thrml-target-context-pasym-swap.toml"
 python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
   "configs/experiments/thrml-target-context-pasym-swap.toml"
+python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
+  "configs/experiments/thrml-model-context-pasym-swap.toml"
+python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
+  "configs/experiments/thrml-model-context-pasym-swap.toml"
+python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
+  "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml"
+python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
+  "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml"
 ```
+
+The trajectory estimator gate validates an exact-categorical three-site
+microcircuit and non-gating seeded estimator evidence. It does not perform
+parameter refinement or a finite-Gibbs-horizon composed-program comparison.

@@ -93,10 +93,77 @@ artifacts, optimizer observations, and the seeded THRML cross-check remain
 4,096 chains estimate the conditional after `K = 30` complete two-color Gibbs
 sweeps. No result is a calibrated projection or physical-hardware measurement.
 
-Model-context matching, trajectory-level REINFORCE refinement, and the full
-finite-Gibbs-horizon composed-program comparison across all 500 occurrences on
-25 sites remain deferred. The study also does not evaluate official
-Thermalizers, hosted simulation, or Z1 hardware.
+This target-context study does not itself evaluate model-context matching or
+the later program-level stages.
+
+## One-pass mean-field model-context matching
+
+The completed model-context diagnostic starts from the declared single-particle
+site means and walks the same 500 occurrences in canonical order. At each
+occurrence it uses the frozen target-context artifact's exact equilibrium
+conditional, together with the current endpoint means under a first-moment
+factorization, to update only those two endpoint means. It does not propagate a
+25-site joint distribution or preserve correlations. The full deterministic
+trace is hashed, including every upstream artifact identity and the expected
+occupancy before and after each update.
+
+As in the target-context study, occurrences are pooled by target-channel hash
+using an equal mean over occurrences. The 500 profiles reduce to 37 groups.
+For each group, Thermo recompiles one model-context artifact under its pooled
+model profile, warm-starting from the paired target-context artifact before the
+three checked fixed restarts. The persisted comparison retains the uniform,
+target-context, and model-context variants.
+
+The gate asks whether the model-context artifact improves occurrence-weighted
+conditional KL relative to its paired target-context artifact under the model
+profile, without per-profile regression beyond the declared tolerance. It also
+requires valid optimizer endpoints and bounded exact `K = 30` residuals. A
+separate seeded THRML cross-check uses 4,096 chains for each of four inputs on
+all 37 model-context kernels. Only the maximum empirical `K = 30` residual is
+eligible for cross-seed statistics; profiles, inputs, and chains are not
+replications.
+
+This is one feedback pass and a local frozen-kernel diagnostic. It does not
+claim fixed-point convergence or improvement of the composed target program.
+Trajectory-level REINFORCE refinement and the full finite-Gibbs-horizon
+composed-program comparison across all 500 occurrences on 25 sites remain
+deferred. The study also does not evaluate official Thermalizers, hosted
+simulation, physical Z1, or TSU hardware.
+
+## Exact trajectory-level estimator contract
+
+The checked estimator study is a deliberately bounded prerequisite for the
+still-open refinement variant. It composes two overlapping occurrences of one
+shared five-spin `K_(3,2)` kernel on three visible sites. Exact enumeration
+checks the trajectory-score gradient against an independently derived
+expected-reference identity, untied occurrence finite differences, and a tied
+shared-parameter finite difference. The exact terminal law also determines the
+particle-number leakage and signed mass drift.
+
+Each release seed is one independent batch of 65,536 augmented trajectories.
+Every sample contains two propagated main exact-categorical draws and one
+independent, same-parent, non-propagated reference draw per occurrence. The
+reported shared-gradient standard error is reconstructed from occurrence
+second moments and cross-products, so it retains the within-trajectory
+covariance created by summing the two shared-parameter contributions. The
+sampled comparison is non-gating; only deterministic exact identities define
+acceptance, and independently seeded batches are the replication units.
+
+The command is:
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-estimator
+```
+
+This contract does not update the shared parameters, test optimization or
+trajectory improvement, run the 25-site 500-occurrence fixture, or establish
+unbiasedness for a finite-Gibbs sampler. Its seeded categorical draws are
+NumPy `software_simulation`, not THRML, official Thermalizers, hosted
+simulation, or physical Z1/TSU evidence. Trajectory-level REINFORCE refinement
+and the full finite-Gibbs-horizon composed-program comparison remain open.
 
 ## Metrics
 

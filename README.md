@@ -39,6 +39,14 @@ uv run thermo-lab run \
   configs/experiments/thrml-target-context-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/target-context-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/thrml-model-context-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/model-context-pasym-swap
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-estimator
 uv run pytest
 ```
 
@@ -86,9 +94,30 @@ uniform and target-context artifacts. Any reported improvement applies only
 under that exact target input distribution. Exact target propagation and
 evaluation are `exact_reference` evidence for the declared process and frozen
 software-derived models; optimization, THRML sampling, and timings remain
-`software_simulation`. This study did not evaluate model-context matching,
-trajectory-level REINFORCE refinement, the complete compiled 25-site rollout,
-official Thermalizers, hosted simulation, or Z1 hardware.
+`software_simulation`. That target-context command stops before model-context
+matching and the later program-level stages.
+
+The checked model-context PAsymSwap command performs one mean-field feedback
+pass. It propagates site means through the frozen target-context artifacts,
+pools 500 occurrence contexts into the same 37 target-hash groups, and
+recompiles one model-context kernel per group. Its acceptance compares each
+new kernel with its paired target-context kernel under the pooled model profile
+and separately checks exact and sampled `K = 30` residuals. This is a local
+kernel diagnostic, not evidence that the composed target program improves.
+The propagation is a first-moment factorization, not an exact 25-site joint
+rollout or a fixed-point iteration. Trajectory-level REINFORCE, the complete
+finite-horizon composed program, official Thermalizers, hosted simulation,
+and physical Z1 or TSU hardware remain unevaluated.
+
+The checked trajectory-level REINFORCE estimator command validates a bounded
+three-site, two-occurrence exact-categorical microcircuit with one shared
+kernel. It compares the exact trajectory-score gradient with an independent
+expected-reference identity and finite differences, then reports non-gating
+seeded Monte Carlo estimates with covariance-aware uncertainty for the summed
+shared gradient. It does not update parameters, perform trajectory-level
+refinement, run the 25-site program, or establish finite-Gibbs-horizon
+unbiasedness. The sampled result is local NumPy `software_simulation` evidence,
+not THRML, official Thermalizers, hosted simulation, or physical hardware.
 
 ## Research contract
 

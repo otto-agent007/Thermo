@@ -21,6 +21,7 @@ class BackendId(StrEnum):
     """Backends that are genuinely implemented in this repository."""
 
     EXACT_ISING = "exact_ising"
+    NUMPY_EXACT_CATEGORICAL = "numpy_exact_categorical"
     TORX_STATEVECTOR = "torx_statevector"
     THRML_LOCAL = "thrml_local"
     Z1_COST_MODEL = "z1_cost_model"
@@ -28,6 +29,7 @@ class BackendId(StrEnum):
 
 _ALLOWED_BACKEND_EVIDENCE: dict[BackendId, frozenset[EvidenceClass]] = {
     BackendId.EXACT_ISING: frozenset({EvidenceClass.EXACT_REFERENCE}),
+    BackendId.NUMPY_EXACT_CATEGORICAL: frozenset({EvidenceClass.SOFTWARE_SIMULATION}),
     BackendId.TORX_STATEVECTOR: frozenset({EvidenceClass.EXACT_REFERENCE}),
     BackendId.THRML_LOCAL: frozenset({EvidenceClass.SOFTWARE_SIMULATION}),
     BackendId.Z1_COST_MODEL: frozenset({EvidenceClass.CALIBRATED_PROJECTION}),
@@ -35,6 +37,9 @@ _ALLOWED_BACKEND_EVIDENCE: dict[BackendId, frozenset[EvidenceClass]] = {
 
 _ALLOWED_METRIC_EVIDENCE: dict[BackendId, frozenset[EvidenceClass]] = {
     BackendId.EXACT_ISING: frozenset({EvidenceClass.EXACT_REFERENCE}),
+    BackendId.NUMPY_EXACT_CATEGORICAL: frozenset(
+        {EvidenceClass.EXACT_REFERENCE, EvidenceClass.SOFTWARE_SIMULATION}
+    ),
     BackendId.TORX_STATEVECTOR: frozenset({EvidenceClass.EXACT_REFERENCE}),
     # A sampled run may carry exact-reference comparison metrics alongside its
     # software-simulated observations.

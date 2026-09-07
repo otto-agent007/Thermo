@@ -41,7 +41,8 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] resolution sweep, edge-order sensitivity, trajectory error, and invariant checks
 - [x] independently compiled thermodynamic kernels
 - [x] exact target-context matching
-- [ ] model-context matching
+- [x] one-pass mean-field model-context matching
+- [x] exact trajectory-level REINFORCE estimator contract
 - [ ] trajectory-level REINFORCE refinement
 - [ ] full finite-Gibbs-horizon composed-program comparison
 
@@ -52,9 +53,18 @@ five-node Torx weighted-graph paper baseline and does not claim a composed
 25-site program comparison.
 
 Exact target-context matching is complete only for the analytically propagated
-target input distribution. Model-context matching, trajectory-level REINFORCE
-refinement, and a full finite-Gibbs-horizon comparison of the composed 25-site
-program remain deferred.
+target input distribution. The model-context diagnostic adds one first-moment
+feedback pass through the frozen target-context kernels and recompiles the 37
+pooled profiles. It does not compute an exact 25-site joint trajectory, iterate
+to a context fixed point, or establish a program-level improvement.
+Trajectory-level REINFORCE refinement and a full finite-Gibbs-horizon
+comparison of the composed 25-site program remain deferred.
+
+The checked estimator contract is limited to a three-site, two-occurrence
+exact-categorical microcircuit with shared parameters. It establishes the
+trajectory-score, expected-reference, finite-difference, and sampled-moment
+contracts needed for later refinement, but it performs no parameter update and
+does not establish improvement or finite-Gibbs-horizon unbiasedness.
 
 ## Phase 3 — Narrow Thermalizers-informed research compiler
 
