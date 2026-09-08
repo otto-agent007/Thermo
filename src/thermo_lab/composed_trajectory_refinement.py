@@ -162,9 +162,7 @@ def _tuple_matrix(values: NDArray[np.float64]) -> tuple[tuple[float, ...], ...]:
     return tuple(tuple(float(value) for value in row) for row in values)
 
 
-def _build_joint_tables(
-    parameters: NDArray[np.float64], *, beta: float
-) -> NDArray[np.float64]:
+def _build_joint_tables(parameters: NDArray[np.float64], *, beta: float) -> NDArray[np.float64]:
     tables = np.empty((parameters.shape[0], 4, _N_JOINT_OUTCOMES), dtype=np.float64)
     for group, row in enumerate(parameters):
         tables[group] = equilibrium_joint_conditional(
@@ -192,9 +190,7 @@ def _inverse_cdf_rows(
 ) -> NDArray[np.int64]:
     cumulative = np.cumsum(probabilities, axis=1, dtype=np.float64)
     cumulative[:, -1] = 1.0
-    return np.sum(uniforms[:, None] >= cumulative[:, :-1], axis=1).astype(
-        np.int64, copy=False
-    )
+    return np.sum(uniforms[:, None] >= cumulative[:, :-1], axis=1).astype(np.int64, copy=False)
 
 
 def _initial_states(*, batch_size: int, site_count: int) -> NDArray[np.uint8]:
@@ -238,9 +234,7 @@ def _schedule_digest(
             "identity_version": "composed_equilibrium_schedule.v1",
             "site_count": site_count,
             "occurrence_target_indices": tuple(int(value) for value in targets),
-            "occurrence_site_indices": tuple(
-                tuple(int(value) for value in row) for row in sites
-            ),
+            "occurrence_site_indices": tuple(tuple(int(value) for value in row) for row in sites),
         }
     )
 
@@ -408,9 +402,7 @@ def estimate_equilibrium_grouped_gradient(
             "seed": checked_seed,
             "beta": checked_beta,
             "parameter_digest": canonical_sha256(_tuple_matrix(parameters)),
-            "schedule_digest": _schedule_digest(
-                targets, sites, site_count=checked_site_count
-            ),
+            "schedule_digest": _schedule_digest(targets, sites, site_count=checked_site_count),
             "reward_coefficient": tuple(float(value) for value in reward_vector),
             "reference_policy": "independent_same_parent_non_propagated",
         }
@@ -437,12 +429,8 @@ def evaluate_paired_equilibrium_objective(
 ) -> PairedObjectiveEvaluation:
     """Evaluate held-out before/after objectives using one shared uniform stream."""
 
-    before_parameters = _checked_parameter_matrix(
-        initial_parameters, name="initial_parameters"
-    )
-    after_parameters = _checked_parameter_matrix(
-        updated_parameters, name="updated_parameters"
-    )
+    before_parameters = _checked_parameter_matrix(initial_parameters, name="initial_parameters")
+    after_parameters = _checked_parameter_matrix(updated_parameters, name="updated_parameters")
     if after_parameters.shape != before_parameters.shape:
         raise ValueError("updated_parameters must have the same shape as initial_parameters")
     targets, sites, checked_site_count = _checked_schedule(
@@ -463,25 +451,19 @@ def evaluate_paired_equilibrium_objective(
     checked_beta = _checked_positive_float(beta, name="beta")
     before_tables = _build_joint_tables(before_parameters, beta=checked_beta)
     after_tables = _build_joint_tables(after_parameters, beta=checked_beta)
-    before_states = _initial_states(
-        batch_size=checked_batch_size, site_count=checked_site_count
-    )
+    before_states = _initial_states(batch_size=checked_batch_size, site_count=checked_site_count)
     after_states = before_states.copy()
     rng = np.random.Generator(np.random.PCG64(checked_seed))
 
     for target, (left, right) in zip(targets, sites, strict=True):
         uniforms = rng.random(checked_batch_size)
-        before_parent = (
-            2 * before_states[:, left].astype(np.int64)
-            + before_states[:, right].astype(np.int64)
+        before_parent = 2 * before_states[:, left].astype(np.int64) + before_states[
+            :, right
+        ].astype(np.int64)
+        after_parent = 2 * after_states[:, left].astype(np.int64) + after_states[:, right].astype(
+            np.int64
         )
-        after_parent = (
-            2 * after_states[:, left].astype(np.int64)
-            + after_states[:, right].astype(np.int64)
-        )
-        before_outcome = _inverse_cdf_rows(
-            before_tables[target, before_parent], uniforms
-        )
+        before_outcome = _inverse_cdf_rows(before_tables[target, before_parent], uniforms)
         after_outcome = _inverse_cdf_rows(after_tables[target, after_parent], uniforms)
         before_output = before_outcome % _N_VISIBLE_OUTCOMES
         after_output = after_outcome % _N_VISIBLE_OUTCOMES
@@ -509,12 +491,8 @@ def evaluate_paired_equilibrium_objective(
     )
     before_occupancy = np.asarray(before.occupancy, dtype=np.float64)
     after_occupancy = np.asarray(after.occupancy, dtype=np.float64)
-    objective_before = math.fsum(
-        float(value * value) for value in before_occupancy - target_vector
-    )
-    objective_after = math.fsum(
-        float(value * value) for value in after_occupancy - target_vector
-    )
+    objective_before = math.fsum(float(value * value) for value in before_occupancy - target_vector)
+    objective_after = math.fsum(float(value * value) for value in after_occupancy - target_vector)
     improvement = math.fsum((objective_before, -objective_after))
     target_tuple = tuple(float(value) for value in target_vector)
     digest = canonical_sha256(
