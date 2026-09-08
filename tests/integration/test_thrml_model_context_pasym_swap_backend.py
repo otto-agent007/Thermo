@@ -1,9 +1,14 @@
 """Contracts for deterministic model-context backend preparation."""
 
+import numpy as np
 import pytest
 
 from thermo_lab.backends.thrml_model_context_pasym_swap import (
     ThrmlModelContextPAsymSwapBackend,
+)
+from thermo_lab.composed_pasym_swap_artifacts import (
+    HORIZON_LABELS,
+    build_composed_artifact_bundle,
 )
 from thermo_lab.config import model_context_pasym_swap_non_seed_config_hash
 from thermo_lab.evidence import BackendId, EvidenceClass
@@ -14,6 +19,7 @@ from thermo_lab.model_context_pasym_swap_results import (
     validate_model_context_profile_result,
     validate_model_context_schedule_acceptance,
 )
+from thermo_lab.pasym_swap import build_paper_fixture
 
 
 def test_model_context_backend_accepts_only_the_checked_model_context_request() -> None:
@@ -48,6 +54,17 @@ def test_model_context_backend_rebuilds_one_upstream_lineage_and_compiles_37_pro
             prepared.model_context_artifacts, prepared.model_profiles, strict=True
         )
     )
+
+
+def test_authoritative_lineage_builds_complete_composed_bundle() -> None:
+    prepared = ThrmlModelContextPAsymSwapBackend().prepare(model_context_pasym_swap_spec(seed=0))
+
+    bundle = build_composed_artifact_bundle(
+        build_paper_fixture(), prepared, beta=1.0, horizons=HORIZON_LABELS
+    )
+
+    assert bundle.conditionals.shape == (3, 7, 37, 4, 4)
+    assert np.allclose(bundle.conditionals.sum(axis=-1), 1.0, rtol=0.0, atol=1e-12)
 
 
 def test_model_context_backend_derives_checked_exact_profile_and_schedule_evidence() -> None:

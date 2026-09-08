@@ -16,6 +16,7 @@ from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.records import ExperimentSpec, FrozenModel, _freeze_json
 from thermo_lab.schemas import (
     WEIGHTED_GRAPH_WALK_EXPERIMENT_ID,
+    ComposedPAsymSwapRunConfig,
     IndependentCompilerRunConfig,
     IsingModelConfig,
     ModelContextCompilerRunConfig,
@@ -29,6 +30,7 @@ from thermo_lab.schemas import (
     TrajectoryReinforceRunConfig,
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
+    validate_composed_pasym_swap_request,
     validate_independent_pasym_swap_request,
     validate_model_context_pasym_swap_request,
     validate_target_context_pasym_swap_request,
@@ -70,6 +72,13 @@ MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION = (
     "One independently seeded THRML cross-check using 4,096 chains per input context "
     "over every frozen mean-field model-context kernel at 30 complete two-color Gibbs sweeps."
 )
+COMPOSED_PASYM_SWAP_EXPERIMENT_ID = "numpy.composed_pasym_swap_finite_gibbs.v1"
+COMPOSED_PASYM_SWAP_SAMPLE_DEFINITION = (
+    "One independently seeded batch of 32,768 complete 25-site trajectories; each trajectory "
+    "executes all 500 canonical PAsymSwap occurrences for three frozen artifact families at "
+    "equilibrium and six finite Gibbs horizons using one common PCG64 uniform draw per "
+    "trajectory and occurrence across all comparison cells."
+)
 
 _EXPERIMENT_BACKENDS = {
     TRAJECTORY_REINFORCE_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
@@ -80,6 +89,7 @@ _EXPERIMENT_BACKENDS = {
     INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
     TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
+    COMPOSED_PASYM_SWAP_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
 }
 
 
@@ -185,6 +195,80 @@ def model_context_pasym_swap_non_seed_config_hash(
     )
 
 
+def _authoritative_composed_lineage_hashes() -> tuple[str, str, str]:
+    """Rebuild the three checked upstream request identities in family order."""
+
+    independent = load_experiment_config(
+        experiment_config_path("thrml-independent-pasym-swap.toml")
+    )
+    target_context = load_experiment_config(
+        experiment_config_path("thrml-target-context-pasym-swap.toml")
+    )
+    model_context = load_experiment_config(
+        experiment_config_path("thrml-model-context-pasym-swap.toml")
+    )
+    independent_model = PAsymSwapModelConfig.model_validate(
+        to_json_value(independent.model_parameters)
+    )
+    return (
+        independent_pasym_swap_non_seed_config_hash(
+            independent_model,
+            IndependentCompilerRunConfig.model_validate(to_json_value(independent.run_parameters)),
+        ),
+        target_context_pasym_swap_non_seed_config_hash(
+            independent_model,
+            TargetContextCompilerRunConfig.model_validate(
+                to_json_value(target_context.run_parameters)
+            ),
+        ),
+        model_context_pasym_swap_non_seed_config_hash(
+            independent_model,
+            ModelContextCompilerRunConfig.model_validate(
+                to_json_value(model_context.run_parameters)
+            ),
+        ),
+    )
+
+
+def composed_pasym_swap_non_seed_config_hash(
+    model: PAsymSwapModelConfig,
+    run: ComposedPAsymSwapRunConfig,
+    lineage_hashes: tuple[str, str, str],
+) -> str:
+    """Derive the lineage-bound composed request identity without its release seed."""
+
+    if not isinstance(model, PAsymSwapModelConfig):
+        raise TypeError("model must be a PAsymSwapModelConfig")
+    if not isinstance(run, ComposedPAsymSwapRunConfig):
+        raise TypeError("run must be a ComposedPAsymSwapRunConfig")
+    if (
+        not isinstance(lineage_hashes, tuple)
+        or len(lineage_hashes) != 3
+        or any(type(item) is not str for item in lineage_hashes)
+    ):
+        raise ValueError("lineage_hashes must be three family-ordered configuration hashes")
+    expected_lineage_hashes = _authoritative_composed_lineage_hashes()
+    if lineage_hashes != expected_lineage_hashes:
+        raise ValueError("lineage_hashes must match the authoritative family-ordered identities")
+    validated_model = PAsymSwapModelConfig.model_validate(
+        to_json_value(model.model_dump(mode="json"))
+    )
+    validated_run = ComposedPAsymSwapRunConfig.model_validate(
+        to_json_value(run.model_dump(mode="json"))
+    )
+    return canonical_sha256(
+        {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "experiment_id": COMPOSED_PASYM_SWAP_EXPERIMENT_ID,
+            "backend": BackendId.NUMPY_EXACT_CATEGORICAL,
+            "sample_definition": COMPOSED_PASYM_SWAP_SAMPLE_DEFINITION,
+            "model": validated_model.model_dump(mode="json"),
+            "run": validated_run.model_dump(mode="json"),
+            "lineage_hashes": lineage_hashes,
+        }
+    )
+
+
 def experiment_config_path(filename: str) -> Path:
     """Locate one authoritative checked config in a checkout or installation.
 
@@ -284,6 +368,14 @@ class ExperimentConfig(FrozenModel):
             model_config = PAsymSwapModelConfig.model_validate(model)
             run_config = ModelContextCompilerRunConfig.model_validate(run)
             validate_model_context_pasym_swap_request(model_config, run_config, self.seed)
+        elif self.experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID:
+            if self.sample_definition != COMPOSED_PASYM_SWAP_SAMPLE_DEFINITION:
+                raise ValueError(
+                    "composed PAsymSwap sample_definition must match the checked value"
+                )
+            model_config = PAsymSwapModelConfig.model_validate(model)
+            run_config = ComposedPAsymSwapRunConfig.model_validate(run)
+            validate_composed_pasym_swap_request(model_config, run_config, self.seed)
         elif self.backend is BackendId.TORX_STATEVECTOR:
             TorxModelConfig.model_validate(model)
             TorxRunConfig.model_validate(run)
@@ -300,6 +392,12 @@ class ExperimentConfig(FrozenModel):
     def non_seed_config_hash(self) -> str:
         """Hash checked requested inputs except the independently varied seed."""
 
+        if self.experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID:
+            return composed_pasym_swap_non_seed_config_hash(
+                PAsymSwapModelConfig.model_validate(to_json_value(self.model_parameters)),
+                ComposedPAsymSwapRunConfig.model_validate(to_json_value(self.run_parameters)),
+                _authoritative_composed_lineage_hashes(),
+            )
         return canonical_sha256(
             {
                 "schema_version": self.schema_version,

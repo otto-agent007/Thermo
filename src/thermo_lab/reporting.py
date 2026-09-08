@@ -12,6 +12,8 @@ from thermo_lab.aggregate import (
     StatisticalSemantics,
     validate_aggregate_against_records,
 )
+from thermo_lab.composed_pasym_swap_reporting import render_composed_pasym_swap_section
+from thermo_lab.config import COMPOSED_PASYM_SWAP_EXPERIMENT_ID
 from thermo_lab.graph_walk_results import (
     WeightedGraphWalkSummary,
     validate_weighted_graph_walk_observations,
@@ -365,6 +367,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     is_model_context_pasym_swap = aggregate.experiment_id == _MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
     is_trajectory_reinforce = aggregate.experiment_id == _TRAJECTORY_REINFORCE_EXPERIMENT_ID
     is_trajectory_refinement = aggregate.experiment_id == _TRAJECTORY_REFINEMENT_EXPERIMENT_ID
+    is_composed_pasym_swap = aggregate.experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
@@ -442,6 +445,9 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
             elif identity != expected_identity:
                 raise ValueError("Cannot report incompatible refinement deterministic identities")
     validate_aggregate_against_records(aggregate, records_for_validation)
+    # Aggregate reconstruction already deeply validates every composed run; the
+    # standalone domain renderer retains its own validation boundary as well.
+    composed_section = render_composed_pasym_swap_section(records) if is_composed_pasym_swap else []
     sample_definition = (
         records[0].spec.sample_definition
         if records
@@ -690,6 +696,8 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 *render_trajectory_refinement_section(records),
             )
         )
+    if is_composed_pasym_swap:
+        lines.extend(("", *composed_section))
     lines.extend(
         (
             "",
@@ -701,6 +709,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 or is_model_context_pasym_swap
                 or is_trajectory_reinforce
                 or is_trajectory_refinement
+                or is_composed_pasym_swap
                 else "## Scalar results across seeds"
             ),
             "",
@@ -717,7 +726,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
         if records:
             lines.extend(("", *_weighted_graph_walk_section(records[0])))
-    elif is_trajectory_reinforce:
+    elif is_trajectory_reinforce or is_composed_pasym_swap:
         lines.extend(
             (
                 "",

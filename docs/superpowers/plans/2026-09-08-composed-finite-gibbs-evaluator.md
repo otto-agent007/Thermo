@@ -199,12 +199,8 @@ Expected: FAIL because the bundle API is absent.
 ```python
 ArtifactFamily = Literal["independent", "target_context", "model_context"]
 HorizonLabel = Literal["equilibrium", "k1", "k2", "k4", "k8", "k16", "k30"]
-ARTIFACT_FAMILIES: tuple[ArtifactFamily, ...] = (
-    "independent", "target_context", "model_context"
-)
-HORIZON_LABELS: tuple[HorizonLabel, ...] = (
-    "equilibrium", "k1", "k2", "k4", "k8", "k16", "k30"
-)
+ARTIFACT_FAMILIES: tuple[ArtifactFamily, ...] = ("independent", "target_context", "model_context")
+HORIZON_LABELS: tuple[HorizonLabel, ...] = ("equilibrium", "k1", "k2", "k4", "k8", "k16", "k30")
 FINITE_HORIZONS = {"k1": 1, "k2": 2, "k4": 4, "k8": 8, "k16": 16, "k30": 30}
 
 
@@ -288,7 +284,10 @@ def test_apply_occurrence_uses_word_order_and_changes_only_endpoints() -> None:
 
 def test_inverse_cdf_boundary_values_choose_canonical_outputs() -> None:
     assert tuple(inverse_cdf_words(QUARTER_ROWS, np.asarray([0.0, 0.25, 0.5, 0.75]))) == (
-        0, 1, 2, 3
+        0,
+        1,
+        2,
+        3,
     )
 ```
 
@@ -303,7 +302,9 @@ Expected: FAIL because the execution module does not exist.
 - [ ] **Step 3: Implement strict inverse-CDF sampling**
 
 ```python
-def inverse_cdf_words(rows: NDArray[np.float64], uniforms: NDArray[np.float64]) -> NDArray[np.uint8]:
+def inverse_cdf_words(
+    rows: NDArray[np.float64], uniforms: NDArray[np.float64]
+) -> NDArray[np.uint8]:
     checked_rows = _checked_rows(rows, len(uniforms))
     checked_uniforms = _checked_uniforms(uniforms)
     cumulative = np.cumsum(checked_rows, axis=1, dtype=np.float64)
@@ -346,20 +347,19 @@ def test_identical_cells_remain_identical_under_common_random_numbers(
 
 
 def test_different_seed_changes_sources_not_bundle_identity(bundle) -> None:
-    assert sample_composed_program(
-        bundle, batch_size=64, seed=7, checkpoint_occurrences=checkpoints
-    ).source_digest != sample_composed_program(
-        bundle, batch_size=64, seed=8, checkpoint_occurrences=checkpoints
-    ).source_digest
+    assert (
+        sample_composed_program(
+            bundle, batch_size=64, seed=7, checkpoint_occurrences=checkpoints
+        ).source_digest
+        != sample_composed_program(
+            bundle, batch_size=64, seed=8, checkpoint_occurrences=checkpoints
+        ).source_digest
+    )
 
 
 def test_same_seed_reproduces_every_integer_source(bundle) -> None:
-    first = sample_composed_program(
-        bundle, batch_size=64, seed=7, checkpoint_occurrences=(0, 500)
-    )
-    second = sample_composed_program(
-        bundle, batch_size=64, seed=7, checkpoint_occurrences=(0, 500)
-    )
+    first = sample_composed_program(bundle, batch_size=64, seed=7, checkpoint_occurrences=(0, 500))
+    second = sample_composed_program(bundle, batch_size=64, seed=7, checkpoint_occurrences=(0, 500))
     assert first == second
 ```
 
@@ -395,9 +395,7 @@ def sample_composed_program(
                 ever_left[family_index, horizon_index] |= mass != 1
         if occurrence_index + 1 in checkpoint_occurrences:
             checkpoints.append(
-                _reduce_all_cells(
-                    states, ever_left, occurrence_count=occurrence_index + 1
-                )
+                _reduce_all_cells(states, ever_left, occurrence_count=occurrence_index + 1)
             )
     return _canonical_sources(bundle, seed, batch_size, checkpoints)
 ```
@@ -525,10 +523,14 @@ class CheckpointMetrics:
     conditional_location_half_l1_error: float | None
 
 
-def derive_checkpoint_metrics(source: CheckpointSource, target: tuple[float, ...]) -> CheckpointMetrics:
+def derive_checkpoint_metrics(
+    source: CheckpointSource, target: tuple[float, ...]
+) -> CheckpointMetrics:
     n = float(source.sample_count)
     occupancy = tuple(count / n for count in source.occupancy_counts)
-    errors = tuple(abs(actual - expected) for actual, expected in zip(occupancy, target, strict=True))
+    errors = tuple(
+        abs(actual - expected) for actual, expected in zip(occupancy, target, strict=True)
+    )
     expected_mass = source.particle_count_sum / n
     variance = source.particle_count_sum_squares / n - expected_mass * expected_mass
     if variance < -1e-15:
@@ -541,7 +543,10 @@ def derive_checkpoint_metrics(source: CheckpointSource, target: tuple[float, ...
         else None
     )
     conditional_error = (
-        0.5 * math.fsum(abs(actual - expected) for actual, expected in zip(conditional, target, strict=True))
+        0.5
+        * math.fsum(
+            abs(actual - expected) for actual, expected in zip(conditional, target, strict=True)
+        )
         if conditional is not None
         else None
     )
@@ -875,9 +880,7 @@ class ComposedPAsymSwapRunConfig(StrictSchema):
     local_transition_policy: Literal[
         "uniform-reset exact equilibrium or complete hidden-before-outputs Gibbs sweeps"
     ]
-    performance_acceptance_policy: Literal[
-        "non_gating_report_all_improvements_and_regressions"
-    ]
+    performance_acceptance_policy: Literal["non_gating_report_all_improvements_and_regressions"]
 ```
 
 The model validator requires exact tuples from Global Constraints. `composed_pasym_swap_non_seed_config_hash` includes the composed model/run dump, sample definition, backend, experiment ID, and the three authoritative upstream non-seed configuration hashes in family order.
@@ -972,9 +975,7 @@ class NumpyComposedPAsymSwapBackend:
                 beta=model.beta,
                 horizons=run.horizon_labels,
             )
-            targets = derive_exact_target_checkpoints(
-                fixture, run.checkpoint_occurrences
-            )
+            targets = derive_exact_target_checkpoints(fixture, run.checkpoint_occurrences)
             self._bundle_cache[request_hash] = PreparedComposedInputs(bundle, targets)
         return self._bundle_cache[request_hash]
 
@@ -1065,9 +1066,7 @@ FINAL_MEASUREMENTS = (
     "ever_left_sector_probability",
     "conditional_location_half_l1_error",
 )
-PAIRED_MEASUREMENTS = tuple(
-    f"{name}_difference" for name in FINAL_MEASUREMENTS
-)
+PAIRED_MEASUREMENTS = tuple(f"{name}_difference" for name in FINAL_MEASUREMENTS)
 
 
 def composed_scalar_metric_names() -> frozenset[str]:
@@ -1119,9 +1118,7 @@ git commit -m "feat: validate composed program records"
 def test_composed_aggregate_includes_only_seeded_final_scalars(composed_records) -> None:
     aggregate = aggregate_records(composed_records, requested_seeds=(0, 1, 2))
     assert set(aggregate.metric_aggregates) == composed_scalar_metric_names()
-    assert aggregate.metric_aggregates[
-        "final_model_context_k30_occupancy_half_l1_error"
-    ].count == 3
+    assert aggregate.metric_aggregates["final_model_context_k30_occupancy_half_l1_error"].count == 3
     assert "composed_pasym_swap_summary" in aggregate.omitted_metrics
     assert "integrity_acceptance_passed" in aggregate.omitted_metrics
     assert "timing.execution_seconds" in aggregate.omitted_metrics

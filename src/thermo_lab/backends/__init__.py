@@ -1,6 +1,7 @@
 """Implemented experiment backends."""
 
 from thermo_lab.backends.base import ExecutionResult
+from thermo_lab.backends.numpy_composed_pasym_swap import NumpyComposedPAsymSwapBackend
 from thermo_lab.backends.numpy_exact_categorical import (
     NumpyExactCategoricalBackend,
     NumpyTrajectoryRefinementBackend,
@@ -18,6 +19,7 @@ from thermo_lab.backends.torx_weighted_graph_walk import TorxWeightedGraphWalkBa
 
 __all__ = [
     "ExecutionResult",
+    "NumpyComposedPAsymSwapBackend",
     "NumpyExactCategoricalBackend",
     "NumpyTrajectoryRefinementBackend",
     "ThrmlIndependentPAsymSwapBackend",

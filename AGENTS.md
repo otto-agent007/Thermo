@@ -76,6 +76,10 @@ uv run thermo-lab run \
   configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml \
   --seeds 0,1,2 \
   --output-dir results/trajectory-reinforce-one-step
+uv run thermo-lab run \
+  configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml \
+  --seeds 0,1,2 \
+  --output-dir results/composed-pasym-swap-finite-gibbs
 uv build
 python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/thrml-target-context-pasym-swap.toml"
@@ -93,6 +97,10 @@ python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml"
 python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
   "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml"
+python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
+  "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
+python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
+  "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
 ```
 
 The trajectory estimator gate validates an exact-categorical three-site
@@ -102,3 +110,16 @@ The one-step refinement gate preserves those checks, applies one bounded
 shared-parameter update, and records the exact objective before and after. It
 remains a bounded exact-categorical experiment, not the 25-site or
 finite-Gibbs-horizon comparison.
+
+The full composed finite-Gibbs gate is a NumPy `software_simulation`: it
+samples 32,768 complete 25-site, 500-occurrence trajectories per seed for the
+`independent`, `target_context`, and `model_context` frozen artifact families
+at equilibrium and `K = 1, 2, 4, 8, 16, 30`. Use one PCG64 uniform vector per
+occurrence across all family/horizon comparison cells. Treat the exact target
+checkpoints and frozen local tables as `exact_reference`; treat sampled
+occupancy error, leakage, invariant, final-marginal, and paired-comparison
+metrics as `software_simulation`. The 89 improved / 37 worsened / 0 unchanged
+final paired error/leakage results are non-gating descriptive outcomes. Do not
+extend this gate into live THRML sampling, official Thermalizers, hosted or
+hardware claims, iterative optimization, or full 25-site trajectory-level
+parameter refinement.

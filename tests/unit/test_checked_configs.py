@@ -31,6 +31,71 @@ TARGET_CONTEXT_PASYM_SWAP_CONFIG = ROOT / "configs/experiments/thrml-target-cont
 TRAJECTORY_REINFORCE_CONFIG = (
     ROOT / "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml"
 )
+COMPOSED_PASYM_SWAP_CONFIG = (
+    ROOT / "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
+)
+
+
+def test_public_docs_declare_composed_scope_and_deferred_refinement() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    roadmap = (ROOT / "docs/roadmap.md").read_text(encoding="utf-8")
+    experiment = (ROOT / "docs/experiments/biased-random-walk.md").read_text(encoding="utf-8")
+    command = (
+        "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml \\\n"
+        "  --seeds 0,1,2 \\\n"
+        "  --output-dir results/composed-pasym-swap-finite-gibbs"
+    )
+
+    assert command in readme
+    assert command in agents
+    for text in (readme, roadmap, experiment):
+        assert "500" in text
+        assert "25-site" in text
+        assert "finite-Gibbs" in text
+        assert "software_simulation" in text
+    assert "32,768" in experiment
+    assert "PCG64" in experiment
+    assert "exact_reference" in experiment
+    assert "non-gating" in experiment
+    assert "[x] full finite-Gibbs-horizon composed-program comparison" in roadmap
+    assert "[ ] full 25-site trajectory-level parameter refinement" in roadmap
+    assert "full 25-site trajectory-level parameter refinement remains deferred." in experiment
+    assert (
+        "Trajectory-level REINFORCE refinement and the full finite-Gibbs-horizon\n"
+        "composed-program comparison across all 500 occurrences on 25 sites remain\n"
+        "deferred."
+    ) not in experiment
+    assert (
+        "Full 25-site trajectory-level REINFORCE refinement and the finite-Gibbs-horizon "
+        "composed-program comparison\nremain open."
+    ) not in experiment
+    assert "independent cross-run replication units" in experiment
+    assert "within-batch samples" in experiment
+    assert "not extra independent replications" in experiment
+
+
+def test_ci_checks_the_composed_study_and_packages_its_config() -> None:
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    config = "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
+    ci_command = """      - name: Run full composed finite-Gibbs PAsymSwap study
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
+          --seeds 0,1,2
+          --output-dir \"${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs\"
+"""
+    package_check = workflow[
+        workflow.index(
+            "      - name: Verify checked study configs in package artifacts"
+        ) : workflow.index("      - name: Run cross-library smoke experiment")
+    ]
+
+    assert ci_command in workflow
+    assert f'"{config}",' in package_check
+    assert "with zipfile.ZipFile(wheel)" in package_check
+    assert "with tarfile.open(sdist)" in package_check
+    assert '"configs/experiments/*.toml"' in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
 
 def test_config_locator_resolves_authoritative_checked_files() -> None:
@@ -46,6 +111,10 @@ def test_config_locator_resolves_authoritative_checked_files() -> None:
     assert (
         experiment_config_path("numpy-trajectory-reinforce-pasym-swap.toml").read_bytes()
         == TRAJECTORY_REINFORCE_CONFIG.read_bytes()
+    )
+    assert (
+        experiment_config_path("numpy-composed-pasym-swap-finite-gibbs.toml").read_bytes()
+        == COMPOSED_PASYM_SWAP_CONFIG.read_bytes()
     )
 
 
@@ -68,6 +137,11 @@ def test_config_locator_resolves_authoritative_checked_files() -> None:
             TRAJECTORY_REINFORCE_CONFIG,
             BackendId.NUMPY_EXACT_CATEGORICAL,
             "numpy.trajectory_reinforce_pasym_swap_estimator.v1",
+        ),
+        (
+            COMPOSED_PASYM_SWAP_CONFIG,
+            BackendId.NUMPY_EXACT_CATEGORICAL,
+            "numpy.composed_pasym_swap_finite_gibbs.v1",
         ),
     ],
 )

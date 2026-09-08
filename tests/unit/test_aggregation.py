@@ -12,17 +12,19 @@ from thermo_lab.aggregate import (
     aggregate_run_records,
     validate_aggregate_against_records,
 )
+from thermo_lab.backends.numpy_composed_pasym_swap import NumpyComposedPAsymSwapBackend
 from thermo_lab.backends.numpy_exact_categorical import NumpyExactCategoricalBackend
 from thermo_lab.backends.thrml_target_context_pasym_swap import (
     ThrmlTargetContextPAsymSwapBackend,
 )
+from thermo_lab.composed_pasym_swap_reporting import composed_scalar_metric_names
 from thermo_lab.config import (
     TRAJECTORY_REINFORCE_SAMPLE_DEFINITION,
     experiment_config_path,
     load_experiment_config,
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
-from thermo_lab.hashing import to_json_value
+from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.records import (
     ExperimentSpec,
     MetricObservation,
@@ -35,6 +37,7 @@ from thermo_lab.records import (
 
 TARGET_CONTEXT_CONFIG = experiment_config_path("thrml-target-context-pasym-swap.toml")
 TRAJECTORY_REINFORCE_CONFIG = experiment_config_path("numpy-trajectory-reinforce-pasym-swap.toml")
+COMPOSED_CONFIG = experiment_config_path("numpy-composed-pasym-swap-finite-gibbs.toml")
 TARGET_CONTEXT_TIMING_PREFIX = (
     "cached shared jax.jit(jax.vmap(single_chain)) executable; one untimed synchronized "
     "warm launch, then aggregate synchronized steady-state execution"
@@ -55,6 +58,13 @@ def trajectory_reinforce_records() -> tuple[RunRecord, RunRecord, RunRecord]:
     return tuple(backend.run(config.to_spec(seed=seed)) for seed in (0, 1, 2))  # type: ignore[return-value]
 
 
+@pytest.fixture(scope="module")
+def composed_records() -> tuple[RunRecord, RunRecord, RunRecord]:
+    config = load_experiment_config(COMPOSED_CONFIG)
+    backend = NumpyComposedPAsymSwapBackend(Path(__file__).parents[2])
+    return tuple(backend.run(config.to_spec(seed=seed)) for seed in (0, 1, 2))
+
+
 def _target_context_aggregate(records: tuple[RunRecord, ...]) -> AggregateRecord:
     seeds = tuple(record.spec.seed for record in records)
     return aggregate_run_records(
@@ -73,6 +83,56 @@ def _trajectory_reinforce_aggregate(records: tuple[RunRecord, ...]) -> Aggregate
         run_record_paths=tuple(f"runs/seed-{seed:010d}.json" for seed in seeds),
         source_config="configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
     )
+
+
+def _composed_aggregate(records: tuple[RunRecord, ...]) -> AggregateRecord:
+    seeds = tuple(record.spec.seed for record in records)
+    return aggregate_run_records(
+        records,
+        requested_seeds=seeds,
+        run_record_paths=tuple(f"runs/seed-{seed:010d}.json" for seed in seeds),
+        source_config="configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml",
+    )
+
+
+def _tamper_composed_bundle_identity(
+    records: tuple[RunRecord, RunRecord, RunRecord],
+) -> tuple[RunRecord, RunRecord, RunRecord]:
+    record = records[-1]
+    metrics = dict(record.metrics)
+    summary = dict(metrics["composed_pasym_swap_summary"].value)
+    summary["bundle_digest"] = "sha256:" + "0" * 64
+    summary["summary_digest"] = canonical_sha256(
+        {
+            "identity_version": summary["identity_version"],
+            "request_hash": summary["request_hash"],
+            "bundle_digest": summary["bundle_digest"],
+            "target_checkpoint_digest": summary["target_checkpoint_digest"],
+            "seed": summary["seed"],
+            "batch_size": summary["batch_size"],
+            "artifact_identities": summary["artifact_identities"],
+            "local_residual_summaries": summary["local_residual_summaries"],
+            "cells": summary["cells"],
+            "comparisons": summary["comparisons"],
+            "integrity_acceptance_passed": summary["integrity_acceptance_passed"],
+        }
+    )
+    metrics["composed_pasym_swap_summary"] = metrics["composed_pasym_swap_summary"].model_copy(
+        update={"value": summary}
+    )
+    return (*records[:-1], record.model_copy(update={"metrics": metrics}))
+
+
+def _with_composed_git_identity(
+    record: RunRecord,
+    *,
+    commit: str,
+    dirty: bool,
+) -> RunRecord:
+    payload = copy.deepcopy(record.model_dump(mode="json", by_alias=True))
+    payload["provenance"]["git_commit"] = commit
+    payload["provenance"]["git_dirty"] = dirty
+    return RunRecord.model_validate(payload)
 
 
 def _mutated_target_record(record: RunRecord, mutation) -> RunRecord:
@@ -201,6 +261,82 @@ def test_multiple_seeds_use_sample_std_and_student_t_interval() -> None:
     assert scalar.confidence_interval.upper == pytest.approx(4.5543, abs=1e-3)
     assert scalar.interval_method == "two-sided Student-t across independent seeds"
     assert aggregate.statistical_semantics is StatisticalSemantics.INDEPENDENT_SEEDED_REPLICATIONS
+
+
+def test_composed_aggregate_includes_only_seeded_final_scalars(
+    composed_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    aggregate = _composed_aggregate(composed_records)
+
+    assert set(aggregate.metric_aggregates) == composed_scalar_metric_names()
+    assert aggregate.metric_aggregates["final_model_context_k30_occupancy_half_l1_error"].count == 3
+    assert aggregate.omitted_metrics["composed_pasym_swap_summary"] == (
+        "nested composed-program evidence is retained only in per-run records"
+    )
+    assert aggregate.omitted_metrics["integrity_acceptance_passed"] == (
+        "deterministic integrity gate is not an independently seeded sampled cross-check"
+    )
+    assert aggregate.omitted_metrics["timing.compile_seconds"] == (
+        "per-seed NumPy preparation/cache timing is not a scientific replication metric"
+    )
+    assert aggregate.omitted_metrics["timing.execution_seconds"] == (
+        "per-seed NumPy sampling timing is not a scientific replication metric"
+    )
+    validate_aggregate_against_records(aggregate, composed_records)
+
+
+def test_composed_aggregate_rejects_different_bundle_identity(
+    composed_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    with pytest.raises(ValueError, match="artifact bundle|incompatible"):
+        _composed_aggregate(_tamper_composed_bundle_identity(composed_records))
+
+
+def test_composed_aggregate_rejects_different_historical_git_commit(
+    composed_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    historical = tuple(
+        _with_composed_git_identity(record, commit="a" * 40, dirty=False)
+        for record in composed_records
+    )
+    mixed = (
+        *historical[:-1],
+        _with_composed_git_identity(historical[-1], commit="b" * 40, dirty=False),
+    )
+
+    with pytest.raises(ValueError, match="deterministic artifact identity"):
+        _composed_aggregate(mixed)
+
+
+def test_composed_aggregate_rejects_different_historical_git_dirty_state(
+    composed_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    historical = tuple(
+        _with_composed_git_identity(record, commit="a" * 40, dirty=False)
+        for record in composed_records
+    )
+    mixed = (
+        *historical[:-1],
+        _with_composed_git_identity(historical[-1], commit="a" * 40, dirty=True),
+    )
+
+    with pytest.raises(ValueError, match="deterministic artifact identity"):
+        _composed_aggregate(mixed)
+
+
+def test_composed_aggregate_accepts_matching_historical_git_identity(
+    composed_records: tuple[RunRecord, RunRecord, RunRecord],
+) -> None:
+    historical = tuple(
+        _with_composed_git_identity(record, commit="a" * 40, dirty=True)
+        for record in composed_records
+    )
+
+    aggregate = _composed_aggregate(historical)
+
+    assert aggregate.provenance_summary is not None
+    assert aggregate.provenance_summary.git_commit == "a" * 40
+    assert aggregate.provenance_summary.git_dirty is True
 
 
 def test_independent_pasym_swap_aggregates_only_sampled_cross_check() -> None:
