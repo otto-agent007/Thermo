@@ -74,6 +74,10 @@ _TRAJECTORY_JOINT_OUTCOME_ORDER = tuple(
 _TRAJECTORY_PARAMETERS = (0.25, -0.35, 0.20, 0.45, -0.30, -0.40, 0.25, 0.30, -0.20)
 _TRAJECTORY_TARGET_EDGE = ((0, 0), (1, 0))
 _TRAJECTORY_OCCURRENCES = ((0, 1), (1, 2))
+_COMPOSED_ARTIFACT_FAMILIES = ("independent", "target_context", "model_context")
+_COMPOSED_HORIZON_LABELS = ("equilibrium", "k1", "k2", "k4", "k8", "k16", "k30")
+_COMPOSED_CHECKPOINT_OCCURRENCES = tuple(range(0, 501, 50))
+_COMPOSED_RELEASE_SEEDS = (0, 1, 2)
 
 
 class StrictSchema(BaseModel):
@@ -469,6 +473,13 @@ class PAsymSwapModelConfig(StrictSchema):
     exact_dtype: Literal["float64"]
     thrml_dtype: Literal["float32"]
 
+    @field_validator("torus_side", "macrosteps", mode="before")
+    @classmethod
+    def validate_integer_literal_encoding(cls, value: object, info) -> object:
+        if type(value) is not int:
+            raise ValueError(f"{info.field_name} must be encoded as a JSON integer")
+        return value
+
     @field_validator(
         "color_order",
         "color_classes",
@@ -513,6 +524,66 @@ class PAsymSwapModelConfig(StrictSchema):
         if self.parameter_cap != 2.0:
             raise ValueError("parameter_cap must be exactly 2.0")
         return self
+
+
+class ComposedPAsymSwapRunConfig(StrictSchema):
+    """Immutable schedule for the full finite-Gibbs composed comparison."""
+
+    artifact_families: tuple[Literal["independent", "target_context", "model_context"], ...]
+    horizon_labels: tuple[Literal["equilibrium", "k1", "k2", "k4", "k8", "k16", "k30"], ...]
+    checkpoint_occurrences: tuple[StrictInt, ...]
+    trajectory_batch_size: StrictInt
+    release_seeds: tuple[StrictInt, ...]
+    rng_family: Literal["numpy.random.Generator(PCG64)"]
+    stream_policy: Literal[
+        "one float64 uniform vector per occurrence reused across all family-horizon cells"
+    ]
+    local_transition_policy: Literal[
+        "uniform-reset exact equilibrium or complete hidden-before-outputs Gibbs sweeps"
+    ]
+    performance_acceptance_policy: Literal["non_gating_report_all_improvements_and_regressions"]
+
+    @field_validator(
+        "artifact_families",
+        "horizon_labels",
+        "checkpoint_occurrences",
+        "release_seeds",
+        mode="before",
+    )
+    @classmethod
+    def freeze_scientific_sequences(cls, value: object) -> object:
+        return _tuple_json_lists(value)
+
+    @model_validator(mode="after")
+    def validate_composed_schedule(self) -> "ComposedPAsymSwapRunConfig":
+        if self.artifact_families != _COMPOSED_ARTIFACT_FAMILIES:
+            raise ValueError("artifact_families must use the canonical family order")
+        if self.horizon_labels != _COMPOSED_HORIZON_LABELS:
+            raise ValueError("horizon_labels must use the canonical finite-Gibbs order")
+        if self.checkpoint_occurrences != _COMPOSED_CHECKPOINT_OCCURRENCES:
+            raise ValueError("checkpoint_occurrences must use the canonical 50-occurrence schedule")
+        if self.trajectory_batch_size != 32768:
+            raise ValueError("trajectory_batch_size must be the checked release batch size")
+        if self.release_seeds != _COMPOSED_RELEASE_SEEDS:
+            raise ValueError("release_seeds must use the checked independent replications")
+        return self
+
+
+def validate_composed_pasym_swap_request(
+    model: PAsymSwapModelConfig,
+    run: ComposedPAsymSwapRunConfig,
+    seed: int,
+) -> None:
+    """Validate a checked composed-program request at the public boundary."""
+
+    if not isinstance(model, PAsymSwapModelConfig):
+        raise TypeError("model must be a PAsymSwapModelConfig")
+    if not isinstance(run, ComposedPAsymSwapRunConfig):
+        raise TypeError("run must be a ComposedPAsymSwapRunConfig")
+    if type(seed) is not int or seed not in _COMPOSED_RELEASE_SEEDS:
+        raise ValueError("seed must be an approved release seed")
+    PAsymSwapModelConfig.model_validate(to_json_value(model.model_dump(mode="json")))
+    ComposedPAsymSwapRunConfig.model_validate(to_json_value(run.model_dump(mode="json")))
 
 
 class IndependentCompilerRunConfig(StrictSchema):

@@ -51,6 +51,10 @@ uv run thermo-lab run \
   configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml \
   --seeds 0,1,2 \
   --output-dir results/trajectory-reinforce-one-step
+uv run thermo-lab run \
+  configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml \
+  --seeds 0,1,2 \
+  --output-dir results/composed-pasym-swap-finite-gibbs
 uv run pytest
 ```
 
@@ -130,8 +134,23 @@ it takes one projected shared-gradient step with learning rate `0.25`, enforces
 the `[-2, 2]` parameter bounds, and exactly enumerates the declared objective
 before and after the update. The report records the raw and projected vectors,
 cap activity, objective delta, and a strict-improvement decision. This closes
-only the bounded one-step experiment; the 25-site and finite-Gibbs-horizon
-program-level studies remain open.
+only the bounded one-step experiment; full 25-site trajectory-level parameter
+refinement remains open.
+
+The checked composed finite-Gibbs command executes the full 25-site,
+500-occurrence fixture for the frozen `independent`, `target_context`, and
+`model_context` artifact families at equilibrium and `K = 1, 2, 4, 8, 16, 30`.
+Each release seed samples 32,768 complete trajectories with NumPy PCG64 common
+random numbers: one uniform vector per occurrence is reused across all 21
+family/horizon cells. Exact target checkpoints and exact local frozen-kernel
+tables are `exact_reference`; the composed rollout and paired comparisons are
+NumPy `software_simulation`. The release audit reconstructed 693 checkpoint
+summaries and 147 aggregate scalars with accepted integrity for all three
+seeds. Its 126 final paired error/leakage outcomes were 89 improved, 37
+worsened, and 0 unchanged; those mixed outcomes are descriptive and
+non-gating. This evaluates neither live THRML sampling, official Thermalizers,
+hosted simulation, hardware, iterative optimization, nor full 25-site
+trajectory-level parameter refinement.
 
 ## Research contract
 

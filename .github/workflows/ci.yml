@@ -11,7 +11,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"
@@ -47,6 +47,7 @@ jobs:
               "configs/experiments/thrml-model-context-pasym-swap.toml",
               "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
               "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml",
+              "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml",
           )
           wheel, = glob.glob("dist/thermo_lab-*.whl")
           sdist, = glob.glob("dist/thermo_lab-*.tar.gz")
@@ -94,3 +95,9 @@ jobs:
           configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml
           --seeds 0,1,2
           --output-dir "${RUNNER_TEMP}/trajectory-reinforce-one-step"
+      - name: Run full composed finite-Gibbs PAsymSwap study
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
+          --seeds 0,1,2
+          --output-dir "${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs"

@@ -44,7 +44,8 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] one-pass mean-field model-context matching
 - [x] exact trajectory-level REINFORCE estimator contract
 - [x] bounded one-step exact-categorical trajectory-level REINFORCE refinement
-- [ ] full finite-Gibbs-horizon composed-program comparison
+- [x] full finite-Gibbs-horizon composed-program comparison
+- [ ] full 25-site trajectory-level parameter refinement
 
 The independently compiled item is an atomic method-level reconstruction:
 five-spin PAsymSwap kernels from the separate 5 by 5 Thermalizers fixture,
@@ -57,8 +58,14 @@ target input distribution. The model-context diagnostic adds one first-moment
 feedback pass through the frozen target-context kernels and recompiles the 37
 pooled profiles. It does not compute an exact 25-site joint trajectory, iterate
 to a context fixed point, or establish a program-level improvement.
-Full 25-site trajectory-level REINFORCE refinement and a finite-Gibbs-horizon
-comparison of the composed 25-site program remain deferred.
+The full finite-Gibbs-horizon comparison of the composed 25-site,
+500-occurrence program is complete for the frozen independent, target-context,
+and model-context artifacts. It uses three 32,768-trajectory NumPy PCG64
+common-random-number rollouts and reports sampled outcomes as
+`software_simulation`, while retaining
+exact target checkpoints and local frozen-kernel tables as `exact_reference`.
+It does not refine parameters. Full 25-site trajectory-level parameter
+refinement remains deferred.
 
 The checked estimator contract is limited to a three-site, two-occurrence
 exact-categorical microcircuit with shared parameters. It establishes the

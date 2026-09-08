@@ -125,10 +125,10 @@ replications.
 
 This is one feedback pass and a local frozen-kernel diagnostic. It does not
 claim fixed-point convergence or improvement of the composed target program.
-Trajectory-level REINFORCE refinement and the full finite-Gibbs-horizon
-composed-program comparison across all 500 occurrences on 25 sites remain
-deferred. The study also does not evaluate official Thermalizers, hosted
-simulation, physical Z1, or TSU hardware.
+The full finite-Gibbs-horizon composed-program comparison is a separate,
+completed evaluation of frozen artifacts; full 25-site trajectory-level
+parameter refinement remains deferred. This study also does not evaluate
+official Thermalizers, hosted simulation, physical Z1, or TSU hardware.
 
 ## Exact trajectory-level estimator contract
 
@@ -162,9 +162,9 @@ This contract does not update the shared parameters, test optimization or
 trajectory improvement, run the 25-site 500-occurrence fixture, or establish
 unbiasedness for a finite-Gibbs sampler. Its seeded categorical draws are
 NumPy `software_simulation`, not THRML, official Thermalizers, hosted
-simulation, or physical Z1/TSU evidence. Full 25-site trajectory-level
-REINFORCE refinement and the finite-Gibbs-horizon composed-program comparison
-remain open.
+simulation, or physical Z1/TSU evidence. The full finite-Gibbs-horizon
+composed-program comparison is a separate completed evaluation; full 25-site
+trajectory-level parameter refinement remains deferred.
 
 ## Bounded one-step trajectory refinement
 
@@ -195,6 +195,56 @@ This is a bounded one-update experiment with exact-categorical transitions and
 seed-derived NumPy `software_simulation` parameters. It is not iterative
 optimization, the 25-site 500-occurrence program, a finite-Gibbs-horizon
 comparison, official Thermalizers, hosted simulation, or hardware evidence.
+
+## Full composed finite-Gibbs evaluation
+
+The completed composed comparison executes all 500 canonical PAsymSwap
+occurrences on 25 sites for the frozen `independent`, `target_context`, and
+`model_context` artifact families. Each family is evaluated at `equilibrium`
+and finite Gibbs horizons `K = 1, 2, 4, 8, 16, 30`, producing 21 paired
+family/horizon cells. Finite transitions use the declared uniform reset and
+complete hidden-before-outputs sweeps; the experiment does not run a live
+THRML chain.
+
+Seeds `0`, `1`, and `2` are the independent cross-run replication units. Each
+seed contains 32,768 complete trajectories per cell as within-batch samples.
+Sampling uses NumPy `Generator(PCG64)` and one float64 uniform vector per
+occurrence, reused across every family/horizon cell, so paired differences use
+common random numbers. The common-random-number-correlated cells and their
+within-batch trajectories are not extra independent replications. Checkpoints
+are occurrence zero and every 50 occurrences through 500. Exact target
+checkpoints and the reconstructed frozen local conditional tables are
+`exact_reference`; sampled rollouts, paired comparisons, and timing are NumPy
+`software_simulation`.
+
+The report records depth-wise occupancy half-L1 error, probability leakage from
+the one-particle sector, particle-number and path/invariant diagnostics, final
+marginal and observable error, local conditional residuals, and paired
+error/leakage comparisons. In the audited release, all three integrity rows
+were accepted: 693 checkpoint summaries and 147 aggregate scalars were
+reconciled. The checked request, frozen bundle, and exact target-checkpoint
+identities are respectively
+`sha256:51f554b4b1e7e747618ec75de5e4aa0a1dda8a93e29967bcd84d2116510f28a4`,
+`sha256:d21bedf938b533b515dfc7d497c1668897a5cea663185e343a3306ba45d981bd`, and
+`sha256:376b0d20a289d849326b710e023827cb6260bc081f953e374a0e127b65fc3a47`.
+Across the three seeds, the final paired error/leakage comparison has 89
+improved, 37 worsened, and 0 unchanged outcomes. These are descriptive,
+non-gating mixed outcomes, not independent tests or an optimization acceptance
+criterion.
+
+Reproduce the checked release command with:
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml \
+  --seeds 0,1,2 \
+  --output-dir results/composed-pasym-swap-finite-gibbs
+```
+
+This completes an evaluation of frozen artifacts, not iterative optimization;
+full 25-site trajectory-level parameter refinement remains deferred. It makes
+no claim about official Thermalizers, hosted simulation, physical Z1/TSU
+hardware, or live THRML sampling.
 
 ## Metrics
 

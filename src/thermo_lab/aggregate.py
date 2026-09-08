@@ -22,7 +22,12 @@ from pydantic import (
     model_validator,
 )
 
+from thermo_lab.composed_pasym_swap_reporting import (
+    composed_scalar_metric_names,
+    validate_persisted_composed_pasym_swap_record,
+)
 from thermo_lab.config import (
+    COMPOSED_PASYM_SWAP_EXPERIMENT_ID,
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
     TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
@@ -162,6 +167,23 @@ _MODEL_CONTEXT_PASYM_SWAP_TIMING_METHOD_SUFFIXES = (
     "; JAX lower().compile() measured once for shared shapes",
     "; JAX executable reused from in-process shape cache",
 )
+_COMPOSED_PASYM_SWAP_SAMPLED_METRICS = composed_scalar_metric_names()
+_COMPOSED_PASYM_SWAP_OMITTED_METRIC_REASONS = {
+    "composed_pasym_swap_summary": (
+        "nested composed-program evidence is retained only in per-run records"
+    ),
+    "integrity_acceptance_passed": (
+        "deterministic integrity gate is not an independently seeded sampled cross-check"
+    ),
+}
+_COMPOSED_PASYM_SWAP_TIMING_OMISSION_REASONS = {
+    "timing.compile_seconds": (
+        "per-seed NumPy preparation/cache timing is not a scientific replication metric"
+    ),
+    "timing.execution_seconds": (
+        "per-seed NumPy sampling timing is not a scientific replication metric"
+    ),
+}
 _TRAJECTORY_REINFORCE_SAMPLED_METRICS = frozenset({"maximum_absolute_shared_gradient_error"})
 _TRAJECTORY_REINFORCE_OMITTED_METRIC_REASONS = {
     "trajectory_reinforce_summary": (
@@ -544,6 +566,8 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
     elif record.spec.experiment_id == MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID:
         deterministic_identity = _model_context_deterministic_identity(record)
         timing_method = _model_context_timing_method(record)
+    elif record.spec.experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID:
+        deterministic_identity = _composed_pasym_swap_deterministic_identity(record)
     elif record.spec.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
         deterministic_identity = _trajectory_reinforce_deterministic_identity(record)
     elif record.spec.experiment_id == TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID:
@@ -728,6 +752,34 @@ def _trajectory_refinement_deterministic_identity(record: RunRecord) -> tuple[st
     )
 
 
+def _composed_pasym_swap_deterministic_identity(
+    record: RunRecord,
+) -> tuple[
+    str,
+    str,
+    str,
+    tuple[tuple[str, str, tuple[int, ...]], ...],
+    tuple[str | None, bool | None],
+]:
+    """Deeply validate one composed record and expose its fixed program identity."""
+
+    summary, _, _ = validate_persisted_composed_pasym_swap_record(record)
+    return (
+        summary.request_hash,
+        summary.bundle_digest,
+        summary.target_checkpoint_digest,
+        tuple(
+            (
+                cell.family,
+                cell.horizon,
+                tuple(checkpoint.source.occurrence_count for checkpoint in cell.checkpoints),
+            )
+            for cell in summary.cells
+        ),
+        (record.provenance.git_commit, record.provenance.git_dirty),
+    )
+
+
 def _dtype_compatibility_signature(record: RunRecord) -> str:
     """Return the declared numeric representation without conflating exact and THRML paths."""
 
@@ -735,6 +787,7 @@ def _dtype_compatibility_signature(record: RunRecord) -> str:
         _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID,
         _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
         MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
+        COMPOSED_PASYM_SWAP_EXPERIMENT_ID,
     }:
         return (
             f"exact={record.spec.model_parameters.get('exact_dtype')}; "
@@ -766,6 +819,13 @@ def _model_context_pasym_swap_omission_reason(name: str) -> str:
     return _MODEL_CONTEXT_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
         name,
         "metric is not declared an independently seeded sampled cross-check",
+    )
+
+
+def _composed_pasym_swap_omission_reason(name: str) -> str:
+    return _COMPOSED_PASYM_SWAP_OMITTED_METRIC_REASONS.get(
+        name,
+        "metric is not declared an independently seeded composed-program scalar",
     )
 
 
@@ -900,6 +960,12 @@ def derive_aggregate_fields(
                 omitted_metrics[name] = _model_context_pasym_swap_omission_reason(name)
                 continue
             if (
+                experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID
+                and name not in _COMPOSED_PASYM_SWAP_SAMPLED_METRICS
+            ):
+                omitted_metrics[name] = _composed_pasym_swap_omission_reason(name)
+                continue
+            if (
                 experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID
                 and name not in _TRAJECTORY_REINFORCE_SAMPLED_METRICS
             ):
@@ -975,6 +1041,8 @@ def derive_aggregate_fields(
             omitted_metrics["timing.execution_seconds"] = (
                 _MODEL_CONTEXT_PASYM_SWAP_TIMING_OMISSION_REASON
             )
+        elif experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID:
+            omitted_metrics.update(_COMPOSED_PASYM_SWAP_TIMING_OMISSION_REASONS)
         elif experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
             omitted_metrics["timing.compile_seconds"] = _TRAJECTORY_REINFORCE_TIMING_OMISSION_REASON
             omitted_metrics["timing.execution_seconds"] = (
