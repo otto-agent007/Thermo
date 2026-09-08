@@ -50,6 +50,17 @@ def test_refinement_role_seeds_are_deterministic_and_distinct() -> None:
     assert all(type(seed) is int and seed >= 0 for seed in first)
 
 
+def test_backend_checked_request_accepts_authoritative_hash_semantics() -> None:
+    config_module = importlib.import_module("thermo_lab.config")
+    backend_module = _backend_module()
+    configured = config_module.load_experiment_config(CONFIG)
+    backend = backend_module.NumpyComposedTrajectoryRefinementBackend()
+
+    _, _, request_hash = backend.checked_request(configured.to_spec(seed=0))
+
+    assert request_hash == configured.non_seed_config_hash
+
+
 def test_runner_dispatches_the_dedicated_checked_backend() -> None:
     config_module = importlib.import_module("thermo_lab.config")
     runner_module = importlib.import_module("thermo_lab.runner")
