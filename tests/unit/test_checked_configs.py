@@ -86,8 +86,9 @@ def test_ci_checks_the_composed_study_and_packages_its_config() -> None:
               --output-dir \"${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs\"
 """
     package_check = workflow[
-        workflow.index("      - name: Verify checked study configs in package artifacts") :
-        workflow.index("\n\n  test:")
+        workflow.index(
+            "      - name: Verify checked study configs in package artifacts"
+        ) : workflow.index("\n\n  test:")
     ]
 
     assert experiment_entry in workflow
