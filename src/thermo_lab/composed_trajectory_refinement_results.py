@@ -372,7 +372,9 @@ def _deeply_validate_summary(summary: ComposedTrajectoryRefinementSummary) -> No
         )
     )
     if summary.reward_coefficient != expected_reward:
-        raise ValueError("reward coefficient must be reconstructed from occupancy source and target")
+        raise ValueError(
+            "reward coefficient must be reconstructed from occupancy source and target"
+        )
 
     expected_gradient_mean = summary.gradient_source.mean
     if not _matrix_close(summary.gradient_mean, expected_gradient_mean):
@@ -392,8 +394,7 @@ def _deeply_validate_summary(summary: ComposedTrajectoryRefinementSummary) -> No
             expected_update.updated_parameters,
         )
         or persisted_update.cap_active_mask != expected_update.cap_active_mask
-        or persisted_update.cap_active_parameter_count
-        != expected_update.cap_active_parameter_count
+        or persisted_update.cap_active_parameter_count != expected_update.cap_active_parameter_count
         or persisted_update.bounds_satisfied is not expected_update.bounds_satisfied
         or persisted_update.update_digest != expected_update.update_digest
     ):
