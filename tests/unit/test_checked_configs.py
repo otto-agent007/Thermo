@@ -78,20 +78,20 @@ def test_public_docs_declare_composed_scope_and_deferred_refinement() -> None:
 def test_ci_checks_the_composed_study_and_packages_its_config() -> None:
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     config = "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
-    ci_command = """      - name: Run full composed finite-Gibbs PAsymSwap study
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
-          --seeds 0,1,2
-          --output-dir \"${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs\"
+    experiment_entry = """          - name: composed-finite-gibbs
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
+              --seeds 0,1,2
+              --output-dir \"${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs\"
 """
     package_check = workflow[
         workflow.index(
             "      - name: Verify checked study configs in package artifacts"
-        ) : workflow.index("      - name: Run cross-library smoke experiment")
+        ) : workflow.index("\n\n  test:")
     ]
 
-    assert ci_command in workflow
+    assert experiment_entry in workflow
     assert f'"{config}",' in package_check
     assert "with zipfile.ZipFile(wheel)" in package_check
     assert "with tarfile.open(sdist)" in package_check
