@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"
@@ -31,8 +31,6 @@ jobs:
         run: uv run ruff format --check .
       - name: Lint
         run: uv run ruff check .
-      - name: Test
-        run: uv run pytest -m "not slow"
       - name: Build package artifacts
         run: uv build
       - name: Verify checked study configs in package artifacts
@@ -58,46 +56,111 @@ jobs:
               names = archive.getnames()
               assert all(any(name.endswith(config) for name in names) for config in configs)
           PY
-      - name: Run cross-library smoke experiment
-        run: uv run thermo-lab smoke --output-dir "${RUNNER_TEMP}/thermo-smoke"
-      - name: Run weighted graph-walk baseline
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/torx-weighted-graph-walk.toml
-          --output-dir "${RUNNER_TEMP}/weighted-graph-walk"
-      - name: Run independent PAsymSwap compiler baseline
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/thrml-independent-pasym-swap.toml
-          --seeds 0,1,2
-          --output-dir "${RUNNER_TEMP}/independent-pasym-swap"
-      - name: Run exact target-context PAsymSwap compiler study
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/thrml-target-context-pasym-swap.toml
-          --seeds 0,1,2
-          --output-dir "${RUNNER_TEMP}/target-context-pasym-swap"
-      - name: Run mean-field model-context PAsymSwap compiler study
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/thrml-model-context-pasym-swap.toml
-          --seeds 0,1,2
-          --output-dir "${RUNNER_TEMP}/model-context-pasym-swap"
-      - name: Run exact-categorical trajectory REINFORCE estimator study
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml
-          --seeds 0,1,2
-          --output-dir "${RUNNER_TEMP}/trajectory-reinforce-estimator"
-      - name: Run one-step trajectory REINFORCE refinement study
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml
-          --seeds 0,1,2
-          --output-dir "${RUNNER_TEMP}/trajectory-reinforce-one-step"
-      - name: Run full composed finite-Gibbs PAsymSwap study
-        run: >-
-          uv run thermo-lab run
-          configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
-          --seeds 0,1,2
-          --output-dir "${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs"
+
+  test:
+    name: test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: unit
+            command: uv run pytest tests/unit -m "not slow"
+          - name: integration-composed
+            command: >-
+              uv run pytest
+              tests/integration/test_composed_pasym_swap_runner.py
+              tests/integration/test_numpy_composed_pasym_swap_backend.py
+              -m "not slow"
+          - name: integration-other
+            command: >-
+              uv run pytest tests/integration -m "not slow"
+              --ignore=tests/integration/test_composed_pasym_swap_runner.py
+              --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
+          - name: upstream-regressions
+            command: uv run pytest tests/upstream_regressions -m "not slow"
+    env:
+      JAX_PLATFORMS: cpu
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Run test shard
+        run: ${{ matrix.command }}
+
+  experiment:
+    name: experiment (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: cross-library-smoke
+            command: >-
+              uv run thermo-lab smoke
+              --output-dir "${RUNNER_TEMP}/thermo-smoke"
+          - name: weighted-graph-walk
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/torx-weighted-graph-walk.toml
+              --output-dir "${RUNNER_TEMP}/weighted-graph-walk"
+          - name: independent-pasym-swap
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/thrml-independent-pasym-swap.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/independent-pasym-swap"
+          - name: target-context-pasym-swap
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/thrml-target-context-pasym-swap.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/target-context-pasym-swap"
+          - name: model-context-pasym-swap
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/thrml-model-context-pasym-swap.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/model-context-pasym-swap"
+          - name: trajectory-reinforce-estimator
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/trajectory-reinforce-estimator"
+          - name: trajectory-reinforce-one-step
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/trajectory-reinforce-one-step"
+          - name: composed-finite-gibbs
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs"
+    env:
+      JAX_PLATFORMS: cpu
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Run checked experiment
+        run: ${{ matrix.command }}
