@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -65,12 +69,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: unit
-            command: uv run pytest tests/unit -m "not slow"
-          - name: integration-composed
+          - name: unit-aggregation
+            command: uv run pytest tests/unit/test_aggregation.py -m "not slow"
+          - name: unit-target-context-results
+            command: >-
+              uv run pytest
+              tests/unit/test_target_context_pasym_swap_results.py
+              -m "not slow"
+          - name: unit-rest
+            command: >-
+              uv run pytest tests/unit -m "not slow"
+              --ignore=tests/unit/test_aggregation.py
+              --ignore=tests/unit/test_target_context_pasym_swap_results.py
+          - name: integration-composed-runner
             command: >-
               uv run pytest
               tests/integration/test_composed_pasym_swap_runner.py
+              -m "not slow"
+          - name: integration-composed-backend
+            command: >-
+              uv run pytest
               tests/integration/test_numpy_composed_pasym_swap_backend.py
               -m "not slow"
           - name: integration-other
