@@ -72,6 +72,10 @@ uv run thermo-lab run \
   configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml \
   --seeds 0,1,2 \
   --output-dir results/trajectory-reinforce-estimator
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-one-step
 uv build
 python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/thrml-target-context-pasym-swap.toml"
@@ -85,8 +89,16 @@ python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml"
 python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
   "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml"
+python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
+  "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml"
+python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
+  "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml"
 ```
 
 The trajectory estimator gate validates an exact-categorical three-site
 microcircuit and non-gating seeded estimator evidence. It does not perform
 parameter refinement or a finite-Gibbs-horizon composed-program comparison.
+The one-step refinement gate preserves those checks, applies one bounded
+shared-parameter update, and records the exact objective before and after. It
+remains a bounded exact-categorical experiment, not the 25-site or
+finite-Gibbs-horizon comparison.

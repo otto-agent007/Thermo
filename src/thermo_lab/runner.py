@@ -15,6 +15,7 @@ from thermo_lab.config import (
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     TRAJECTORY_REINFORCE_EXPERIMENT_ID,
+    TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID,
     ExperimentConfig,
     dump_experiment_config,
     load_experiment_config,
@@ -75,6 +76,7 @@ def _existing_completed(output_dir: Path) -> bool:
 def _backend(config: ExperimentConfig, repository_root: Path | None) -> ExperimentBackend:
     from thermo_lab.backends import (
         NumpyExactCategoricalBackend,
+        NumpyTrajectoryRefinementBackend,
         ThrmlIndependentPAsymSwapBackend,
         ThrmlLocalBackend,
         ThrmlModelContextPAsymSwapBackend,
@@ -85,6 +87,8 @@ def _backend(config: ExperimentConfig, repository_root: Path | None) -> Experime
 
     if config.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
         return NumpyExactCategoricalBackend(repository_root)
+    if config.experiment_id == TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID:
+        return NumpyTrajectoryRefinementBackend(repository_root)
     if config.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
         return TorxWeightedGraphWalkBackend(repository_root)
     if config.experiment_id == _INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID:

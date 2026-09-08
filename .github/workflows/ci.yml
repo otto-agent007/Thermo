@@ -46,6 +46,7 @@ jobs:
               "configs/experiments/thrml-target-context-pasym-swap.toml",
               "configs/experiments/thrml-model-context-pasym-swap.toml",
               "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
+              "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml",
           )
           wheel, = glob.glob("dist/thermo_lab-*.whl")
           sdist, = glob.glob("dist/thermo_lab-*.tar.gz")
@@ -87,3 +88,9 @@ jobs:
           configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml
           --seeds 0,1,2
           --output-dir "${RUNNER_TEMP}/trajectory-reinforce-estimator"
+      - name: Run one-step trajectory REINFORCE refinement study
+        run: >-
+          uv run thermo-lab run
+          configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml
+          --seeds 0,1,2
+          --output-dir "${RUNNER_TEMP}/trajectory-reinforce-one-step"

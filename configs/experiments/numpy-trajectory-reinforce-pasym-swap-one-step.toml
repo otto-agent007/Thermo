@@ -1,0 +1,67 @@
+schema_version = "1.0.0"
+experiment_id = "numpy.trajectory_reinforce_pasym_swap_one_step.v1"
+backend = "numpy_exact_categorical"
+seed = 0
+sample_definition = "One independently seeded batch of 65,536 augmented two-occurrence trajectories; its covariance-aware sampled shared-gradient mean drives one projected parameter update evaluated before and after by exact enumeration."
+
+[model]
+source_reference = "https://arxiv.org/abs/2608.01615v2"
+site_order = ["site_0", "site_1", "site_2"]
+word_order = [[0, 0], [0, 1], [1, 0], [1, 1]]
+role_order = ["input_0", "input_1", "hidden_0", "output_0", "output_1"]
+joint_outcome_order = [
+    [0, 0, 0],
+    [0, 0, 1],
+    [0, 1, 0],
+    [0, 1, 1],
+    [1, 0, 0],
+    [1, 0, 1],
+    [1, 1, 0],
+    [1, 1, 1],
+]
+parameter_order = [
+    "h_hidden",
+    "h_output_0",
+    "h_output_1",
+    "J_input_0_output_0",
+    "J_input_0_output_1",
+    "J_input_1_output_0",
+    "J_input_1_output_1",
+    "J_hidden_output_0",
+    "J_hidden_output_1",
+]
+shared_parameter_vector = [0.25, -0.35, 0.20, 0.45, -0.30, -0.40, 0.25, 0.30, -0.20]
+beta = 1.0
+parameter_cap = 2.0
+exact_dtype = "float64"
+target_edge = [[0, 0], [1, 0]]
+target_probabilities = [0.009628878136877513, 0.0903711218631225]
+target_conditional = [
+    [1.0, 0.0, 0.0, 0.0],
+    [0.0, 0.9096288781368775, 0.0903711218631225, 0.0],
+    [0.0, 0.009628878136877513, 0.9903711218631225, 0.0],
+    [0.0, 0.0, 0.0, 1.0],
+]
+target_hash = "sha256:7230c4f09bb3a6de72f8cd59b27d0719895e10a564bbab71a914aab370fc8a85"
+
+[run]
+initial_state = [1, 0, 0]
+occurrences = [[0, 1], [1, 2]]
+objective_policy = "squared_terminal_occupancy_error"
+reward_policy = "exact_current_model_occupancy_linearization"
+reference_policy = "independent_same_parent_non_propagated"
+main_path_count = 64
+augmented_path_count = 4096
+finite_difference_step = 1e-6
+exact_tolerance = 1e-12
+finite_difference_tolerance = 1e-7
+batch_size = 65536
+release_seeds = [0, 1, 2]
+rng_family = "numpy.random.Generator(PCG64)"
+stream_policy = "SeedSequence(seed).spawn(4) in main_0, reference_0, main_1, reference_1 order"
+moment_policy = "component sums, sum squares, and occurrence cross-products in float64"
+update_policy = "one_projected_shared_gradient_descent_step"
+gradient_source = "seeded_covariance_aware_shared_gradient_mean"
+learning_rate = 0.25
+objective_evaluation_policy = "exact_enumeration_before_and_after"
+improvement_policy = "strict_objective_decrease"

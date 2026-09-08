@@ -25,12 +25,14 @@ from thermo_lab.schemas import (
     TorxModelConfig,
     TorxRunConfig,
     TrajectoryReinforceModelConfig,
+    TrajectoryReinforceRefinementRunConfig,
     TrajectoryReinforceRunConfig,
     WeightedGraphModelConfig,
     WeightedGraphRunConfig,
     validate_independent_pasym_swap_request,
     validate_model_context_pasym_swap_request,
     validate_target_context_pasym_swap_request,
+    validate_trajectory_reinforce_refinement_request,
     validate_trajectory_reinforce_request,
     validate_weighted_graph_request,
 )
@@ -42,10 +44,16 @@ SupportedBackend = Literal[
     BackendId.THRML_LOCAL,
 ]
 TRAJECTORY_REINFORCE_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_estimator.v1"
+TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID = "numpy.trajectory_reinforce_pasym_swap_one_step.v1"
 TRAJECTORY_REINFORCE_SAMPLE_DEFINITION = (
     "One independently seeded batch of 65,536 augmented two-occurrence trajectories; "
     "each sample contains two propagated main exact-categorical joint-kernel draws and "
     "one independent same-parent non-propagated reference draw per occurrence."
+)
+TRAJECTORY_REINFORCE_REFINEMENT_SAMPLE_DEFINITION = (
+    "One independently seeded batch of 65,536 augmented two-occurrence trajectories; "
+    "its covariance-aware sampled shared-gradient mean drives one projected parameter "
+    "update evaluated before and after by exact enumeration."
 )
 INDEPENDENT_PASYM_SWAP_EXPERIMENT_ID = "thrml.independent_pasym_swap_compilation.v1"
 INDEPENDENT_PASYM_SWAP_SAMPLE_DEFINITION = (
@@ -65,6 +73,7 @@ MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION = (
 
 _EXPERIMENT_BACKENDS = {
     TRAJECTORY_REINFORCE_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
+    TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
     "torx.two_gate_statevector.v1": BackendId.TORX_STATEVECTOR,
     WEIGHTED_GRAPH_WALK_EXPERIMENT_ID: BackendId.TORX_STATEVECTOR,
     "thrml.ising_chain_exact_validation.v1": BackendId.THRML_LOCAL,
@@ -91,6 +100,28 @@ def trajectory_reinforce_non_seed_config_hash(
             "experiment_id": TRAJECTORY_REINFORCE_EXPERIMENT_ID,
             "backend": BackendId.NUMPY_EXACT_CATEGORICAL,
             "sample_definition": TRAJECTORY_REINFORCE_SAMPLE_DEFINITION,
+            "model": validated_model.model_dump(mode="json"),
+            "run": validated_run.model_dump(mode="json"),
+        }
+    )
+
+
+def trajectory_reinforce_refinement_non_seed_config_hash(
+    model: TrajectoryReinforceModelConfig,
+    run: TrajectoryReinforceRefinementRunConfig,
+) -> str:
+    """Derive the checked one-step refinement identity without its release seed."""
+
+    validated_model = TrajectoryReinforceModelConfig.model_validate(model.model_dump(mode="json"))
+    validated_run = TrajectoryReinforceRefinementRunConfig.model_validate(
+        run.model_dump(mode="json")
+    )
+    return canonical_sha256(
+        {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "experiment_id": TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID,
+            "backend": BackendId.NUMPY_EXACT_CATEGORICAL,
+            "sample_definition": TRAJECTORY_REINFORCE_REFINEMENT_SAMPLE_DEFINITION,
             "model": validated_model.model_dump(mode="json"),
             "run": validated_run.model_dump(mode="json"),
         }
@@ -219,6 +250,16 @@ class ExperimentConfig(FrozenModel):
             model_config = TrajectoryReinforceModelConfig.model_validate(model)
             run_config = TrajectoryReinforceRunConfig.model_validate(run)
             validate_trajectory_reinforce_request(model_config, run_config, self.seed)
+        elif self.experiment_id == TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID:
+            if self.sample_definition != TRAJECTORY_REINFORCE_REFINEMENT_SAMPLE_DEFINITION:
+                raise ValueError(
+                    "trajectory refinement sample_definition must match the checked value"
+                )
+            model_config = TrajectoryReinforceModelConfig.model_validate(model)
+            refinement_run = TrajectoryReinforceRefinementRunConfig.model_validate(run)
+            validate_trajectory_reinforce_refinement_request(
+                model_config, refinement_run, self.seed
+            )
         elif self.experiment_id == WEIGHTED_GRAPH_WALK_EXPERIMENT_ID:
             graph_model = WeightedGraphModelConfig.model_validate(model)
             graph_run = WeightedGraphRunConfig.model_validate(run)

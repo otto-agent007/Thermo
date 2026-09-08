@@ -16,10 +16,13 @@ from numpy.typing import NDArray
 from thermo_lab.backends.base import ExecutionResult
 from thermo_lab.config import (
     TRAJECTORY_REINFORCE_EXPERIMENT_ID,
+    TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID,
+    TRAJECTORY_REINFORCE_REFINEMENT_SAMPLE_DEFINITION,
     TRAJECTORY_REINFORCE_SAMPLE_DEFINITION,
     experiment_config_path,
     load_experiment_config,
     trajectory_reinforce_non_seed_config_hash,
+    trajectory_reinforce_refinement_non_seed_config_hash,
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
@@ -37,7 +40,9 @@ from thermo_lab.records import (
 )
 from thermo_lab.schemas import (
     TrajectoryReinforceModelConfig,
+    TrajectoryReinforceRefinementRunConfig,
     TrajectoryReinforceRunConfig,
+    validate_trajectory_reinforce_refinement_request,
     validate_trajectory_reinforce_request,
 )
 from thermo_lab.thermodynamic_kernel import equilibrium_joint_conditional, sufficient_statistics
@@ -46,6 +51,15 @@ from thermo_lab.trajectory_reinforce import (
     TrajectoryFixture,
     build_checked_fixture,
     build_exact_reference,
+)
+from thermo_lab.trajectory_reinforce_refinement import build_one_step_refinement
+from thermo_lab.trajectory_reinforce_refinement_reporting import (
+    TRAJECTORY_REFINEMENT_TIMING_METHOD,
+    validate_persisted_trajectory_refinement_record,
+)
+from thermo_lab.trajectory_reinforce_refinement_results import (
+    build_trajectory_reinforce_refinement_summary,
+    validate_trajectory_reinforce_refinement_summary,
 )
 from thermo_lab.trajectory_reinforce_reporting import (
     TRAJECTORY_REINFORCE_TIMING_METHOD,
@@ -331,4 +345,156 @@ class NumpyExactCategoricalBackend:
             },
         )
         validate_persisted_trajectory_reinforce_record(record)
+        return ExecutionResult.build(record)
+
+
+class NumpyTrajectoryRefinementBackend:
+    """Execute one sampled shared update with exact before/after objective evidence."""
+
+    backend_id = BackendId.NUMPY_EXACT_CATEGORICAL
+    evidence_class = EvidenceClass.SOFTWARE_SIMULATION
+
+    def __init__(self, repository_root: Path | None = None) -> None:
+        self.repository_root = repository_root
+
+    def checked_request(
+        self, spec: ExperimentSpec
+    ) -> tuple[TrajectoryReinforceModelConfig, TrajectoryReinforceRefinementRunConfig, str]:
+        expected = load_experiment_config(
+            experiment_config_path("numpy-trajectory-reinforce-pasym-swap-one-step.toml")
+        )
+        if spec.experiment_id != TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID:
+            raise ValueError("Unexpected experiment request for NumPy trajectory refinement")
+        model_json = to_json_value(spec.model_parameters)
+        run_json = to_json_value(spec.run_parameters)
+        model = TrajectoryReinforceModelConfig.model_validate(model_json)
+        run = TrajectoryReinforceRefinementRunConfig.model_validate(run_json)
+        validate_trajectory_reinforce_refinement_request(model, run, spec.seed)
+        if (
+            spec.sample_definition != TRAJECTORY_REINFORCE_REFINEMENT_SAMPLE_DEFINITION
+            or model_json != to_json_value(expected.model_parameters)
+            or run_json != to_json_value(expected.run_parameters)
+        ):
+            raise ValueError("NumPy backend accepts only the exact checked refinement request")
+        if canonical_sha256(model.model_dump(mode="json")) != spec.model_hash:
+            raise ValueError("Validated refinement model differs from the hashed request")
+        if canonical_sha256(run.model_dump(mode="json")) != canonical_sha256(spec.run_parameters):
+            raise ValueError("Validated refinement run differs from the hashed request")
+        request_hash = trajectory_reinforce_refinement_non_seed_config_hash(model, run)
+        if request_hash != expected.non_seed_config_hash:
+            raise ValueError("Checked refinement request hash differs from authoritative config")
+        return model, run, request_hash
+
+    def run(self, spec: ExperimentSpec) -> RunRecord:
+        return self.execute(spec).record
+
+    def execute(self, spec: ExperimentSpec) -> ExecutionResult:
+        _, run, request_hash = self.checked_request(spec)
+        fixture = build_checked_fixture()
+        exact = build_exact_reference(fixture)
+        deterministic = build_trajectory_reinforce_deterministic_result(
+            request_hash=request_hash, fixture=fixture, exact=exact
+        )
+
+        started = time.perf_counter()
+        sources = sample_augmented_gradient_sources(
+            fixture=fixture,
+            exact=exact,
+            batch_size=run.batch_size,
+            seed=spec.seed,
+        )
+        sampled = build_trajectory_reinforce_sample_result(
+            deterministic_result_digest=deterministic.deterministic_result_digest,
+            seed=spec.seed,
+            sample_definition=spec.sample_definition,
+            occurrence_0=sources.occurrence_0,
+            occurrence_1=sources.occurrence_1,
+            cross_products=sources.cross_products,
+            exact=deterministic.expected_reference,
+        )
+        estimator = build_trajectory_reinforce_summary(
+            deterministic=deterministic,
+            sample=sampled,
+        )
+        if not estimator.acceptance_passed:
+            raise RuntimeError("exact trajectory REINFORCE acceptance failed")
+        refinement = build_one_step_refinement(
+            fixture=fixture,
+            exact=exact,
+            sampled_shared_gradient=sampled.shared.mean,
+            learning_rate=run.learning_rate,
+        )
+        summary = build_trajectory_reinforce_refinement_summary(
+            estimator=estimator,
+            refinement=refinement,
+        )
+        execution_seconds = time.perf_counter() - started
+        validate_trajectory_reinforce_refinement_summary(summary)
+
+        record = build_run_record(
+            backend_id=self.backend_id,
+            evidence_class=self.evidence_class,
+            spec=spec,
+            provenance=_numpy_provenance(self.repository_root or find_repository_root(Path.cwd())),
+            timing=RunTiming(
+                evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                unit="seconds",
+                source=RUN_TIMING_SOURCE,
+                compile_seconds=0.0,
+                execution_seconds=execution_seconds,
+                synchronized=True,
+                timing_method=TRAJECTORY_REFINEMENT_TIMING_METHOD,
+            ),
+            metrics={
+                "trajectory_reinforce_refinement_summary": MetricObservation(
+                    value=summary,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="sampled shared-gradient update with exact objective readout",
+                    source=PAPER_SOURCE,
+                ),
+                "maximum_absolute_shared_gradient_error": MetricObservation(
+                    value=sampled.maximum_absolute_shared_gradient_error,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="NumPy PCG64 inverse-CDF sampled shared-gradient error",
+                    source=PAPER_SOURCE,
+                ),
+                "objective_before": MetricObservation(
+                    value=refinement.objective_before,
+                    evidence_class=EvidenceClass.EXACT_REFERENCE,
+                    method="exact enumeration of the initial tied-parameter circuit",
+                    source=PAPER_SOURCE,
+                ),
+                "objective_after": MetricObservation(
+                    value=refinement.objective_after,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="exact enumeration at the seed-derived updated parameters",
+                    source=PAPER_SOURCE,
+                ),
+                "objective_improvement": MetricObservation(
+                    value=refinement.objective_improvement,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="exact objective before minus exact objective after sampled update",
+                    source=PAPER_SOURCE,
+                ),
+                "relative_objective_improvement": MetricObservation(
+                    value=refinement.relative_objective_improvement,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="exact objective improvement divided by exact initial objective",
+                    source=PAPER_SOURCE,
+                ),
+                "cap_active_parameter_count": MetricObservation(
+                    value=refinement.update.cap_active_parameter_count,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="count of sampled raw parameters projected onto the declared cap",
+                    source=PAPER_SOURCE,
+                ),
+                "acceptance_passed": MetricObservation(
+                    value=summary.acceptance_passed,
+                    evidence_class=EvidenceClass.SOFTWARE_SIMULATION,
+                    method="exact gradient checks, bounded update, and strict objective decrease",
+                    source=PAPER_SOURCE,
+                ),
+            },
+        )
+        validate_persisted_trajectory_refinement_record(record)
         return ExecutionResult.build(record)

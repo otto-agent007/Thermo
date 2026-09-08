@@ -162,8 +162,39 @@ This contract does not update the shared parameters, test optimization or
 trajectory improvement, run the 25-site 500-occurrence fixture, or establish
 unbiasedness for a finite-Gibbs sampler. Its seeded categorical draws are
 NumPy `software_simulation`, not THRML, official Thermalizers, hosted
-simulation, or physical Z1/TSU evidence. Trajectory-level REINFORCE refinement
-and the full finite-Gibbs-horizon composed-program comparison remain open.
+simulation, or physical Z1/TSU evidence. Full 25-site trajectory-level
+REINFORCE refinement and the finite-Gibbs-horizon composed-program comparison
+remain open.
+
+## Bounded one-step trajectory refinement
+
+The checked refinement keeps the estimator's three-site, two-occurrence
+circuit and ties the same nine shared parameters at both occurrences. For each
+release seed, its covariance-aware sampled shared gradient defines exactly one
+controlled update:
+
+\[
+\phi_{\mathrm{raw}} = \phi_0 - 0.25\,\widehat{\nabla J}, \qquad
+\phi_1 = \operatorname{clip}(\phi_{\mathrm{raw}}, -2, 2).
+\]
+
+Exact enumeration evaluates the declared squared occupancy objective at
+\(\phi_0\) and \(\phi_1\). The artifact records both vectors, cap flags, the
+exact objective change, and whether the strict-decrease acceptance rule passes,
+while retaining the trajectory-score, expected-reference, and finite-difference
+gradient checks.
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml \
+  --seeds 0,1,2 \
+  --output-dir results/trajectory-reinforce-one-step
+```
+
+This is a bounded one-update experiment with exact-categorical transitions and
+seed-derived NumPy `software_simulation` parameters. It is not iterative
+optimization, the 25-site 500-occurrence program, a finite-Gibbs-horizon
+comparison, official Thermalizers, hosted simulation, or hardware evidence.
 
 ## Metrics
 
