@@ -11,6 +11,10 @@ from typing import Any, Literal
 
 from pydantic import Field, StrictInt, field_serializer, field_validator, model_validator
 
+from thermo_lab.composed_trajectory_refinement_schema import (
+    ComposedTrajectoryRefinementRunConfig,
+    validate_composed_trajectory_refinement_request,
+)
 from thermo_lab.evidence import BackendId
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.records import ExperimentSpec, FrozenModel, _freeze_json
@@ -79,6 +83,15 @@ COMPOSED_PASYM_SWAP_SAMPLE_DEFINITION = (
     "equilibrium and six finite Gibbs horizons using one common PCG64 uniform draw per "
     "trajectory and occurrence across all comparison cells."
 )
+COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID = (
+    "numpy.composed_pasym_swap_trajectory_refinement_one_step.v1"
+)
+COMPOSED_TRAJECTORY_REFINEMENT_SAMPLE_DEFINITION = (
+    "One independently seeded one-step equilibrium refinement of the full 25-site, "
+    "500-occurrence model-context PAsymSwap program; independent occupancy and gradient "
+    "batches define the update, and a separate held-out common-random-number batch evaluates "
+    "before and after without gating on improvement."
+)
 
 _EXPERIMENT_BACKENDS = {
     TRAJECTORY_REINFORCE_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
@@ -90,6 +103,7 @@ _EXPERIMENT_BACKENDS = {
     TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID: BackendId.THRML_LOCAL,
     COMPOSED_PASYM_SWAP_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
+    COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID: BackendId.NUMPY_EXACT_CATEGORICAL,
 }
 
 
@@ -376,6 +390,14 @@ class ExperimentConfig(FrozenModel):
             model_config = PAsymSwapModelConfig.model_validate(model)
             run_config = ComposedPAsymSwapRunConfig.model_validate(run)
             validate_composed_pasym_swap_request(model_config, run_config, self.seed)
+        elif self.experiment_id == COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID:
+            if self.sample_definition != COMPOSED_TRAJECTORY_REFINEMENT_SAMPLE_DEFINITION:
+                raise ValueError(
+                    "composed trajectory refinement sample_definition must match the checked value"
+                )
+            model_config = PAsymSwapModelConfig.model_validate(model)
+            refinement_run = ComposedTrajectoryRefinementRunConfig.model_validate(run)
+            validate_composed_trajectory_refinement_request(model_config, refinement_run, self.seed)
         elif self.backend is BackendId.TORX_STATEVECTOR:
             TorxModelConfig.model_validate(model)
             TorxRunConfig.model_validate(run)

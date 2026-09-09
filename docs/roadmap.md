@@ -45,7 +45,8 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] exact trajectory-level REINFORCE estimator contract
 - [x] bounded one-step exact-categorical trajectory-level REINFORCE refinement
 - [x] full finite-Gibbs-horizon composed-program comparison
-- [ ] full 25-site trajectory-level parameter refinement
+- [x] one bounded equilibrium update of the full 25-site trajectory parameters
+- [ ] iterative or finite-Gibbs 25-site trajectory-level parameter refinement
 
 The independently compiled item is an atomic method-level reconstruction:
 five-spin PAsymSwap kernels from the separate 5 by 5 Thermalizers fixture,
@@ -64,8 +65,12 @@ and model-context artifacts. It uses three 32,768-trajectory NumPy PCG64
 common-random-number rollouts and reports sampled outcomes as
 `software_simulation`, while retaining
 exact target checkpoints and local frozen-kernel tables as `exact_reference`.
-It does not refine parameters. Full 25-site trajectory-level parameter
-refinement remains deferred.
+It does not refine parameters. A separate checked full-program refinement
+command now applies one projected equilibrium trajectory-gradient update to
+the 37 shared parameter groups, with independently seeded occupancy and
+gradient batches and a held-out paired evaluation. The squared terminal
+occupancy objective is sampled, and its improvement is non-gating. Iterative
+and finite-Gibbs parameter refinement remain deferred.
 
 The checked estimator contract is limited to a three-site, two-occurrence
 exact-categorical microcircuit with shared parameters. It establishes the

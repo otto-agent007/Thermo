@@ -13,7 +13,11 @@ from thermo_lab.aggregate import (
     validate_aggregate_against_records,
 )
 from thermo_lab.composed_pasym_swap_reporting import render_composed_pasym_swap_section
-from thermo_lab.config import COMPOSED_PASYM_SWAP_EXPERIMENT_ID
+from thermo_lab.composed_trajectory_refinement_reporting import render_composed_refinement_section
+from thermo_lab.config import (
+    COMPOSED_PASYM_SWAP_EXPERIMENT_ID,
+    COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID,
+)
 from thermo_lab.graph_walk_results import (
     WeightedGraphWalkSummary,
     validate_weighted_graph_walk_observations,
@@ -368,6 +372,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
     is_trajectory_reinforce = aggregate.experiment_id == _TRAJECTORY_REINFORCE_EXPERIMENT_ID
     is_trajectory_refinement = aggregate.experiment_id == _TRAJECTORY_REFINEMENT_EXPERIMENT_ID
     is_composed_pasym_swap = aggregate.experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID
+    is_composed_refinement = aggregate.experiment_id == COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID
     is_deterministic = (
         aggregate.statistical_semantics is StatisticalSemantics.DETERMINISTIC_IDENTITY
     )
@@ -698,6 +703,8 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
     if is_composed_pasym_swap:
         lines.extend(("", *composed_section))
+    if is_composed_refinement:
+        lines.extend(("", *render_composed_refinement_section(records)))
     lines.extend(
         (
             "",
@@ -710,6 +717,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
                 or is_trajectory_reinforce
                 or is_trajectory_refinement
                 or is_composed_pasym_swap
+                or is_composed_refinement
                 else "## Scalar results across seeds"
             ),
             "",
@@ -726,7 +734,7 @@ def render_report(aggregate: AggregateRecord, records: tuple[RunRecord, ...]) ->
         )
         if records:
             lines.extend(("", *_weighted_graph_walk_section(records[0])))
-    elif is_trajectory_reinforce or is_composed_pasym_swap:
+    elif is_trajectory_reinforce or is_composed_pasym_swap or is_composed_refinement:
         lines.extend(
             (
                 "",

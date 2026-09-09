@@ -36,7 +36,7 @@ COMPOSED_PASYM_SWAP_CONFIG = (
 )
 
 
-def test_public_docs_declare_composed_scope_and_deferred_refinement() -> None:
+def test_public_docs_declare_composed_scope_and_deferred_iterative_refinement() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     roadmap = (ROOT / "docs/roadmap.md").read_text(encoding="utf-8")
@@ -59,8 +59,8 @@ def test_public_docs_declare_composed_scope_and_deferred_refinement() -> None:
     assert "exact_reference" in experiment
     assert "non-gating" in experiment
     assert "[x] full finite-Gibbs-horizon composed-program comparison" in roadmap
-    assert "[ ] full 25-site trajectory-level parameter refinement" in roadmap
-    assert "full 25-site trajectory-level parameter refinement remains deferred." in experiment
+    assert "[ ] iterative or finite-Gibbs 25-site trajectory-level parameter refinement" in roadmap
+    assert "Iterative and finite-Gibbs parameter refinement remain deferred." in experiment
     assert (
         "Trajectory-level REINFORCE refinement and the full finite-Gibbs-horizon\n"
         "composed-program comparison across all 500 occurrences on 25 sites remain\n"

@@ -178,3 +178,27 @@ Torx exact state-vector output is `exact_reference`. THRML sampled CPU/GPU
 output is `software_simulation`. Neither is a physical TSU or Z1 measurement.
 Calibrated Z1 projections remain separate cost-model records and are never
 relabeled by the runner.
+
+### One-step full-program trajectory refinement
+
+Run `configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml`
+with `--seeds 0,1,2` for the checked equilibrium update of the 25-site program.
+The per-seed record retains independent occupancy/gradient/evaluation seeds,
+bounded counts and grouped moments, all initial/raw/projected parameters,
+projection activity, and the paired held-out squared occupancy objective.
+The report shows before, after, signed improvement, and the outcome for each
+seed. Improvement never determines integrity acceptance.
+
+Aggregation and reporting reconstruct each record against the checked request
+and trusted composed lineage, verifying nested source digests, moment
+feasibility, seeds, schedule, sample counts, bounds, metadata, and scalar
+copies. Only objective-before, objective-after, objective-improvement, and
+projected-parameter count receive cross-seed summaries. Timing stays in the
+per-run records with its measurement boundary; it is not a scientific
+replication metric. A single successful seed receives no confidence interval.
+
+The exact target checkpoint is `exact_reference`; the before/after model
+objectives are `software_simulation` estimates. Squaring empirical occupancy
+introduces finite-batch bias. Record reconstruction checks consistency and
+lineage, not cryptographic proof that sampling occurred. Exact three-site
+gradient tests remain separate from this sampled 25-site evidence.

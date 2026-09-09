@@ -50,6 +50,7 @@ jobs:
               "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
               "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml",
               "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml",
+              "configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml",
           )
           wheel, = glob.glob("dist/thermo_lab-*.whl")
           sdist, = glob.glob("dist/thermo_lab-*.tar.gz")
@@ -167,6 +168,12 @@ jobs:
               configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml
               --seeds 0,1,2
               --output-dir "${RUNNER_TEMP}/composed-pasym-swap-finite-gibbs"
+          - name: composed-trajectory-refinement-one-step
+            command: >-
+              uv run thermo-lab run
+              configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml
+              --seeds 0,1,2
+              --output-dir "${RUNNER_TEMP}/composed-trajectory-refinement-one-step"
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"

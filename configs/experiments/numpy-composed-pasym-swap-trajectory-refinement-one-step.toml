@@ -1,0 +1,70 @@
+schema_version = "1.0.0"
+experiment_id = "numpy.composed_pasym_swap_trajectory_refinement_one_step.v1"
+backend = "numpy_exact_categorical"
+seed = 0
+sample_definition = "One independently seeded one-step equilibrium refinement of the full 25-site, 500-occurrence model-context PAsymSwap program; independent occupancy and gradient batches define the update, and a separate held-out common-random-number batch evaluates before and after without gating on improvement."
+
+[model]
+source_reference = "https://arxiv.org/abs/2608.01615v2"
+torus_side = 5
+coordinate_order = "(x,y), each coordinate in 0..4"
+periodic_boundary = "modulo_5"
+gamma = 2.0
+delta_t = 0.05
+macrosteps = 10
+color_order = ["H1", "H2", "H3", "V1", "V2", "V3"]
+color_classes = [
+    { name = "H1", axis = "horizontal", coordinate_pairs = [[0, 1], [2, 3]] },
+    { name = "H2", axis = "horizontal", coordinate_pairs = [[1, 2], [3, 4]] },
+    { name = "H3", axis = "horizontal", coordinate_pairs = [[4, 0]] },
+    { name = "V1", axis = "vertical", coordinate_pairs = [[0, 1], [2, 3]] },
+    { name = "V2", axis = "vertical", coordinate_pairs = [[1, 2], [3, 4]] },
+    { name = "V3", axis = "vertical", coordinate_pairs = [[4, 0]] },
+]
+word_order = [[0, 0], [0, 1], [1, 0], [1, 1]]
+matrix_storage = "conditional[input_index][output_index]"
+bit_to_spin = "s = 2*b - 1"
+color_a_roles = ["input_0", "input_1", "hidden_0"]
+color_b_roles = ["output_0", "output_1"]
+topology_id = "thermo_k3_2_v1"
+topology_edges = [
+    ["input_0", "output_0"],
+    ["input_0", "output_1"],
+    ["input_1", "output_0"],
+    ["input_1", "output_1"],
+    ["hidden_0", "output_0"],
+    ["hidden_0", "output_1"],
+]
+parameter_order = [
+    "h_hidden",
+    "h_output_0",
+    "h_output_1",
+    "J_input_0_output_0",
+    "J_input_0_output_1",
+    "J_input_1_output_0",
+    "J_input_1_output_1",
+    "J_hidden_output_0",
+    "J_hidden_output_1",
+]
+beta = 1.0
+parameter_cap = 2.0
+exact_dtype = "float64"
+thrml_dtype = "float32"
+
+[run]
+start_family = "model_context"
+horizon = "equilibrium"
+source_composed_config_hash = "sha256:51f554b4b1e7e747618ec75de5e4aa0a1dda8a93e29967bcd84d2116510f28a4"
+objective_policy = "squared_terminal_occupancy_error"
+reward_policy = "independent_batch_current_model_occupancy_linearization"
+reference_policy = "independent_same_parent_non_propagated"
+occupancy_batch_size = 32768
+gradient_batch_size = 32768
+evaluation_batch_size = 32768
+release_seeds = [0, 1, 2]
+rng_family = "numpy.random.Generator(PCG64)"
+role_stream_policy = "SeedSequence(seed).spawn(3) in occupancy, gradient, evaluation order"
+evaluation_pairing_policy = "common_random_numbers_per_occurrence_before_and_after"
+update_policy = "one_projected_grouped_gradient_descent_step"
+learning_rate = 0.01
+improvement_policy = "descriptive_non_gating"
