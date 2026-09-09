@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, StrictFloat, StrictInt, field_validator, model_validator
+from pydantic import StrictFloat, StrictInt, field_validator, model_validator
 
 from thermo_lab.hashing import to_json_value
 from thermo_lab.records import FrozenModel
@@ -38,9 +38,7 @@ class ComposedTrajectoryRefinementRunConfig(FrozenModel):
     role_stream_policy: Literal[
         "SeedSequence(seed).spawn(3) in occupancy, gradient, evaluation order"
     ]
-    evaluation_pairing_policy: Literal[
-        "common_random_numbers_per_occurrence_before_and_after"
-    ]
+    evaluation_pairing_policy: Literal["common_random_numbers_per_occurrence_before_and_after"]
     update_policy: Literal["one_projected_grouped_gradient_descent_step"]
     learning_rate: StrictFloat
     improvement_policy: Literal["descriptive_non_gating"]
@@ -91,7 +89,9 @@ def validate_composed_trajectory_refinement_request(
         raise TypeError("run must be a ComposedTrajectoryRefinementRunConfig")
     if type(seed) is not int or seed < 0:
         raise ValueError("seed must be a nonnegative integer")
-    validated_model = PAsymSwapModelConfig.model_validate(to_json_value(model.model_dump(mode="json")))
+    validated_model = PAsymSwapModelConfig.model_validate(
+        to_json_value(model.model_dump(mode="json"))
+    )
     validated_run = ComposedTrajectoryRefinementRunConfig.model_validate(
         to_json_value(run.model_dump(mode="json"))
     )

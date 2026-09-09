@@ -397,9 +397,7 @@ class ExperimentConfig(FrozenModel):
                 )
             model_config = PAsymSwapModelConfig.model_validate(model)
             refinement_run = ComposedTrajectoryRefinementRunConfig.model_validate(run)
-            validate_composed_trajectory_refinement_request(
-                model_config, refinement_run, self.seed
-            )
+            validate_composed_trajectory_refinement_request(model_config, refinement_run, self.seed)
         elif self.backend is BackendId.TORX_STATEVECTOR:
             TorxModelConfig.model_validate(model)
             TorxRunConfig.model_validate(run)

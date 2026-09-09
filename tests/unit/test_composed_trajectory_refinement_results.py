@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from thermo_lab.composed_trajectory_refinement import (
+    _schedule_digest,
     estimate_equilibrium_grouped_gradient,
     evaluate_paired_equilibrium_objective,
     project_grouped_parameters,
@@ -75,6 +76,8 @@ def _micro_summary():
         seed=7,
         source_bundle_digest=bundle_digest,
         exact_target_reference=target_reference,
+        beta=fixture.beta,
+        schedule_digest=_schedule_digest(target_indices, site_indices, site_count=3),
         initial_parameters=parameters,
         target_occupancy=target_occupancy,
         occupancy_seed=101,
@@ -148,4 +151,47 @@ def test_summary_rejects_tampered_gradient_mean_after_redigest() -> None:
             expected_initial_parameters=parameters,
             expected_target_occupancy=target,
             expected_target_reference=target_reference,
+        )
+
+
+@pytest.mark.parametrize("source", ["occupancy_source", "gradient_source", "before", "after"])
+def test_summary_rejects_forged_source_digest_after_redigest(source) -> None:
+    results, summary, parameters, target, bundle_digest, target_reference = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    container = payload["evaluation"] if source in ("before", "after") else payload
+    container[source]["source_digest"] = "sha256:" + "0" * 64
+    payload["summary_digest"] = results.composed_trajectory_refinement_summary_digest(payload)
+    with pytest.raises(ValueError, match="source digest"):
+        results.validate_composed_trajectory_refinement_summary(
+            payload,
+            expected_bundle_digest=bundle_digest,
+            expected_initial_parameters=parameters,
+            expected_target_occupancy=target,
+            expected_target_reference=target_reference,
+        )
+
+
+def test_summary_rejects_forged_evaluation_digest_after_redigest() -> None:
+    results, summary, parameters, target, bundle_digest, target_reference = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    payload["evaluation"]["result_digest"] = "sha256:" + "0" * 64
+    payload["summary_digest"] = results.composed_trajectory_refinement_summary_digest(payload)
+    with pytest.raises(ValueError, match="evaluation digest"):
+        results.validate_composed_trajectory_refinement_summary(
+            payload,
+            expected_bundle_digest=bundle_digest,
+            expected_initial_parameters=parameters,
+            expected_target_occupancy=target,
+            expected_target_reference=target_reference,
+        )
+
+
+def test_gradient_moments_reject_impossible_variance() -> None:
+    results = _results_module()
+    with pytest.raises(ValueError, match="moments"):
+        results.GroupedGradientResult(
+            sample_count=2,
+            component_sum=((1.0,) * 9,),
+            component_sum_squares=((0.0,) * 9,),
+            source_digest="sha256:" + "0" * 64,
         )

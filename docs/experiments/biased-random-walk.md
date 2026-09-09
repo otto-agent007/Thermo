@@ -126,14 +126,14 @@ replications.
 This is one feedback pass and a local frozen-kernel diagnostic. It does not
 claim fixed-point convergence or improvement of the composed target program.
 The full finite-Gibbs-horizon composed-program comparison is a separate,
-completed evaluation of frozen artifacts; full 25-site trajectory-level
-parameter refinement remains deferred. This study also does not evaluate
+completed evaluation of frozen artifacts; the separate one-step equilibrium
+refinement below updates the full 25-site program. This study also does not evaluate
 official Thermalizers, hosted simulation, physical Z1, or TSU hardware.
 
 ## Exact trajectory-level estimator contract
 
 The checked estimator study is a deliberately bounded prerequisite for the
-still-open refinement variant. It composes two overlapping occurrences of one
+refinement variants below. It composes two overlapping occurrences of one
 shared five-spin `K_(3,2)` kernel on three visible sites. Exact enumeration
 checks the trajectory-score gradient against an independently derived
 expected-reference identity, untied occurrence finite differences, and a tied
@@ -163,8 +163,8 @@ trajectory improvement, run the 25-site 500-occurrence fixture, or establish
 unbiasedness for a finite-Gibbs sampler. Its seeded categorical draws are
 NumPy `software_simulation`, not THRML, official Thermalizers, hosted
 simulation, or physical Z1/TSU evidence. The full finite-Gibbs-horizon
-composed-program comparison is a separate completed evaluation; full 25-site
-trajectory-level parameter refinement remains deferred.
+composed-program comparison and one-step full-program refinement are separate
+evaluations below.
 
 ## Bounded one-step trajectory refinement
 
@@ -241,10 +241,66 @@ uv run thermo-lab run \
   --output-dir results/composed-pasym-swap-finite-gibbs
 ```
 
-This completes an evaluation of frozen artifacts, not iterative optimization;
-full 25-site trajectory-level parameter refinement remains deferred. It makes
+This completes an evaluation of frozen artifacts, not iterative optimization.
+The separate one-step refinement below updates all 25-site parameter groups. It makes
 no claim about official Thermalizers, hosted simulation, physical Z1/TSU
 hardware, or live THRML sampling.
+
+## One-step full-program equilibrium refinement
+
+The checked command is:
+
+```bash
+uv run thermo-lab run \
+  configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml \
+  --seeds 0,1,2 \
+  --output-dir results/composed-trajectory-refinement-one-step
+```
+
+Start from the audited model-context lineage and share nine parameters within
+each of 37 target-hash groups over all 500 occurrences. For each release seed,
+derive independent occupancy, gradient, and evaluation seeds using
+`SeedSequence(seed).spawn(3)`. Estimate terminal occupancy from 32,768
+trajectories and use `2 * (estimated_occupancy - exact_target_occupancy)` as
+the reward coefficient for a separate 32,768-trajectory gradient batch.
+Every occurrence draws an independent reference from the same main-path
+parent; only the main output propagates. Sum scores within each shared group
+before taking trajectory moments, preserving occurrence covariance.
+
+Apply exactly one gradient-descent step at learning rate 0.01 and project
+every parameter onto [-2, 2]. A third held-out batch of 32,768 trajectories
+evaluates before/after with common random numbers per occurrence. The
+declared objective is the sum of squared terminal occupancy errors. The
+exact target is `exact_reference`; sampled model objectives are
+`software_simulation` with finite-batch bias from squaring empirical means.
+Improvement is descriptive and non-gating.
+
+The September 9 release completed all requested seeds with accepted integrity:
+
+| Seed | Objective before | Objective after | Before minus after | Parameters changed by projection |
+|---|---|---|---|---|
+| 0 | 0.05168472917704707 | 0.05117100474698251 | 0.0005137244300645605 | 58 |
+| 1 | 0.047790044264095374 | 0.04726481925853825 | 0.0005252250055571214 | 56 |
+| 2 | 0.049938136558384465 | 0.04937294805831944 | 0.0005651885000650253 | 50 |
+
+All updated parameters satisfy the bounds. These small sampled decreases do
+not establish iterative convergence. Iterative and finite-Gibbs parameter refinement remain deferred.
+
+Request identity:
+`sha256:ce594c55034305bc25eb58f6b847a83e33dc027c69f0d8290d620522de20eec4`.
+Validated summary identities, in seed order:
+
+- `sha256:c8c0d6269c0c2c8ee3fadca35edb726494fb8fe0e788e43360c43f9dc83a0577`
+- `sha256:c1abc247fe1c69d1c539d8357833c0026a6b15cd98dfca7baee600e638b5cbde`
+- `sha256:0ed279cc868668cd2d7ceba07cbd250ac1ad3e93b135a36ddbf85ea03c6971d2`
+
+Reload validation reconstructs every source digest, reward, gradient mean,
+projected update, and objective from bounded counts/moments and trusted
+lineage. It binds seeds, sample counts, schedule, parameter constraints,
+metadata, and standalone scalar copies before aggregation/reporting. Exact
+three-site score/reference/finite-difference checks and the full-program
+gradient primitive's three-site oracle comparison remain in the test gates.
+No official Thermalizers, hosted simulator, or physical hardware claim is made.
 
 ## Metrics
 

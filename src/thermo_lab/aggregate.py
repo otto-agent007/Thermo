@@ -26,8 +26,13 @@ from thermo_lab.composed_pasym_swap_reporting import (
     composed_scalar_metric_names,
     validate_persisted_composed_pasym_swap_record,
 )
+from thermo_lab.composed_trajectory_refinement_reporting import (
+    REFINEMENT_SCALARS,
+    validate_persisted_composed_refinement_record,
+)
 from thermo_lab.config import (
     COMPOSED_PASYM_SWAP_EXPERIMENT_ID,
+    COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID,
     MODEL_CONTEXT_PASYM_SWAP_EXPERIMENT_ID,
     MODEL_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
     TARGET_CONTEXT_PASYM_SWAP_SAMPLE_DEFINITION,
@@ -568,6 +573,15 @@ def _compatibility_signature(record: RunRecord) -> tuple[Any, ...]:
         timing_method = _model_context_timing_method(record)
     elif record.spec.experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID:
         deterministic_identity = _composed_pasym_swap_deterministic_identity(record)
+    elif record.spec.experiment_id == COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID:
+        summary = validate_persisted_composed_refinement_record(record)
+        deterministic_identity = (
+            summary.request_hash,
+            summary.source_bundle_digest,
+            summary.initial_parameter_digest,
+            summary.exact_target_reference,
+            summary.schedule_digest,
+        )
     elif record.spec.experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
         deterministic_identity = _trajectory_reinforce_deterministic_identity(record)
     elif record.spec.experiment_id == TRAJECTORY_REINFORCE_REFINEMENT_EXPERIMENT_ID:
@@ -948,6 +962,14 @@ def derive_aggregate_fields(
             observations = [record.metrics[name] for record in records]
             values = [observation.value for observation in observations]
             if (
+                experiment_id == COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID
+                and name not in REFINEMENT_SCALARS
+            ):
+                omitted_metrics[name] = (
+                    "nested refinement evidence retained in validated run records"
+                )
+                continue
+            if (
                 experiment_id == _TARGET_CONTEXT_PASYM_SWAP_EXPERIMENT_ID
                 and name not in _TARGET_CONTEXT_PASYM_SWAP_SAMPLED_METRICS
             ):
@@ -1043,6 +1065,9 @@ def derive_aggregate_fields(
             )
         elif experiment_id == COMPOSED_PASYM_SWAP_EXPERIMENT_ID:
             omitted_metrics.update(_COMPOSED_PASYM_SWAP_TIMING_OMISSION_REASONS)
+        elif experiment_id == COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID:
+            for name in ("timing.compile_seconds", "timing.execution_seconds"):
+                omitted_metrics[name] = "refinement timing is not a scientific replication metric"
         elif experiment_id == TRAJECTORY_REINFORCE_EXPERIMENT_ID:
             omitted_metrics["timing.compile_seconds"] = _TRAJECTORY_REINFORCE_TIMING_OMISSION_REASON
             omitted_metrics["timing.execution_seconds"] = (

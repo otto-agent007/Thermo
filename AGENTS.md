@@ -80,6 +80,10 @@ uv run thermo-lab run \
   configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml \
   --seeds 0,1,2 \
   --output-dir results/composed-pasym-swap-finite-gibbs
+uv run thermo-lab run \
+  configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml \
+  --seeds 0,1,2 \
+  --output-dir results/composed-trajectory-refinement-one-step
 uv build
 python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/thrml-target-context-pasym-swap.toml"
@@ -122,4 +126,14 @@ metrics as `software_simulation`. The 89 improved / 37 worsened / 0 unchanged
 final paired error/leakage results are non-gating descriptive outcomes. Do not
 extend this gate into live THRML sampling, official Thermalizers, hosted or
 hardware claims, iterative optimization, or full 25-site trajectory-level
-parameter refinement.
+parameter refinement within that frozen-artifact gate.
+
+The separate composed trajectory-refinement gate performs exactly one
+equilibrium update across 37 shared nine-parameter groups. Preserve the three
+independent 32,768-trajectory roles (occupancy, gradient, held-out evaluation),
+same-parent non-propagated references, learning rate 0.01, and bounds [-2, 2].
+Report the sampled squared terminal occupancy objective before and after,
+including finite-batch bias; improvement is descriptive and non-gating. Keep
+exact three-site gradient checks and deep persisted-record validation at
+aggregation/reporting boundaries. No iterative or finite-Gibbs refinement is
+included.

@@ -15,10 +15,17 @@ from thermo_lab.backends.numpy_composed_pasym_swap import (
 )
 from thermo_lab.composed_pasym_swap_artifacts import ComposedArtifactBundle, ExactTargetCheckpoint
 from thermo_lab.composed_trajectory_refinement import (
+    _schedule_digest,
     estimate_equilibrium_grouped_gradient,
     evaluate_paired_equilibrium_objective,
     project_grouped_parameters,
     sample_equilibrium_terminal_occupancy,
+)
+from thermo_lab.composed_trajectory_refinement_reporting import (
+    REFINEMENT_TIMING_METHOD as COMPOSED_TRAJECTORY_REFINEMENT_TIMING_METHOD,
+)
+from thermo_lab.composed_trajectory_refinement_reporting import (
+    refinement_metric_observations,
 )
 from thermo_lab.composed_trajectory_refinement_results import (
     ComposedTrajectoryRefinementSummary,
@@ -37,23 +44,15 @@ from thermo_lab.config import (
 )
 from thermo_lab.evidence import BackendId, EvidenceClass
 from thermo_lab.hashing import canonical_sha256, to_json_value
-from thermo_lab.pasym_swap import PAPER_SOURCE
 from thermo_lab.provenance import find_repository_root
 from thermo_lab.records import (
     RUN_TIMING_SOURCE,
     ExperimentSpec,
-    MetricObservation,
     RunRecord,
     RunTiming,
     build_run_record,
 )
 from thermo_lab.schemas import PAsymSwapModelConfig
-
-COMPOSED_TRAJECTORY_REFINEMENT_TIMING_METHOD = (
-    "prepare audited model-context composed lineage once, then run independent occupancy and "
-    "grouped-gradient PCG64 batches followed by held-out before/after common-random-number "
-    "equilibrium evaluation"
-)
 
 
 @dataclass(frozen=True)
@@ -94,9 +93,7 @@ class NumpyComposedTrajectoryRefinementBackend:
         """Require the exact checked request and its audited composed lineage identity."""
 
         expected = load_experiment_config(
-            experiment_config_path(
-                "numpy-composed-pasym-swap-trajectory-refinement-one-step.toml"
-            )
+            experiment_config_path("numpy-composed-pasym-swap-trajectory-refinement-one-step.toml")
         )
         if spec.experiment_id != COMPOSED_TRAJECTORY_REFINEMENT_EXPERIMENT_ID:
             raise ValueError("Unexpected experiment request for composed trajectory refinement")
@@ -119,7 +116,9 @@ class NumpyComposedTrajectoryRefinementBackend:
         if run.source_composed_config_hash != source.non_seed_config_hash:
             raise ValueError("Refinement request is not bound to the authoritative composed study")
         request_hash = expected.non_seed_config_hash
-        if request_hash != spec.non_seed_run_config_hash:
+        # The summary binds the complete config; ExperimentSpec's hash covers
+        # only the run inputs. Compare hashes with the same input boundary.
+        if expected.to_spec().non_seed_run_config_hash != spec.non_seed_run_config_hash:
             raise ValueError("Refinement request hash differs from the authoritative config")
         return model, run, request_hash
 
@@ -150,7 +149,9 @@ class NumpyComposedTrajectoryRefinementBackend:
                 raise ValueError("prepared composed lineage is missing the final target checkpoint")
             initial = source_prepared.bundle.parameter_vectors[2]
             if any(abs(value) > model.parameter_cap for row in initial for value in row):
-                raise ValueError("initial model-context parameters violate the checked parameter cap")
+                raise ValueError(
+                    "initial model-context parameters violate the checked parameter cap"
+                )
             self._prepared_cache[request_hash] = PreparedComposedTrajectoryRefinement(
                 bundle=source_prepared.bundle,
                 initial_parameters=initial,
@@ -225,6 +226,12 @@ class NumpyComposedTrajectoryRefinementBackend:
             seed=spec.seed,
             source_bundle_digest=prepared.bundle.bundle_digest,
             exact_target_reference=prepared.target_checkpoint.exact_reference,
+            beta=model.beta,
+            schedule_digest=_schedule_digest(
+                np.asarray(prepared.bundle.occurrence_target_indices),
+                np.asarray(prepared.bundle.occurrence_site_indices),
+                site_count=25,
+            ),
             initial_parameters=prepared.initial_parameters,
             target_occupancy=prepared.target_checkpoint.occupancy,
             occupancy_seed=occupancy_seed,
@@ -258,39 +265,7 @@ class NumpyComposedTrajectoryRefinementBackend:
                 synchronized=True,
                 timing_method=COMPOSED_TRAJECTORY_REFINEMENT_TIMING_METHOD,
             ),
-            metrics={
-                "composed_trajectory_refinement_summary": MetricObservation(
-                    value=summary,
-                    evidence_class=self.evidence_class,
-                    method="sample-split one-step equilibrium full-program trajectory refinement",
-                    source=PAPER_SOURCE,
-                    notes="Held-out objective improvement is descriptive and non-gating.",
-                ),
-                "objective_before": MetricObservation(
-                    value=summary.evaluation.objective_before,
-                    evidence_class=self.evidence_class,
-                    method="held-out terminal occupancy objective before update",
-                    source=PAPER_SOURCE,
-                ),
-                "objective_after": MetricObservation(
-                    value=summary.evaluation.objective_after,
-                    evidence_class=self.evidence_class,
-                    method="held-out terminal occupancy objective after update",
-                    source=PAPER_SOURCE,
-                ),
-                "objective_improvement": MetricObservation(
-                    value=summary.evaluation.objective_improvement,
-                    evidence_class=self.evidence_class,
-                    method="held-out before-minus-after objective with common random numbers",
-                    source=PAPER_SOURCE,
-                ),
-                "cap_active_parameter_count": MetricObservation(
-                    value=summary.update.cap_active_parameter_count,
-                    evidence_class=self.evidence_class,
-                    method="count of projected grouped parameters at the checked box boundary",
-                    source=PAPER_SOURCE,
-                ),
-            },
+            metrics=refinement_metric_observations(summary),
         )
         return ExecutionResult.build(record)
 

@@ -129,6 +129,11 @@ class GroupedGradientResult(StrictEvidenceModel):
             raise ValueError("gradient moment matrices must have identical shapes")
         if any(value < 0.0 for row in self.component_sum_squares for value in row):
             raise ValueError("component_sum_squares must be nonnegative")
+        sums = np.asarray(self.component_sum, dtype=np.longdouble)
+        squares = np.asarray(self.component_sum_squares, dtype=np.longdouble)
+        lower = sums * sums / self.sample_count
+        if np.any(lower > squares + 1e-12 * np.maximum(lower, squares)):
+            raise ValueError("gradient moments imply a negative variance")
         return self
 
     @property
@@ -219,6 +224,8 @@ class ComposedTrajectoryRefinementSummary(StrictEvidenceModel):
     seed: StrictInt = Field(ge=0)
     source_bundle_digest: str
     exact_target_reference: str
+    beta: StrictFloat = Field(gt=0)
+    schedule_digest: str
     initial_parameters: tuple[tuple[StrictFloat, ...], ...]
     initial_parameter_digest: str
     target_occupancy: tuple[StrictFloat, ...]
@@ -253,6 +260,7 @@ class ComposedTrajectoryRefinementSummary(StrictEvidenceModel):
         "exact_target_reference",
         "initial_parameter_digest",
         "summary_digest",
+        "schedule_digest",
     )
     @classmethod
     def validate_digest(cls, value: str) -> str:
@@ -361,6 +369,11 @@ def _deeply_validate_summary(summary: ComposedTrajectoryRefinementSummary) -> No
     if summary.initial_parameter_digest != expected_initial_digest:
         raise ValueError("initial parameter digest does not bind initial parameters")
 
+    if len({summary.occupancy_seed, summary.gradient_seed, summary.evaluation_seed}) != 3:
+        raise ValueError("occupancy, gradient, and evaluation role seeds must be distinct")
+    if summary.evaluation.before.sample_count != summary.evaluation.after.sample_count:
+        raise ValueError("paired evaluation sample counts must agree")
+
     if len(summary.occupancy_source.occupancy_counts) != len(summary.target_occupancy):
         raise ValueError("occupancy source must match target occupancy length")
     expected_reward = tuple(
@@ -415,6 +428,66 @@ def _deeply_validate_summary(summary: ComposedTrajectoryRefinementSummary) -> No
     if evaluation.objective_improved is not (improvement > 0.0):
         raise ValueError("objective_improved must match the held-out objective difference")
 
+    for source, seed, parameters, role in (
+        (
+            summary.occupancy_source,
+            summary.occupancy_seed,
+            summary.initial_parameters,
+            "standalone_terminal_occupancy",
+        ),
+        (evaluation.before, summary.evaluation_seed, summary.initial_parameters, "held_out_before"),
+        (
+            evaluation.after,
+            summary.evaluation_seed,
+            summary.update.updated_parameters,
+            "held_out_after",
+        ),
+    ):
+        expected_digest = canonical_sha256(
+            {
+                "identity_version": "composed_equilibrium_terminal_occupancy_source.v1",
+                "sample_count": source.sample_count,
+                "occupancy_counts": source.occupancy_counts,
+                "seed": seed,
+                "beta": summary.beta,
+                "parameter_digest": canonical_sha256(parameters),
+                "schedule_digest": summary.schedule_digest,
+                "role": role,
+            }
+        )
+        if source.source_digest != expected_digest:
+            raise ValueError(f"{role} source digest does not bind its counts and inputs")
+    gradient = summary.gradient_source
+    if gradient.source_digest != canonical_sha256(
+        {
+            "identity_version": "composed_equilibrium_grouped_gradient_source.v1",
+            "sample_count": gradient.sample_count,
+            "component_sum": gradient.component_sum,
+            "component_sum_squares": gradient.component_sum_squares,
+            "seed": summary.gradient_seed,
+            "beta": summary.beta,
+            "parameter_digest": summary.initial_parameter_digest,
+            "schedule_digest": summary.schedule_digest,
+            "reward_coefficient": summary.reward_coefficient,
+            "reference_policy": "independent_same_parent_non_propagated",
+        }
+    ):
+        raise ValueError("gradient source digest does not bind its moments and inputs")
+    if evaluation.result_digest != canonical_sha256(
+        {
+            "identity_version": "composed_equilibrium_paired_objective.v1",
+            "before_source_digest": evaluation.before.source_digest,
+            "after_source_digest": evaluation.after.source_digest,
+            "target_occupancy": summary.target_occupancy,
+            "objective_before": before_objective,
+            "objective_after": after_objective,
+            "objective_improvement": improvement,
+            "objective_improved": improvement > 0.0,
+            "common_random_numbers": True,
+        }
+    ):
+        raise ValueError("evaluation digest does not bind the paired objective sources")
+
     if not persisted_update.bounds_satisfied:
         raise ValueError("integrity acceptance requires bounded updated parameters")
     if summary.integrity_acceptance_passed is not True:
@@ -430,6 +503,8 @@ def build_composed_trajectory_refinement_summary(
     seed: int,
     source_bundle_digest: str,
     exact_target_reference: str,
+    beta: float,
+    schedule_digest: str,
     initial_parameters: object,
     target_occupancy: object,
     occupancy_seed: int,
@@ -458,6 +533,8 @@ def build_composed_trajectory_refinement_summary(
         "seed": seed,
         "source_bundle_digest": source_bundle_digest,
         "exact_target_reference": exact_target_reference,
+        "beta": beta,
+        "schedule_digest": schedule_digest,
         "initial_parameters": initial,
         "initial_parameter_digest": canonical_sha256(initial),
         "target_occupancy": target,

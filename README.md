@@ -55,6 +55,10 @@ uv run thermo-lab run \
   configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml \
   --seeds 0,1,2 \
   --output-dir results/composed-pasym-swap-finite-gibbs
+uv run thermo-lab run \
+  configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml \
+  --seeds 0,1,2 \
+  --output-dir results/composed-trajectory-refinement-one-step
 uv run pytest
 ```
 
@@ -113,10 +117,9 @@ new kernel with its paired target-context kernel under the pooled model profile
 and separately checks exact and sampled `K = 30` residuals. This is a local
 kernel diagnostic, not evidence that the composed target program improves.
 The propagation is a first-moment factorization, not an exact 25-site joint
-rollout or a fixed-point iteration. Full-program trajectory-level REINFORCE,
-the complete
-finite-horizon composed program, official Thermalizers, hosted simulation,
-and physical Z1 or TSU hardware remain unevaluated.
+rollout or a fixed-point iteration. The separate composed and refinement
+commands below evaluate full-program behavior. Official Thermalizers, hosted
+simulation, and physical Z1 or TSU hardware remain unevaluated.
 
 The checked trajectory-level REINFORCE estimator command validates a bounded
 three-site, two-occurrence exact-categorical microcircuit with one shared
@@ -134,8 +137,8 @@ it takes one projected shared-gradient step with learning rate `0.25`, enforces
 the `[-2, 2]` parameter bounds, and exactly enumerates the declared objective
 before and after the update. The report records the raw and projected vectors,
 cap activity, objective delta, and a strict-improvement decision. This closes
-only the bounded one-step experiment; full 25-site trajectory-level parameter
-refinement remains open.
+only the bounded three-site experiment. The separate full-program command
+below evaluates one sampled 25-site update.
 
 The checked composed finite-Gibbs command executes the full 25-site,
 500-occurrence fixture for the frozen `independent`, `target_context`, and
@@ -151,6 +154,20 @@ worsened, and 0 unchanged; those mixed outcomes are descriptive and
 non-gating. This evaluates neither live THRML sampling, official Thermalizers,
 hosted simulation, hardware, iterative optimization, nor full 25-site
 trajectory-level parameter refinement.
+
+The checked composed trajectory-refinement command takes one equilibrium
+update of all 37 shared nine-parameter model-context groups over the full
+25-site, 500-occurrence program. Each seed uses independent 32,768-trajectory
+occupancy and gradient batches, a learning rate of `0.01`, and projection onto
+`[-2, 2]`. A separate 32,768-trajectory held-out batch evaluates before and
+after with common random numbers. The objective is the sum of squared terminal
+occupancy errors against the exact target. Full-program objective values are
+`software_simulation` estimates, with finite-batch bias from squaring sampled
+occupancies; improvement is descriptive and non-gating. Exact three-site
+gradient checks remain in the test and experiment gates. Reload validation
+binds the request, seeds, schedule, source counts/moments, projected update,
+scalar copies, and report to the trusted model-context lineage. This does not
+establish iterative convergence or finite-Gibbs gradient correctness.
 
 ## Research contract
 
