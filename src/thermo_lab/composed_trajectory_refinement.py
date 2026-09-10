@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from numbers import Real
 
 import numpy as np
@@ -19,6 +19,11 @@ from thermo_lab.thermodynamic_kernel import (
 _N_PARAMETERS = 9
 _N_JOINT_OUTCOMES = 8
 _N_VISIBLE_OUTCOMES = 4
+_NORMAL_95_CRITICAL_VALUE = 1.959963984540054
+
+POPULATION_OBJECTIVE_ESTIMATOR_POLICY = "unbiased_order_two_u_statistic"
+PAIRED_UNCERTAINTY_POLICY = "paired_delete_one_jackknife_normal_95_interval"
+POPULATION_OBJECTIVE_CONCLUSION_POLICY = "after_minus_before_interval_strictly_below_or_above_zero"
 
 
 @dataclass(frozen=True)
@@ -68,12 +73,31 @@ class PairedObjectiveEvaluation:
 
     before: TerminalOccupancySource
     after: TerminalOccupancySource
+    joined_terminal_second_moment_counts: tuple[tuple[int, ...], ...]
     target_occupancy: tuple[float, ...]
     objective_before: float
     objective_after: float
     objective_improvement: float
     objective_improved: bool
+    population_objective_before: float
+    population_objective_after: float
+    population_objective_difference_after_minus_before: float
+    paired_jackknife_standard_error: float
+    paired_jackknife_normal_95_interval: tuple[float, float]
+    population_objective_conclusion: str
     result_digest: str
+
+
+@dataclass(frozen=True)
+class PairedPopulationObjectiveStatistics:
+    """Unbiased paired population objectives and within-evaluation uncertainty."""
+
+    population_objective_before: float
+    population_objective_after: float
+    population_objective_difference_after_minus_before: float
+    paired_jackknife_standard_error: float
+    paired_jackknife_normal_95_interval: tuple[float, float]
+    population_objective_conclusion: str
 
 
 def _checked_positive_float(value: object, *, name: str) -> float:
@@ -89,6 +113,107 @@ def _checked_positive_int(value: object, *, name: str) -> int:
     if type(value) is not int or value <= 0:
         raise ValueError(f"{name} must be a positive integer")
     return value
+
+
+def _checked_occupancy_counts(
+    values: object,
+    *,
+    sample_count: int,
+    name: str = "occupancy_counts",
+) -> NDArray[np.int64]:
+    counts = np.asarray(values)
+    if counts.ndim != 1 or counts.size == 0 or not np.issubdtype(counts.dtype, np.integer):
+        raise ValueError(f"{name} must be a non-empty integer vector")
+    if np.issubdtype(counts.dtype, np.bool_):
+        raise ValueError(f"{name} must be a non-empty integer vector")
+    checked = counts.astype(np.int64, copy=False)
+    if np.any(checked < 0) or np.any(checked > sample_count):
+        raise ValueError(f"{name} values must lie in [0, sample_count]")
+    return checked
+
+
+def _checked_joined_second_moment_counts(
+    values: object,
+    *,
+    joined_counts: NDArray[np.int64],
+    sample_count: int,
+) -> NDArray[np.int64]:
+    moments = np.asarray(values)
+    dimension = joined_counts.size
+    if moments.shape != (dimension, dimension) or not np.issubdtype(moments.dtype, np.integer):
+        raise ValueError(
+            "joined_terminal_second_moment_counts must be a square integer matrix "
+            "matching the joined occupancy counts"
+        )
+    if np.issubdtype(moments.dtype, np.bool_):
+        raise ValueError("joined_terminal_second_moment_counts must not contain booleans")
+    checked = moments.astype(np.int64, copy=False)
+    if not np.array_equal(checked, checked.T):
+        raise ValueError("joined_terminal_second_moment_counts must be symmetric")
+    if not np.array_equal(np.diag(checked), joined_counts):
+        raise ValueError(
+            "joined_terminal_second_moment_counts diagonal must equal occupancy counts"
+        )
+    lower = np.maximum(0, joined_counts[:, None] + joined_counts[None, :] - sample_count)
+    upper = np.minimum(joined_counts[:, None], joined_counts[None, :])
+    if np.any(checked < lower) or np.any(checked > upper):
+        raise ValueError("joined_terminal_second_moment_counts violate count bounds")
+    for first in range(dimension):
+        for second in range(first + 1, dimension):
+            if joined_counts[first] == joined_counts[second] == checked[
+                first, second
+            ] and not np.array_equal(checked[first], checked[second]):
+                raise ValueError("proven identical columns must have identical moment rows")
+    _require_positive_semidefinite_centered_gram(
+        checked, joined_counts=joined_counts, sample_count=sample_count
+    )
+    return checked
+
+
+def _require_positive_semidefinite_centered_gram(
+    moments: NDArray[np.int64],
+    *,
+    joined_counts: NDArray[np.int64],
+    sample_count: int,
+) -> None:
+    """Check a necessary moment-feasibility condition with exact integer arithmetic.
+
+    For any real sample matrix X with column sums c and X.T@X=M,
+    G=n*M-c*c.T is n times the centered Gram matrix and must be PSD.
+    Positive pivots permit Schur complements; a zero diagonal in a PSD
+    residual requires a zero row. Fraction-free symmetric elimination divides
+    by the previous positive pivot exactly (Bareiss scaling), avoiding both
+    floating tolerances and uncontrolled denominator growth. Singular PSD
+    matrices are allowed. This is not a sufficient binary-realizability test.
+    """
+    counts = tuple(int(value) for value in joined_counts)
+    residual = [
+        [
+            sample_count * int(value) - counts[first] * counts[second]
+            for second, value in enumerate(row)
+        ]
+        for first, row in enumerate(moments)
+    ]
+    previous_pivot = 1
+    for index in range(len(counts)):
+        pivot = residual[index][index]
+        if pivot < 0 or (pivot == 0 and any(residual[index][index + 1 :])):
+            raise ValueError("joined terminal centered Gram matrix must be positive semidefinite")
+        if pivot == 0:
+            continue
+        for first in range(index + 1, len(counts)):
+            for second in range(first, len(counts)):
+                numerator = (
+                    pivot * residual[first][second]
+                    - residual[first][index] * residual[index][second]
+                )
+                value, remainder = divmod(numerator, previous_pivot)
+                if remainder:
+                    raise ValueError(
+                        "exact centered-Gram elimination must divide without remainder"
+                    )
+                residual[first][second] = residual[second][first] = value
+        previous_pivot = pivot
 
 
 def _checked_seed(seed: object) -> int:
@@ -160,6 +285,10 @@ def _checked_site_vector(values: object, *, site_count: int, name: str) -> NDArr
 
 def _tuple_matrix(values: NDArray[np.float64]) -> tuple[tuple[float, ...], ...]:
     return tuple(tuple(float(value) for value in row) for row in values)
+
+
+def _tuple_int_matrix(values: NDArray[np.int64]) -> tuple[tuple[int, ...], ...]:
+    return tuple(tuple(int(value) for value in row) for row in values)
 
 
 def _build_joint_tables(parameters: NDArray[np.float64], *, beta: float) -> NDArray[np.float64]:
@@ -236,6 +365,151 @@ def _schedule_digest(
             "occurrence_target_indices": tuple(int(value) for value in targets),
             "occurrence_site_indices": tuple(tuple(int(value) for value in row) for row in sites),
         }
+    )
+
+
+def calculate_unbiased_population_objective(
+    occupancy_counts: object,
+    *,
+    sample_count: object,
+    target_occupancy: object,
+) -> float:
+    """Estimate squared population terminal-occupancy loss without finite-batch bias."""
+
+    checked_sample_count = _checked_positive_int(sample_count, name="sample_count")
+    if checked_sample_count < 2:
+        raise ValueError("sample_count must be at least 2")
+    counts = _checked_occupancy_counts(
+        occupancy_counts,
+        sample_count=checked_sample_count,
+    )
+    target = _checked_site_vector(
+        target_occupancy,
+        site_count=counts.size,
+        name="target_occupancy",
+    )
+    if np.any(target < 0.0) or np.any(target > 1.0):
+        raise ValueError("target_occupancy values must lie in [0, 1]")
+    denominator = checked_sample_count * (checked_sample_count - 1)
+    return math.fsum(
+        float(
+            int(count) * (int(count) - 1) / denominator
+            - 2.0 * target_value * count / checked_sample_count
+            + target_value * target_value
+        )
+        for count, target_value in zip(counts, target, strict=True)
+    )
+
+
+def calculate_paired_population_objective_statistics(
+    before_occupancy_counts: object,
+    after_occupancy_counts: object,
+    joined_terminal_second_moment_counts: object,
+    *,
+    sample_count: object,
+    target_occupancy: object,
+) -> PairedPopulationObjectiveStatistics:
+    """Derive paired U-statistics and an approximate jackknife normal 95% interval.
+
+    Uncertainty is conditional on the frozen parameter pair and uses complete
+    independent trajectory pairs, not program occurrences or training batches.
+    """
+
+    checked_sample_count = _checked_positive_int(sample_count, name="sample_count")
+    if checked_sample_count < 3:
+        raise ValueError("sample_count must be at least 3 for paired jackknife uncertainty")
+    before_counts = _checked_occupancy_counts(
+        before_occupancy_counts,
+        sample_count=checked_sample_count,
+        name="before_occupancy_counts",
+    )
+    after_counts = _checked_occupancy_counts(
+        after_occupancy_counts,
+        sample_count=checked_sample_count,
+        name="after_occupancy_counts",
+    )
+    if after_counts.shape != before_counts.shape:
+        raise ValueError("after_occupancy_counts must match before_occupancy_counts")
+    target = _checked_site_vector(
+        target_occupancy,
+        site_count=before_counts.size,
+        name="target_occupancy",
+    )
+    if np.any(target < 0.0) or np.any(target > 1.0):
+        raise ValueError("target_occupancy values must lie in [0, 1]")
+    joined_counts = np.concatenate((before_counts, after_counts))
+    moments = _checked_joined_second_moment_counts(
+        joined_terminal_second_moment_counts,
+        joined_counts=joined_counts,
+        sample_count=checked_sample_count,
+    )
+
+    objective_before = calculate_unbiased_population_objective(
+        before_counts,
+        sample_count=checked_sample_count,
+        target_occupancy=target,
+    )
+    objective_after = calculate_unbiased_population_objective(
+        after_counts,
+        sample_count=checked_sample_count,
+        target_occupancy=target,
+    )
+    difference = math.fsum((objective_after, -objective_before))
+
+    site_count = before_counts.size
+    paired_cross_diagonal = moments[
+        np.arange(site_count),
+        site_count + np.arange(site_count),
+    ]
+    trajectories_are_identical = np.array_equal(before_counts, after_counts) and np.array_equal(
+        paired_cross_diagonal,
+        before_counts,
+    )
+    if trajectories_are_identical:
+        standard_error = 0.0
+    else:
+        delete_denominator = (checked_sample_count - 1) * (checked_sample_count - 2)
+        before_delete_coefficients = 2.0 * (
+            target / (checked_sample_count - 1) - (before_counts - 1) / delete_denominator
+        )
+        after_delete_coefficients = 2.0 * (
+            target / (checked_sample_count - 1) - (after_counts - 1) / delete_denominator
+        )
+        joined_coefficients = np.concatenate(
+            (-before_delete_coefficients, after_delete_coefficients)
+        )
+        weighted_second_moment = float(joined_coefficients @ moments @ joined_coefficients)
+        weighted_sum = float(joined_coefficients @ joined_counts)
+        centered_sum_squares = (
+            weighted_second_moment - weighted_sum * weighted_sum / checked_sample_count
+        )
+        roundoff_scale = max(
+            1.0,
+            abs(weighted_second_moment),
+            abs(weighted_sum * weighted_sum / checked_sample_count),
+        )
+        roundoff_tolerance = 32.0 * np.finfo(np.float64).eps * roundoff_scale
+        if centered_sum_squares < -roundoff_tolerance:
+            raise ValueError("joined terminal moments imply a negative jackknife variance")
+        centered_sum_squares = max(0.0, centered_sum_squares)
+        standard_error = math.sqrt(
+            (checked_sample_count - 1) / checked_sample_count * centered_sum_squares
+        )
+    margin = _NORMAL_95_CRITICAL_VALUE * standard_error
+    interval = (difference - margin, difference + margin)
+    if interval[1] < 0.0:
+        conclusion = "improved"
+    elif interval[0] > 0.0:
+        conclusion = "regressed"
+    else:
+        conclusion = "inconclusive"
+    return PairedPopulationObjectiveStatistics(
+        population_objective_before=objective_before,
+        population_objective_after=objective_after,
+        population_objective_difference_after_minus_before=difference,
+        paired_jackknife_standard_error=standard_error,
+        paired_jackknife_normal_95_interval=interval,
+        population_objective_conclusion=conclusion,
     )
 
 
@@ -489,6 +763,18 @@ def evaluate_paired_equilibrium_objective(
         schedule_digest=schedule_digest,
         role="held_out_after",
     )
+    joined_states = np.concatenate((before_states, after_states), axis=1).astype(
+        np.int64,
+        copy=False,
+    )
+    joined_terminal_second_moment_counts = _tuple_int_matrix(joined_states.T @ joined_states)
+    population_statistics = calculate_paired_population_objective_statistics(
+        before.occupancy_counts,
+        after.occupancy_counts,
+        joined_terminal_second_moment_counts,
+        sample_count=checked_batch_size,
+        target_occupancy=target_vector,
+    )
     before_occupancy = np.asarray(before.occupancy, dtype=np.float64)
     after_occupancy = np.asarray(after.occupancy, dtype=np.float64)
     objective_before = math.fsum(float(value * value) for value in before_occupancy - target_vector)
@@ -497,7 +783,7 @@ def evaluate_paired_equilibrium_objective(
     target_tuple = tuple(float(value) for value in target_vector)
     digest = canonical_sha256(
         {
-            "identity_version": "composed_equilibrium_paired_objective.v1",
+            "identity_version": "composed_equilibrium_paired_objective.v2",
             "before_source_digest": before.source_digest,
             "after_source_digest": after.source_digest,
             "target_occupancy": target_tuple,
@@ -506,15 +792,34 @@ def evaluate_paired_equilibrium_objective(
             "objective_improvement": improvement,
             "objective_improved": improvement > 0.0,
             "common_random_numbers": True,
+            "joined_terminal_second_moment_counts": joined_terminal_second_moment_counts,
+            "population_objective_estimator_policy": "order_two_u_statistic",
+            "paired_uncertainty_policy": "paired_delete_one_jackknife_normal_95_approximate",
+            "population_objective_conclusion_policy": (
+                "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive"
+            ),
+            "improvement_policy": "descriptive_non_gating",
+            **asdict(population_statistics),
         }
     )
     return PairedObjectiveEvaluation(
         before=before,
         after=after,
+        joined_terminal_second_moment_counts=joined_terminal_second_moment_counts,
         target_occupancy=target_tuple,
         objective_before=objective_before,
         objective_after=objective_after,
         objective_improvement=improvement,
         objective_improved=improvement > 0.0,
+        population_objective_before=population_statistics.population_objective_before,
+        population_objective_after=population_statistics.population_objective_after,
+        population_objective_difference_after_minus_before=(
+            population_statistics.population_objective_difference_after_minus_before
+        ),
+        paired_jackknife_standard_error=population_statistics.paired_jackknife_standard_error,
+        paired_jackknife_normal_95_interval=(
+            population_statistics.paired_jackknife_normal_95_interval
+        ),
+        population_objective_conclusion=(population_statistics.population_objective_conclusion),
         result_digest=digest,
     )

@@ -28,6 +28,11 @@ class ComposedTrajectoryRefinementRunConfig(FrozenModel):
     horizon: Literal["equilibrium"]
     source_composed_config_hash: Literal[SOURCE_COMPOSED_CONFIG_HASH]
     objective_policy: Literal["squared_terminal_occupancy_error"]
+    population_objective_estimator_policy: Literal["order_two_u_statistic"]
+    paired_uncertainty_policy: Literal["paired_delete_one_jackknife_normal_95_approximate"]
+    population_objective_conclusion_policy: Literal[
+        "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive"
+    ]
     reward_policy: Literal["independent_batch_current_model_occupancy_linearization"]
     reference_policy: Literal["independent_same_parent_non_propagated"]
     occupancy_batch_size: Literal[32768]

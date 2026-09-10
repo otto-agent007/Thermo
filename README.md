@@ -162,11 +162,22 @@ occupancy and gradient batches, a learning rate of `0.01`, and projection onto
 `[-2, 2]`. A separate 32,768-trajectory held-out batch evaluates before and
 after with common random numbers. The objective is the sum of squared terminal
 occupancy errors against the exact target. Full-program objective values are
-`software_simulation` estimates, with finite-batch bias from squaring sampled
-occupancies; improvement is descriptive and non-gating. Exact three-site
+`software_simulation` estimates. The historical plug-in statistic has
+finite-batch bias from squaring sampled occupancies. The M1 audit adds unbiased
+order-two U-statistic estimates and a signed after-minus-before difference,
+with a paired delete-one jackknife SE and approximate normal 95% interval.
+An interval below zero means improved, above zero regressed, and otherwise
+inconclusive; these conclusions are descriptive and non-gating. The interval
+describes within-evaluation uncertainty conditional on the frozen parameter
+pair, distinct from across-seed aggregation; near-zero and tiny-sample coverage
+can be far below the nominal 95%. Exact three-site
 gradient checks remain in the test and experiment gates. Reload validation
 binds the request, seeds, schedule, source counts/moments, projected update,
-scalar copies, and report to the trusted model-context lineage. This does not
+scalar copies, and report to the trusted model-context lineage. Version 2 binds
+the estimator policies and joined terminal second moments; v1 remains
+historical plug-in evidence, not a population-objective audit. See the
+[audited result](docs/experiments/biased-random-walk.md#population-objective-audit-m1).
+This does not
 establish iterative convergence or finite-Gibbs gradient correctness.
 
 ## Research contract

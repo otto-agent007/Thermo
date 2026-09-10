@@ -209,6 +209,8 @@ class NumpyComposedTrajectoryRefinementBackend:
             learning_rate=run.learning_rate,
             parameter_cap=model.parameter_cap,
         )
+        # Freeze the generated pair at the existing explicit-parameter boundary.
+        # The v2 audit enriches held-out evidence without changing training or draws.
         evaluation = evaluate_paired_equilibrium_objective(
             prepared.initial_parameters,
             update.updated_parameters,

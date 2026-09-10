@@ -23,6 +23,9 @@ REFINEMENT_SCALARS = frozenset(
         "objective_after",
         "objective_improvement",
         "cap_active_parameter_count",
+        "population_objective_before",
+        "population_objective_after",
+        "population_objective_difference_after_minus_before",
     }
 )
 REFINEMENT_TIMING_METHOD = (
@@ -45,23 +48,41 @@ def refinement_metric_observations(summary: ComposedTrajectoryRefinementSummary)
         ),
         "objective_before": (
             summary.evaluation.objective_before,
-            "held-out terminal occupancy objective before update",
+            "historical plug-in squared sampled terminal occupancy objective before update",
             None,
         ),
         "objective_after": (
             summary.evaluation.objective_after,
-            "held-out terminal occupancy objective after update",
+            "historical plug-in squared sampled terminal occupancy objective after update",
             None,
         ),
         "objective_improvement": (
             summary.evaluation.objective_improvement,
-            "held-out before-minus-after objective with common random numbers",
+            "historical plug-in before-minus-after objective with common random numbers",
             None,
         ),
         "cap_active_parameter_count": (
             summary.update.cap_active_parameter_count,
             "count of grouped parameters changed by box projection",
             None,
+        ),
+        "population_objective_before": (
+            summary.evaluation.population_objective_before,
+            "unbiased order-two U-statistic of population terminal occupancy objective "
+            "before update",
+            "An unbiased finite-sample estimate may be negative; descriptive and non-gating.",
+        ),
+        "population_objective_after": (
+            summary.evaluation.population_objective_after,
+            "unbiased order-two U-statistic of population terminal occupancy objective "
+            "after update",
+            "An unbiased finite-sample estimate may be negative; descriptive and non-gating.",
+        ),
+        "population_objective_difference_after_minus_before": (
+            summary.evaluation.population_objective_difference_after_minus_before,
+            "unbiased after-minus-before population objective difference "
+            "with common random numbers",
+            "Negative favors the updated parameters; descriptive and non-gating.",
         ),
     }
     return {
@@ -185,10 +206,13 @@ def render_composed_refinement_section(records: tuple[RunRecord, ...]) -> list[s
         "32,768-trajectory held-out batch evaluates before/after with common random numbers. "
         "The objective is the sum of squared terminal occupancy errors against the exact target. "
         "These are software_simulation estimates, not exact full-program model objectives. "
-        "Squaring sampled occupancies introduces finite-batch bias. Improvement is descriptive "
-        "and never an integrity gate.",
+        "The historical plug-in statistic squares sampled occupancies and has finite-batch bias. "
+        "Its before-minus-after improvement is descriptive and non-gating, "
+        "never an integrity gate.",
         "",
-        "| Seed | Before | After | Before minus after | Outcome | Projected parameters |",
+        "### Historical plug-in statistic",
+        "",
+        "| Seed | Before | After | Before minus after | Plug-in outcome | Projected parameters |",
         "|---|---|---|---|---|---|",
     ]
     for summary in summaries:
@@ -210,6 +234,40 @@ def render_composed_refinement_section(records: tuple[RunRecord, ...]) -> list[s
     lines.extend(
         (
             "",
+            "### Population-objective audit",
+            "",
+            "The unbiased order-two U-statistic estimates the squared population occupancy "
+            "objective; its finite-sample value may be negative. The signed difference is "
+            "after minus before. The paired delete-one jackknife uses complete trajectory pairs "
+            "and all cross-site/before-after second moments. Its approximate normal 95% "
+            "interval describes within-evaluation uncertainty conditional on the frozen "
+            "parameter pair, not uncertainty from training. An interval entirely below zero "
+            "is improved; entirely above zero is regressed; otherwise it is inconclusive. "
+            "Near-zero population loss can cause severe undercoverage: with n=4, before=0, "
+            "after Bernoulli(1/2), and target=1/2, exhaustive coverage is 8/16 (50%). "
+            "This approximate interval has no finite-sample coverage guarantee. "
+            "These conclusions are descriptive and non-gating. Per-run jackknife quantities "
+            "stay nested; across-seed aggregate intervals use independent seeded runs and "
+            "are distinct from the within-evaluation intervals.",
+            "",
+            "| Seed | Unbiased before | Unbiased after | After minus before | Paired jackknife SE "
+            "| Approximate normal 95% interval | Conclusion | Bounds satisfied |",
+            "|---|---|---|---|---|---|---|---|",
+        )
+    )
+    for summary in summaries:
+        evaluation = summary.evaluation
+        lines.append(
+            f"| {summary.seed} | {evaluation.population_objective_before!r} | "
+            f"{evaluation.population_objective_after!r} | "
+            f"{evaluation.population_objective_difference_after_minus_before!r} | "
+            f"{evaluation.paired_jackknife_standard_error!r} | "
+            f"{evaluation.paired_jackknife_normal_95_interval!r} | "
+            f"{evaluation.population_objective_conclusion} | {summary.update.bounds_satisfied} |"
+        )
+    lines.extend(
+        (
+            "",
             "Learning rate: 0.01; projection bounds: [-2, 2]. Only independent seeds "
             "are replication units; timing is not a scientific replication metric. "
             "The exact three-site gradient oracle remains a separate validation gate. "
@@ -222,6 +280,7 @@ def render_composed_refinement_section(records: tuple[RunRecord, ...]) -> list[s
         lines.append(
             f"- Seed {summary.seed}: request `{summary.request_hash}`; "
             f"source bundle `{summary.source_bundle_digest}`; exact target "
-            f"`{summary.exact_target_reference}`; summary `{summary.summary_digest}`."
+            f"`{summary.exact_target_reference}`; paired result "
+            f"`{summary.evaluation.result_digest}`; summary `{summary.summary_digest}`."
         )
     return lines
