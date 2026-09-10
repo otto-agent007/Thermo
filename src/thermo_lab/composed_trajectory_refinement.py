@@ -338,7 +338,7 @@ def calculate_unbiased_population_objective(
     denominator = checked_sample_count * (checked_sample_count - 1)
     return math.fsum(
         float(
-            count * (count - 1) / denominator
+            int(count) * (int(count) - 1) / denominator
             - 2.0 * target_value * count / checked_sample_count
             + target_value * target_value
         )

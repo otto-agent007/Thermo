@@ -46,6 +46,18 @@ def test_population_objective_is_unbiased_at_exact_bernoulli_target() -> None:
     assert math.fsum(plugin_losses) / 4 == 0.125
 
 
+def test_population_objective_avoids_integer_overflow_for_large_valid_counts() -> None:
+    refinement = _refinement_module()
+
+    result = refinement.calculate_unbiased_population_objective(
+        (4_000_000_000,),
+        sample_count=4_000_000_000,
+        target_occupancy=(0.0,),
+    )
+
+    assert result == 1.0
+
+
 def test_population_estimators_require_enough_independent_trajectories() -> None:
     refinement = _refinement_module()
 
