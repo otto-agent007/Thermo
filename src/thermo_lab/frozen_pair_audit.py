@@ -7,6 +7,7 @@ import math
 import time
 from pathlib import Path
 from typing import Literal
+
 from pydantic import Field, StrictInt, field_validator, model_validator
 
 from thermo_lab.composed_pasym_swap_artifacts import HORIZON_LABELS, HorizonLabel
