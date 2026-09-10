@@ -105,6 +105,10 @@ python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
   "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
 python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
   "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
+python -m zipfile -l dist/thermo_lab-*.whl | rg -F \
+  "configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml"
+python -m tarfile -l dist/thermo_lab-*.tar.gz | rg -F \
+  "configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml"
 ```
 
 The trajectory estimator gate validates an exact-categorical three-site
@@ -132,8 +136,19 @@ The separate composed trajectory-refinement gate performs exactly one
 equilibrium update across 37 shared nine-parameter groups. Preserve the three
 independent 32,768-trajectory roles (occupancy, gradient, held-out evaluation),
 same-parent non-propagated references, learning rate 0.01, and bounds [-2, 2].
-Report the sampled squared terminal occupancy objective before and after,
-including finite-batch bias; improvement is descriptive and non-gating. Keep
+Retain the historical plug-in squared terminal occupancy objective before and
+after, including its finite-batch bias. The v2 evidence contract also records
+the unbiased order-two U-statistic before/after and signed after-minus-before
+difference, plus paired delete-one jackknife SE and approximate normal 95%
+interval from the joined terminal second-moment counts. A wholly negative
+interval means improved, a wholly positive interval regressed, and otherwise
+inconclusive; all conclusions are descriptive and non-gating. The per-run
+interval is within-evaluation uncertainty conditional on the frozen parameter
+pair, distinct from across-seed aggregate intervals. Bind the estimator,
+uncertainty, conclusion, and scientific-status policies in the checked request
+and versioned result digests. Reject v1 records as v2 evidence, retaining their
+original plug-in semantics as historical results. Reconstruct counts, moments,
+derived values, policies, and digests at aggregation/reporting boundaries. Keep
 exact three-site gradient checks and deep persisted-record validation at
 aggregation/reporting boundaries. No iterative or finite-Gibbs refinement is
 included.

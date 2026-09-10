@@ -267,7 +267,7 @@ def test_paired_objective_uses_common_random_numbers() -> None:
     assert result.population_objective_conclusion == "inconclusive"
     assert result.result_digest == canonical_sha256(
         {
-            "identity_version": "composed_equilibrium_paired_objective.v1",
+            "identity_version": "composed_equilibrium_paired_objective.v2",
             "before_source_digest": result.before.source_digest,
             "after_source_digest": result.after.source_digest,
             "target_occupancy": result.target_occupancy,
@@ -276,5 +276,18 @@ def test_paired_objective_uses_common_random_numbers() -> None:
             "objective_improvement": result.objective_improvement,
             "objective_improved": result.objective_improved,
             "common_random_numbers": True,
+            "joined_terminal_second_moment_counts": result.joined_terminal_second_moment_counts,
+            "population_objective_estimator_policy": "order_two_u_statistic",
+            "paired_uncertainty_policy": "paired_delete_one_jackknife_normal_95_approximate",
+            "population_objective_conclusion_policy": (
+                "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive"
+            ),
+            "improvement_policy": "descriptive_non_gating",
+            "population_objective_before": result.population_objective_before,
+            "population_objective_after": result.population_objective_after,
+            "population_objective_difference_after_minus_before": 0.0,
+            "paired_jackknife_standard_error": 0.0,
+            "paired_jackknife_normal_95_interval": (0.0, 0.0),
+            "population_objective_conclusion": "inconclusive",
         }
     )

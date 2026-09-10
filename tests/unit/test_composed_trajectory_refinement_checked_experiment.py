@@ -6,6 +6,8 @@ import importlib
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 from thermo_lab.evidence import BackendId
 
 ROOT = Path(__file__).parents[2]
@@ -59,6 +61,31 @@ def test_backend_checked_request_accepts_authoritative_hash_semantics() -> None:
     _, _, request_hash = backend.checked_request(configured.to_spec(seed=0))
 
     assert request_hash == configured.non_seed_config_hash
+    assert request_hash == (
+        "sha256:339c683c47fadd67f1130ad0ea50864ead44fb38b8dedf39f6902eb5b2f54763"
+    )
+
+
+@pytest.mark.parametrize(
+    ("policy", "expected"),
+    [
+        ("population_objective_estimator_policy", "order_two_u_statistic"),
+        ("paired_uncertainty_policy", "paired_delete_one_jackknife_normal_95_approximate"),
+        (
+            "population_objective_conclusion_policy",
+            "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive",
+        ),
+    ],
+)
+def test_checked_audit_policy_is_required_and_mismatch_rejected(policy, expected):
+    config_module = importlib.import_module("thermo_lab.config")
+    configured = config_module.load_experiment_config(CONFIG)
+    run = dict(configured.run_parameters)
+    assert run.get(policy) == expected
+    run[policy] = "unchecked"
+    spec = configured.to_spec().model_copy(update={"run_parameters": run})
+    with pytest.raises(ValueError, match=policy):
+        _backend_module().NumpyComposedTrajectoryRefinementBackend().checked_request(spec)
 
 
 def test_runner_dispatches_the_dedicated_checked_backend() -> None:

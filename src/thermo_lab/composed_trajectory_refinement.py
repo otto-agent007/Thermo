@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from numbers import Real
 
 import numpy as np
@@ -354,7 +354,11 @@ def calculate_paired_population_objective_statistics(
     sample_count: object,
     target_occupancy: object,
 ) -> PairedPopulationObjectiveStatistics:
-    """Derive paired U-statistics and delete-one jackknife uncertainty from counts."""
+    """Derive paired U-statistics and an approximate jackknife normal 95% interval.
+
+    Uncertainty is conditional on the frozen parameter pair and uses complete
+    independent trajectory pairs, not program occurrences or training batches.
+    """
 
     checked_sample_count = _checked_positive_int(sample_count, name="sample_count")
     if checked_sample_count < 3:
@@ -724,7 +728,7 @@ def evaluate_paired_equilibrium_objective(
     target_tuple = tuple(float(value) for value in target_vector)
     digest = canonical_sha256(
         {
-            "identity_version": "composed_equilibrium_paired_objective.v1",
+            "identity_version": "composed_equilibrium_paired_objective.v2",
             "before_source_digest": before.source_digest,
             "after_source_digest": after.source_digest,
             "target_occupancy": target_tuple,
@@ -733,6 +737,14 @@ def evaluate_paired_equilibrium_objective(
             "objective_improvement": improvement,
             "objective_improved": improvement > 0.0,
             "common_random_numbers": True,
+            "joined_terminal_second_moment_counts": joined_terminal_second_moment_counts,
+            "population_objective_estimator_policy": "order_two_u_statistic",
+            "paired_uncertainty_policy": "paired_delete_one_jackknife_normal_95_approximate",
+            "population_objective_conclusion_policy": (
+                "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive"
+            ),
+            "improvement_policy": "descriptive_non_gating",
+            **asdict(population_statistics),
         }
     )
     return PairedObjectiveEvaluation(

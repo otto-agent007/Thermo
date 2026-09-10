@@ -46,6 +46,7 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] bounded one-step exact-categorical trajectory-level REINFORCE refinement
 - [x] full finite-Gibbs-horizon composed-program comparison
 - [x] one bounded equilibrium update of the full 25-site trajectory parameters
+- [x] M1 population-objective audit of the frozen one-step pair with paired uncertainty
 - [ ] iterative or finite-Gibbs 25-site trajectory-level parameter refinement
 
 The independently compiled item is an atomic method-level reconstruction:
@@ -69,7 +70,12 @@ It does not refine parameters. A separate checked full-program refinement
 command now applies one projected equilibrium trajectory-gradient update to
 the 37 shared parameter groups, with independently seeded occupancy and
 gradient batches and a held-out paired evaluation. The squared terminal
-occupancy objective is sampled, and its improvement is non-gating. Iterative
+occupancy objective is sampled, and its improvement is non-gating. M1 retains
+the historical plug-in values while adding unbiased order-two estimates and
+a paired delete-one jackknife approximate normal 95% interval for the signed
+after-minus-before difference. The v2 contract binds checked policies and
+joined terminal moments and keeps conditional within-evaluation uncertainty
+distinct from across-seed aggregation. Iterative
 and finite-Gibbs parameter refinement remain deferred.
 
 The checked estimator contract is limited to a three-site, two-occurrence

@@ -111,6 +111,176 @@ def test_summary_round_trips_reconstructed_evidence() -> None:
     assert summary.evaluation.objective_improvement == 0.0
 
 
+def test_v2_persists_population_audit_without_changing_legacy_fixture() -> None:
+    _, summary, *_ = _micro_summary()
+    assert summary.result_schema_version == "2.0.0"
+    evaluation = summary.evaluation
+    assert evaluation.objective_before == 0.0005123019218444824
+    assert evaluation.objective_after == 0.0005123019218444824
+    assert evaluation.objective_improvement == 0.0
+    assert evaluation.objective_improved is False
+    assert summary.update.update_digest == (
+        "sha256:14f7e96faad7418381edef6a14a6d36b313a1128b04a68efc1f3abc0ae758af8"
+    )
+    assert evaluation.population_objective_before < evaluation.objective_before
+    assert evaluation.population_objective_after == evaluation.population_objective_before
+    assert evaluation.population_objective_difference_after_minus_before == 0.0
+    assert evaluation.paired_jackknife_standard_error == 0.0
+    assert evaluation.paired_jackknife_normal_95_interval == (0.0, 0.0)
+    assert evaluation.population_objective_conclusion == "inconclusive"
+    assert len(evaluation.joined_terminal_second_moment_counts) == 6
+    payload = summary.model_dump(mode="json")
+    _redigest_evaluation(payload)
+    assert payload["evaluation"]["result_digest"] == evaluation.result_digest
+
+
+def _redigest_evaluation(payload):
+    evaluation = payload["evaluation"]
+    digest_payload = {
+        key: value
+        for key, value in evaluation.items()
+        if key not in {"before", "after", "result_digest"}
+    }
+    digest_payload.update(
+        identity_version="composed_equilibrium_paired_objective.v2",
+        before_source_digest=evaluation["before"]["source_digest"],
+        after_source_digest=evaluation["after"]["source_digest"],
+        common_random_numbers=True,
+    )
+    evaluation["result_digest"] = canonical_sha256(digest_payload)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("population_objective_before", 0.5),
+        ("population_objective_after", 0.5),
+        ("population_objective_difference_after_minus_before", -0.5),
+        ("paired_jackknife_standard_error", 0.5),
+        ("paired_jackknife_normal_95_interval", [-0.5, 0.5]),
+        ("population_objective_conclusion", "improved"),
+    ],
+)
+def test_population_audit_rejects_tampering_after_both_outer_redigests(field, value):
+    results, summary, parameters, target, bundle_digest, target_reference = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    assert field in payload["evaluation"]
+    payload["evaluation"][field] = value
+    _redigest_evaluation(payload)
+    payload["summary_digest"] = results.composed_trajectory_refinement_summary_digest(payload)
+    with pytest.raises(ValueError, match=field):
+        results.validate_composed_trajectory_refinement_summary(
+            payload,
+            expected_bundle_digest=bundle_digest,
+            expected_initial_parameters=parameters,
+            expected_target_occupancy=target,
+            expected_target_reference=target_reference,
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("shape", "square"),
+        ("symmetry", "symmetric"),
+        ("diagonal", "diagonal"),
+        ("lower", "count bounds"),
+        ("upper", "count bounds"),
+        ("boolean", "integer"),
+    ],
+)
+def test_persisted_joined_moments_reject_impossible_counts(mutation, message):
+    results, summary, *_ = _micro_summary()
+    payload = summary.evaluation.model_dump(mode="json")
+    assert "joined_terminal_second_moment_counts" in payload
+    moments = payload["joined_terminal_second_moment_counts"]
+    if mutation == "shape":
+        moments.pop()
+    elif mutation == "symmetry":
+        moments[0][1] += 1
+    elif mutation == "diagonal":
+        moments[0][0] -= 1
+    elif mutation == "lower":
+        # count[0] + count[3] - n = 2222, so zero violates Frechet.
+        moments[0][3] = moments[3][0] = 0
+    elif mutation == "upper":
+        moments[0][1] = moments[1][0] = 4096
+    else:
+        moments[0][0] = True
+    with pytest.raises(ValueError, match=message):
+        results.PairedObjectiveResult.model_validate(payload)
+
+
+def test_v1_payload_is_not_silently_reinterpreted_as_a_population_audit():
+    results, summary, *_ = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    payload["result_schema_version"] = "1.0.0"
+    with pytest.raises(ValueError, match="result_schema_version"):
+        results.ComposedTrajectoryRefinementSummary.model_validate(payload)
+
+
+def test_aggregate_scalars_expose_both_estimators_but_keep_jackknife_nested():
+    from thermo_lab.composed_trajectory_refinement_reporting import (
+        REFINEMENT_SCALARS,
+        refinement_metric_observations,
+    )
+
+    _, summary, *_ = _micro_summary()
+    metrics = refinement_metric_observations(summary)
+    for name in (
+        "population_objective_before",
+        "population_objective_after",
+        "population_objective_difference_after_minus_before",
+    ):
+        assert name in REFINEMENT_SCALARS
+        assert metrics[name].value == getattr(summary.evaluation, name)
+        assert metrics[name].evidence_class.value == "software_simulation"
+        assert "unbiased" in metrics[name].method
+    assert "paired_jackknife_standard_error" not in metrics
+    assert "paired_jackknife_normal_95_interval" not in metrics
+    assert "plug-in" in metrics["objective_before"].method
+
+
+def test_valid_joined_moment_edit_is_bound_by_the_evaluation_digest():
+    results, summary, parameters, target, bundle_digest, target_reference = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    moments = payload["evaluation"]["joined_terminal_second_moment_counts"]
+    # Preserve identical paired trajectories and all count bounds, but alter
+    # their cross-site joint occupancy consistently in every block.
+    for first, second in ((0, 1), (3, 4), (0, 4), (3, 1)):
+        moments[first][second] -= 1
+        moments[second][first] -= 1
+    results.PairedObjectiveResult.model_validate(payload["evaluation"])
+    payload["summary_digest"] = results.composed_trajectory_refinement_summary_digest(payload)
+    with pytest.raises(ValueError, match="evaluation digest"):
+        results.validate_composed_trajectory_refinement_summary(
+            payload,
+            expected_bundle_digest=bundle_digest,
+            expected_initial_parameters=parameters,
+            expected_target_occupancy=target,
+            expected_target_reference=target_reference,
+        )
+
+
+@pytest.mark.parametrize(
+    "policy",
+    [
+        "population_objective_estimator_policy",
+        "paired_uncertainty_policy",
+        "population_objective_conclusion_policy",
+        "improvement_policy",
+    ],
+)
+def test_persisted_audit_rejects_policy_reinterpretation_after_redigest(policy):
+    results, summary, *_ = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    payload["evaluation"][policy] = "unchecked"
+    _redigest_evaluation(payload)
+    payload["summary_digest"] = results.composed_trajectory_refinement_summary_digest(payload)
+    with pytest.raises(ValueError, match=policy):
+        results.ComposedTrajectoryRefinementSummary.model_validate(payload)
+
+
 def test_scientific_non_improvement_is_not_an_integrity_failure() -> None:
     _, summary, *_ = _micro_summary()
 

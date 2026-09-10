@@ -275,7 +275,9 @@ exact target is `exact_reference`; sampled model objectives are
 `software_simulation` with finite-batch bias from squaring empirical means.
 Improvement is descriptive and non-gating.
 
-The September 9 release completed all requested seeds with accepted integrity:
+The historical September 9 PR #19 release completed all requested seeds with
+accepted integrity. These are the original v1 plug-in statistics, not unbiased
+population-objective estimates:
 
 | Seed | Objective before | Objective after | Before minus after | Parameters changed by projection |
 |---|---|---|---|---|
@@ -301,6 +303,60 @@ metadata, and standalone scalar copies before aggregation/reporting. Exact
 three-site score/reference/finite-difference checks and the full-program
 gradient primitive's three-site oracle comparison remain in the test gates.
 No official Thermalizers, hosted simulator, or physical hardware claim is made.
+
+### Population-objective audit (M1)
+
+The M1 checked run regenerates exactly the same one-step training/update path,
+then audits the explicit frozen initial/updated parameter pair using the
+unchanged held-out common-random-number trajectories. For each terminal site,
+with occupancy count `c`, batch size `n`, and exact target occupancy `q`, the
+order-two U-statistic contributes
+`c*(c-1)/(n*(n-1)) - 2*q*c/n + q*q`. Summing over sites gives an unbiased
+estimate of the squared population occupancy objective; unlike the objective
+itself, a finite-sample estimate can be negative.
+
+The signed difference is **after minus before**. Its paired delete-one
+jackknife SE uses the full joined before/after terminal second-moment count
+matrix, preserving cross-site and before/after covariance. The approximate
+normal 95% interval is the difference plus/minus `1.959963984540054 * SE`.
+It describes within-evaluation uncertainty conditional on the frozen parameter
+pair, not training uncertainty. A strictly negative interval means `improved`,
+a strictly positive interval means `regressed`, and an interval touching or
+crossing zero means `inconclusive`. These are descriptive, non-gating
+`software_simulation` conclusions, not exact full-program objective values.
+Across-seed aggregate intervals use independent seeded runs and remain
+distinct; per-run jackknife SEs and intervals are not aggregated as scalars.
+
+The fresh September 9 M1 audit completed all three seeds with accepted integrity:
+
+| Seed | Unbiased before | Unbiased after | After minus before | Paired jackknife SE | Approximate normal 95% interval | Conclusion |
+|---|---|---|---|---|---|---|
+| 0 | 0.05166637725453453 | 0.05115259414273469 | -0.000513783111799844 | 0.000155687242273791 | (-0.0008189244995088362, -0.0002086417240908518) | improved |
+| 1 | 0.047771454659688524 | 0.04724619489570745 | -0.000525259763981073 | 0.00015533768515980318 | (-0.0008297160323361092, -0.00022080349562603673) | improved |
+| 2 | 0.049919561525550576 | 0.04935433298253714 | -0.0005652285430134338 | 0.00014596270157714056 | (-0.000851310181190797, -0.0002791469048360705) | improved |
+
+All updated parameters satisfy `[-2, 2]`, with 58, 56, and 50 parameters
+changed by projection respectively. The three legacy plug-in before/after
+statistics and before-minus-after differences exactly reproduce the PR #19
+table above. No update, random draw, scientific threshold, or optimizer was
+changed. This does not establish iterative convergence or finite-Gibbs
+refinement, which remain deferred.
+
+The new checked request identity is
+`sha256:339c683c47fadd67f1130ad0ea50864ead44fb38b8dedf39f6902eb5b2f54763`.
+It includes literal estimator, approximate uncertainty, signed-conclusion,
+and descriptive/non-gating policies. The evidence schema is `2.0.0`; paired
+and summary digest namespaces are v2. Historical v1 records are not silently
+reinterpreted as v2 population evidence. Reload validation reconstructs the
+new estimates, SE, interval, conclusion, and digests from bounded counts and
+trusted identities, rejecting scalar/policy/moment tampering before aggregation
+or reporting. Consistency validation is not cryptographic proof of execution.
+
+| Seed | Paired result identity | Summary identity |
+|---|---|---|
+| 0 | `sha256:a8f9ef073a8b77605cb0a8b5ccc405a3cd312394c53c0a3198a2d5c95e0b3fe9` | `sha256:24bd10653d1b7f5e32c14d1959a2f784e690a2eaf58c368e8cd73d6af6cb09bf` |
+| 1 | `sha256:097de3a4c0000fec2f064ec355eb74105b5c0867444c0fe6e9f747eaa1bc87d9` | `sha256:c43b40ecd64994a250107ca4e3feb3b4fca7be412d4953aef42cbfb501a8ac1c` |
+| 2 | `sha256:79fd4a5817db8a40d9bcf46dbf0284fb98b09690a12724a5bdf1d2ada298cac9` | `sha256:2b8322b44525a727716e2b73a7ef315c4c2887ff5ff79ab9cbe8827a7b9d5be1` |
 
 ## Metrics
 

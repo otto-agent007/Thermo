@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 from collections.abc import Mapping
+from dataclasses import asdict
 from typing import Any, Literal
 
 import numpy as np
@@ -24,11 +25,12 @@ from thermo_lab.composed_trajectory_refinement import (
     GroupedParameterUpdate,
     PairedObjectiveEvaluation,
     TerminalOccupancySource,
+    calculate_paired_population_objective_statistics,
     project_grouped_parameters,
 )
 from thermo_lab.hashing import canonical_sha256, to_json_value
 
-_RESULT_SCHEMA_VERSION = "1.0.0"
+_RESULT_SCHEMA_VERSION = "2.0.0"
 _N_PARAMETERS = 9
 
 
@@ -193,9 +195,27 @@ class PairedObjectiveResult(StrictEvidenceModel):
     objective_after: StrictFloat
     objective_improvement: StrictFloat
     objective_improved: StrictBool
+    joined_terminal_second_moment_counts: tuple[tuple[StrictInt, ...], ...]
+    population_objective_estimator_policy: Literal["order_two_u_statistic"]
+    paired_uncertainty_policy: Literal["paired_delete_one_jackknife_normal_95_approximate"]
+    population_objective_conclusion_policy: Literal[
+        "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive"
+    ]
+    improvement_policy: Literal["descriptive_non_gating"]
+    population_objective_before: StrictFloat
+    population_objective_after: StrictFloat
+    population_objective_difference_after_minus_before: StrictFloat
+    paired_jackknife_standard_error: StrictFloat = Field(ge=0)
+    paired_jackknife_normal_95_interval: tuple[StrictFloat, StrictFloat]
+    population_objective_conclusion: Literal["improved", "inconclusive", "regressed"]
     result_digest: str
 
-    @field_validator("target_occupancy", mode="before")
+    @field_validator(
+        "target_occupancy",
+        "joined_terminal_second_moment_counts",
+        "paired_jackknife_normal_95_interval",
+        mode="before",
+    )
     @classmethod
     def freeze_target(cls, value: object) -> object:
         return _tuple_json_lists(value)
@@ -215,6 +235,18 @@ class PairedObjectiveResult(StrictEvidenceModel):
             raise ValueError("after occupancy and target occupancy must have the same length")
         if any(value < 0.0 or value > 1.0 for value in self.target_occupancy):
             raise ValueError("target_occupancy values must lie in [0, 1]")
+        if self.before.sample_count != self.after.sample_count:
+            raise ValueError("paired evaluation sample counts must agree")
+        statistics = calculate_paired_population_objective_statistics(
+            self.before.occupancy_counts,
+            self.after.occupancy_counts,
+            self.joined_terminal_second_moment_counts,
+            sample_count=self.before.sample_count,
+            target_occupancy=self.target_occupancy,
+        )
+        for name, expected in asdict(statistics).items():
+            if getattr(self, name) != expected:
+                raise ValueError(f"{name} must reconstruct from paired held-out counts and target")
         return self
 
 
@@ -320,6 +352,21 @@ def _evaluation_result(evaluation: PairedObjectiveEvaluation) -> PairedObjective
         objective_after=evaluation.objective_after,
         objective_improvement=evaluation.objective_improvement,
         objective_improved=evaluation.objective_improved,
+        joined_terminal_second_moment_counts=evaluation.joined_terminal_second_moment_counts,
+        population_objective_estimator_policy="order_two_u_statistic",
+        paired_uncertainty_policy="paired_delete_one_jackknife_normal_95_approximate",
+        population_objective_conclusion_policy=(
+            "after_minus_before_interval_below_zero_improved_above_zero_regressed_otherwise_inconclusive"
+        ),
+        improvement_policy="descriptive_non_gating",
+        population_objective_before=evaluation.population_objective_before,
+        population_objective_after=evaluation.population_objective_after,
+        population_objective_difference_after_minus_before=(
+            evaluation.population_objective_difference_after_minus_before
+        ),
+        paired_jackknife_standard_error=evaluation.paired_jackknife_standard_error,
+        paired_jackknife_normal_95_interval=evaluation.paired_jackknife_normal_95_interval,
+        population_objective_conclusion=evaluation.population_objective_conclusion,
         result_digest=evaluation.result_digest,
     )
 
@@ -348,7 +395,7 @@ def composed_trajectory_refinement_summary_digest(payload: object) -> str:
     value.pop("summary_digest", None)
     return canonical_sha256(
         {
-            "identity_version": "composed_trajectory_refinement_summary.v1",
+            "identity_version": "composed_trajectory_refinement_summary.v2",
             "payload": value,
         }
     )
@@ -475,15 +522,11 @@ def _deeply_validate_summary(summary: ComposedTrajectoryRefinementSummary) -> No
         raise ValueError("gradient source digest does not bind its moments and inputs")
     if evaluation.result_digest != canonical_sha256(
         {
-            "identity_version": "composed_equilibrium_paired_objective.v1",
+            "identity_version": "composed_equilibrium_paired_objective.v2",
             "before_source_digest": evaluation.before.source_digest,
             "after_source_digest": evaluation.after.source_digest,
-            "target_occupancy": summary.target_occupancy,
-            "objective_before": before_objective,
-            "objective_after": after_objective,
-            "objective_improvement": improvement,
-            "objective_improved": improvement > 0.0,
             "common_random_numbers": True,
+            **evaluation.model_dump(exclude={"before", "after", "result_digest"}),
         }
     ):
         raise ValueError("evaluation digest does not bind the paired objective sources")
