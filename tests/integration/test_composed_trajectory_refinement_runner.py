@@ -76,9 +76,7 @@ def test_checked_refinement_round_trip_and_report(release):
         assert replay.occupancy_counts == observed.occupancy_counts
         residuals = tuple(
             count / replay.sample_count - target
-            for count, target in zip(
-                replay.occupancy_counts, summary.target_occupancy, strict=True
-            )
+            for count, target in zip(replay.occupancy_counts, summary.target_occupancy, strict=True)
         )
         legacy_objectives.append(math.fsum(value * value for value in residuals))
     assert summary.evaluation.objective_before == legacy_objectives[0]
