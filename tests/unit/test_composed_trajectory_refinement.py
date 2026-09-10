@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import itertools
+import math
 
 import numpy as np
+import pytest
 
+from thermo_lab.hashing import canonical_sha256
 from thermo_lab.trajectory_reinforce import build_checked_fixture, build_exact_reference
 
 
@@ -19,6 +23,124 @@ def _micro_schedule() -> tuple[np.ndarray, np.ndarray]:
         np.asarray((0, 0), dtype=np.int16),
         np.asarray(((0, 1), (1, 2)), dtype=np.int8),
     )
+
+
+def test_population_objective_is_unbiased_at_exact_bernoulli_target() -> None:
+    refinement = _refinement_module()
+    estimates = []
+    plugin_losses = []
+
+    for sample in itertools.product((0, 1), repeat=2):
+        count = sum(sample)
+        estimates.append(
+            refinement.calculate_unbiased_population_objective(
+                (count,),
+                sample_count=2,
+                target_occupancy=(0.5,),
+            )
+        )
+        plugin_losses.append((count / 2 - 0.5) ** 2)
+
+    assert estimates == [0.25, -0.25, -0.25, 0.25]
+    assert math.fsum(estimates) / 4 == 0.0
+    assert math.fsum(plugin_losses) / 4 == 0.125
+
+
+def test_population_estimators_require_enough_independent_trajectories() -> None:
+    refinement = _refinement_module()
+
+    with pytest.raises(ValueError, match="sample_count must be at least 2"):
+        refinement.calculate_unbiased_population_objective(
+            (1,),
+            sample_count=1,
+            target_occupancy=(0.5,),
+        )
+    with pytest.raises(
+        ValueError,
+        match="sample_count must be at least 3 for paired jackknife uncertainty",
+    ):
+        refinement.calculate_paired_population_objective_statistics(
+            (1,),
+            (1,),
+            ((1, 1), (1, 1)),
+            sample_count=2,
+            target_occupancy=(0.5,),
+        )
+
+
+def test_paired_jackknife_preserves_pairing_and_cross_site_covariance() -> None:
+    refinement = _refinement_module()
+    identical_moments = (
+        (2, 2, 2, 2),
+        (2, 2, 2, 2),
+        (2, 2, 2, 2),
+        (2, 2, 2, 2),
+    )
+    changed_moments = (
+        (2, 2, 2, 0),
+        (2, 2, 2, 0),
+        (2, 2, 2, 0),
+        (0, 0, 0, 2),
+    )
+
+    identical = refinement.calculate_paired_population_objective_statistics(
+        (2, 2),
+        (2, 2),
+        identical_moments,
+        sample_count=4,
+        target_occupancy=(0.0, 0.0),
+    )
+    changed = refinement.calculate_paired_population_objective_statistics(
+        (2, 2),
+        (2, 2),
+        changed_moments,
+        sample_count=4,
+        target_occupancy=(0.0, 0.0),
+    )
+
+    assert identical.population_objective_difference_after_minus_before == 0.0
+    assert identical.paired_jackknife_standard_error == 0.0
+    assert identical.paired_jackknife_normal_95_interval == (0.0, 0.0)
+    assert identical.population_objective_conclusion == "inconclusive"
+    assert changed.population_objective_difference_after_minus_before == 0.0
+    assert changed.paired_jackknife_standard_error == pytest.approx(math.sqrt(1.0 / 3.0))
+    assert changed.paired_jackknife_normal_95_interval == pytest.approx(
+        (-1.1315857340761717, 1.1315857340761717)
+    )
+    assert changed.population_objective_conclusion == "inconclusive"
+
+
+@pytest.mark.parametrize(
+    ("before_counts", "after_counts", "moments", "expected_difference", "conclusion"),
+    (
+        ((0,), (4,), ((0, 0), (0, 4)), -1.0, "improved"),
+        ((4,), (0,), ((4, 0), (0, 0)), 1.0, "regressed"),
+    ),
+)
+def test_paired_population_conclusion_uses_strict_interval_sign(
+    before_counts: tuple[int, ...],
+    after_counts: tuple[int, ...],
+    moments: tuple[tuple[int, ...], ...],
+    expected_difference: float,
+    conclusion: str,
+) -> None:
+    refinement = _refinement_module()
+
+    result = refinement.calculate_paired_population_objective_statistics(
+        before_counts,
+        after_counts,
+        moments,
+        sample_count=4,
+        target_occupancy=(1.0,),
+    )
+
+    assert result.population_objective_difference_after_minus_before == expected_difference
+    assert result.paired_jackknife_standard_error == 0.0
+    assert result.paired_jackknife_normal_95_interval == (
+        expected_difference,
+        expected_difference,
+    )
+    assert result.population_objective_conclusion == conclusion
 
 
 def test_project_grouped_parameters_clips_and_records_caps() -> None:
@@ -118,7 +240,29 @@ def test_paired_objective_uses_common_random_numbers() -> None:
     )
 
     assert result.before.occupancy_counts == result.after.occupancy_counts
-    assert result.objective_before == result.objective_after
+    assert result.objective_before == 0.5196119244151355
+    assert result.objective_after == 0.5196119244151355
     assert result.objective_improvement == 0.0
     assert result.objective_improved is False
-    assert result.result_digest.startswith("sha256:")
+    assert (
+        tuple(result.joined_terminal_second_moment_counts[index][index] for index in range(6))
+        == result.before.occupancy_counts + result.after.occupancy_counts
+    )
+    assert result.population_objective_before == result.population_objective_after
+    assert result.population_objective_difference_after_minus_before == 0.0
+    assert result.paired_jackknife_standard_error == 0.0
+    assert result.paired_jackknife_normal_95_interval == (0.0, 0.0)
+    assert result.population_objective_conclusion == "inconclusive"
+    assert result.result_digest == canonical_sha256(
+        {
+            "identity_version": "composed_equilibrium_paired_objective.v1",
+            "before_source_digest": result.before.source_digest,
+            "after_source_digest": result.after.source_digest,
+            "target_occupancy": result.target_occupancy,
+            "objective_before": result.objective_before,
+            "objective_after": result.objective_after,
+            "objective_improvement": result.objective_improvement,
+            "objective_improved": result.objective_improved,
+            "common_random_numbers": True,
+        }
+    )
