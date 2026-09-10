@@ -70,6 +70,8 @@ def test_checked_refinement_round_trip_and_report(release):
     assert "finite-batch bias" in report
     assert "order-two U-statistic" in report
     assert "approximate normal 95%" in report
+    assert "Near-zero population loss can cause severe undercoverage" in report
+    assert "8/16 (50%)" in report
     assert "within-evaluation" in report
     assert "across-seed" in report
     assert "After minus before" in report

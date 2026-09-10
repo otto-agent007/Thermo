@@ -169,7 +169,8 @@ with a paired delete-one jackknife SE and approximate normal 95% interval.
 An interval below zero means improved, above zero regressed, and otherwise
 inconclusive; these conclusions are descriptive and non-gating. The interval
 describes within-evaluation uncertainty conditional on the frozen parameter
-pair, distinct from across-seed aggregation. Exact three-site
+pair, distinct from across-seed aggregation; near-zero and tiny-sample coverage
+can be far below the nominal 95%. Exact three-site
 gradient checks remain in the test and experiment gates. Reload validation
 binds the request, seeds, schedule, source counts/moments, projected update,
 scalar copies, and report to the trusted model-context lineage. Version 2 binds

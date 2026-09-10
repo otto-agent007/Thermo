@@ -148,7 +148,12 @@ pair, distinct from across-seed aggregate intervals. Bind the estimator,
 uncertainty, conclusion, and scientific-status policies in the checked request
 and versioned result digests. Reject v1 records as v2 evidence, retaining their
 original plug-in semantics as historical results. Reconstruct counts, moments,
-derived values, policies, and digests at aggregation/reporting boundaries. Keep
+derived values, policies, and digests at aggregation/reporting boundaries.
+Require exact row consistency for proven identical columns and exact
+positive semidefiniteness of the full centered Gram matrix; these necessary
+conditions are not a complete binary-realizability test. Retain exhaustive
+tiny-fixture calibration documenting possible near-zero and small-sample
+undercoverage, without tuning the checked estimator or budgets. Keep
 exact three-site gradient checks and deep persisted-record validation at
 aggregation/reporting boundaries. No iterative or finite-Gibbs refinement is
 included.

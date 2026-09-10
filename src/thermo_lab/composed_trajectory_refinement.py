@@ -158,7 +158,62 @@ def _checked_joined_second_moment_counts(
     upper = np.minimum(joined_counts[:, None], joined_counts[None, :])
     if np.any(checked < lower) or np.any(checked > upper):
         raise ValueError("joined_terminal_second_moment_counts violate count bounds")
+    for first in range(dimension):
+        for second in range(first + 1, dimension):
+            if joined_counts[first] == joined_counts[second] == checked[
+                first, second
+            ] and not np.array_equal(checked[first], checked[second]):
+                raise ValueError("proven identical columns must have identical moment rows")
+    _require_positive_semidefinite_centered_gram(
+        checked, joined_counts=joined_counts, sample_count=sample_count
+    )
     return checked
+
+
+def _require_positive_semidefinite_centered_gram(
+    moments: NDArray[np.int64],
+    *,
+    joined_counts: NDArray[np.int64],
+    sample_count: int,
+) -> None:
+    """Check a necessary moment-feasibility condition with exact integer arithmetic.
+
+    For any real sample matrix X with column sums c and X.T@X=M,
+    G=n*M-c*c.T is n times the centered Gram matrix and must be PSD.
+    Positive pivots permit Schur complements; a zero diagonal in a PSD
+    residual requires a zero row. Fraction-free symmetric elimination divides
+    by the previous positive pivot exactly (Bareiss scaling), avoiding both
+    floating tolerances and uncontrolled denominator growth. Singular PSD
+    matrices are allowed. This is not a sufficient binary-realizability test.
+    """
+    counts = tuple(int(value) for value in joined_counts)
+    residual = [
+        [
+            sample_count * int(value) - counts[first] * counts[second]
+            for second, value in enumerate(row)
+        ]
+        for first, row in enumerate(moments)
+    ]
+    previous_pivot = 1
+    for index in range(len(counts)):
+        pivot = residual[index][index]
+        if pivot < 0 or (pivot == 0 and any(residual[index][index + 1 :])):
+            raise ValueError("joined terminal centered Gram matrix must be positive semidefinite")
+        if pivot == 0:
+            continue
+        for first in range(index + 1, len(counts)):
+            for second in range(first, len(counts)):
+                numerator = (
+                    pivot * residual[first][second]
+                    - residual[first][index] * residual[index][second]
+                )
+                value, remainder = divmod(numerator, previous_pivot)
+                if remainder:
+                    raise ValueError(
+                        "exact centered-Gram elimination must divide without remainder"
+                    )
+                residual[first][second] = residual[second][first] = value
+        previous_pivot = pivot
 
 
 def _checked_seed(seed: object) -> int:

@@ -358,6 +358,42 @@ or reporting. Consistency validation is not cryptographic proof of execution.
 | 1 | `sha256:097de3a4c0000fec2f064ec355eb74105b5c0867444c0fe6e9f747eaa1bc87d9` | `sha256:c43b40ecd64994a250107ca4e3feb3b4fca7be412d4953aef42cbfb501a8ac1c` |
 | 2 | `sha256:79fd4a5817db8a40d9bcf46dbf0284fb98b09690a12724a5bdf1d2ada298cac9` | `sha256:2b8322b44525a727716e2b73a7ef315c4c2887ff5ff79ab9cbe8827a7b9d5be1` |
 
+#### Moment feasibility and tiny-sample interval calibration
+
+Joined moment validation checks more than individual count bounds. Whenever
+`M[i,j] = c[i] = c[j]`, binary columns `i` and `j` must be identical, so their
+entire moment rows must agree. It also requires the full centered Gram matrix
+`G = n*M - c*c.T` to be positive semidefinite: any sample matrix `X` would give
+`G = n*(X - c/n).T @ (X - c/n)`. Exact Python-integer fraction-free
+symmetric elimination checks positive pivots and zero residual rows without a
+floating eigenvalue tolerance; a meaningful negative direction cannot be
+discarded as roundoff. Singular valid matrices are accepted. These are necessary
+feasibility conditions, not a complete binary moment-realizability solver or
+proof that the recorded simulation was executed.
+
+The approximate normal interval can severely undercover near zero population
+loss. A retained exhaustive calibration enumerates all 16 equiprobable ordered
+batches of four independent pairs, with before always zero and after
+Bernoulli(1/2). This is an `exact_reference` enumeration of a toy sampling law,
+not a full-program measurement. Changing only the target supplies a
+nondegenerate comparison:
+
+| Target | True after-minus-before difference | After-loss derivative at p=1/2 | Covered batches | Exact tiny-fixture coverage |
+|---|---|---|---|---|
+| 1/2 | -1/4 | 0 (zero after-population loss) | 8/16 | 50% |
+| 0 | 1/4 | 1 (nondegenerate) | 10/16 | 62.5% |
+
+At target 1/2 and after count 2, the estimated difference is -1/3 with zero
+jackknife SE and a point interval, despite non-identical paired trajectories;
+it misses the true -1/4. Counts 0 and 4 also miss. Only counts 1 and 3 cover,
+accounting for 4+4 batches. At target 0, counts 2 and 3 cover (6+4 batches).
+Thus nonzero first-order variance alone does not guarantee nominal coverage at
+such a tiny sample size. The tests retain these observed limitations, not a
+95% coverage claim. They do not recalibrate or tune the estimator, checked
+seeds, one-step update, or 32,768-trajectory role budgets. Checked-run intervals
+remain approximate, conditional on the frozen pair, and descriptive/non-gating;
+the valid M1 values and all request/result identities above are unchanged.
+
 ## Metrics
 
 - conditional KL and total variation by input context;

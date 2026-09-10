@@ -262,6 +262,26 @@ def test_valid_joined_moment_edit_is_bound_by_the_evaluation_digest():
         )
 
 
+def test_summary_rejects_impossible_single_block_moments_after_both_outer_redigests():
+    results, summary, parameters, target, bundle_digest, target_reference = _micro_summary()
+    payload = summary.model_dump(mode="json")
+    moments = payload["evaluation"]["joined_terminal_second_moment_counts"]
+    # Unlike the valid edit above, only one block changes: equal before/after
+    # columns now contradict each other. Counts and all six derived values stay fixed.
+    moments[0][1] -= 1
+    moments[1][0] -= 1
+    _redigest_evaluation(payload)
+    payload["summary_digest"] = results.composed_trajectory_refinement_summary_digest(payload)
+    with pytest.raises(ValueError, match="identical columns.*identical moment rows"):
+        results.validate_composed_trajectory_refinement_summary(
+            payload,
+            expected_bundle_digest=bundle_digest,
+            expected_initial_parameters=parameters,
+            expected_target_occupancy=target,
+            expected_target_reference=target_reference,
+        )
+
+
 @pytest.mark.parametrize(
     "policy",
     [

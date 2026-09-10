@@ -243,6 +243,9 @@ def render_composed_refinement_section(records: tuple[RunRecord, ...]) -> list[s
             "interval describes within-evaluation uncertainty conditional on the frozen "
             "parameter pair, not uncertainty from training. An interval entirely below zero "
             "is improved; entirely above zero is regressed; otherwise it is inconclusive. "
+            "Near-zero population loss can cause severe undercoverage: with n=4, before=0, "
+            "after Bernoulli(1/2), and target=1/2, exhaustive coverage is 8/16 (50%). "
+            "This approximate interval has no finite-sample coverage guarantee. "
             "These conclusions are descriptive and non-gating. Per-run jackknife quantities "
             "stay nested; across-seed aggregate intervals use independent seeded runs and "
             "are distinct from the within-evaluation intervals.",

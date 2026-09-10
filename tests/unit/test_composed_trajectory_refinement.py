@@ -122,6 +122,116 @@ def test_paired_jackknife_preserves_pairing_and_cross_site_covariance() -> None:
     assert changed.population_objective_conclusion == "inconclusive"
 
 
+def test_joined_moments_reject_inconsistent_rows_for_proven_identical_columns():
+    # M[0,2] = c[0] = c[2] proves columns 0 and 2 coincide on every row,
+    # yet their joint counts with column 1 disagree. Pairwise bounds all hold.
+    with pytest.raises(ValueError, match="identical columns.*identical moment rows"):
+        _refinement_module().calculate_paired_population_objective_statistics(
+            (2, 2),
+            (2, 2),
+            ((2, 1, 2, 2), (1, 2, 2, 2), (2, 2, 2, 2), (2, 2, 2, 2)),
+            sample_count=4,
+            target_occupancy=(0.0, 0.0),
+        )
+
+
+@pytest.mark.parametrize("sample_count", [8, 2**54])
+def test_joined_moments_reject_negative_gram_direction_even_at_tiny_relative_scale(
+    sample_count,
+):
+    # For the first three columns, v=(1,1,1,0) has v.T@(n*M-c*c.T)@v=-2*n.
+    # The violation is O(1/n) relative to the entries. At n=2**54 a loose
+    # floating-point eigenvalue tolerance would discard this real contradiction.
+    n = sample_count
+    half, eighth, quarter = n // 2, n // 8, n // 4
+    moments = (
+        (half, eighth - 1, eighth, quarter),
+        (eighth - 1, half, eighth, quarter),
+        (eighth, eighth, half, quarter),
+        (quarter, quarter, quarter, half),
+    )
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        _refinement_module().calculate_paired_population_objective_statistics(
+            (half, half),
+            (half, half),
+            moments,
+            sample_count=n,
+            target_occupancy=(0.0, 0.0),
+        )
+
+
+def test_joined_moments_reject_zero_pivot_with_nonzero_residual_row():
+    # Columns 0/1 are complements, so their centered rows must sum to zero.
+    # Their joint counts with column 2 contradict that relation, despite bounds.
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        _refinement_module().calculate_paired_population_objective_statistics(
+            (2, 2),
+            (2, 2),
+            ((2, 0, 1, 1), (0, 2, 0, 1), (1, 0, 2, 1), (1, 1, 1, 2)),
+            sample_count=4,
+            target_occupancy=(0.0, 0.0),
+        )
+
+
+def test_joined_moment_guard_accepts_every_three_row_four_bit_sample_multiset():
+    # Exhaust all 816 multisets, including zero/positive pivots in any position,
+    # singular centered Grams, constant columns, duplicates, and complements.
+    binary_rows = tuple(itertools.product((0, 1), repeat=4))
+    accepted = 0
+    for rows in itertools.combinations_with_replacement(binary_rows, 3):
+        states = np.asarray(rows, dtype=np.int64)
+        counts = states.sum(axis=0)
+        result = _refinement_module().calculate_paired_population_objective_statistics(
+            counts[:2],
+            counts[2:],
+            states.T @ states,
+            sample_count=3,
+            target_occupancy=(0.25, 0.75),
+        )
+        assert result.paired_jackknife_standard_error >= 0.0
+        accepted += 1
+    assert accepted == 816
+
+
+@pytest.mark.parametrize(
+    ("target", "true_difference", "covered_by_count"),
+    [(0.5, -0.25, (0, 4, 0, 4, 0)), (0.0, 0.25, (0, 0, 6, 4, 0))],
+)
+def test_exhaustive_tiny_paired_interval_calibration_exposes_undercoverage(
+    target,
+    true_difference,
+    covered_by_count,
+):
+    # Before is always 0; after is Bernoulli(1/2). The 16 ordered n=4 samples
+    # are equiprobable. q=.5 has zero after-loss derivative; q=0 has derivative 1.
+    covered = [0] * 5
+    zero_standard_error = [0] * 5
+    for sample in itertools.product((0, 1), repeat=4):
+        count = sum(sample)
+        result = _refinement_module().calculate_paired_population_objective_statistics(
+            (0,),
+            (count,),
+            ((0, 0), (0, count)),
+            sample_count=4,
+            target_occupancy=(target,),
+        )
+        low, high = result.paired_jackknife_normal_95_interval
+        covered[count] += low <= true_difference <= high
+        zero_standard_error[count] += result.paired_jackknife_standard_error == 0.0
+        if target == 0.5 and count == 2:
+            assert result.population_objective_difference_after_minus_before == pytest.approx(
+                -1 / 3
+            )
+            assert low == high
+            assert result.paired_jackknife_standard_error == 0.0
+    assert tuple(covered) == covered_by_count
+    if target == 0.5:
+        assert sum(covered) / 16 == 0.5
+        assert zero_standard_error == [1, 0, 6, 0, 1]
+    else:
+        assert sum(covered) / 16 == 0.625
+
+
 @pytest.mark.parametrize(
     ("before_counts", "after_counts", "moments", "expected_difference", "conclusion"),
     (
