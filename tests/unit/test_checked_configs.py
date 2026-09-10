@@ -59,7 +59,9 @@ def test_public_docs_declare_composed_scope_and_deferred_iterative_refinement() 
     assert "exact_reference" in experiment
     assert "non-gating" in experiment
     assert "[x] full finite-Gibbs-horizon composed-program comparison" in roadmap
-    assert "[ ] iterative or finite-Gibbs 25-site trajectory-level parameter refinement" in roadmap
+    assert "[x] M2 frozen-pair finite-sweep transfer audit" in roadmap
+    assert "[ ] M3 exact finite-sweep gradient contract" in roadmap
+    assert "[ ] M4 bounded iterative 25-site trajectory refinement" in roadmap
     assert "Iterative and finite-Gibbs parameter refinement remain deferred." in experiment
     assert (
         "Trajectory-level REINFORCE refinement and the full finite-Gibbs-horizon\n"

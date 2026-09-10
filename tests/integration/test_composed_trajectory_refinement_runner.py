@@ -212,9 +212,7 @@ def finite_sweep_release(release):
     source_path = source_dir / aggregate.run_record_paths[0]
     source_bytes = source_path.read_bytes()
     output = source_dir / "finite-sweep-audit"
-    assert main(
-        ["audit-finite-sweeps", str(source_path), "--output-dir", str(output)]
-    ) == 0
+    assert main(["audit-finite-sweeps", str(source_path), "--output-dir", str(output)]) == 0
     assert source_path.read_bytes() == source_bytes
     audit = FrozenPairAudit.model_validate_json(
         (output / "seed-0000000000.json").read_text(encoding="utf-8")

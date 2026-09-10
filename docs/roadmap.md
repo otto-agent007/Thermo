@@ -13,8 +13,8 @@ The next research milestones are ordered by dependency:
 | Milestone | Status | Question and completion evidence |
 | --- | --- | --- |
 | M1: population-objective audit | Complete (PR #20) | Unbiased before/after occupancy loss, paired uncertainty, bounded parameters, and validated persisted evidence. |
-| M2: frozen-pair finite-sweep transfer audit | Next implementation | Evaluate the same initial/updated parameter pairs at equilibrium and 1, 2, 4, 8, 16, and 30 complete Gibbs sweeps. Report where the improvement survives, reverses, or is inconclusive, with occupancy loss, particle leakage, and declared sampling work. |
-| M3: finite-sweep gradient contract | Queued after M2 | On a bounded exactly enumerable microcircuit, validate derivatives of the actual reset-and-finite-sweep execution law against independent references and finite differences, retaining shared-parameter checks. |
+| M2: frozen-pair finite-sweep transfer audit | Complete (recorded M2 release) | Evaluate the same initial/updated parameter pairs at equilibrium and 1, 2, 4, 8, 16, and 30 complete Gibbs sweeps. Report where the improvement survives, reverses, or is inconclusive, with occupancy loss, particle leakage, and declared sampling work. |
+| M3: finite-sweep gradient contract | Next implementation | On a bounded exactly enumerable microcircuit, validate derivatives of the actual reset-and-finite-sweep execution law against independent references and finite differences, retaining shared-parameter checks. |
 | M4: bounded iterative refinement | Queued after M3 | Predeclare a short update budget and checkpoint-selection rule; preserve parameter bounds, independent training roles, and untouched final evaluation. Report gains, plateaus, or reversals without claiming convergence. |
 | M5: topology-aware meta-EBM | Queued after the bounded learning study | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
@@ -98,7 +98,7 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] full finite-Gibbs-horizon composed-program comparison
 - [x] one bounded equilibrium update of the full 25-site trajectory parameters
 - [x] M1 population-objective audit of the frozen one-step pair with paired uncertainty
-- [ ] M2 frozen-pair finite-sweep transfer audit (implementation in progress)
+- [x] M2 frozen-pair finite-sweep transfer audit
 - [ ] M3 exact finite-sweep gradient contract
 - [ ] M4 bounded iterative 25-site trajectory refinement
 
@@ -128,8 +128,13 @@ the historical plug-in values while adding unbiased order-two estimates and
 a paired delete-one jackknife approximate normal 95% interval for the signed
 after-minus-before difference. The v2 contract binds checked policies and
 joined terminal moments and keeps conditional within-evaluation uncertainty
-distinct from across-seed aggregation. M2 next evaluates transfer of the frozen
-update across finite horizons. M3 validates finite-sweep gradients before M4
+distinct from across-seed aggregation. M2 evaluates transfer of the frozen
+update across finite horizons. Its first recorded three-seed release completed
+all 21 horizon cells: 14 improved and 7 inconclusive under the approximate
+pointwise interval rule. All equilibrium controls replayed their supplied M1
+sources exactly. These regenerated source identities differ from the historical
+PR #20 release and are identified explicitly in the
+[recorded M2 report](experiment-reports/2026-09-10-frozen-pair-finite-sweep-audit.md). M3 validates finite-sweep gradients before M4
 introduces bounded iterative refinement; neither is part of the M1 result.
 
 The checked estimator contract is limited to a three-site, two-occurrence
