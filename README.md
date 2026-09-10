@@ -180,6 +180,31 @@ historical plug-in evidence, not a population-objective audit. See the
 This does not
 establish iterative convergence or finite-Gibbs gradient correctness.
 
+The separate frozen-pair finite-sweep audit consumes explicitly supplied M1
+records and evaluates the same parameters at equilibrium and
+K = 1, 2, 4, 8, 16, 30. It applies no further update. The equilibrium control
+must exactly reproduce the supplied M1 record; finite-horizon results retain
+the paired unbiased occupancy-loss audit, terminal particle leakage, and
+declared sweep/pbit-update counts. A regenerated optimized lineage is not
+assumed to match historical release numbers bit for bit; the report identifies
+historical source matches explicitly.
+
+~~~bash
+uv run thermo-lab audit-finite-sweeps \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000000.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000001.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000002.json \
+  --output-dir results/frozen-pair-finite-sweeps
+~~~
+
+Use a fresh output directory. The audit writes self-contained per-seed JSON,
+a JSON Schema, a validated Markdown report, and a completion manifest. Partial
+seed subsets are labeled as diagnostics. Intervals remain approximate,
+conditional, pointwise, and non-gating; the reused M1 held-out stream is not
+fresh independent confirmation. All sampled program outcomes are
+software_simulation. See the
+[M2 design and acceptance criteria](docs/experiments/frozen-pair-finite-sweep-audit.md).
+
 ## Research contract
 
 - [Project charter](PROJECT_CHARTER.md)

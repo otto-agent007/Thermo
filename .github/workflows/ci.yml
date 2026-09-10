@@ -32,7 +32,7 @@ jobs:
       - name: Check lockfile is current
         run: uv lock --check
       - name: Check formatting
-        run: uv run ruff format --check .
+        run: uv run ruff format --check --diff .
       - name: Lint
         run: uv run ruff check .
       - name: Build package artifacts
@@ -99,6 +99,8 @@ jobs:
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
           - name: upstream-regressions
             command: uv run pytest tests/upstream_regressions -m "not slow"
+          - name: slow-contracts
+            command: uv run pytest -m slow
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"
@@ -189,3 +191,39 @@ jobs:
         run: uv sync --frozen
       - name: Run checked experiment
         run: ${{ matrix.command }}
+      - name: Audit frozen M1 pairs at finite sweeps
+        if: matrix.name == 'composed-trajectory-refinement-one-step'
+        run: >-
+          uv run thermo-lab audit-finite-sweeps
+          "$RUNNER_TEMP/composed-trajectory-refinement-one-step/runs/seed-0000000000.json"
+          "$RUNNER_TEMP/composed-trajectory-refinement-one-step/runs/seed-0000000001.json"
+          "$RUNNER_TEMP/composed-trajectory-refinement-one-step/runs/seed-0000000002.json"
+          --output-dir "$RUNNER_TEMP/frozen-pair-finite-sweeps"
+      - name: Require complete M2 release and show checked report
+        if: matrix.name == 'composed-trajectory-refinement-one-step'
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["RUNNER_TEMP"]) / "frozen-pair-finite-sweeps"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "complete"
+          assert completion["full_three_seed_release"] is True
+          assert completion["horizon_cells"] == 21
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PY
+      - name: Preserve checked M1 sources and M2 audit artifacts
+        if: matrix.name == 'composed-trajectory-refinement-one-step' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frozen-pair-finite-sweep-audit
+          path: |
+            ${{ runner.temp }}/composed-trajectory-refinement-one-step
+            ${{ runner.temp }}/frozen-pair-finite-sweeps
+          retention-days: 90
+          if-no-files-found: error

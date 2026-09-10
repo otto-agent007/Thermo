@@ -18,11 +18,15 @@ The next research milestones are ordered by dependency:
 | M4: bounded iterative refinement | Queued after M3 | Predeclare a short update budget and checkpoint-selection rule; preserve parameter bounds, independent training roles, and untouched final evaluation. Report gains, plateaus, or reversals without claiming convergence. |
 | M5: topology-aware meta-EBM | Queued after the bounded learning study | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
-M2 is an evaluation of frozen parameters, not additional training. Reuse the M1
+M2 is an evaluation of frozen parameters, not additional training. See the
+[checked audit design](experiments/frozen-pair-finite-sweep-audit.md). Reuse the M1
 unbiased order-two estimator and paired joined moments, but bind horizon,
 reset, sweep order, source lineage, and evaluation randomness in new
 versioned audit identities. Preserve all M1 records and their historical
-semantics. Treat full trajectories as within-batch samples and independent
+semantics. Freeze the explicitly supplied source record's parameters; a
+regenerated numerical compiler lineage need not match the historical release
+bit for bit. Report historical identity matches explicitly and require exact
+equilibrium replay against the supplied source. Treat full trajectories as within-batch samples and independent
 seeds as replications; correlated horizons are not independent replications.
 
 All M2 conclusions remain descriptive and non-gating. Approximate intervals
@@ -94,7 +98,7 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] full finite-Gibbs-horizon composed-program comparison
 - [x] one bounded equilibrium update of the full 25-site trajectory parameters
 - [x] M1 population-objective audit of the frozen one-step pair with paired uncertainty
-- [ ] M2 frozen-pair finite-sweep transfer audit
+- [ ] M2 frozen-pair finite-sweep transfer audit (implementation in progress)
 - [ ] M3 exact finite-sweep gradient contract
 - [ ] M4 bounded iterative 25-site trajectory refinement
 

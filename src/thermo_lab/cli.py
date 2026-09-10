@@ -53,13 +53,37 @@ def _parser() -> argparse.ArgumentParser:
         help="allow JAX to select a non-CPU device (CPU is the reproducible default)",
     )
     run.add_argument("--overwrite", action="store_true")
+    audit = subparsers.add_parser(
+        "audit-finite-sweeps", help="audit explicitly supplied frozen M1 records at finite horizons"
+    )
+    audit.add_argument("source_records", type=Path, nargs="+")
+    audit.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    if not args.allow_accelerator:
+    if not getattr(args, "allow_accelerator", False):
         os.environ["JAX_PLATFORMS"] = "cpu"
+
+    if args.command == "audit-finite-sweeps":
+        from thermo_lab.frozen_pair_audit import run_frozen_pair_audit
+
+        audits = run_frozen_pair_audit(tuple(args.source_records), args.output_dir)
+        print(
+            json.dumps(
+                {
+                    "status": "complete",
+                    "completed_runs": len(audits),
+                    "seeds": [audit.request.seed for audit in audits],
+                    "report": str(args.output_dir / "report.md"),
+                    "completion": str(args.output_dir / "completion.json"),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 0
 
     if args.command == "run":
         from thermo_lab.runner import run_experiment
