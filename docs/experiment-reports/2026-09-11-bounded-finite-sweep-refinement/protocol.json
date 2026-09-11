@@ -1,0 +1,215 @@
+{
+  "requests": [
+    {
+      "identity_version": "bounded_finite_refinement_request.v1",
+      "protocol": {
+        "identity_version": "bounded_finite_refinement_protocol.v1",
+        "step_count": 5,
+        "horizon": 4,
+        "batch_size": 32768,
+        "learning_rate": 0.01,
+        "parameter_cap": 2.0,
+        "beta": 1.0,
+        "dtype": "float64",
+        "checkpoint_policy": "always_fifth_update",
+        "role_policy": "SeedSequence([0x4D34, seed]).spawn(11); alternating occupancy/gradient; final evaluation last",
+        "endpoint_policy": "uniform reset; hidden then outputs; hidden-major joint inverse CDF; propagate outputs only",
+        "gradient_policy": "finite endpoint main-minus-independent-same-parent-reference scores; sum shared occurrences first",
+        "reward_policy": "two times (independent occupancy estimate minus exact target)",
+        "evaluation_policy": "fresh initial/fifth paired evaluation; common random numbers; no checkpoint selection",
+        "objective_policy": "unbiased_order_two_u_statistic",
+        "uncertainty_policy": "paired_delete_one_jackknife_normal_95_approximate",
+        "scientific_status": "descriptive_non_gating",
+        "sampler_identity_policy": "normalize signed zero in parameter and reward cache identities",
+        "replay_relative_tolerance": 1e-12,
+        "replay_absolute_tolerance": 1e-10
+      },
+      "source_summary_digest": "sha256:24bd10653d1b7f5e32c14d1959a2f784e690a2eaf58c368e8cd73d6af6cb09bf",
+      "source_request_hash": "sha256:339c683c47fadd67f1130ad0ea50864ead44fb38b8dedf39f6902eb5b2f54763",
+      "source_bundle_digest": "sha256:d21bedf938b533b515dfc7d497c1668897a5cea663185e343a3306ba45d981bd",
+      "initial_parameter_digest": "sha256:04d28612ef90031e303e48ec9c88d1e849b7fffafada006a86c89e42d9f37b71",
+      "exact_target_reference": "sha256:7bb3ed15cb4409f5ecddcdaee3ab8e704fd91d8f7fd59d7ecc2c86d6e3323d01",
+      "schedule_digest": "sha256:13bd55670e09d0dc8b75411606d0498fbc4a09e49bbb8002c39897cb80705bb3",
+      "sampler_request_hash": "sha256:ba837a2f1a570f66f1d3694711b5be7b0df0d80ab17c5a8976384e0f0a6a7c0a",
+      "seed": 0,
+      "site_count": 25,
+      "occurrence_count": 500,
+      "parameter_group_count": 37,
+      "start_policy": "supplied_M1_initial_model_context_parameters"
+    },
+    {
+      "identity_version": "bounded_finite_refinement_request.v1",
+      "protocol": {
+        "identity_version": "bounded_finite_refinement_protocol.v1",
+        "step_count": 5,
+        "horizon": 4,
+        "batch_size": 32768,
+        "learning_rate": 0.01,
+        "parameter_cap": 2.0,
+        "beta": 1.0,
+        "dtype": "float64",
+        "checkpoint_policy": "always_fifth_update",
+        "role_policy": "SeedSequence([0x4D34, seed]).spawn(11); alternating occupancy/gradient; final evaluation last",
+        "endpoint_policy": "uniform reset; hidden then outputs; hidden-major joint inverse CDF; propagate outputs only",
+        "gradient_policy": "finite endpoint main-minus-independent-same-parent-reference scores; sum shared occurrences first",
+        "reward_policy": "two times (independent occupancy estimate minus exact target)",
+        "evaluation_policy": "fresh initial/fifth paired evaluation; common random numbers; no checkpoint selection",
+        "objective_policy": "unbiased_order_two_u_statistic",
+        "uncertainty_policy": "paired_delete_one_jackknife_normal_95_approximate",
+        "scientific_status": "descriptive_non_gating",
+        "sampler_identity_policy": "normalize signed zero in parameter and reward cache identities",
+        "replay_relative_tolerance": 1e-12,
+        "replay_absolute_tolerance": 1e-10
+      },
+      "source_summary_digest": "sha256:c43b40ecd64994a250107ca4e3feb3b4fca7be412d4953aef42cbfb501a8ac1c",
+      "source_request_hash": "sha256:339c683c47fadd67f1130ad0ea50864ead44fb38b8dedf39f6902eb5b2f54763",
+      "source_bundle_digest": "sha256:d21bedf938b533b515dfc7d497c1668897a5cea663185e343a3306ba45d981bd",
+      "initial_parameter_digest": "sha256:04d28612ef90031e303e48ec9c88d1e849b7fffafada006a86c89e42d9f37b71",
+      "exact_target_reference": "sha256:7bb3ed15cb4409f5ecddcdaee3ab8e704fd91d8f7fd59d7ecc2c86d6e3323d01",
+      "schedule_digest": "sha256:13bd55670e09d0dc8b75411606d0498fbc4a09e49bbb8002c39897cb80705bb3",
+      "sampler_request_hash": "sha256:ba837a2f1a570f66f1d3694711b5be7b0df0d80ab17c5a8976384e0f0a6a7c0a",
+      "seed": 1,
+      "site_count": 25,
+      "occurrence_count": 500,
+      "parameter_group_count": 37,
+      "start_policy": "supplied_M1_initial_model_context_parameters"
+    },
+    {
+      "identity_version": "bounded_finite_refinement_request.v1",
+      "protocol": {
+        "identity_version": "bounded_finite_refinement_protocol.v1",
+        "step_count": 5,
+        "horizon": 4,
+        "batch_size": 32768,
+        "learning_rate": 0.01,
+        "parameter_cap": 2.0,
+        "beta": 1.0,
+        "dtype": "float64",
+        "checkpoint_policy": "always_fifth_update",
+        "role_policy": "SeedSequence([0x4D34, seed]).spawn(11); alternating occupancy/gradient; final evaluation last",
+        "endpoint_policy": "uniform reset; hidden then outputs; hidden-major joint inverse CDF; propagate outputs only",
+        "gradient_policy": "finite endpoint main-minus-independent-same-parent-reference scores; sum shared occurrences first",
+        "reward_policy": "two times (independent occupancy estimate minus exact target)",
+        "evaluation_policy": "fresh initial/fifth paired evaluation; common random numbers; no checkpoint selection",
+        "objective_policy": "unbiased_order_two_u_statistic",
+        "uncertainty_policy": "paired_delete_one_jackknife_normal_95_approximate",
+        "scientific_status": "descriptive_non_gating",
+        "sampler_identity_policy": "normalize signed zero in parameter and reward cache identities",
+        "replay_relative_tolerance": 1e-12,
+        "replay_absolute_tolerance": 1e-10
+      },
+      "source_summary_digest": "sha256:2b8322b44525a727716e2b73a7ef315c4c2887ff5ff79ab9cbe8827a7b9d5be1",
+      "source_request_hash": "sha256:339c683c47fadd67f1130ad0ea50864ead44fb38b8dedf39f6902eb5b2f54763",
+      "source_bundle_digest": "sha256:d21bedf938b533b515dfc7d497c1668897a5cea663185e343a3306ba45d981bd",
+      "initial_parameter_digest": "sha256:04d28612ef90031e303e48ec9c88d1e849b7fffafada006a86c89e42d9f37b71",
+      "exact_target_reference": "sha256:7bb3ed15cb4409f5ecddcdaee3ab8e704fd91d8f7fd59d7ecc2c86d6e3323d01",
+      "schedule_digest": "sha256:13bd55670e09d0dc8b75411606d0498fbc4a09e49bbb8002c39897cb80705bb3",
+      "sampler_request_hash": "sha256:ba837a2f1a570f66f1d3694711b5be7b0df0d80ab17c5a8976384e0f0a6a7c0a",
+      "seed": 2,
+      "site_count": 25,
+      "occurrence_count": 500,
+      "parameter_group_count": 37,
+      "start_policy": "supplied_M1_initial_model_context_parameters"
+    }
+  ],
+  "sampler_request": {
+    "identity_version": "finite_sampler_request.v1",
+    "m3_request": {
+      "identity_version": "finite_sweep_gradient_request.v1",
+      "parameters": [
+        0.25,
+        -0.35,
+        0.2,
+        0.45,
+        -0.3,
+        -0.4,
+        0.25,
+        0.3,
+        -0.2
+      ],
+      "parameter_order": [
+        "h_hidden",
+        "h_output_0",
+        "h_output_1",
+        "J_input_0_output_0",
+        "J_input_0_output_1",
+        "J_input_1_output_0",
+        "J_input_1_output_1",
+        "J_hidden_output_0",
+        "J_hidden_output_1"
+      ],
+      "initial_state": [
+        1,
+        0,
+        0
+      ],
+      "occurrences": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "target_hash": "sha256:7230c4f09bb3a6de72f8cd59b27d0719895e10a564bbab71a914aab370fc8a85",
+      "target_conditional": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.9096288781368775,
+          0.0903711218631225,
+          0.0
+        ],
+        [
+          0.0,
+          0.009628878136877513,
+          0.9903711218631225,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "horizons": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        30
+      ],
+      "beta": 1.0,
+      "parameter_cap": 2.0,
+      "finite_difference_step": 1e-06,
+      "exact_tolerance": 1e-12,
+      "finite_difference_tolerance": 1e-07,
+      "dtype": "float64",
+      "reset_policy": "independent uniform eight-state reset at every occurrence",
+      "sweep_policy": "hidden then both outputs, inputs clamped",
+      "objective_policy": "squared terminal population occupancy error",
+      "gradient_policy": "two occurrence derivatives summed over nine shared parameters",
+      "oracle_policy": "matrix derivative; endpoint score; independent Bernoulli autodiff; existing-law central differences",
+      "autodiff_policy": "JAX CPU float64 with scoped x64 configuration",
+      "negative_control_policy": "detect equilibrium-form score substitution and missing occurrence at K=1"
+    },
+    "batch_size": 32768,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "seed_policy": "SeedSequence([0x4D34, 0x56414C, seed, horizon]); first uint64 word",
+    "reference_policy": "64 main endpoint paths; integrate independent same-parent references",
+    "scientific_status": "sampled discrepancies descriptive_non_gating"
+  }
+}

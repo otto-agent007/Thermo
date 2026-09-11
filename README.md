@@ -241,7 +241,10 @@ microcircuit checks, all five updates, embedded source lineage, and held-out
 paired evidence. It replays saved evidence before reporting and writes completion
 last. Training diagnostics and approximate final intervals are descriptive and
 non-gating; they establish neither convergence nor hardware performance. See
-the [predeclared M4 protocol](docs/experiments/bounded-finite-sweep-refinement.md).
+the [predeclared M4 protocol](docs/experiments/bounded-finite-sweep-refinement.md)
+and [recorded three-seed study](docs/experiment-reports/2026-09-11-bounded-finite-sweep-refinement.md).
+Its final comparison has two improved and one inconclusive approximate
+intervals. The gains are small and particle leakage remains about 77%.
 
 ## Research contract
 

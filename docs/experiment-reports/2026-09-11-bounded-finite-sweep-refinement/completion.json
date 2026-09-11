@@ -1,0 +1,20 @@
+{
+  "status": "complete",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "full_three_seed_release": true,
+  "completed_runs": 3,
+  "updates_per_run": 5,
+  "horizon": 4,
+  "selected_checkpoint": 5,
+  "scientific_status": "descriptive_non_gating",
+  "sampler_result_digest": "sha256:20574c77d24fcc2ac8c4a8a65ee9f291c0feeaed75e4d186861c3be49b84a41e",
+  "result_digests": [
+    "sha256:4f099d1825fc29a8946cbe87061bd2875aba9bce9c392953c1fccc8d7d7db3bd",
+    "sha256:2308ad96799bb31b700e75eeb683c26a3b3e0cbb76861138d7419094053ccca1",
+    "sha256:a860e39d498261e0cd2f1881d2d0ba5c02f592d2bfe35c3564f9ef5fe81cc985"
+  ]
+}
