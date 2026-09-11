@@ -1,0 +1,488 @@
+{
+  "$defs": {
+    "FiniteSamplerCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "horizon": {
+          "title": "Horizon",
+          "type": "integer"
+        },
+        "seed": {
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "sampling_seed": {
+          "minimum": 0,
+          "title": "Sampling Seed",
+          "type": "integer"
+        },
+        "reference_evidence_class": {
+          "const": "exact_reference",
+          "default": "exact_reference",
+          "title": "Reference Evidence Class",
+          "type": "string"
+        },
+        "sample_evidence_class": {
+          "const": "software_simulation",
+          "default": "software_simulation",
+          "title": "Sample Evidence Class",
+          "type": "string"
+        },
+        "reference_mean": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Reference Mean",
+          "type": "array"
+        },
+        "reference_second_moment": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Reference Second Moment",
+          "type": "array"
+        },
+        "sample": {
+          "$ref": "#/$defs/GroupedGradientResult"
+        }
+      },
+      "required": [
+        "horizon",
+        "seed",
+        "sampling_seed",
+        "reference_mean",
+        "reference_second_moment",
+        "sample"
+      ],
+      "title": "FiniteSamplerCheck",
+      "type": "object"
+    },
+    "FiniteSamplerRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "identity_version": {
+          "const": "finite_sampler_request.v1",
+          "default": "finite_sampler_request.v1",
+          "title": "Identity Version",
+          "type": "string"
+        },
+        "m3_request": {
+          "$ref": "#/$defs/FiniteSweepGradientRequest"
+        },
+        "batch_size": {
+          "default": 32768,
+          "maximum": 32768,
+          "minimum": 32768,
+          "title": "Batch Size",
+          "type": "integer"
+        },
+        "seeds": {
+          "default": [
+            0,
+            1,
+            2
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Seeds",
+          "type": "array"
+        },
+        "seed_policy": {
+          "const": "SeedSequence([0x4D34, 0x56414C, seed, horizon]); first uint64 word",
+          "default": "SeedSequence([0x4D34, 0x56414C, seed, horizon]); first uint64 word",
+          "title": "Seed Policy",
+          "type": "string"
+        },
+        "reference_policy": {
+          "const": "64 main endpoint paths; integrate independent same-parent references",
+          "default": "64 main endpoint paths; integrate independent same-parent references",
+          "title": "Reference Policy",
+          "type": "string"
+        },
+        "scientific_status": {
+          "const": "sampled discrepancies descriptive_non_gating",
+          "default": "sampled discrepancies descriptive_non_gating",
+          "title": "Scientific Status",
+          "type": "string"
+        }
+      },
+      "title": "FiniteSamplerRequest",
+      "type": "object"
+    },
+    "FiniteSweepGradientRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "identity_version": {
+          "const": "finite_sweep_gradient_request.v1",
+          "title": "Identity Version",
+          "type": "string"
+        },
+        "parameters": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Parameters",
+          "type": "array"
+        },
+        "parameter_order": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Parameter Order",
+          "type": "array"
+        },
+        "initial_state": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Initial State",
+          "type": "array"
+        },
+        "occurrences": {
+          "items": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "title": "Occurrences",
+          "type": "array"
+        },
+        "target_hash": {
+          "title": "Target Hash",
+          "type": "string"
+        },
+        "target_conditional": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Target Conditional",
+          "type": "array"
+        },
+        "horizons": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Horizons",
+          "type": "array"
+        },
+        "beta": {
+          "title": "Beta",
+          "type": "number"
+        },
+        "parameter_cap": {
+          "title": "Parameter Cap",
+          "type": "number"
+        },
+        "finite_difference_step": {
+          "title": "Finite Difference Step",
+          "type": "number"
+        },
+        "exact_tolerance": {
+          "title": "Exact Tolerance",
+          "type": "number"
+        },
+        "finite_difference_tolerance": {
+          "title": "Finite Difference Tolerance",
+          "type": "number"
+        },
+        "dtype": {
+          "const": "float64",
+          "title": "Dtype",
+          "type": "string"
+        },
+        "reset_policy": {
+          "title": "Reset Policy",
+          "type": "string"
+        },
+        "sweep_policy": {
+          "title": "Sweep Policy",
+          "type": "string"
+        },
+        "objective_policy": {
+          "title": "Objective Policy",
+          "type": "string"
+        },
+        "gradient_policy": {
+          "title": "Gradient Policy",
+          "type": "string"
+        },
+        "oracle_policy": {
+          "title": "Oracle Policy",
+          "type": "string"
+        },
+        "autodiff_policy": {
+          "title": "Autodiff Policy",
+          "type": "string"
+        },
+        "negative_control_policy": {
+          "title": "Negative Control Policy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity_version",
+        "parameters",
+        "parameter_order",
+        "initial_state",
+        "occurrences",
+        "target_hash",
+        "target_conditional",
+        "horizons",
+        "beta",
+        "parameter_cap",
+        "finite_difference_step",
+        "exact_tolerance",
+        "finite_difference_tolerance",
+        "dtype",
+        "reset_policy",
+        "sweep_policy",
+        "objective_policy",
+        "gradient_policy",
+        "oracle_policy",
+        "autodiff_policy",
+        "negative_control_policy"
+      ],
+      "title": "FiniteSweepGradientRequest",
+      "type": "object"
+    },
+    "GroupedGradientResult": {
+      "additionalProperties": false,
+      "properties": {
+        "sample_count": {
+          "exclusiveMinimum": 0,
+          "title": "Sample Count",
+          "type": "integer"
+        },
+        "component_sum": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Component Sum",
+          "type": "array"
+        },
+        "component_sum_squares": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Component Sum Squares",
+          "type": "array"
+        },
+        "source_digest": {
+          "title": "Source Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample_count",
+        "component_sum",
+        "component_sum_squares",
+        "source_digest"
+      ],
+      "title": "GroupedGradientResult",
+      "type": "object"
+    },
+    "PackageProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "distribution": {
+          "title": "Distribution",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "release_source_repository": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Release Source Repository"
+        },
+        "release_source_commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Release Source Commit"
+        },
+        "expected_wheel_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Wheel Sha256"
+        },
+        "artifact_verification": {
+          "title": "Artifact Verification",
+          "type": "string"
+        }
+      },
+      "required": [
+        "distribution",
+        "version",
+        "artifact_verification"
+      ],
+      "title": "PackageProvenance",
+      "type": "object"
+    },
+    "RuntimeProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "python_version": {
+          "title": "Python Version",
+          "type": "string"
+        },
+        "platform": {
+          "title": "Platform",
+          "type": "string"
+        },
+        "jax_version": {
+          "title": "Jax Version",
+          "type": "string"
+        },
+        "jaxlib_version": {
+          "title": "Jaxlib Version",
+          "type": "string"
+        },
+        "jax_backend": {
+          "title": "Jax Backend",
+          "type": "string"
+        },
+        "jax_devices": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Jax Devices",
+          "type": "array"
+        },
+        "git_commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Git Commit"
+        },
+        "git_dirty": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Git Dirty"
+        },
+        "jax_enable_x64": {
+          "title": "Jax Enable X64",
+          "type": "boolean"
+        },
+        "packages": {
+          "items": {
+            "$ref": "#/$defs/PackageProvenance"
+          },
+          "title": "Packages",
+          "type": "array"
+        }
+      },
+      "required": [
+        "python_version",
+        "platform",
+        "jax_version",
+        "jaxlib_version",
+        "jax_backend",
+        "jax_devices",
+        "git_commit",
+        "git_dirty",
+        "jax_enable_x64",
+        "packages"
+      ],
+      "title": "RuntimeProvenance",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "request": {
+      "$ref": "#/$defs/FiniteSamplerRequest"
+    },
+    "request_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Request Hash",
+      "type": "string"
+    },
+    "cells": {
+      "items": {
+        "$ref": "#/$defs/FiniteSamplerCheck"
+      },
+      "title": "Cells",
+      "type": "array"
+    },
+    "result_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Result Digest",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/RuntimeProvenance"
+    }
+  },
+  "required": [
+    "request",
+    "request_hash",
+    "cells",
+    "result_digest",
+    "provenance"
+  ],
+  "title": "FiniteSamplerAudit",
+  "type": "object"
+}

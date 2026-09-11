@@ -203,3 +203,35 @@ This gate performs no update or sampled full-program gradient estimation.
 uv run thermo-lab check-finite-sweep-gradients \
   --output-dir results/finite-sweep-gradient-contract
 ```
+
+The separate M4 gate validates sampled finite-sweep gradients and performs
+exactly five updates at K=4 from the actual supplied M1 initial parameters.
+Preserve the predeclared protocol in
+docs/experiments/bounded-finite-sweep-refinement.md: beta 1, float64, learning
+rate 0.01, bounds [-2,2], independent 32,768-trajectory occupancy and gradient
+roles at each update, and untouched 32,768-pair final evaluation. Select update
+five in advance. Use true finite endpoint scores, same-main-parent independent
+references that never propagate, and sum shared occurrences before reducing
+gradient second moments. Training-role loss diagnostics are not held-out
+checkpoint comparisons. Preserve M1 uncertainty limitations and label sampled
+results software_simulation; endpoint and microcircuit references remain
+exact_reference. Normalize signed zero in sampler identities. Reconstruct
+source lineage, role seeds, tables, updates, counts and joined moments on
+reload; replay gradient moments within the fixed numerical tolerance while
+binding their exact stored values in digests. Keep cached summaries immutable
+and never cache externally supplied results. Write completion last; scientific
+improvement is non-gating and no convergence or device-cost claim follows.
+
+After generating the three M1 sources, the M4 release gate is:
+
+```bash
+uv run thermo-lab refine-finite-sweeps \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000000.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000001.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000002.json \
+  --output-dir results/bounded-finite-sweep-refinement
+```
+
+Require full_three_seed_release, updates_per_run=5, horizon=4, and
+selected_checkpoint=5 in completion.json. A partial diagnostic is insufficient
+for this release gate. CI must preserve the full evidence and show its report.

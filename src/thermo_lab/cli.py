@@ -63,6 +63,12 @@ def _parser() -> argparse.ArgumentParser:
         help="validate the exact three-site finite-sweep gradient contract",
     )
     gradients.add_argument("--output-dir", type=Path, required=True)
+    refinement = subparsers.add_parser(
+        "refine-finite-sweeps",
+        help="run five predeclared finite-sweep updates from supplied M1 sources",
+    )
+    refinement.add_argument("source_records", type=Path, nargs="+")
+    refinement.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -70,6 +76,23 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if not getattr(args, "allow_accelerator", False):
         os.environ["JAX_PLATFORMS"] = "cpu"
+
+    if args.command == "refine-finite-sweeps":
+        from thermo_lab.finite_refinement_audit import run_finite_refinement
+
+        audits = run_finite_refinement(tuple(args.source_records), args.output_dir)
+        print(
+            json.dumps(
+                {
+                    "status": "complete",
+                    "completed_runs": len(audits),
+                    "seeds": [audit.request.seed for audit in audits],
+                    "report": str(args.output_dir / "report.md"),
+                },
+                indent=2,
+            )
+        )
+        return 0
 
     if args.command == "check-finite-sweep-gradients":
         from thermo_lab.finite_sweep_gradient_audit import run_gradient_audit
