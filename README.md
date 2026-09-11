@@ -205,6 +205,22 @@ fresh independent confirmation. All sampled program outcomes are
 software_simulation. See the
 [M2 design and acceptance criteria](docs/experiments/frozen-pair-finite-sweep-audit.md).
 
+The M3 command checks the gradient of the actual finite-sweep execution law
+on the existing three-site, two-operation circuit:
+
+```bash
+uv run thermo-lab check-finite-sweep-gradients \
+  --output-dir results/finite-sweep-gradient-contract
+```
+
+It compares endpoint scores, a direct chain rule, independent CPU float64
+autodiff, and finite differences at K=1,2,4,8,16,30. Both occurrence derivatives
+and their shared sum must agree. The saved exact-reference audit reconstructs
+its evidence on reload and detects equilibrium-score substitution and a
+missing occurrence. It performs no parameter update or sampled full-program
+gradient estimation. See the
+[M3 contract](docs/experiments/finite-sweep-gradient-contract.md).
+
 ## Research contract
 
 - [Project charter](PROJECT_CHARTER.md)
