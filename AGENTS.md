@@ -186,3 +186,20 @@ uv run thermo-lab audit-finite-sweeps \
 Use a fresh destination and require full_three_seed_release in completion.json.
 Do not interpret negative or inconclusive scientific results as integrity
 failures. M2 introduces neither finite-sweep gradients nor iterative training.
+
+The separate M3 exact finite-sweep gradient gate preserves the existing
+three-site, two-operation fixture and nine shared parameters. Differentiate
+the uniform reset and all hidden-then-output sweeps at K=1,2,4,8,16,30. Require
+endpoint-score, visible chain-rule, independent Bernoulli-autodiff, and existing
+kernel finite-difference agreement, including untied occurrence derivatives
+and their shared sum. Preserve beta 1, caps [-2,2], step 1e-6, exact tolerance
+1e-12, and finite-difference tolerance 1e-7. Reject equilibrium-score and
+missing-occurrence negative controls at K=1. Keep all evidence exact_reference
+and restore scoped JAX x64 configuration. Strictly reconstruct the persisted
+request and numerical evidence before reporting; write completion last.
+This gate performs no update or sampled full-program gradient estimation.
+
+```bash
+uv run thermo-lab check-finite-sweep-gradients \
+  --output-dir results/finite-sweep-gradient-contract
+```

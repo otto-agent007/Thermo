@@ -1,12 +1,13 @@
 # Roadmap
 
-## Active sequence after PR #20 (September 10, 2026)
+## Active sequence after PR #20 (updated September 11, 2026)
 
 PR #20 closes M1: the frozen full-program equilibrium update has an unbiased
 population-loss audit with paired, approximate uncertainty. Its three checked
 seeds show approximately 1% lower estimated loss. This is conditional
-software-simulation evidence for one update; iterative learning, finite-sweep
-gradient correctness, and physical-hardware performance remain open.
+software-simulation evidence for one update. M3 checks finite-sweep gradient
+correctness on the bounded microcircuit; full-program iterative learning and
+physical-hardware performance remain open.
 
 The next research milestones are ordered by dependency:
 
@@ -14,8 +15,8 @@ The next research milestones are ordered by dependency:
 | --- | --- | --- |
 | M1: population-objective audit | Complete (PR #20) | Unbiased before/after occupancy loss, paired uncertainty, bounded parameters, and validated persisted evidence. |
 | M2: frozen-pair finite-sweep transfer audit | Complete (recorded M2 release) | Evaluate the same initial/updated parameter pairs at equilibrium and 1, 2, 4, 8, 16, and 30 complete Gibbs sweeps. Report where the improvement survives, reverses, or is inconclusive, with occupancy loss, particle leakage, and declared sampling work. |
-| M3: finite-sweep gradient contract | Next implementation | On a bounded exactly enumerable microcircuit, validate derivatives of the actual reset-and-finite-sweep execution law against independent references and finite differences, retaining shared-parameter checks. |
-| M4: bounded iterative refinement | Queued after M3 | Predeclare a short update budget and checkpoint-selection rule; preserve parameter bounds, independent training roles, and untouched final evaluation. Report gains, plateaus, or reversals without claiming convergence. |
+| M3: finite-sweep gradient contract | Implemented (checked exact contract) | Existing three-site circuit at K=1,2,4,8,16,30: endpoint scores, direct chain rule, independent Bernoulli autodiff, and finite differences agree for both occurrence derivatives and their shared sum. Persisted evidence reconstructs strictly, and negative controls detect incorrect scores and missing occurrences. |
+| M4: bounded iterative refinement | Next implementation | Validate any sampled finite-sweep estimator, then predeclare a short update budget and checkpoint-selection rule; preserve parameter bounds, independent training roles, and untouched final evaluation. Report gains, plateaus, or reversals without claiming convergence. |
 | M5: topology-aware meta-EBM | Queued after the bounded learning study | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 M2 is an evaluation of frozen parameters, not additional training. See the
@@ -36,6 +37,13 @@ completion means valid, reproducible evidence, including negative or
 inconclusive outcomes. Record complete-sweep and p-bit-update work as declared
 algorithmic counts, separately from NumPy execution timings; do not infer
 hardware energy or latency from those counts.
+
+The [M3 contract](experiments/finite-sweep-gradient-contract.md) is exact
+reference work on the existing microcircuit. Its
+[recorded six-horizon check](experiment-reports/2026-09-11-finite-sweep-gradient-contract.md)
+passes the exact, autodiff, and finite-difference comparisons and both negative
+controls. It applies no update and does
+not establish a full-program Monte Carlo estimator or iterative convergence.
 
 For M4, choose the fixed step budget (an initial candidate is five), training
 horizon, learning rate, seed set, role budgets, and selection policy before
@@ -99,7 +107,7 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] one bounded equilibrium update of the full 25-site trajectory parameters
 - [x] M1 population-objective audit of the frozen one-step pair with paired uncertainty
 - [x] M2 frozen-pair finite-sweep transfer audit
-- [ ] M3 exact finite-sweep gradient contract
+- [x] M3 exact finite-sweep gradient contract
 - [ ] M4 bounded iterative 25-site trajectory refinement
 
 The independently compiled item is an atomic method-level reconstruction:

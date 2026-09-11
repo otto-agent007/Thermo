@@ -30,11 +30,22 @@ jobs:
       - name: Install frozen environment
         run: uv sync --frozen
       - name: Check lockfile is current
-        run: uv lock --check
+        run: uv lock --check --offline
       - name: Check formatting
         run: uv run ruff format --check --diff .
       - name: Lint
         run: uv run ruff check .
+      - name: Check exact finite-sweep gradient contract
+        run: >-
+          uv run thermo-lab check-finite-sweep-gradients
+          --output-dir "${RUNNER_TEMP}/finite-sweep-gradient-contract"
+      - name: Preserve exact finite-sweep gradient evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: finite-sweep-gradient-contract
+          path: ${{ runner.temp }}/finite-sweep-gradient-contract
+          retention-days: 90
+          if-no-files-found: error
       - name: Build package artifacts
         run: uv build
       - name: Verify checked study configs in package artifacts
