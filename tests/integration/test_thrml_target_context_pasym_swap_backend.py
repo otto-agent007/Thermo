@@ -33,9 +33,6 @@ pytestmark = pytest.mark.slow
 ROOT = Path(__file__).parents[2]
 TARGET_HASH = "sha256:0cc680f31ba83d4e6f6400860f25b1ee2b29a3609d8850de499d3facf37ff7fb"
 PROFILE_HASH = "sha256:20c2c7b8f834e830bd9061b516c09d8a5f7d3ef97d7a0fdc4100d04db9afa443"
-EXPECTED_DETERMINISTIC_RESULT_HASH = (
-    "sha256:c86fb5211fd6f617ac89150018ebd38a4190547ac144dcf7b5f4641b78908399"
-)
 EXPECTED_METRIC_KEYS = {
     "target_context_pasym_swap",
     "baseline_occurrence_weighted_equilibrium_kl",
@@ -373,9 +370,17 @@ def test_backend_builds_exact_metric_record_shape_and_protocol_results(
     assert isinstance(second_record, RunRecord)
     assert all(record.evidence_class is EvidenceClass.SOFTWARE_SIMULATION for record in records)
     assert all(set(record.metrics) == EXPECTED_METRIC_KEYS for record in records)
+    # The validator recomputes the digest from this run's frozen compiler outputs.
+    # Seed changes must preserve all deterministic evidence, including its digest,
+    # without requiring a fresh optimizer to reproduce an archived runner's bits.
     assert {summary.deterministic_result_hash for summary in backend_exercise.summaries} == {
-        EXPECTED_DETERMINISTIC_RESULT_HASH
+        first.deterministic_result_hash
     }
+    assert (
+        target_results.target_context_deterministic_projection(first)
+        == target_results.target_context_deterministic_projection(second)
+        == target_results.target_context_deterministic_projection(third)
+    )
     assert first.target_compiler_request_hash == (
         "sha256:7ed46818ed5aaff51af4d6887c7fbfd73f9ce9c73a6d8c2496b5375cd65502ce"
     )

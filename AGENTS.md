@@ -157,3 +157,32 @@ undercoverage, without tuning the checked estimator or budgets. Keep
 exact three-site gradient checks and deep persisted-record validation at
 aggregation/reporting boundaries. No iterative or finite-Gibbs refinement is
 included.
+
+
+The separate M2 frozen-pair audit consumes validated M1 source records, freezes
+their actual initial/updated parameters, and evaluates all seven canonical
+horizons without training. Fresh numerical compilation is not a bitwise
+historical fixture: compare legacy and M1 statistics using exact replay from
+the same frozen parameters, and retain historical values under their original
+identities. Require exact equilibrium terminal-count replay against the
+supplied source; report whether its identity matches the historical PR #20
+pair. Keep local endpoint tables exact_reference and sampled program metrics
+software_simulation. Use one PCG64 uniform vector per occurrence across all
+14 member/horizon cells. Preserve M1 uncertainty limitations and mark intervals
+as pointwise rather than simultaneous. Validate source/request/table identities,
+joined moments, particle histograms, and leakage margins on reload and before
+reporting. Algorithmic sweep/pbit counts are not measured device operations.
+
+After generating the three M1 source records above, the M2 release gate is:
+
+~~~bash
+uv run thermo-lab audit-finite-sweeps \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000000.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000001.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000002.json \
+  --output-dir results/frozen-pair-finite-sweeps
+~~~
+
+Use a fresh destination and require full_three_seed_release in completion.json.
+Do not interpret negative or inconclusive scientific results as integrity
+failures. M2 introduces neither finite-sweep gradients nor iterative training.

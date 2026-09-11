@@ -1,5 +1,6 @@
 """Full checked refinement persistence and adversarial publication boundaries."""
 
+import json
 import math
 from pathlib import Path
 
@@ -200,3 +201,140 @@ def test_unsupported_seed_is_an_auditable_failure(tmp_path: Path):
     assert (
         "Unavailable because no seeded execution completed." in (tmp_path / "report.md").read_text()
     )
+
+
+@pytest.fixture(scope="module")
+def finite_sweep_release(release):
+    from thermo_lab.cli import main
+    from thermo_lab.frozen_pair_audit import FrozenPairAudit
+
+    source_dir, aggregate, _ = release
+    source_path = source_dir / aggregate.run_record_paths[0]
+    source_bytes = source_path.read_bytes()
+    output = source_dir / "finite-sweep-audit"
+    assert main(["audit-finite-sweeps", str(source_path), "--output-dir", str(output)]) == 0
+    assert source_path.read_bytes() == source_bytes
+    audit = FrozenPairAudit.model_validate_json(
+        (output / "seed-0000000000.json").read_text(encoding="utf-8")
+    )
+    return output, source_path, audit
+
+
+def test_frozen_pair_cli_round_trip_and_equilibrium_identity(finite_sweep_release):
+    from thermo_lab.composed_pasym_swap_artifacts import HORIZON_LABELS
+    from thermo_lab.frozen_pair_audit import render_frozen_pair_audit
+
+    output, _, audit = finite_sweep_release
+    source = validate_persisted_composed_refinement_record(audit.source_record)
+    assert audit.request.source_summary_digest == source.summary_digest
+    assert tuple(cell.horizon for cell in audit.cells) == HORIZON_LABELS
+    assert audit.cells[0].before_counts == source.evaluation.before.occupancy_counts
+    assert audit.cells[0].after_counts == source.evaluation.after.occupancy_counts
+    assert (
+        audit.cells[0].joined_moment_counts
+        == source.evaluation.joined_terminal_second_moment_counts
+    )
+    assert all(cell.sample_count == 32768 for cell in audit.cells)
+    completion = json.loads((output / "completion.json").read_text())
+    assert completion["status"] == "complete"
+    assert completion["seeds"] == [0]
+    assert completion["full_three_seed_release"] is False
+    assert completion["horizon_cells"] == 7
+    report = render_frozen_pair_audit((audit,))
+    assert (output / "report.md").read_text() == report
+    assert "not simultaneous" in report
+    assert "not fresh independent confirmation" in report
+    assert "Historical PR #20 pair" in report
+    assert "does not silently substitute a historical pair" in report
+    assert "descriptive and non-gating" in report
+    assert "15000" in report and "45000" in report
+    assert (output / "audit.schema.json").is_file()
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        "source_scalar",
+        "source_seed",
+        "request_seed",
+        "evaluation_seed",
+        "horizon_order",
+        "missing_horizon",
+        "table_digest",
+        "counts",
+        "extra_metric",
+        "timing",
+        "result_digest",
+    ),
+)
+def test_frozen_pair_reload_rejects_tampered_evidence(finite_sweep_release, mutation):
+    from thermo_lab.frozen_pair_audit import FrozenPairAudit
+
+    _, _, audit = finite_sweep_release
+    payload = audit.model_dump(mode="json")
+    if mutation == "source_scalar":
+        payload["source_record"]["metrics"]["objective_before"]["value"] += 0.01
+    elif mutation == "source_seed":
+        payload["source_record"]["spec"]["seed"] = 1
+    elif mutation == "request_seed":
+        payload["request"]["seed"] = 1
+    elif mutation == "evaluation_seed":
+        payload["request"]["evaluation_seed"] += 1
+    elif mutation == "horizon_order":
+        payload["cells"][1], payload["cells"][2] = payload["cells"][2], payload["cells"][1]
+    elif mutation == "missing_horizon":
+        payload["cells"].pop()
+    elif mutation == "table_digest":
+        payload["cells"][1]["exact_tables_digest"] = "sha256:" + "0" * 64
+    elif mutation == "counts":
+        payload["cells"][1]["before_counts"][0] += 1
+    elif mutation == "extra_metric":
+        payload["cells"][1]["population_objective_before"] = -100.0
+    elif mutation == "timing":
+        payload["timing"]["timing_method"] = "hardware"
+    else:
+        payload["result_digest"] = "sha256:" + "0" * 64
+    with pytest.raises(ValueError):
+        FrozenPairAudit.model_validate_json(json.dumps(payload))
+
+
+def test_frozen_pair_reporting_rejects_validation_bypass(finite_sweep_release):
+    from thermo_lab.frozen_pair_audit import render_frozen_pair_audit
+
+    _, _, audit = finite_sweep_release
+    forged = audit.model_copy(update={"result_digest": "sha256:" + "0" * 64})
+    with pytest.raises(ValueError):
+        render_frozen_pair_audit((forged,))
+    with pytest.raises(ValueError, match="unique"):
+        render_frozen_pair_audit((audit, audit))
+
+
+def test_frozen_pair_output_protects_inputs_and_previous_results(finite_sweep_release, tmp_path):
+    from thermo_lab.frozen_pair_audit import run_frozen_pair_audit
+
+    output, source_path, _ = finite_sweep_release
+    original = (output / "report.md").read_bytes()
+    with pytest.raises(FileExistsError):
+        run_frozen_pair_audit((source_path,), output)
+    assert (output / "report.md").read_bytes() == original
+    with pytest.raises(ValueError, match="duplicate"):
+        run_frozen_pair_audit((source_path, source_path), tmp_path / "duplicate")
+    assert not (tmp_path / "duplicate").exists()
+
+
+def test_failed_frozen_pair_audit_cannot_publish_completion(
+    finite_sweep_release, tmp_path, monkeypatch
+):
+    import thermo_lab.frozen_pair_audit as module
+
+    _, source_path, _ = finite_sweep_release
+
+    def fail(record):
+        raise RuntimeError("injected execution failure")
+
+    monkeypatch.setattr(module, "audit_frozen_record", fail)
+    output = tmp_path / "failed"
+    with pytest.raises(RuntimeError, match="injected"):
+        module.run_frozen_pair_audit((source_path,), output)
+    assert not (output / "completion.json").exists()
+    assert not (output / "report.md").exists()
