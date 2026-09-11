@@ -39,7 +39,10 @@ algorithmic counts, separately from NumPy execution timings; do not infer
 hardware energy or latency from those counts.
 
 The [M3 contract](experiments/finite-sweep-gradient-contract.md) is exact
-reference work on the existing microcircuit. It applies no update and does
+reference work on the existing microcircuit. Its
+[recorded six-horizon check](experiment-reports/2026-09-11-finite-sweep-gradient-contract.md)
+passes the exact, autodiff, and finite-difference comparisons and both negative
+controls. It applies no update and does
 not establish a full-program Monte Carlo estimator or iterative convergence.
 
 For M4, choose the fixed step budget (an initial candidate is five), training

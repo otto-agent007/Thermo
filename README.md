@@ -219,7 +219,8 @@ and their shared sum must agree. The saved exact-reference audit reconstructs
 its evidence on reload and detects equilibrium-score substitution and a
 missing occurrence. It performs no parameter update or sampled full-program
 gradient estimation. See the
-[M3 contract](docs/experiments/finite-sweep-gradient-contract.md).
+[M3 contract](docs/experiments/finite-sweep-gradient-contract.md) and
+[recorded six-horizon results](docs/experiment-reports/2026-09-11-finite-sweep-gradient-contract.md).
 
 ## Research contract
 
