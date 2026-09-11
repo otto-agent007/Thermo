@@ -93,6 +93,30 @@ class HorizonTerminalEvidence(StrictEvidenceModel):
             raise ValueError("paired leakage table must match the before histogram")
         if paired[0] + paired[2] != self.after_particle_histogram[1]:
             raise ValueError("paired leakage table must match the after histogram")
+        moments = self.joined_moment_counts
+        hamming_sum = sum(
+            self.before_counts[i] + self.after_counts[i] - 2 * moments[i][dimension + i]
+            for i in range(dimension)
+        )
+        particle_difference_square_sum = sum(
+            moments[i][j] + moments[dimension + i][dimension + j] - 2 * moments[i][dimension + j]
+            for i in range(dimension)
+            for j in range(dimension)
+        )
+        # Each changed particle count requires a changed bit and contributes at
+        # least one to the squared integer particle-count difference. These are
+        # upper bounds on the number of pairs whose particle sectors can differ.
+        disagreement_bound = min(n, hamming_sum, particle_difference_square_sum)
+        histogram_l1 = sum(
+            abs(before - after)
+            for before, after in zip(
+                self.before_particle_histogram, self.after_particle_histogram, strict=True
+            )
+        )
+        if histogram_l1 > 2 * disagreement_bound:
+            raise ValueError("particle histograms exceed the paired moment disagreement bound")
+        if paired[1] + paired[2] > disagreement_bound:
+            raise ValueError("paired leakage exceeds the moment disagreement bound")
         return self
 
     def statistics(self, target_occupancy: object) -> PairedPopulationObjectiveStatistics:

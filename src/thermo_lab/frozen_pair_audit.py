@@ -338,6 +338,9 @@ def render_frozen_pair_audit(audits: tuple[FrozenPairAudit, ...]) -> str:
             "## Identities and execution timing",
             "",
             f"Timing boundary: {AUDIT_TIMING_METHOD}",
+            "Terminal-cell validation and statistic reconstruction are included in the timed "
+            "reductions; the excluded artifact validation is the enclosing audit and its "
+            "persisted-record revalidation.",
             "",
             "| Seed | Historical PR #20 pair | M1 source summary | M2 request | "
             "M2 result | NumPy seconds |",

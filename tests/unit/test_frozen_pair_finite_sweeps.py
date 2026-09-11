@@ -194,3 +194,36 @@ def test_declared_work_uses_complete_sweeps_and_three_free_pbits():
     work = declared_sampling_work("equilibrium", occurrence_count=500)
     assert work["complete_sweeps_per_trajectory_per_member"] is None
     assert work["free_pbit_updates_per_trajectory_per_member"] is None
+
+
+@pytest.mark.parametrize("mutation", ("histogram", "identical_vectors", "equal_particle_counts"))
+def test_paired_particle_evidence_must_respect_joined_moment_implications(mutation):
+    # These moments come from actual paired binary rows, independently of the
+    # sampler. Replacing only particle evidence used to admit impossible pairs.
+    before = np.asarray(((1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1)), dtype=np.int64)
+    after = before.copy()
+    if mutation == "equal_particle_counts":
+        after[:3] = np.roll(after[:3], 1, axis=1)
+    joined = np.concatenate((before, after), axis=1)
+    payload = {
+        "horizon": "k1",
+        "exact_tables_digest": "sha256:" + "0" * 64,
+        "sample_count": 4,
+        "before_counts": tuple(int(value) for value in before.sum(axis=0)),
+        "after_counts": tuple(int(value) for value in after.sum(axis=0)),
+        "joined_moment_counts": tuple(
+            tuple(int(value) for value in row) for row in joined.T @ joined
+        ),
+        "before_particle_histogram": (0, 3, 0, 1),
+        "after_particle_histogram": (0, 3, 0, 1),
+        "paired_leakage_counts": (3, 0, 0, 1),
+    }
+    assert HorizonTerminalEvidence.model_validate(payload).paired_leakage_counts == (3, 0, 0, 1)
+    if mutation == "histogram":
+        # The replacement has the same first two particle moments (6 and 12).
+        payload["after_particle_histogram"] = (1, 0, 3, 0)
+        payload["paired_leakage_counts"] = (0, 3, 0, 1)
+    else:
+        payload["paired_leakage_counts"] = (2, 1, 1, 0)
+    with pytest.raises(ValueError, match="paired.*disagreement"):
+        HorizonTerminalEvidence.model_validate(payload)

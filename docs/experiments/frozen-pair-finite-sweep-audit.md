@@ -85,6 +85,19 @@ scientific digests. Loading validates the embedded M1 source, reconstructs
 the request and exact local-table identities, checks all moments, and requires
 the equilibrium control to reproduce M1 counts exactly.
 
+Particle histograms and paired leakage must also respect the cross-member
+moments. The sum of bit disagreements and the sum of squared particle-count
+differences each bound the number of pairs that can change particle sector.
+Histogram total variation (in count units) and leakage discordances cannot
+exceed either bound. In particular, identical paired particle counts require
+identical histograms and zero leakage discordances. These remain necessary
+consistency checks, not a complete binary-realizability test.
+
+The timing label's excluded "artifact validation" refers to the enclosing
+audit and persisted-record revalidation. Terminal-cell validation, including
+moment feasibility and statistic reconstruction, is part of the timed
+terminal reductions. This clarification preserves existing v1 timing labels.
+
 The CLI accepts explicit source files and requires a fresh output directory.
 It rejects duplicate source seeds before writing. Each written artifact is
 reloaded and validated; the Markdown report is rendered only from validated
