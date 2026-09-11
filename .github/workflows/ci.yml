@@ -228,7 +228,36 @@ jobs:
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
               stream.write(report)
           PY
-      - name: Preserve checked M1 sources and M2 audit artifacts
+      - name: Run bounded finite-sweep refinement
+        if: matrix.name == 'composed-trajectory-refinement-one-step'
+        run: >-
+          uv run thermo-lab refine-finite-sweeps
+          "$RUNNER_TEMP/composed-trajectory-refinement-one-step/runs/seed-0000000000.json"
+          "$RUNNER_TEMP/composed-trajectory-refinement-one-step/runs/seed-0000000001.json"
+          "$RUNNER_TEMP/composed-trajectory-refinement-one-step/runs/seed-0000000002.json"
+          --output-dir "$RUNNER_TEMP/bounded-finite-sweep-refinement"
+      - name: Require complete M4 release and show checked report
+        if: matrix.name == 'composed-trajectory-refinement-one-step'
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["RUNNER_TEMP"]) / "bounded-finite-sweep-refinement"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "complete"
+          assert completion["full_three_seed_release"] is True
+          assert completion["completed_runs"] == 3
+          assert completion["updates_per_run"] == 5
+          assert completion["horizon"] == 4
+          assert completion["selected_checkpoint"] == 5
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PY
+      - name: Preserve checked M1 sources and M2 and M4 audit artifacts
         if: matrix.name == 'composed-trajectory-refinement-one-step' && always()
         uses: actions/upload-artifact@v4
         with:
@@ -236,5 +265,6 @@ jobs:
           path: |
             ${{ runner.temp }}/composed-trajectory-refinement-one-step
             ${{ runner.temp }}/frozen-pair-finite-sweeps
+            ${{ runner.temp }}/bounded-finite-sweep-refinement
           retention-days: 90
           if-no-files-found: error

@@ -25,6 +25,97 @@ CONFIG = experiment_config_path("numpy-composed-pasym-swap-trajectory-refinement
 
 
 @pytest.fixture(scope="module")
+def bounded_finite_release(release):
+    from thermo_lab.cli import main
+    from thermo_lab.finite_refinement_audit import FiniteRefinementAudit
+
+    source_dir, aggregate, _ = release
+    source = source_dir / aggregate.run_record_paths[0]
+    original = source.read_bytes()
+    output = source_dir / "bounded-finite-refinement"
+    assert main(["refine-finite-sweeps", str(source), "--output-dir", str(output)]) == 0
+    assert source.read_bytes() == original
+    audit = FiniteRefinementAudit.model_validate_json((output / "seed-0000000000.json").read_text())
+    return output, source, audit
+
+
+def test_bounded_finite_cli_persists_predeclared_protocol_and_five_updates(bounded_finite_release):
+    output, _, audit = bounded_finite_release
+    source = validate_persisted_composed_refinement_record(audit.source_record)
+    assert audit.sequence.initial_parameters == source.initial_parameters
+    assert len(audit.sequence.steps) == 5
+    assert len(audit.sequence.initial_parameters) == 37
+    assert audit.sequence.final_evaluation.horizon == "k4"
+    completion = json.loads((output / "completion.json").read_text())
+    assert completion["status"] == "complete"
+    assert completion["full_three_seed_release"] is False
+    assert completion["updates_per_run"] == 5
+    assert (output / "protocol.json").is_file()
+    assert (output / "sampler-validation.json").is_file()
+    report = (output / "report.md").read_text()
+    assert "partial release" in report
+    assert "not held-out checkpoint comparisons" in report
+    assert "does not establish convergence" in report
+
+
+@pytest.mark.parametrize(
+    "mutation", ("request", "source", "sampler", "sequence", "provenance", "digest")
+)
+def test_bounded_finite_audit_rejects_rehashed_tampering(bounded_finite_release, mutation):
+    from thermo_lab.finite_refinement_audit import FiniteRefinementAudit, refinement_result_digest
+    from thermo_lab.hashing import canonical_sha256
+
+    _, _, audit = bounded_finite_release
+    payload = audit.model_dump(mode="json")
+    if mutation == "request":
+        payload["request"]["source_summary_digest"] = "sha256:" + "0" * 64
+        payload["request_hash"] = canonical_sha256(payload["request"])
+    elif mutation == "source":
+        payload["source_record"]["spec"]["seed"] = 1
+    elif mutation == "sampler":
+        payload["sampler_audit"]["cells"][0]["sampling_seed"] += 1
+    elif mutation == "sequence":
+        payload["sequence"]["evaluation_seed"] += 1
+    elif mutation == "provenance":
+        payload["provenance"]["packages"][0]["version"] = "0.0.0-forged"
+    else:
+        payload["result_digest"] = "sha256:" + "0" * 64
+    if mutation != "digest":
+        payload["result_digest"] = refinement_result_digest(
+            payload["request_hash"],
+            payload["sampler_audit"]["result_digest"],
+            payload["sequence"]["result_digest"],
+        )
+    with pytest.raises(ValueError):
+        FiniteRefinementAudit.model_validate(payload)
+
+
+def test_bounded_finite_output_is_fresh_and_completion_is_last(
+    bounded_finite_release, tmp_path, monkeypatch
+):
+    from thermo_lab import finite_refinement_audit as module
+
+    output, source, audit = bounded_finite_release
+    with pytest.raises(FileExistsError):
+        module.run_finite_refinement((source,), output)
+    with pytest.raises(ValueError, match="duplicate"):
+        module.run_finite_refinement((source, source), tmp_path / "duplicate")
+    original = module.atomic_write_text
+
+    def fail_report(path, content):
+        if path.name == "report.md":
+            raise OSError("injected report-write failure")
+        original(path, content)
+
+    monkeypatch.setattr(module, "atomic_write_text", fail_report)
+    broken = tmp_path / "report-failure"
+    with pytest.raises(OSError, match="report-write"):
+        module.run_finite_refinement((source,), broken)
+    assert (broken / "seed-0000000000.json").exists()
+    assert not (broken / "completion.json").exists()
+
+
+@pytest.fixture(scope="module")
 def release(tmp_path_factory):
     output = tmp_path_factory.mktemp("composed-refinement")
     aggregate = run_experiment(CONFIG, output, seeds=(0,))

@@ -222,6 +222,27 @@ gradient estimation. See the
 [M3 contract](docs/experiments/finite-sweep-gradient-contract.md) and
 [recorded six-horizon results](docs/experiment-reports/2026-09-11-finite-sweep-gradient-contract.md).
 
+M4 validates the sampled finite-sweep estimator and applies exactly five
+updates to the supplied M1 initial parameters on the 25-site, 500-occurrence
+program. It fixes K=4, learning rate 0.01, bounds [-2,2], and independent
+32,768-trajectory occupancy and gradient roles per update. A fresh paired
+evaluation compares the initial parameters with the preselected fifth update.
+
+```bash
+uv run thermo-lab refine-finite-sweeps \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000000.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000001.json \
+  results/composed-trajectory-refinement-one-step/runs/seed-0000000002.json \
+  --output-dir results/bounded-finite-sweep-refinement
+```
+
+Use a fresh destination. The command preserves the protocol, exact and sampled
+microcircuit checks, all five updates, embedded source lineage, and held-out
+paired evidence. It replays saved evidence before reporting and writes completion
+last. Training diagnostics and approximate final intervals are descriptive and
+non-gating; they establish neither convergence nor hardware performance. See
+the [predeclared M4 protocol](docs/experiments/bounded-finite-sweep-refinement.md).
+
 ## Research contract
 
 - [Project charter](PROJECT_CHARTER.md)

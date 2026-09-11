@@ -6,8 +6,8 @@ PR #20 closes M1: the frozen full-program equilibrium update has an unbiased
 population-loss audit with paired, approximate uncertainty. Its three checked
 seeds show approximately 1% lower estimated loss. This is conditional
 software-simulation evidence for one update. M3 checks finite-sweep gradient
-correctness on the bounded microcircuit; full-program iterative learning and
-physical-hardware performance remain open.
+correctness on the bounded microcircuit. M4 implements the predeclared bounded
+full-program learning study; physical-hardware performance remains open.
 
 The next research milestones are ordered by dependency:
 
@@ -16,7 +16,7 @@ The next research milestones are ordered by dependency:
 | M1: population-objective audit | Complete (PR #20) | Unbiased before/after occupancy loss, paired uncertainty, bounded parameters, and validated persisted evidence. |
 | M2: frozen-pair finite-sweep transfer audit | Complete (recorded M2 release) | Evaluate the same initial/updated parameter pairs at equilibrium and 1, 2, 4, 8, 16, and 30 complete Gibbs sweeps. Report where the improvement survives, reverses, or is inconclusive, with occupancy loss, particle leakage, and declared sampling work. |
 | M3: finite-sweep gradient contract | Implemented (checked exact contract) | Existing three-site circuit at K=1,2,4,8,16,30: endpoint scores, direct chain rule, independent Bernoulli autodiff, and finite differences agree for both occurrence derivatives and their shared sum. Persisted evidence reconstructs strictly, and negative controls detect incorrect scores and missing occurrences. |
-| M4: bounded iterative refinement | Next implementation | Validate any sampled finite-sweep estimator, then predeclare a short update budget and checkpoint-selection rule; preserve parameter bounds, independent training roles, and untouched final evaluation. Report gains, plateaus, or reversals without claiming convergence. |
+| M4: bounded iterative refinement | Implemented (checked study pending) | Exact and sampled estimator validation at six horizons; five updates at K=4, learning rate 0.01, bounded parameters, independent training roles, and untouched initial/fifth paired evaluation. Persist and replay all evidence without claiming convergence. |
 | M5: topology-aware meta-EBM | Queued after the bounded learning study | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 M2 is an evaluation of frozen parameters, not additional training. See the
@@ -45,9 +45,10 @@ passes the exact, autodiff, and finite-difference comparisons and both negative
 controls. It applies no update and does
 not establish a full-program Monte Carlo estimator or iterative convergence.
 
-For M4, choose the fixed step budget (an initial candidate is five), training
-horizon, learning rate, seed set, role budgets, and selection policy before
-running the study. Do not reuse final evaluation to tune or select updates.
+The [M4 protocol](experiments/bounded-finite-sweep-refinement.md) fixes five
+updates at K=4, learning rate 0.01, seeds 0,1,2, 32,768 trajectories per
+independent training role, and the fifth checkpoint before the study runs.
+Do not reuse final evaluation to tune or select updates.
 If formal statistical acceptance is introduced later, establish an appropriate
 coverage and repeated-comparison policy first.
 
@@ -108,7 +109,7 @@ See [the experiment specification](experiments/biased-random-walk.md).
 - [x] M1 population-objective audit of the frozen one-step pair with paired uncertainty
 - [x] M2 frozen-pair finite-sweep transfer audit
 - [x] M3 exact finite-sweep gradient contract
-- [ ] M4 bounded iterative 25-site trajectory refinement
+- [x] M4 bounded iterative 25-site trajectory refinement
 
 The independently compiled item is an atomic method-level reconstruction:
 five-spin PAsymSwap kernels from the separate 5 by 5 Thermalizers fixture,
