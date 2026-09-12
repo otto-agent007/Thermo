@@ -62,7 +62,10 @@ Bind that hash into the M4B request and preserve all historical values and
 provenance. This authenticates the input artifact; it does not freshly validate
 or re-execute the unused M1 update or jackknife statistics. Independently check
 the source specification, parameter bounds/digest, fixture schedule and exact
-target. Recompiling historical parameters would change the intended starting
+target. For independent target reconstruction only, use absolute tolerance
+1e-14 (zero relative tolerance) for cross-CPU BLAS rounding; preserve the exact
+archived target and reference for all M4B computation and request identity.
+The full archive hash still rejects any mutation, however small. Recompiling historical parameters would change the intended starting
 point, and rechecking unused derived scalars introduces host-dependent rounding.
 Generic M1 validators remain unchanged. New M4B results still undergo full
 numerical replay; only their historical platform label may differ on reload,
