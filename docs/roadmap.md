@@ -17,7 +17,20 @@ The next research milestones are ordered by dependency:
 | M2: frozen-pair finite-sweep transfer audit | Complete (recorded M2 release) | Evaluate the same initial/updated parameter pairs at equilibrium and 1, 2, 4, 8, 16, and 30 complete Gibbs sweeps. Report where the improvement survives, reverses, or is inconclusive, with occupancy loss, particle leakage, and declared sampling work. |
 | M3: finite-sweep gradient contract | Implemented (checked exact contract) | Existing three-site circuit at K=1,2,4,8,16,30: endpoint scores, direct chain rule, independent Bernoulli autodiff, and finite differences agree for both occurrence derivatives and their shared sum. Persisted evidence reconstructs strictly, and negative controls detect incorrect scores and missing occurrences. |
 | M4: bounded iterative refinement | Complete (recorded three-seed study) | Exact and sampled estimator validation at six horizons; five updates at K=4 with fixed budgets and untouched initial/fifth paired evaluation. Two approximate intervals improved and one inconclusive; gains are small, leakage remains high, and no convergence claim follows. |
-| M5: topology-aware meta-EBM | Next: bounded target reproduction | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+| M4B: matched-training-budget comparison | Complete: three-seed descriptive study | No demonstrated finite-K4 advantage: all primary intervals include zero, and leakage remains about 77%. See the [report](experiment-reports/2026-09-12-matched-training-budget/summary.md). No equal hardware-cost or inference-sample claim. |
+| M5: topology-aware meta-EBM | Queued after M4B | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+
+The September 12 research decision added the bounded
+[M4B comparison](experiments/matched-training-budget.md) before M5. It tested
+whether finite-budget training outperforms equilibrium-directed training at
+the same inference horizon, rather than relying on either arm's improvement
+over its own initial state. Both arms use five updates and equal endpoint-draw
+budgets. The equilibrium oracle has no finite hardware-sweep cost, so this is
+not a matched-energy experiment. Keep particle leakage visible beside occupancy
+loss. Later studies may test reduced inference budgets or Z1T activation
+fidelity under quantization and finite sampling; neither is established by M4B.
+The completed result motivates a small conservation/leakage diagnostic before
+expanding training budgets; see the report for the proposed question.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
 [checked audit design](experiments/frozen-pair-finite-sweep-audit.md). Reuse the M1

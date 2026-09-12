@@ -1,0 +1,20 @@
+{
+  "status": "complete",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "full_three_seed_release": true,
+  "completed_runs": 3,
+  "updates_per_arm": 5,
+  "evaluation_horizon": 4,
+  "selected_checkpoint": 5,
+  "matched_hardware_cost": false,
+  "scientific_status": "descriptive_non_gating",
+  "result_digests": [
+    "sha256:5461dafe092245fab75bec6eee5cdb9c8431dfb00f159d5d48387126fb70188f",
+    "sha256:3479258eb9a0d3af0e21ddc176bd351efa05bfe72a8cdc0721b2b01d9dedc390",
+    "sha256:b9614a542d3d188b030e1e6f099760a9cec6d3c8924c4e874c65e311f6df75f1"
+  ]
+}

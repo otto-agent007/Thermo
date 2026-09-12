@@ -235,3 +235,28 @@ uv run thermo-lab refine-finite-sweeps \
 Require full_three_seed_release, updates_per_run=5, horizon=4, and
 selected_checkpoint=5 in completion.json. A partial diagnostic is insufficient
 for this release gate. CI must preserve the full evidence and show its report.
+
+The separate M4B gate follows docs/experiments/matched-training-budget.md.
+Extract the original M1 source records from the three committed M4 seed JSON
+files as documented in README.md, then run:
+
+```bash
+uv run thermo-lab compare-training-laws \
+  results/m4b-sources/seed-0000000000.json \
+  results/m4b-sources/seed-0000000001.json \
+  results/m4b-sources/seed-0000000002.json \
+  --output-dir results/matched-training-budget
+```
+
+Require all three seeds, updates_per_arm=5, selected_checkpoint=5,
+evaluation_horizon=4, and matched_hardware_cost=false in completion.json.
+Preserve the checked archived identities; never substitute regenerated sources.
+Both training occupancy and gradient laws belong to their respective arm.
+Match endpoint draws and updates, not energy or hardware sweeps. Bind the new
+21-role seed namespace, every update, and three final paired comparisons to
+replayable evidence. Primary signed loss is finite minus equilibrium; negative
+favors finite training. Retain particle leakage, interval limitations, and
+non-gating outcomes. M4B does not change M1–M4 or establish convergence,
+inference-sample savings, or a device advantage. CI runs the complete M4B study
+and preserves its bounded artifacts. Run the existing gates without weakening
+their thresholds, provenance, or historical evidence boundaries.
