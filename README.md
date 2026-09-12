@@ -254,6 +254,9 @@ start from the same archived M1 initial parameters; fresh final paired samples
 evaluate both fifth checkpoints at K=4. This does not match hardware cost or
 establish inference-sample savings. See the
 [predeclared comparison protocol](docs/experiments/matched-training-budget.md).
+The [completed three-seed report](docs/experiment-reports/2026-09-12-matched-training-budget/summary.md)
+finds no demonstrated finite-K4 advantage; all primary intervals include zero
+and final particle leakage remains about 77%.
 
 Extract the three original sources embedded in the committed M4 artifacts:
 
