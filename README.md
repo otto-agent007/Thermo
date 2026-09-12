@@ -248,6 +248,41 @@ intervals. The gains are small and particle leakage remains about 77%.
 
 ## Research contract
 
+The separate M4B command compares five finite-K4 updates with five
+equilibrium-directed updates at matched trajectory and update budgets. Both
+start from the same archived M1 initial parameters; fresh final paired samples
+evaluate both fifth checkpoints at K=4. This does not match hardware cost or
+establish inference-sample savings. See the
+[predeclared comparison protocol](docs/experiments/matched-training-budget.md).
+
+Extract the three original sources embedded in the committed M4 artifacts:
+
+```bash
+uv run python - <<'PY'
+import json
+from pathlib import Path
+
+archive = Path("docs/experiment-reports/2026-09-11-bounded-finite-sweep-refinement")
+sources = Path("results/m4b-sources")
+sources.mkdir(parents=True, exist_ok=False)
+for seed in range(3):
+    name = f"seed-{seed:010d}.json"
+    record = json.loads((archive / name).read_text())["source_record"]
+    (sources / name).write_text(json.dumps(record))
+PY
+uv run thermo-lab compare-training-laws \
+  results/m4b-sources/seed-0000000000.json \
+  results/m4b-sources/seed-0000000001.json \
+  results/m4b-sources/seed-0000000002.json \
+  --output-dir results/matched-training-budget
+```
+
+Use fresh destinations. Recompiled source parameters are deliberately rejected
+by this archived-source protocol. The report contains the primary finite-minus-
+equilibrium contrast, both initial/final comparisons, leakage, projection counts,
+declared work, and simulator timing. Paired intervals remain approximate and
+descriptive. Full release requires all three seeds; partial runs are diagnostics.
+
 - [Project charter](PROJECT_CHARTER.md)
 - [Evidence policy](docs/evidence-policy.md)
 - [Z1 hardware model](docs/z1-hardware-model.md)

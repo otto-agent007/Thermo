@@ -69,6 +69,12 @@ def _parser() -> argparse.ArgumentParser:
     )
     refinement.add_argument("source_records", type=Path, nargs="+")
     refinement.add_argument("--output-dir", type=Path, required=True)
+    comparison = subparsers.add_parser(
+        "compare-training-laws",
+        help="compare finite and equilibrium training from archived M1 sources",
+    )
+    comparison.add_argument("source_records", type=Path, nargs="+")
+    comparison.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -76,6 +82,23 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if not getattr(args, "allow_accelerator", False):
         os.environ["JAX_PLATFORMS"] = "cpu"
+
+    if args.command == "compare-training-laws":
+        from thermo_lab.matched_training_audit import run_training_comparison
+
+        audits = run_training_comparison(tuple(args.source_records), args.output_dir)
+        print(
+            json.dumps(
+                {
+                    "status": "complete",
+                    "completed_runs": len(audits),
+                    "seeds": [a.request.seed for a in audits],
+                    "report": str(args.output_dir / "report.md"),
+                },
+                indent=2,
+            )
+        )
+        return 0
 
     if args.command == "refine-finite-sweeps":
         from thermo_lab.finite_refinement_audit import run_finite_refinement

@@ -13,6 +13,74 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  matched-training-budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      JAX_PLATFORMS: cpu
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Extract predeclared archived source records
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          archive = Path("docs/experiment-reports/2026-09-11-bounded-finite-sweep-refinement")
+          sources = Path(os.environ["RUNNER_TEMP"]) / "m4b-sources"
+          sources.mkdir(exist_ok=False)
+          for seed in range(3):
+              name = f"seed-{seed:010d}.json"
+              record = json.loads((archive / name).read_text())["source_record"]
+              (sources / name).write_text(json.dumps(record))
+          PY
+      - name: Run complete matched-training-budget study
+        run: >-
+          uv run thermo-lab compare-training-laws
+          "$RUNNER_TEMP/m4b-sources/seed-0000000000.json"
+          "$RUNNER_TEMP/m4b-sources/seed-0000000001.json"
+          "$RUNNER_TEMP/m4b-sources/seed-0000000002.json"
+          --output-dir "$RUNNER_TEMP/matched-training-budget"
+      - name: Require complete study and show report
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["RUNNER_TEMP"]) / "matched-training-budget"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "complete"
+          assert completion["full_three_seed_release"] is True
+          assert completion["completed_runs"] == 3
+          assert completion["updates_per_arm"] == 5
+          assert completion["evaluation_horizon"] == 4
+          assert completion["selected_checkpoint"] == 5
+          assert completion["matched_hardware_cost"] is False
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PY
+      - name: Preserve complete comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matched-training-budget
+          path: ${{ runner.temp }}/matched-training-budget
+          retention-days: 90
+          if-no-files-found: error
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
