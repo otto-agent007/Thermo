@@ -95,7 +95,9 @@ class TrainingComparisonAudit(StrictEvidenceModel):
 
     @model_validator(mode="after")
     def reconstruct(self):
-        source = validate_persisted_composed_refinement_record(self.source_record)
+        source = validate_persisted_composed_refinement_record(
+            self.source_record, allow_historical_platform=True
+        )
         request = ComparisonRequest.model_validate_json(self.request.model_dump_json())
         if request != _request(source):
             raise ValueError("comparison request must bind the frozen source lineage")
@@ -120,7 +122,8 @@ class TrainingComparisonAudit(StrictEvidenceModel):
         if self.result_digest != audit_digest(self.request_hash, sequence.result_digest):
             raise ValueError("audit result must bind the request and complete comparison")
         _checked_runtime_provenance(
-            self.source_record.model_copy(update={"provenance": self.provenance})
+            self.source_record.model_copy(update={"provenance": self.provenance}),
+            allow_historical_platform=True,
         )
         return self
 
@@ -128,7 +131,7 @@ class TrainingComparisonAudit(StrictEvidenceModel):
 def build_comparison_audit(record):
     from thermo_lab.backends.numpy_composed_pasym_swap import _composed_provenance
 
-    source = validate_persisted_composed_refinement_record(record)
+    source = validate_persisted_composed_refinement_record(record, allow_historical_platform=True)
     request = _request(source)
     request_hash = canonical_sha256(request.model_dump(mode="json"))
     prepared = _reconstruction_backend().prepare(record.spec)
@@ -287,7 +290,10 @@ def run_training_comparison(source_paths: tuple[Path, ...], output_dir: Path):
     records = tuple(
         RunRecord.model_validate_json(p.read_text(encoding="utf-8")) for p in source_paths
     )
-    requests = tuple(_request(validate_persisted_composed_refinement_record(r)) for r in records)
+    requests = tuple(
+        _request(validate_persisted_composed_refinement_record(r, allow_historical_platform=True))
+        for r in records
+    )
     seeds = tuple(r.seed for r in requests)
     if len(set(seeds)) != len(seeds):
         raise ValueError("duplicate source seeds are not independent replications")

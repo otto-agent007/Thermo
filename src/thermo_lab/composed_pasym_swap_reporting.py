@@ -143,7 +143,9 @@ def build_composed_metric_observations(
     }
 
 
-def _checked_runtime_provenance(record: RunRecord) -> None:
+def _checked_runtime_provenance(
+    record: RunRecord, *, allow_historical_platform: bool = False
+) -> None:
     from thermo_lab.backends.numpy_composed_pasym_swap import _composed_provenance
 
     observed = record.provenance
@@ -156,7 +158,13 @@ def _checked_runtime_provenance(record: RunRecord) -> None:
         raise ValueError("Composed Git provenance requires a full commit identity")
     if (observed.git_commit is None) != (observed.git_dirty is None):
         raise ValueError("Composed Git commit and dirty-state availability must agree")
-    if observed.model_copy(update={"git_commit": None, "git_dirty": None}) != expected:
+    # Archived replay may run on a different OS/kernel. Keep the recorded machine
+    # identity untouched; only an explicit archival caller may ignore that field
+    # when checking compatibility. Python/packages/execution identities stay strict.
+    ignored = {"git_commit": None, "git_dirty": None}
+    if allow_historical_platform:
+        ignored["platform"] = expected.platform
+    if observed.model_copy(update=ignored) != expected:
         raise ValueError("Composed runtime provenance differs from checked runtime identities")
     if any(package.version == "not-installed" for package in observed.packages):
         raise ValueError("Composed lineage and execution packages must be installed")

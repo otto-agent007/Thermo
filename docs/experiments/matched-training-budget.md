@@ -56,6 +56,12 @@ construction in execution; exclude source validation, replay, reporting, and I/O
 No equal wall-clock, energy, or hardware-cost assertion follows from matching
 draw counts. Retain setup, host, read/write and embedding costs as unevaluated.
 
+Archive portability clarification: the recorded platform string describes the
+original machine, not the replay host. M4B explicitly permits a different host
+platform while preserving the archived field and requiring the same Python,
+package and execution identities. Existing non-archival validators stay strict.
+Numerical source lineage and all archived summary identities remain mandatory.
+
 All sampled results are software_simulation; exact local laws and tiny gradient
 references are exact_reference. Preserve every projected update, role seed,
 bounded source moments, input identities, and final joined moments. Reload must
