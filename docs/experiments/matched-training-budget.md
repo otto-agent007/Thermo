@@ -56,11 +56,17 @@ construction in execution; exclude source validation, replay, reporting, and I/O
 No equal wall-clock, energy, or hardware-cost assertion follows from matching
 draw counts. Retain setup, host, read/write and embedding costs as unevaluated.
 
-Archive portability clarification: the recorded platform string describes the
-original machine, not the replay host. M4B explicitly permits a different host
-platform while preserving the archived field and requiring the same Python,
-package and execution identities. Existing non-archival validators stay strict.
-Numerical source lineage and all archived summary identities remain mandatory.
+Archive-import clarification before the completed study: authenticate each entire
+canonical RunRecord against fixed hashes of the published M4-embedded sources.
+Bind that hash into the M4B request and preserve all historical values and
+provenance. This authenticates the input artifact; it does not freshly validate
+or re-execute the unused M1 update or jackknife statistics. Independently check
+the source specification, parameter bounds/digest, fixture schedule and exact
+target. Recompiling historical parameters would change the intended starting
+point, and rechecking unused derived scalars introduces host-dependent rounding.
+Generic M1 validators remain unchanged. New M4B results still undergo full
+numerical replay; only their historical platform label may differ on reload,
+with Python, package and execution identities still checked.
 
 All sampled results are software_simulation; exact local laws and tiny gradient
 references are exact_reference. Preserve every projected update, role seed,

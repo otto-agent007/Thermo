@@ -108,8 +108,6 @@ def _reconstruction_backend():
 
 def validate_persisted_composed_refinement_record(
     record: RunRecord,
-    *,
-    allow_historical_platform: bool = False,
 ) -> ComposedTrajectoryRefinementSummary:
     """Rebuild evidence from bounded sources and trusted inputs, without resampling.
 
@@ -135,7 +133,7 @@ def validate_persisted_composed_refinement_record(
         or timing.timing_method != REFINEMENT_TIMING_METHOD
     ):
         raise ValueError("Refinement timing differs from the checked execution boundary")
-    _checked_runtime_provenance(checked, allow_historical_platform=allow_historical_platform)
+    _checked_runtime_provenance(checked)
     backend = _reconstruction_backend()
     model, run, request_hash = backend.checked_request(checked.spec)
     prepared = backend._prepared(model, run, request_hash)

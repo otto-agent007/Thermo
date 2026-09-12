@@ -10,12 +10,9 @@ from typing import Literal
 from pydantic import Field, StrictFloat, StrictInt, model_validator
 
 from thermo_lab.composed_pasym_swap_reporting import _checked_runtime_provenance
-from thermo_lab.composed_trajectory_refinement_reporting import (
-    _reconstruction_backend,
-    validate_persisted_composed_refinement_record,
-)
 from thermo_lab.composed_trajectory_refinement_results import StrictEvidenceModel
 from thermo_lab.hashing import canonical_sha256
+from thermo_lab.matched_training_archive import import_archived_training_input
 from thermo_lab.matched_training_budget import (
     ComparisonProtocol,
     TrainingComparison,
@@ -38,6 +35,7 @@ class ComparisonRequest(StrictEvidenceModel):
     identity_version: Literal["matched_training_request.v1"] = "matched_training_request.v1"
     protocol: ComparisonProtocol
     seed: StrictInt = Field(ge=0, le=2)
+    source_archive_digest: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     source_summary_digest: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     source_request_hash: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     initial_parameter_digest: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
@@ -54,6 +52,7 @@ def _request(source):
     return ComparisonRequest(
         protocol=ComparisonProtocol(),
         seed=source.seed,
+        source_archive_digest=source.archive_digest,
         source_summary_digest=source.summary_digest,
         source_request_hash=source.request_hash,
         initial_parameter_digest=source.initial_parameter_digest,
@@ -95,25 +94,20 @@ class TrainingComparisonAudit(StrictEvidenceModel):
 
     @model_validator(mode="after")
     def reconstruct(self):
-        source = validate_persisted_composed_refinement_record(
-            self.source_record, allow_historical_platform=True
-        )
+        source = import_archived_training_input(self.source_record)
         request = ComparisonRequest.model_validate_json(self.request.model_dump_json())
         if request != _request(source):
             raise ValueError("comparison request must bind the frozen source lineage")
         if self.request_hash != canonical_sha256(request.model_dump(mode="json")):
             raise ValueError("comparison request hash must bind all requested inputs")
         sequence = TrainingComparison.model_validate_json(self.comparison.model_dump_json())
-        prepared = _reconstruction_backend().prepare(self.source_record.spec)
         if (
             sequence.protocol != request.protocol
             or sequence.seed != request.seed
             or sequence.initial_parameters != source.initial_parameters
             or sequence.target_occupancy != source.target_occupancy
-            or sequence.occurrence_target_indices
-            != tuple(int(x) for x in prepared.bundle.occurrence_target_indices)
-            or sequence.occurrence_site_indices
-            != tuple(tuple(int(x) for x in row) for row in prepared.bundle.occurrence_site_indices)
+            or sequence.occurrence_target_indices != source.occurrence_target_indices
+            or sequence.occurrence_site_indices != source.occurrence_site_indices
             or len(sequence.initial_parameters) != 37
             or len(sequence.target_occupancy) != 25
             or len(sequence.occurrence_target_indices) != 500
@@ -131,16 +125,15 @@ class TrainingComparisonAudit(StrictEvidenceModel):
 def build_comparison_audit(record):
     from thermo_lab.backends.numpy_composed_pasym_swap import _composed_provenance
 
-    source = validate_persisted_composed_refinement_record(record, allow_historical_platform=True)
+    source = import_archived_training_input(record)
     request = _request(source)
     request_hash = canonical_sha256(request.model_dump(mode="json"))
-    prepared = _reconstruction_backend().prepare(record.spec)
     clear_generation_caches()
     start = perf_counter()
     payload = _run_comparison_payload(
         source.initial_parameters,
-        prepared.bundle.occurrence_target_indices,
-        prepared.bundle.occurrence_site_indices,
+        source.occurrence_target_indices,
+        source.occurrence_site_indices,
         source.target_occupancy,
         seed=source.seed,
     )
@@ -181,6 +174,10 @@ def render_comparison_report(audits):
         "Updates and logical training draws are matched, not wall-clock time or hardware cost. "
         "Both training occupancy and gradient laws change between arms; this is not a score-only "
         "ablation. The fifth checkpoint is fixed in advance, with a fresh final stream.",
+        "",
+        "Historical source payloads are authenticated against the complete published archive; "
+        "unused M1 statistics are not re-executed. Schedule and target are rebuilt independently, "
+        "and all new M4B computation is replayed.",
         "",
         "## Primary contrast: finite minus equilibrium",
         "",
@@ -290,10 +287,7 @@ def run_training_comparison(source_paths: tuple[Path, ...], output_dir: Path):
     records = tuple(
         RunRecord.model_validate_json(p.read_text(encoding="utf-8")) for p in source_paths
     )
-    requests = tuple(
-        _request(validate_persisted_composed_refinement_record(r, allow_historical_platform=True))
-        for r in records
-    )
+    requests = tuple(_request(import_archived_training_input(r)) for r in records)
     seeds = tuple(r.seed for r in requests)
     if len(set(seeds)) != len(seeds):
         raise ValueError("duplicate source seeds are not independent replications")
