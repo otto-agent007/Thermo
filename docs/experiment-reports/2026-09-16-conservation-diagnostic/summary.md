@@ -90,3 +90,6 @@ three seeds and two horizons (98,304,000 logical endpoint draws), plus exact
 propagation and replay. These are NumPy endpoint draws, not actual Gibbs updates
 or measured device work. Exact replay requires the same computed numerical
 tables; incompatible floating-point results fail rather than silently drift.
+
+The [verification record](verification.md) documents all 1,720 passing tests,
+16 successful experiment gates, package checks, and independent review.
