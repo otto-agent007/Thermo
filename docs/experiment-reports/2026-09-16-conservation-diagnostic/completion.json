@@ -1,0 +1,22 @@
+{
+  "status": "complete",
+  "full_three_seed_release": true,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "horizons": [
+    4,
+    "equilibrium"
+  ],
+  "parameter_updates": 0,
+  "sample_count": 32768,
+  "operations": 500,
+  "scientific_status": "descriptive_non_gating",
+  "result_digests": [
+    "sha256:470b623e7c3751f37235808296ee54c0bcfa6611a5d402f0cc4ff1055faaa4ac",
+    "sha256:477f0069fc251ad3168193e1baedd54b0d2fa9c41bbe2883183e33d7db1bebec",
+    "sha256:862cec1455a7e94dbec0f768592c88a7d3d512c4dd5e5b1ccf448ab26ad412c9"
+  ]
+}

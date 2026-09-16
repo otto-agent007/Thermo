@@ -310,3 +310,21 @@ results/              generated local output (ignored)
 
 Thermo is licensed under the [Apache License 2.0](LICENSE), matching both THRML
 and Torx.
+
+### Frozen-program conservation diagnostic
+
+Following the matched-budget comparison, locate first particle-count failures
+and subsequent returns without changing any parameters. The command authenticates
+all three archived M1 initializations embedded in M4, evaluates K4 and equilibrium,
+and validates exact first-exit survival against unmodified sampled trajectories:
+
+```bash
+uv run python -m thermo_lab.conservation_audit \
+  --output-dir results/conservation-diagnostic
+```
+
+Use a fresh output directory. The [protocol](docs/experiments/conservation-leakage-diagnostic.md)
+fixes all inputs and budgets. The output includes complete bounded per-operation
+JSON, a report, runtime provenance, and a completion marker written only after
+full numerical replay. Terminal count-one and uninterrupted conservation are
+different measurements. This diagnostic makes no training or hardware claim.
