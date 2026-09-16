@@ -347,3 +347,8 @@ every update and all exact measurements before writing completion. Read local
 conservation and unconditional hop error together; conditional hop accuracy and
 terminal count-one are insufficient. This finite search is not an optimality or
 hardware claim. All older studies and their evidence remain separately available.
+
+The [recorded study](docs/experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md)
+finds lower average local failure but worse uninterrupted program survival and
+suppressed directed hopping. The next question is context-aware K4 conservation
+and fidelity using the existing exact target-context profiles.
