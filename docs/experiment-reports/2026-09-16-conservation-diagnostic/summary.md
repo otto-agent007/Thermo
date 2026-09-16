@@ -40,8 +40,8 @@ splits; the difference is not a controlled causal decomposition.
 
 Every frozen group's empty-edge creation probability is positive. Across the
 37 groups it ranges from about 0.0471% to 2.558% per use at either horizon.
-These small local defects can recur hundreds of times. Longer thermalization
-improves pathwise survival but does not remove the conservation problem.
+These small local defects can recur hundreds of times. The equilibrium control has higher
+pathwise survival than K4 but does not remove the conservation problem.
 
 All three archived source records have the **same initial parameter matrix**
 (digest `sha256:04d28612ef90031e303e48ec9c88d1e849b7fffafada006a86c89e42d9f37b71`).
