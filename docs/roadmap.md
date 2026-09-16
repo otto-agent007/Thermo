@@ -20,7 +20,10 @@ The next research milestones are ordered by dependency:
 | M4B: matched-training-budget comparison | Complete: three-seed descriptive study | No demonstrated finite-K4 advantage: all primary intervals include zero, and leakage remains about 77%. See the [report](experiment-reports/2026-09-12-matched-training-budget/summary.md). No equal hardware-cost or inference-sample claim. |
 | M4C: frozen-program conservation diagnostic | Complete: exact and sampled evidence | Only 0.0404% of K4 paths preserve one particle through all 500 operations; half first fail by operation 52. Terminal count-one can reflect later returns. See the [report](experiment-reports/2026-09-16-conservation-diagnostic/summary.md). |
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
-| M5: topology-aware meta-EBM | Queued after context-aware conservation test | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+| M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
+| M4F: bounded asymmetry-preservation test | Next: protocol before fitting | Test one fixed asymmetry-loss term at penalty 1 against the current weighted cell and frozen initialization, with unchanged starts and 100-update budget. |
+| M4G: task quality versus inference budget | Planned after M4F; not started | Compare the smallest tested inference budget meeting the same predeclared task-quality thresholds under finite-budget-aware and equilibrium-directed training. Report the full quality/cost curves, uncertainty, and negative or inconclusive outcomes. See the [decisive experiment](#decisive-experiment-task-quality-versus-inference-budget). |
+| M5: topology-aware meta-EBM | Queued after the M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
 [M4B comparison](experiments/matched-training-budget.md) before M5. It tested
@@ -29,8 +32,9 @@ the same inference horizon, rather than relying on either arm's improvement
 over its own initial state. Both arms use five updates and equal endpoint-draw
 budgets. The equilibrium oracle has no finite hardware-sweep cost, so this is
 not a matched-energy experiment. Keep particle leakage visible beside occupancy
-loss. Later studies may test reduced inference budgets or Z1T activation
-fidelity under quantization and finite sampling; neither is established by M4B.
+loss. M4G will test reduced inference budgets; Z1T activation fidelity under
+quantization and finite sampling remains a later opportunity. Neither is
+established by M4B.
 The completed result motivated the now-recorded
 [conservation diagnostic](experiment-reports/2026-09-16-conservation-diagnostic/summary.md).
 It finds immediate local failures and cumulative pathwise loss: exact uninterrupted
@@ -45,14 +49,21 @@ error. At penalty 10, mean empty-edge failure rises from 0.415% to 3.509%,
 and mean hopping falls to 0.0334% against a 5% logical mean. This objective is
 not supported as a program-conservation remedy.
 
-The next bounded question is whether the existing exact target-context profiles
-can improve the K4 conservation–fidelity objective while retaining directed
-hops. Reuse the checked trace and pooling code; predeclare objective, budget,
-evaluation and stopping before fitting. Retain all-parent diagnostics and
-program survival so improved weighted averages cannot hide new failures.
-Context weighting is a hypothesis, not an established fix. No optimal-capacity,
-convergence, or architecture conclusion follows from the completed fixed search;
-additional full-program training remains unsupported by these results.
+The [matched context-weighting study](experiment-reports/2026-09-16-context-weighted-conservation/summary.md)
+now tests that hypothesis with the existing exact profiles and an unchanged
+search budget. All three weighted cells improve survival and both screened
+hop errors versus their uniform controls. Against frozen initialization, only
+penalty 0 passes the complete joint screen; penalties 1 and 10 trade higher
+survival for increased asymmetry error. Even the highest-survival cell still
+loses 91.72% of paths by the end of operation 500. Context weighting is supported in
+this bounded setting, but faithful full-program execution remains unsolved.
+
+The next bounded question is whether one predeclared asymmetry-loss term at
+penalty 1 can preserve its survival gain while restoring asymmetry error to
+the frozen-initial level. Fix the coefficient, starts, budget, comparisons and
+stopping rule before fitting, and retain all-parent and program diagnostics.
+No global-capacity, convergence, hardware, or architecture conclusion follows
+from this fixed search. A longer training run is not yet justified.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
 [checked audit design](experiments/frozen-pair-finite-sweep-audit.md). Reuse the M1
@@ -98,6 +109,65 @@ hardware advantage for Thermo. Track the
 [official Z1T article](https://extropic.ai/writing/z1t) and
 [public research code](https://github.com/extropic-ai/sparse-transformers);
 pin and validate any future integration before using it as evidence.
+
+## Decisive experiment: task quality versus inference budget
+
+**Research question:** Can training with a limited, explicitly modeled sampling
+budget preserve task quality while reducing the samples needed at inference?
+
+M4G turns this into a threshold comparison: what is the smallest tested
+inference budget at which each training method meets the same task-quality
+requirements? Fixed-K4 improvements motivate this experiment but do not answer
+it. Complete the single bounded M4F test first, then freeze the M4G protocol;
+do not make a positive M4F result a prerequisite or extend its search indefinitely.
+
+- **Matched methods:** compare finite-budget-aware training with
+  equilibrium-directed training and a frozen-initial control on the same
+  25-site, 500-operation task. Match initialization, parameterization, bounds,
+  objective terms, update count, and training endpoint-draw budgets where
+  applicable. Change only the declared training law. Predeclare which models
+  are trained for each horizon and which are evaluated across horizons; a
+  frozen-model sweep alone cannot establish the effect of budget-aware training.
+- **Fixed grid:** use the existing finite horizons K = 1, 2, 4, 8, 16, 30.
+  Equilibrium is a quality reference, not a zero-cost inference option. Fix
+  reset, sweep order, output aggregation, and the number of trajectories per
+  task estimate. Report every cell; make no monotonicity assumption or claim
+  about untested intermediate budgets.
+- **Task-quality contract:** before new fitting or evaluation, choose numeric
+  tolerances against the logical target for full-program occupancy error,
+  terminal particle leakage, and uninterrupted one-particle survival. Retain
+  unconditional hop and asymmetry errors as additional fidelity requirements.
+  All requirements must pass together; a weak trained reference or improved
+  local averages cannot substitute for acceptable task quality. These numeric
+  thresholds are a required protocol deliverable, not yet set by this roadmap.
+- **Cost contract:** distinguish a complete program trajectory, a local endpoint
+  draw, a complete Gibbs sweep, and a p-bit update. Count all inference resets,
+  sweeps, trajectories, and any retries or discarded outputs under a fixed
+  output contract. Report training and evaluation work separately, including
+  exact enumeration/gradient work when used. Exact finite-sampler calculations
+  do not establish training with few sampled observations; equilibrium oracles
+  are not matched hardware costs. Algorithmic counts imply no device latency
+  or energy saving.
+- **Independent evaluation:** fix training seeds, role budgets, selected
+  checkpoints, and stopping rules in advance. Keep final evaluation untouched
+  by tuning, retain paired comparisons where valid, and distinguish repeated
+  sampling from independent fitted models. Before statistical acceptance,
+  validate uncertainty coverage and a simultaneous decision policy across
+  metrics and horizons; existing pointwise approximate intervals are insufficient
+  to select the smallest passing budget. Keep exact references separately
+  labeled and do not assign them Monte Carlo intervals.
+
+**Decision and completion:** publish reproducible quality-versus-cost curves,
+all cells, and each method's smallest passing tested budget. Claim inference
+sample savings only when both trained methods satisfy the same quality contract
+and the budget-aware method uses strictly fewer declared sampling operations,
+with the comparison supported by the predeclared uncertainty policy. Report
+the operation-count ratio and training cost separately. If neither method
+passes, report quality failure within the tested grid; if the reference never
+passes, its minimum and a savings ratio remain unestablished. Equal passing
+budgets show no demonstrated savings; unresolved uncertainty is inconclusive.
+Successful completion requires auditable evidence, not a favorable scientific
+result. Record the resulting decision before proceeding to M5.
 
 ## Phase 0 — Reproducible release foundation
 

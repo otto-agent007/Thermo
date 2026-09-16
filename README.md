@@ -350,5 +350,33 @@ hardware claim. All older studies and their evidence remain separately available
 
 The [recorded study](docs/experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md)
 finds lower average local failure but worse uninterrupted program survival and
-suppressed directed hopping. The next question is context-aware K4 conservation
-and fidelity using the existing exact target-context profiles.
+suppressed directed hopping. That finding motivates the matched context-weighting
+comparison below.
+
+### Matched context-weighting comparison
+
+The matched study replaces uniform training-context weights with the
+existing exact logical target-context profiles. Starts, penalties, K4, caps and
+update budgets stay fixed. It authenticates and replays the complete PR #27
+control, evaluates every weighted cell, and reports survival alongside hop and
+asymmetry errors.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu \
+  uv run python -m thermo_lab.context_conservation_audit \
+  --output-dir results/context-weighted-conservation
+```
+
+Use a fresh directory. The [predeclared protocol](docs/experiments/context-weighted-conservation.md)
+requires full numerical replay of both arms and derived profiles. Context weights
+come from the logical program, not the fitted model. Passing the descriptive
+joint screen is not an absolute fidelity certificate, and scientific outcomes
+remain non-gating. Exact replay requires compatible floating-point results.
+
+The [recorded comparison](docs/experiment-reports/2026-09-16-context-weighted-conservation/summary.md)
+finds that every weighted cell improves survival and screened hop errors versus
+its uniform counterpart. Only penalty 0 passes the joint screen against frozen
+initialization (survival 0.0404% → 0.829%). Stronger penalties improve survival
+further but worsen asymmetry error; faithful full-program execution remains
+unsolved. The next bounded question is an explicit asymmetry-loss term at
+penalty 1, with its coefficient and budget fixed before fitting.
