@@ -50,9 +50,9 @@ Gibbs updates or physical device operations. No hardware timing/energy claim.
 
 ## Integrity and outputs
 
-Bind canonical input identities, source archive digests, table values, stream,
-and protocol in each request. Persist bounded per-operation evidence and its
-result digest. Reload by authenticating sources, rebuilding tables, and replaying
+Bind canonical requested input identities, source archive digests, parameters,
+horizons, stream, and protocol in each request. Bind derived table-value digests
+in the result alongside bounded per-operation evidence. Reload by authenticating sources, rebuilding tables, and replaying
 the complete diagnostic; a repaired checksum alone cannot authorize changed
 counts. Generate reports only from validated artifacts; write completion last.
 Use a fresh destination. Require all three seeds and both horizons for a full
@@ -62,3 +62,9 @@ Tests must compare the killed recurrence against exhaustive tiny full-state
 propagation, distinguish exit-and-return from uninterrupted survival, validate
 local creation/destruction accounting, reproduce existing sampler terminal
 counts, and reject tampered evidence. Scientific outcomes are non-gating.
+
+Request-identity clarification during review: computed tables belong in the
+result identity, consistent with AGENTS.md's requested-input hash boundary.
+The initial wording placed table values in the request; the implementation
+already used the result boundary. This correction changes no parameter,
+random stream, estimator, horizon, sample count, result, or scientific decision.

@@ -71,3 +71,31 @@ def test_report_rejects_duplicate_seeds_and_tampering(audit):
     changed["cells"][0]["exact"][0]["survival_probability"] = 1.0
     with pytest.raises(ValueError):
         render_report([changed])
+
+
+def test_existing_destination_is_never_overwritten(tmp_path):
+    from thermo_lab.conservation_audit import run_study
+
+    output = tmp_path / "existing"
+    output.mkdir()
+    marker = output / "completion.json"
+    marker.write_text("prior evidence")
+    with pytest.raises(FileExistsError):
+        run_study(ARCHIVE, output)
+    assert marker.read_text() == "prior evidence"
+    assert list(output.iterdir()) == [marker]
+
+
+def test_report_validation_failure_cannot_publish_completion(tmp_path, monkeypatch):
+    from thermo_lab import conservation_audit
+
+    def failed_validation(audits):
+        raise ValueError("injected replay validation failure")
+
+    monkeypatch.setattr(conservation_audit, "render_report", failed_validation)
+    output = tmp_path / "failed"
+    with pytest.raises(ValueError, match="injected replay"):
+        conservation_audit.run_study(ARCHIVE, output)
+    assert len(list(output.glob("seed-*.json"))) == 3
+    assert (output / "protocol.json").is_file()
+    assert not (output / "completion.json").exists()

@@ -133,12 +133,16 @@ def render_report(audits):
         "",
         "Frozen initial parameters, beta 1, 25 sites, 500 operations, and 32,768 trajectories "
         "per seed/horizon. No training. K4 and equilibrium share fresh uniform streams. "
-        "Independent source seeds are replications; horizons and operations are correlated.",
+        "Independent source seeds are sampling replications; "
+        "horizons and operations are correlated.",
         "",
         "Exact survival is the probability of never leaving the one-particle sector. "
         "It is computed with a killed 25-state recurrence. Final valid paths can include "
         "paths that left and returned. Exact columns are exact_reference; sampled columns "
         "and occupancy loss are software_simulation. All findings are descriptive.",
+        "",
+        "The three archived sources share the same initial parameter digest; their exact "
+        "curves therefore coincide. The seeds replicate sampling, not parameter initialization.",
         "",
         "| Seed | Horizon | Exact median first exit (operation) | Exact 99% exit (operation) | "
         "Exact final survival | Sampled ever exited | Sampled final leakage | "
