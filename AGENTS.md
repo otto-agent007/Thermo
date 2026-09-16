@@ -285,3 +285,19 @@ and fixed step 1/(1+lambda). Report every penalty, conservation, unconditional a
 conditional hop fidelity, asymmetry, and exact killed survival. A fixed local
 search establishes attained results, not convergence, optimal capacity, or a
 physical-device benefit. Preserve all prior evidence and gates.
+
+
+The matched context-weighting study follows docs/experiments/context-weighted-conservation.md.
+Run `uv run python -m thermo_lab.context_conservation_audit --output-dir results/context-weighted-conservation`
+with a fresh destination. Require full_grid, source_seeds [0,1,2], one shared
+initial matrix, 37 groups, penalties [0,1,10], two starts and 100 updates per start,
+22,200 updates in each arm, control_replayed, K4, 500 operations, zero samples,
+eight evaluated cells, and six descriptive comparisons. Pin and replay the
+complete committed PR #27 uniform artifact before comparison. Rebuild exact
+unsmoothed logical contexts with equal-occurrence pooling; derived profiles
+belong in the result. Preserve the uniform optimizer's arithmetic and identities.
+Report all-parent errors, occurrence-weighted logical-context errors, killed
+survival, and unconditional hop/asymmetry errors together. A joint screen passes
+only for strict survival gain and neither error increasing; it is descriptive,
+not a release gate or fidelity certificate. Replay all new updates and profiles
+before reporting; write completion last and preserve every older gate.

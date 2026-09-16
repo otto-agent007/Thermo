@@ -352,3 +352,23 @@ The [recorded study](docs/experiment-reports/2026-09-16-local-conservation-trade
 finds lower average local failure but worse uninterrupted program survival and
 suppressed directed hopping. The next question is context-aware K4 conservation
 and fidelity using the existing exact target-context profiles.
+
+### Matched context-weighting comparison
+
+The next bounded study replaces uniform training-context weights with the
+existing exact logical target-context profiles. Starts, penalties, K4, caps and
+update budgets stay fixed. It authenticates and replays the complete PR #27
+control, evaluates every weighted cell, and reports survival alongside hop and
+asymmetry errors.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu \
+  uv run python -m thermo_lab.context_conservation_audit \
+  --output-dir results/context-weighted-conservation
+```
+
+Use a fresh directory. The [predeclared protocol](docs/experiments/context-weighted-conservation.md)
+requires full numerical replay of both arms and derived profiles. Context weights
+come from the logical program, not the fitted model. Passing the descriptive
+joint screen is not an absolute fidelity certificate, and scientific outcomes
+remain non-gating. Exact replay requires compatible floating-point results.
