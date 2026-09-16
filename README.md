@@ -378,7 +378,7 @@ finds that every weighted cell improves survival and screened hop errors versus
 its uniform counterpart. Only penalty 0 passes the joint screen against frozen
 initialization (survival 0.0404% → 0.829%). Stronger penalties improve survival
 further but worsen asymmetry error; faithful full-program execution remains
-unsolved. The next bounded question is an explicit asymmetry-loss term at
+unsolved. The subsequent M4F study tests one explicit asymmetry-loss term at
 penalty 1, with its coefficient and budget fixed before fitting.
 
 
@@ -401,3 +401,13 @@ consumed logical, frozen and weighted-1 cells are replayed. Numeric compatibilit
 checks preserve archived values, and all new results require strict replay.
 This is one 7,400-update arm, not a coefficient search or evidence of inference
 sample savings. The next decision is the M4G quality-versus-budget protocol.
+
+
+The [recorded M4F result](docs/experiment-reports/2026-09-16-asymmetry-preservation/summary.md)
+reduces asymmetry MAE by 88.86% and hop MAE by 37.31% versus the weighted-1
+control. Survival falls from 6.1496% to 6.1129%, so the primary joint screen
+**fails**. The fixed study stops here. Next is the
+[M4G protocol](docs/roadmap.md#decisive-experiment-task-quality-versus-inference-budget),
+which must set numeric full-program quality thresholds before comparing the
+smallest passing inference budgets. M4F does not establish task-quality
+preservation or sample savings.

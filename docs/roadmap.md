@@ -21,8 +21,8 @@ The next research milestones are ordered by dependency:
 | M4C: frozen-program conservation diagnostic | Complete: exact and sampled evidence | Only 0.0404% of K4 paths preserve one particle through all 500 operations; half first fail by operation 52. Terminal count-one can reflect later returns. See the [report](experiment-reports/2026-09-16-conservation-diagnostic/summary.md). |
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
 | M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
-| M4F: bounded asymmetry-preservation test | Active: protocol fixed before fitting | [Predeclared study](experiments/asymmetry-preservation.md): add unit-weight squared asymmetry loss at penalty 1; keep the two starts, step 1/2 and 100 updates. Require retained weighted-control survival, frozen-initial asymmetry, and no hop regression. |
-| M4G: task quality versus inference budget | Planned after M4F; not started | Compare the smallest tested inference budget meeting the same predeclared task-quality thresholds under finite-budget-aware and equilibrium-directed training. Report the full quality/cost curves, uncertainty, and negative or inconclusive outcomes. See the [decisive experiment](#decisive-experiment-task-quality-versus-inference-budget). |
+| M4F: bounded asymmetry-preservation test | Complete: primary joint screen fails | Asymmetry MAE falls 88.86% and hop MAE 37.31% versus weighted-1, but survival falls 6.1496% → 6.1129%, failing the fixed preservation threshold. [Report](experiment-reports/2026-09-16-asymmetry-preservation/summary.md). Stop after the predeclared 7,400 updates. |
+| M4G: task quality versus inference budget | Next: freeze protocol before fitting | Compare the smallest tested inference budget meeting the same predeclared task-quality thresholds under finite-budget-aware and equilibrium-directed training. Report the full quality/cost curves, uncertainty, and negative or inconclusive outcomes. See the [decisive experiment](#decisive-experiment-task-quality-versus-inference-budget). |
 | M5: topology-aware meta-EBM | Queued after the M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
@@ -58,12 +58,19 @@ survival for increased asymmetry error. Even the highest-survival cell still
 loses 91.72% of paths by the end of operation 500. Context weighting is supported in
 this bounded setting, but faithful full-program execution remains unsolved.
 
-The next bounded question is whether one predeclared asymmetry-loss term at
-penalty 1 can preserve its survival gain while restoring asymmetry error to
-the frozen-initial level. Fix the coefficient, starts, budget, comparisons and
-stopping rule before fitting, and retain all-parent and program diagnostics.
-No global-capacity, convergence, hardware, or architecture conclusion follows
-from this fixed search. A longer training run is not yet justified.
+The [completed M4F study](experiment-reports/2026-09-16-asymmetry-preservation/summary.md)
+adds the single predeclared unit-weight asymmetry term at penalty 1. It reduces
+asymmetry MAE by 88.86% and hop MAE by 37.31% against the weighted control,
+but survival slips from 6.1496% to 6.1129%. The exact mixed-reference primary
+screen therefore fails. Fully 93.8871% of paths still leave the one-particle
+sector by the end of operation 500. This is a useful local-fidelity result,
+not preserved full-program quality or inference-sample savings.
+
+M4F stops here under its predeclared rule: no coefficient search or longer run.
+The next work is to freeze the M4G quality-versus-inference-budget protocol,
+including numeric full-program quality thresholds and the simultaneous decision
+policy, before new fitting or evaluation. No global-capacity, convergence,
+hardware, or architecture conclusion follows from the fixed M4F search.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
 [checked audit design](experiments/frozen-pair-finite-sweep-audit.md). Reuse the M1
@@ -118,8 +125,9 @@ budget preserve task quality while reducing the samples needed at inference?
 M4G turns this into a threshold comparison: what is the smallest tested
 inference budget at which each training method meets the same task-quality
 requirements? Fixed-K4 improvements motivate this experiment but do not answer
-it. Complete the single bounded M4F test first, then freeze the M4G protocol;
-do not make a positive M4F result a prerequisite or extend its search indefinitely.
+it. M4F is now complete with a negative primary result. Freeze the M4G protocol
+next; a positive M4F result is not a prerequisite and its search will not be
+extended.
 
 - **Matched methods:** compare finite-budget-aware training with
   equilibrium-directed training and a frozen-initial control on the same
