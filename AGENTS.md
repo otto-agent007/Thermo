@@ -260,3 +260,15 @@ non-gating outcomes. M4B does not change M1–M4 or establish convergence,
 inference-sample savings, or a device advantage. CI runs the complete M4B study
 and preserves its bounded artifacts. Run the existing gates without weakening
 their thresholds, provenance, or historical evidence boundaries.
+
+
+The conservation diagnostic follows docs/experiments/conservation-leakage-diagnostic.md.
+Run `uv run python -m thermo_lab.conservation_audit --output-dir results/conservation-diagnostic`
+with a fresh destination. Require full_three_seed_release, seeds [0,1,2], horizons
+[4,"equilibrium"], 32768 samples, 500 operations, and zero parameter updates.
+Keep exact killed-path survival separate from full-sampler terminal leakage and
+returns to one particle. Authenticate the same archived M1 initial sources; do
+not substitute regenerated or trained parameters. New streams do not reuse M4B
+evaluation. Replay all persisted counts before reporting and write completion
+last. Local failure probabilities describe frozen parameters, not a proved
+optimal representational limit. Preserve the older evidence and gates.

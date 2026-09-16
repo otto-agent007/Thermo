@@ -13,6 +13,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  conservation-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      JAX_PLATFORMS: cpu
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Run and replay complete conservation diagnostic
+        run: >-
+          uv run python -m thermo_lab.conservation_audit
+          --output-dir "${{ runner.temp }}/conservation-diagnostic"
+      - name: Require complete study and show report
+        run: |
+          python - <<'PYCODE'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["RUNNER_TEMP"]) / "conservation-diagnostic"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "complete"
+          assert completion["full_three_seed_release"] is True
+          assert completion["seeds"] == [0, 1, 2]
+          assert completion["horizons"] == [4, "equilibrium"]
+          assert completion["sample_count"] == 32768
+          assert completion["operations"] == 500
+          assert completion["parameter_updates"] == 0
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PYCODE
+      - name: Preserve bounded conservation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conservation-diagnostic
+          path: ${{ runner.temp }}/conservation-diagnostic
+          retention-days: 90
+          if-no-files-found: error
+
   matched-training-budget:
     runs-on: ubuntu-latest
     timeout-minutes: 30
