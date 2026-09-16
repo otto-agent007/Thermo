@@ -88,3 +88,29 @@ non-gating. Metrics are exact_reference up to floating-point arithmetic; there
 are no samples, confidence intervals, hardware measurements, convergence
 certificates, or optimal-capacity claims. This one-factor bounded comparison
 cannot establish that context weighting is a general remedy.
+
+## September 16 CI replay correction (schema 1.1 / request v2)
+
+The initial schema 1.0 release required bitwise equality when rebuilding the
+archived uniform control. CI exposed an invalid portability assumption: changing
+NumPy's CPU instruction path reproduces differences of about 6e-15 in numeric
+outputs, changing their digests without changing optimizer selections. The
+earlier local verification was valid for its runtime, not a cross-CPU guarantee.
+
+New requests bind a separate control-replay policy. Authenticate the complete
+historical artifact against the unchanged pin before any fitting. Independently
+rebuild every uniform update and compare all stored numeric outputs with absolute
+tolerance 1e-12 and relative tolerance zero, using the existing finite-reference
+validation scale. Require exact requests, sources, shapes, scalar types, discrete
+decisions, and penalty labels. Only the derived top-level result digest and each
+cell's joint-table digest are exempt from cross-runtime equality; the archive pin
+still authenticates those original hashes. Reject nonfinite or out-of-tolerance
+values with their field paths. This policy applies only to the pinned control.
+
+Keep the original control values in all comparisons and persisted evidence.
+New weighted results, context profiles, and comparisons still require strict
+complete replay, and the scientific joint screen retains literal comparisons
+without a tolerance. Schema 1.0 records keep their original v1 request identity
+and strict replay semantics. Do not rewrite historical evidence or relax the
+older uniform-study validator. This correction changes validation portability,
+not the training objective, budget, or scientific acceptance rules.

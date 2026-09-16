@@ -301,3 +301,12 @@ survival, and unconditional hop/asymmetry errors together. A joint screen passes
 only for strict survival gain and neither error increasing; it is descriptive,
 not a release gate or fidelity certificate. Replay all new updates and profiles
 before reporting; write completion last and preserve every older gate.
+
+Context-study schema 1.1 / request v2 preserves the exact complete uniform-control
+pin while checking its independently rebuilt numerical outputs at absolute
+tolerance 1e-12 and relative tolerance zero. Requests, sources, structure, scalar
+types, discrete decisions and penalty labels remain exact. Only derived result
+and joint-table digests may differ across runtimes; the original pinned values
+remain the comparison reference. New weighted evidence still requires strict
+complete replay. Preserve schema 1.0's original strict semantics and the older
+uniform-study validator. See the dated CI correction in the study protocol.

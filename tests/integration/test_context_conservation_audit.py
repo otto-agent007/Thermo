@@ -2,6 +2,10 @@
 
 import copy
 import json
+import os
+import platform
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -26,6 +30,8 @@ def test_full_matched_grid_replays_with_original_control_unchanged(audit):
 
     assert validate_audit(json.loads(json.dumps(audit))) == audit
     assert canonical_sha256(audit["control"]) == CONTROL_DIGEST
+    assert audit["schema_version"] == "1.1.0"
+    assert audit["request"]["identity_version"] == "context_weighted_conservation.v2"
     assert len(audit["cells"]) == 3
     assert len(audit["evaluations"]) == 8
     assert len(audit["comparisons"]) == 6
@@ -63,6 +69,45 @@ def test_repaired_digest_cannot_authorize_modified_context_profile(audit):
     changed["result_digest"] = audit_digest(changed)
     with pytest.raises(ValueError, match="numerical replay"):
         validate_audit(changed)
+
+
+def test_new_weighted_results_still_require_bitwise_replay(audit):
+    from thermo_lab.context_conservation_audit import audit_digest, validate_audit
+
+    changed = copy.deepcopy(audit)
+    parameters = changed["cells"][0]["parameters"][0]
+    parameters[0] = float(np.nextafter(parameters[0], np.inf))
+    changed["result_digest"] = audit_digest(changed)
+    with pytest.raises(ValueError, match="numerical replay"):
+        validate_audit(changed)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(platform.machine() != "x86_64", reason="x86 SIMD dispatch regression")
+def test_pinned_control_replays_with_baseline_numpy_cpu_instructions():
+    script = """
+import json
+from pathlib import Path
+from thermo_lab.hashing import canonical_sha256
+from thermo_lab.pinned_control_replay import CONTROL_DIGEST, replay_pinned_control
+control = json.loads(Path(__import__('sys').argv[1]).read_text())
+checked = replay_pinned_control(control)
+assert canonical_sha256(checked) == CONTROL_DIGEST
+"""
+    env = {
+        **os.environ,
+        "NPY_DISABLE_CPU_FEATURES": "X86_V3,X86_V4,AVX512_ICL,AVX512_SPR",
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+    }
+    result = subprocess.run(
+        [sys.executable, "-c", script, str(CONTROL)],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize("mutation", ["policy", "control", "comparison"])

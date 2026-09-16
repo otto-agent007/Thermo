@@ -19,16 +19,16 @@ from thermo_lab.context_conservation import (
 )
 from thermo_lab.hashing import canonical_sha256, to_json_value
 from thermo_lab.persistence import atomic_write_text
+from thermo_lab.pinned_control_replay import CONTROL_DIGEST, REPLAY_ATOL, replay_pinned_control
 
 CONTROL_PATH = Path("docs/experiment-reports/2026-09-16-local-conservation-tradeoff/study.json")
-CONTROL_DIGEST = "sha256:7b9e7a88e149bf888f3920f772b6109120944257dad71b7dbf8a4f099a6bd206"
 
 
-def _request(control):
+def _request(control, *, legacy=False):
     if canonical_sha256(control) != CONTROL_DIGEST:
         raise ValueError("uniform control differs from the pinned complete artifact")
-    return {
-        "identity_version": "context_weighted_conservation.v1",
+    request = {
+        "identity_version": f"context_weighted_conservation.v{1 if legacy else 2}",
         "control_artifact_digest": CONTROL_DIGEST,
         "context_source": "exact_target_pre_gate",
         "initial_state": "single_particle_at_site_0_0",
@@ -57,6 +57,17 @@ def _request(control):
         "control_group_updates": 22200,
         "scientific_status": "attained_tradeoffs; descriptive_non_gating; no_optimality_claim",
     }
+    if not legacy:
+        request["control_replay"] = {
+            "archive_authentication": "exact_complete_artifact_pin",
+            "numeric_atol": REPLAY_ATOL,
+            "numeric_rtol": 0.0,
+            "exact_fields": "request_sources_structure_types_discrete_values_and_penalties",
+            "derived_digest_exemptions": ["/result_digest", "/cells/*/tables_digest"],
+            "comparison_reference": "unchanged_authenticated_archive",
+            "new_result_replay": "strict_complete_artifact_equality",
+        }
+    return request
 
 
 def audit_digest(audit):
@@ -74,9 +85,9 @@ def audit_digest(audit):
     )
 
 
-def build_audit(control):
-    request = _request(control)
-    control = validate_uniform_audit(control)
+def build_audit(control, *, legacy=False):
+    request = _request(control, legacy=legacy)
+    control = validate_uniform_audit(control) if legacy else replay_pinned_control(control)
     contexts = derive_contexts()
     profiles = contexts["profiles"]
     weights = np.asarray([profile["context_weights"] for profile in profiles])
@@ -128,7 +139,7 @@ def build_audit(control):
                 }
             )
     audit = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.0" if legacy else "1.1.0",
         "control": control,
         "request": request,
         "request_hash": canonical_sha256(request),
@@ -153,16 +164,21 @@ def validate_audit(audit):
         "comparisons",
         "result_digest",
     }
-    if not isinstance(audit, dict) or set(audit) != keys or audit["schema_version"] != "1.0.0":
+    if (
+        not isinstance(audit, dict)
+        or set(audit) != keys
+        or audit["schema_version"] not in ("1.0.0", "1.1.0")
+    ):
         raise ValueError("invalid context-conservation artifact shape")
-    request = _request(audit["control"])
+    legacy = audit["schema_version"] == "1.0.0"
+    request = _request(audit["control"], legacy=legacy)
     if (
         canonical_sha256(audit["request"]) != canonical_sha256(request)
         or audit["request_hash"] != canonical_sha256(request)
         or audit["result_digest"] != audit_digest(audit)
     ):
         raise ValueError("context-conservation request or result digest mismatch")
-    rebuilt = build_audit(audit["control"])
+    rebuilt = build_audit(audit["control"], legacy=legacy)
     if canonical_sha256(audit) != canonical_sha256(rebuilt):
         raise ValueError("context-conservation artifact does not match complete numerical replay")
     return rebuilt
@@ -266,7 +282,15 @@ def render_report(audit):
         "",
         "The complete pinned uniform control, derived profiles, new fits, all-parent laws, "
         "survival curves, evaluations and comparisons are persisted. Reporting authenticates "
-        "and replays both arms. Incompatible floating-point results fail exact replay.",
+        "and replays both arms. "
+        + (
+            "Incompatible floating-point results fail exact replay."
+            if checked["schema_version"] == "1.0.0"
+            else "The unchanged archived control is hash-authenticated, with recomputed "
+            "numeric outputs checked at absolute tolerance 1e-12 (relative tolerance zero). "
+            "Control policies and discrete decisions remain exact. New weighted results "
+            "require strict complete replay; the scientific joint screen uses no tolerance."
+        ),
         "",
         f"Request: `{checked['request_hash']}`",
         "",
