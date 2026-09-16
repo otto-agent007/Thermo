@@ -13,6 +13,63 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  local-conservation-tradeoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      JAX_PLATFORMS: cpu
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Run and replay full local conservation trade-off grid
+        run: >-
+          uv run python -m thermo_lab.conservation_tradeoff_audit
+          --output-dir "${{ runner.temp }}/local-conservation-tradeoff"
+      - name: Require complete grid and show report
+        run: |
+          python - <<'PYCODE'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["RUNNER_TEMP"]) / "local-conservation-tradeoff"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "complete"
+          assert completion["full_grid"] is True
+          assert completion["source_seeds"] == [0, 1, 2]
+          assert completion["independent_initial_matrices"] == 1
+          assert completion["groups"] == 37
+          assert completion["penalties"] == [0, 1, 10]
+          assert completion["starts_per_group"] == 2
+          assert completion["updates_per_start"] == 100
+          assert completion["total_group_updates"] == 22200
+          assert completion["horizon"] == 4
+          assert completion["operations"] == 500
+          assert completion["sample_count"] == 0
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PYCODE
+      - name: Preserve complete local trade-off evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-conservation-tradeoff
+          path: ${{ runner.temp }}/local-conservation-tradeoff
+          retention-days: 90
+          if-no-files-found: error
+
   conservation-diagnostic:
     runs-on: ubuntu-latest
     timeout-minutes: 15

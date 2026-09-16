@@ -19,7 +19,8 @@ The next research milestones are ordered by dependency:
 | M4: bounded iterative refinement | Complete (recorded three-seed study) | Exact and sampled estimator validation at six horizons; five updates at K=4 with fixed budgets and untouched initial/fifth paired evaluation. Two approximate intervals improved and one inconclusive; gains are small, leakage remains high, and no convergence claim follows. |
 | M4B: matched-training-budget comparison | Complete: three-seed descriptive study | No demonstrated finite-K4 advantage: all primary intervals include zero, and leakage remains about 77%. See the [report](experiment-reports/2026-09-12-matched-training-budget/summary.md). No equal hardware-cost or inference-sample claim. |
 | M4C: frozen-program conservation diagnostic | Complete: exact and sampled evidence | Only 0.0404% of K4 paths preserve one particle through all 500 operations; half first fail by operation 52. Terminal count-one can reflect later returns. See the [report](experiment-reports/2026-09-16-conservation-diagnostic/summary.md). |
-| M5: topology-aware meta-EBM | Queued after conservation trade-off study | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+| M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
+| M5: topology-aware meta-EBM | Queued after context-aware conservation test | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
 [M4B comparison](experiments/matched-training-budget.md) before M5. It tested
@@ -35,11 +36,23 @@ The completed result motivated the now-recorded
 It finds immediate local failures and cumulative pathwise loss: exact uninterrupted
 survival is 0.0404% at K4 and 3.49% at equilibrium. All three archived sources share
 one initial parameter matrix; fresh seeds replicate sampling only. This is not a
-new evaluation of trained M4B arms. The next bounded question is the attainable
-local trade-off between conservation and asymmetric-transition fidelity under
-the existing caps and K4 budget, compared with an exact conserving logical
-reference. Predeclare that intervention before additional full-program training;
-the diagnostic does not prove optimal capacity or a successful replacement loss.
+new evaluation of trained M4B arms. The subsequent
+[bounded local trade-off](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md)
+tested three fixed penalties with two starts and 100 K4 projected updates per
+start. Every fitted cell improves uniformly averaged local fidelity and
+conservation, but worsens uninterrupted program survival and unconditional hop
+error. At penalty 10, mean empty-edge failure rises from 0.415% to 3.509%,
+and mean hopping falls to 0.0334% against a 5% logical mean. This objective is
+not supported as a program-conservation remedy.
+
+The next bounded question is whether the existing exact target-context profiles
+can improve the K4 conservation–fidelity objective while retaining directed
+hops. Reuse the checked trace and pooling code; predeclare objective, budget,
+evaluation and stopping before fitting. Retain all-parent diagnostics and
+program survival so improved weighted averages cannot hide new failures.
+Context weighting is a hypothesis, not an established fix. No optimal-capacity,
+convergence, or architecture conclusion follows from the completed fixed search;
+additional full-program training remains unsupported by these results.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
 [checked audit design](experiments/frozen-pair-finite-sweep-audit.md). Reuse the M1

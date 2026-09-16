@@ -272,3 +272,16 @@ not substitute regenerated or trained parameters. New streams do not reuse M4B
 evaluation. Replay all persisted counts before reporting and write completion
 last. Local failure probabilities describe frozen parameters, not a proved
 optimal representational limit. Preserve the older evidence and gates.
+
+
+The local conservation trade-off follows docs/experiments/local-conservation-tradeoff.md.
+Run `uv run python -m thermo_lab.conservation_tradeoff_audit --output-dir results/local-conservation-tradeoff`
+with a fresh destination. Require full_grid, all source_seeds [0,1,2], one shared
+initial matrix, 37 groups, penalties [0,1,10], two starts, 100 updates per start,
+22,200 group updates, K4, 500 operations, and zero samples. Authenticate all source
+records and replay every projected update, endpoint selection, and exact metric
+before reporting; write completion last. Preserve uniform parent/context weights
+and fixed step 1/(1+lambda). Report every penalty, conservation, unconditional and
+conditional hop fidelity, asymmetry, and exact killed survival. A fixed local
+search establishes attained results, not convergence, optimal capacity, or a
+physical-device benefit. Preserve all prior evidence and gates.

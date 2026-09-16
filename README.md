@@ -328,3 +328,27 @@ fixes all inputs and budgets. The output includes complete bounded per-operation
 JSON, a report, runtime provenance, and a completion marker written only after
 full numerical replay. Terminal count-one and uninterrupted conservation are
 different measurements. This diagnostic makes no training or hardware claim.
+
+### Bounded local conservation–fidelity trade-off
+
+After diagnosing first exits, test an attained local trade-off at the same K4
+and caps. Three fixed conservation penalties and two deterministic starts per
+group receive exactly 100 projected-gradient updates. All three archived sources
+are authenticated; their identical initialization is optimized once.
+
+```bash
+uv run python -m thermo_lab.conservation_tradeoff_audit \
+  --output-dir results/local-conservation-tradeoff
+```
+
+Use a fresh directory. The [predeclared protocol](docs/experiments/local-conservation-tradeoff.md)
+fixes the objective, budget, candidate selection, and evaluation. Reload replays
+every update and all exact measurements before writing completion. Read local
+conservation and unconditional hop error together; conditional hop accuracy and
+terminal count-one are insufficient. This finite search is not an optimality or
+hardware claim. All older studies and their evidence remain separately available.
+
+The [recorded study](docs/experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md)
+finds lower average local failure but worse uninterrupted program survival and
+suppressed directed hopping. The next question is context-aware K4 conservation
+and fidelity using the existing exact target-context profiles.
