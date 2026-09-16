@@ -310,3 +310,17 @@ and joint-table digests may differ across runtimes; the original pinned values
 remain the comparison reference. New weighted evidence still requires strict
 complete replay. Preserve schema 1.0's original strict semantics and the older
 uniform-study validator. See the dated CI correction in the study protocol.
+
+The separate M4F study follows docs/experiments/asymmetry-preservation.md.
+Run `uv run python -m thermo_lab.asymmetry_preservation_audit --output-dir results/asymmetry-preservation`
+with a fresh destination. Require full_study, three source seeds sharing one
+matrix, 37 groups, lambda=mu=1, two starts, 100 updates, 7,400 new and 7,400
+control group updates, three consumed reference cells replayed, four evaluated
+cells and two comparisons, K4, 500 operations, and zero samples. Pin the complete
+context archive, authenticate sources, and replay only the consumed weighted-1,
+frozen and logical cells at the declared compatibility tolerance. Keep archived
+weights/metrics and strict new-result replay. The primary screen requires
+survival >= weighted-1, asymmetry MAE <= frozen and hop MAE <= weighted-1; it is
+non-gating. Completion follows successful report replay. No coefficient search
+or additional updates are allowed. CI must exercise a baseline NumPy CPU path
+and retain the full evidence; preserve all older gates and historical validators.
