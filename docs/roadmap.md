@@ -20,8 +20,8 @@ The next research milestones are ordered by dependency:
 | M4B: matched-training-budget comparison | Complete: three-seed descriptive study | No demonstrated finite-K4 advantage: all primary intervals include zero, and leakage remains about 77%. See the [report](experiment-reports/2026-09-12-matched-training-budget/summary.md). No equal hardware-cost or inference-sample claim. |
 | M4C: frozen-program conservation diagnostic | Complete: exact and sampled evidence | Only 0.0404% of K4 paths preserve one particle through all 500 operations; half first fail by operation 52. Terminal count-one can reflect later returns. See the [report](experiment-reports/2026-09-16-conservation-diagnostic/summary.md). |
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
-| M4E: matched context-weighting comparison | Predeclared; implementation underway | Apply existing exact logical context profiles to the same K4 search. Compare every penalty with its uniform control and frozen initialization, requiring survival and directed-hop errors to be read together. [Protocol](experiments/context-weighted-conservation.md). |
-| M5: topology-aware meta-EBM | Queued after context-aware conservation test | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+| M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
+| M5: topology-aware meta-EBM | Queued after bounded asymmetry-preservation test | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
 [M4B comparison](experiments/matched-training-budget.md) before M5. It tested
@@ -46,14 +46,21 @@ error. At penalty 10, mean empty-edge failure rises from 0.415% to 3.509%,
 and mean hopping falls to 0.0334% against a 5% logical mean. This objective is
 not supported as a program-conservation remedy.
 
-The next bounded question is whether the existing exact target-context profiles
-can improve the K4 conservation–fidelity objective while retaining directed
-hops. Reuse the checked trace and pooling code; predeclare objective, budget,
-evaluation and stopping before fitting. Retain all-parent diagnostics and
-program survival so improved weighted averages cannot hide new failures.
-Context weighting is a hypothesis, not an established fix. No optimal-capacity,
-convergence, or architecture conclusion follows from the completed fixed search;
-additional full-program training remains unsupported by these results.
+The [matched context-weighting study](experiment-reports/2026-09-16-context-weighted-conservation/summary.md)
+now tests that hypothesis with the existing exact profiles and an unchanged
+search budget. All three weighted cells improve survival and both screened
+hop errors versus their uniform controls. Against frozen initialization, only
+penalty 0 passes the complete joint screen; penalties 1 and 10 trade higher
+survival for increased asymmetry error. Even the highest-survival cell still
+loses 91.72% of paths by the end of operation 500. Context weighting is supported in
+this bounded setting, but faithful full-program execution remains unsolved.
+
+The next bounded question is whether one predeclared asymmetry-loss term at
+penalty 1 can preserve its survival gain while restoring asymmetry error to
+the frozen-initial level. Fix the coefficient, starts, budget, comparisons and
+stopping rule before fitting, and retain all-parent and program diagnostics.
+No global-capacity, convergence, hardware, or architecture conclusion follows
+from this fixed search. A longer training run is not yet justified.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
 [checked audit design](experiments/frozen-pair-finite-sweep-audit.md). Reuse the M1
