@@ -339,11 +339,17 @@ jobs:
               uv run pytest
               tests/integration/test_numpy_composed_pasym_swap_backend.py
               -m "not slow"
+          - name: integration-context-conservation
+            command: >-
+              uv run pytest
+              tests/integration/test_context_conservation_audit.py
+              -m "not slow"
           - name: integration-other
             command: >-
               uv run pytest tests/integration -m "not slow"
               --ignore=tests/integration/test_composed_pasym_swap_runner.py
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
+              --ignore=tests/integration/test_context_conservation_audit.py
           - name: upstream-regressions
             command: uv run pytest tests/upstream_regressions -m "not slow"
           - name: slow-contracts
