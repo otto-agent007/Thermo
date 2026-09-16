@@ -35,16 +35,21 @@ def objective_and_gradient(parameters, target, penalty):
 
 def fit_group(initial, target, penalty):
     """Execute the declared fixed budget, retaining all four endpoint candidates."""
+    return _fit_group(initial, target, penalty, objective_and_gradient)
+
+
+def _fit_group(initial, target, penalty, evaluate):
+    """Shared fixed optimizer policy; the caller supplies the declared objective."""
     starts = (np.asarray(initial, dtype=np.float64), np.zeros(9, dtype=np.float64))
     candidates, attempts = [], []
     for name, start in zip(("archived", "zero"), starts, strict=True):
         parameters = start.copy()
-        objective, gradient = objective_and_gradient(parameters, target, penalty)
+        objective, gradient = evaluate(parameters, target, penalty)
         candidates.append((objective, parameters.tolist()))
         initial_objective = objective
         for _ in range(UPDATES):
             parameters = np.clip(parameters - gradient / (1 + penalty), -2.0, 2.0)
-            objective, gradient = objective_and_gradient(parameters, target, penalty)
+            objective, gradient = evaluate(parameters, target, penalty)
         candidates.append((objective, parameters.tolist()))
         attempts.append(
             {
