@@ -400,14 +400,26 @@ Use a fresh destination. The complete context archive is pinned; only the
 consumed logical, frozen and weighted-1 cells are replayed. Numeric compatibility
 checks preserve archived values, and all new results require strict replay.
 This is one 7,400-update arm, not a coefficient search or evidence of inference
-sample savings. The next decision is the M4G quality-versus-budget protocol.
+sample savings. The M4G quality-versus-budget protocol is described below.
 
 
 The [recorded M4F result](docs/experiment-reports/2026-09-16-asymmetry-preservation/summary.md)
 reduces asymmetry MAE by 88.86% and hop MAE by 37.31% versus the weighted-1
 control. Survival falls from 6.1496% to 6.1129%, so the primary joint screen
-**fails**. The fixed study stops here. Next is the
-[M4G protocol](docs/roadmap.md#decisive-experiment-task-quality-versus-inference-budget),
-which must set numeric full-program quality thresholds before comparing the
-smallest passing inference budgets. M4F does not establish task-quality
+**fails**. The fixed study stops here. M4F does not establish task-quality
 preservation or sample savings.
+
+## Task quality versus inference budget (M4G)
+
+The [predeclared protocol](docs/experiments/task-quality-inference-budget.md)
+fixes 21 matched-budget fits and 60 evaluation cells at K = 1, 2, 4, 8, 16, 30,
+with equilibrium diagnostic references. Required quality is terminal occupancy
+RMS error <= 0.05, terminal leakage <= 5%, uninterrupted survival >= 95%, and
+hop/asymmetry MAE each <= 0.01. Every requirement must pass in all three seeds.
+
+Simultaneous binomial bounds keep unresolved budgets visible when selecting
+the smallest passing budget. The primary cost is modeled Gibbs sweeps;
+independent trajectory counts remain fixed, and all six finite fits per seed
+count toward training cost. No M4G fitting or evaluation has run. Next is the
+acceptance/coverage preflight and matched training implementation, followed by
+the complete frozen study.
