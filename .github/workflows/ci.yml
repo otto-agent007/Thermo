@@ -13,6 +13,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  asymmetry-preservation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      JAX_PLATFORMS: cpu
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+      NPY_DISABLE_CPU_FEATURES: X86_V3,X86_V4,AVX512_ICL,AVX512_SPR
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Run and replay bounded asymmetry study
+        run: >-
+          uv run python -m thermo_lab.asymmetry_preservation_audit
+          --output-dir "${{ runner.temp }}/asymmetry-preservation"
+      - name: Require complete study and show report
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["RUNNER_TEMP"]) / "asymmetry-preservation"
+          completion = json.loads((output / "completion.json").read_text())
+          expected = {
+              "status": "complete", "full_study": True, "source_seeds": [0, 1, 2],
+              "independent_initial_matrices": 1, "groups": 37,
+              "conservation_penalty": 1.0, "asymmetry_coefficient": 1.0,
+              "starts_per_group": 2, "updates_per_start": 100,
+              "new_group_updates": 7400, "control_group_updates": 7400,
+              "reference_cells_replayed": 3, "reference_replayed": True,
+              "evaluated_cells": 4, "comparisons": 2,
+              "horizon": 4, "operations": 500, "sample_count": 0,
+          }
+          assert all(completion[key] == value for key, value in expected.items())
+          study = json.loads((output / "study.json").read_text())
+          assert completion["result_digest"] == study["result_digest"]
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PY
+      - name: Preserve complete asymmetry evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asymmetry-preservation
+          path: ${{ runner.temp }}/asymmetry-preservation
+          retention-days: 90
+          if-no-files-found: error
+
   context-weighted-conservation:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -344,12 +403,18 @@ jobs:
               uv run pytest
               tests/integration/test_context_conservation_audit.py
               -m "not slow"
+          - name: integration-asymmetry-preservation
+            command: >-
+              uv run pytest
+              tests/integration/test_asymmetry_preservation_audit.py
+              -m "not slow"
           - name: integration-other
             command: >-
               uv run pytest tests/integration -m "not slow"
               --ignore=tests/integration/test_composed_pasym_swap_runner.py
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
               --ignore=tests/integration/test_context_conservation_audit.py
+              --ignore=tests/integration/test_asymmetry_preservation_audit.py
           - name: upstream-regressions
             command: uv run pytest tests/upstream_regressions -m "not slow"
           - name: slow-contracts
