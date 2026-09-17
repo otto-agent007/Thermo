@@ -1,6 +1,6 @@
 # Roadmap
 
-## Active sequence after PR #20 (updated September 16, 2026)
+## Active sequence after PR #20 (updated September 17, 2026)
 
 PR #20 closes M1: the frozen full-program equilibrium update has an unbiased
 population-loss audit with paired, approximate uncertainty. Its three checked
@@ -22,7 +22,7 @@ The next research milestones are ordered by dependency:
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
 | M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
 | M4F: bounded asymmetry-preservation test | Complete: primary joint screen fails | Asymmetry MAE falls 88.86% and hop MAE 37.31% versus weighted-1, but survival falls 6.1496% → 6.1129%, failing the fixed preservation threshold. [Report](experiment-reports/2026-09-16-asymmetry-preservation/summary.md). Stop after the predeclared 7,400 updates. |
-| M4G: task quality versus inference budget | Next: freeze protocol before fitting | Compare the smallest tested inference budget meeting the same predeclared task-quality thresholds under finite-budget-aware and equilibrium-directed training. Report the full quality/cost curves, uncertainty, and negative or inconclusive outcomes. See the [decisive experiment](#decisive-experiment-task-quality-versus-inference-budget). |
+| M4G: task quality versus inference budget | Protocol fixed; implementation and preflight next | [Predeclared protocol](experiments/task-quality-inference-budget.md): 21 fits, 60 evaluation cells, fixed quality thresholds and simultaneous budget brackets. No new M4G fitting or outcomes yet. Compare modeled Gibbs sweeps; independent trajectory counts stay fixed. |
 | M5: topology-aware meta-EBM | Queued after the M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
@@ -67,9 +67,10 @@ sector by the end of operation 500. This is a useful local-fidelity result,
 not preserved full-program quality or inference-sample savings.
 
 M4F stops here under its predeclared rule: no coefficient search or longer run.
-The next work is to freeze the M4G quality-versus-inference-budget protocol,
-including numeric full-program quality thresholds and the simultaneous decision
-policy, before new fitting or evaluation. No global-capacity, convergence,
+The [M4G protocol](experiments/task-quality-inference-budget.md) now fixes numeric
+full-program quality thresholds and the simultaneous decision policy. Next,
+implement and validate its acceptance rules and matched training runner before
+new fitting or evaluation. No global-capacity, convergence,
 hardware, or architecture conclusion follows from the fixed M4F search.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
@@ -125,9 +126,20 @@ budget preserve task quality while reducing the samples needed at inference?
 M4G turns this into a threshold comparison: what is the smallest tested
 inference budget at which each training method meets the same task-quality
 requirements? Fixed-K4 improvements motivate this experiment but do not answer
-it. M4F is now complete with a negative primary result. Freeze the M4G protocol
-next; a positive M4F result is not a prerequisite and its search will not be
-extended.
+it. M4F is now complete with a negative primary result. The
+[September 17 protocol](experiments/task-quality-inference-budget.md) fixes the
+following design; its implementation, preflight and full study remain pending.
+A positive M4F result is not a prerequisite and its search will not be extended.
+
+The frozen quality contract requires population terminal occupancy loss <=
+0.0625 (RMS <= 0.05 across 25 sites), terminal leakage <= 5%, uninterrupted
+survival >= 95%, hop MAE <= 0.01 and asymmetry MAE <= 0.01. All three seeds must
+pass. Simultaneous binomial bounds distinguish passing, failing and unresolved
+budgets; a first certified pass is not a proven minimum when cheaper cells are
+unresolved. The primary cost is modeled Gibbs sweeps, with independent output
+trajectory counts fixed. Six finite fits per seed versus one equilibrium fit
+make the finite procedure's total training draw budget six times larger;
+per-model update and endpoint-draw budgets match.
 
 - **Matched methods:** compare finite-budget-aware training with
   equilibrium-directed training and a frozen-initial control on the same
@@ -147,7 +159,7 @@ extended.
   unconditional hop and asymmetry errors as additional fidelity requirements.
   All requirements must pass together; a weak trained reference or improved
   local averages cannot substitute for acceptable task quality. These numeric
-  thresholds are a required protocol deliverable, not yet set by this roadmap.
+  thresholds and precise metric definitions are fixed in the linked protocol.
 - **Cost contract:** distinguish a complete program trajectory, a local endpoint
   draw, a complete Gibbs sweep, and a p-bit update. Count all inference resets,
   sweeps, trajectories, and any retries or discarded outputs under a fixed
