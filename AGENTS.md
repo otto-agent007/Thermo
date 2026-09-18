@@ -324,3 +324,15 @@ survival >= weighted-1, asymmetry MAE <= frozen and hop MAE <= weighted-1; it is
 non-gating. Completion follows successful report replay. No coefficient search
 or additional updates are allowed. CI must exercise a baseline NumPy CPU path
 and retain the full evidence; preserve all older gates and historical validators.
+
+The M4G decision-component preflight follows the unchanged
+`docs/experiments/task-quality-inference-budget.md` protocol. Run
+`uv run python -m thermo_lab.quality_budget_preflight --output-dir results/quality-budget-preflight`
+with a fresh destination. Require `component_preflight_complete`,
+`full_m4g_ready=false`, zero fits and zero evaluation cells executed. This gate
+authenticates three archives, checks 213 distinct roles, the planned 21-fit/60-cell
+ledger, binomial coverage/inversion, correlated count decisions and nonmonotone
+budget brackets. It must replay persisted evidence before reporting and write
+completion last. Preserve literal float64 thresholds without an epsilon. This
+component gate does not replace the matched runner, its training-law validation,
+or the full-study preflight and release.
