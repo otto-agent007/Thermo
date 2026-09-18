@@ -420,6 +420,20 @@ hop/asymmetry MAE each <= 0.01. Every requirement must pass in all three seeds.
 Simultaneous binomial bounds keep unresolved budgets visible when selecting
 the smallest passing budget. The primary cost is modeled Gibbs sweeps;
 independent trajectory counts remain fixed, and all six finite fits per seed
-count toward training cost. No M4G fitting or evaluation has run. Next is the
-acceptance/coverage preflight and matched training implementation, followed by
-the complete frozen study.
+count toward training cost. No M4G fitting or evaluation has run.
+
+The decision-component preflight now authenticates all three pinned archives,
+checks the 213 role seeds and complete cost ledger, validates simultaneous
+intervals against independent binomial-tail inversion, and exercises correlated
+counts and nonmonotone budget decisions. Run it from a repository checkout:
+
+```bash
+uv run python -m thermo_lab.quality_budget_preflight --output-dir results/quality-budget-preflight
+```
+
+Use a fresh destination. Completion is `component_preflight_complete` with
+`full_m4g_ready=false`: the command performs no fitting or held-out evaluation.
+The next implementation is the matched seven-law training runner, its
+law-specific gradient/role validation and full integrity preflight, followed
+by the complete 21-fit/60-cell study. No task-quality or savings result follows
+from successful component checks.

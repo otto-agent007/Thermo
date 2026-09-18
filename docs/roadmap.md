@@ -1,6 +1,6 @@
 # Roadmap
 
-## Active sequence after PR #20 (updated September 17, 2026)
+## Active sequence after PR #20 (updated September 18, 2026)
 
 PR #20 closes M1: the frozen full-program equilibrium update has an unbiased
 population-loss audit with paired, approximate uncertainty. Its three checked
@@ -22,7 +22,7 @@ The next research milestones are ordered by dependency:
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
 | M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
 | M4F: bounded asymmetry-preservation test | Complete: primary joint screen fails | Asymmetry MAE falls 88.86% and hop MAE 37.31% versus weighted-1, but survival falls 6.1496% → 6.1129%, failing the fixed preservation threshold. [Report](experiment-reports/2026-09-16-asymmetry-preservation/summary.md). Stop after the predeclared 7,400 updates. |
-| M4G: task quality versus inference budget | Protocol fixed; implementation and preflight next | [Predeclared protocol](experiments/task-quality-inference-budget.md): 21 fits, 60 evaluation cells, fixed quality thresholds and simultaneous budget brackets. No new M4G fitting or outcomes yet. Compare modeled Gibbs sweeps; independent trajectory counts stay fixed. |
+| M4G: task quality versus inference budget | Decision-component preflight implemented; matched runner next | [Predeclared protocol](experiments/task-quality-inference-budget.md): request, roles, cost ledger, simultaneous acceptance and nonmonotone budget checks implemented. Full runner validation and the 21-fit/60-cell experiment remain pending. No M4G fitting or outcomes yet. Compare modeled Gibbs sweeps; independent trajectory counts stay fixed. |
 | M5: topology-aware meta-EBM | Queued after the M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
@@ -68,9 +68,12 @@ not preserved full-program quality or inference-sample savings.
 
 M4F stops here under its predeclared rule: no coefficient search or longer run.
 The [M4G protocol](experiments/task-quality-inference-budget.md) now fixes numeric
-full-program quality thresholds and the simultaneous decision policy. Next,
-implement and validate its acceptance rules and matched training runner before
-new fitting or evaluation. No global-capacity, convergence,
+full-program quality thresholds and the simultaneous decision policy. The
+decision-component preflight now authenticates sources, validates the acceptance
+rules, seeds and accounting, and reconstructs persisted evidence before reporting.
+Next, implement and validate the matched training runner before new fitting or
+evaluation. The component command does not satisfy the full runner preflight.
+No global-capacity, convergence,
 hardware, or architecture conclusion follows from the fixed M4F search.
 
 M2 is an evaluation of frozen parameters, not additional training. See the
@@ -128,7 +131,8 @@ inference budget at which each training method meets the same task-quality
 requirements? Fixed-K4 improvements motivate this experiment but do not answer
 it. M4F is now complete with a negative primary result. The
 [September 17 protocol](experiments/task-quality-inference-budget.md) fixes the
-following design; its implementation, preflight and full study remain pending.
+following design. Its decision-component preflight is implemented; the matched
+training runner, full runner preflight and full study remain pending.
 A positive M4F result is not a prerequisite and its search will not be extended.
 
 The frozen quality contract requires population terminal occupancy loss <=
