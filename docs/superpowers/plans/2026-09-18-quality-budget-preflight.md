@@ -24,28 +24,28 @@ training validation and full-study release remain the next implementation.
 
 ## Tasks
 
-- [ ] Request and accounting: create `quality_budget_protocol.py` and unit tests.
+- [x] Request and accounting: create `quality_budget_protocol.py` and unit tests.
   Test immutable identity, rejected changes, 71 roles per seed, all 213 distinct,
   21 fit/60 cell manifests, local references and equilibrium costs. Interface:
   `QualityBudgetProtocol`, `role_schedule(seed)`, `fit_manifest()`,
   `evaluation_manifest()`, `cost_ledger()`. Watch missing imports fail, then
   implement and verify `pytest tests/unit/test_quality_budget_protocol.py`.
-- [ ] Acceptance: create `quality_budget_acceptance.py` and tests. Interface:
+- [x] Acceptance: create `quality_budget_acceptance.py` and tests. Interface:
   `binomial_intervals(counts, n)`, `occupancy_loss_bounds(intervals, target)`,
   `classify_bounds(loss, leakage, survival, hop_mae, asymmetry_mae)`,
   `classify_cell(...)`, `classify_method(...)`, `budget_bracket(statuses)` and
   `compare_budgets(finite_statuses, equilibrium_statuses)`. Test independent
   binomial inversion, invalid counts, exact equality/nextafter, correlated
   rectangle coverage and nonmonotone classifications. Run red then green.
-- [ ] Deterministic preflight and persistence: create `quality_budget_preflight.py`
+- [x] Deterministic preflight and persistence: create `quality_budget_preflight.py`
   with `build_preflight`, `validate_preflight`, `write_preflight` and module CLI.
   Check the complete declared coverage grid, source pins and common initial
   matrix. Save all requested/derived evidence, strict replay and a report; write
   completion last. Reject rehashed evidence tampering and occupied destinations
   in integration tests. Test before implementation.
-- [ ] Independent statistical and implementation review; address findings.
+- [x] Independent statistical and implementation review; address findings.
   Record component scope and evidence in README, roadmap and a dated report.
-- [ ] Preserve existing gates, add the preflight CI job, run required repository
+- [x] Preserve existing gates, add the preflight CI job, run required repository
   gates and build/package checks. Commit and publish a stacked PR against #31
   under existing automatic-push authorization; keep merge to the user.
 

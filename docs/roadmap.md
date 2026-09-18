@@ -71,6 +71,8 @@ The [M4G protocol](experiments/task-quality-inference-budget.md) now fixes numer
 full-program quality thresholds and the simultaneous decision policy. The
 decision-component preflight now authenticates sources, validates the acceptance
 rules, seeds and accounting, and reconstructs persisted evidence before reporting.
+The [recorded component preflight](experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
+passed all 1,848 repository tests and 20 experiment gates after independent review.
 Next, implement and validate the matched training runner before new fitting or
 evaluation. The component command does not satisfy the full runner preflight.
 No global-capacity, convergence,

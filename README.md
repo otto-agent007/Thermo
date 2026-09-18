@@ -437,3 +437,6 @@ The next implementation is the matched seven-law training runner, its
 law-specific gradient/role validation and full integrity preflight, followed
 by the complete 21-fit/60-cell study. No task-quality or savings result follows
 from successful component checks.
+
+The [recorded component report](docs/experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
+includes replayable evidence, independent review and complete repository verification.
