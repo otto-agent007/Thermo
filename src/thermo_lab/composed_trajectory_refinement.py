@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from thermo_lab.hashing import canonical_sha256
+from thermo_lab.runtime_work import timed_work
 from thermo_lab.thermodynamic_kernel import (
     KernelParameters,
     equilibrium_joint_conditional,
@@ -291,6 +292,7 @@ def _tuple_int_matrix(values: NDArray[np.int64]) -> tuple[tuple[int, ...], ...]:
     return tuple(tuple(int(value) for value in row) for row in values)
 
 
+@timed_work("exact_equilibrium_tables")
 def _build_joint_tables(parameters: NDArray[np.float64], *, beta: float) -> NDArray[np.float64]:
     tables = np.empty((parameters.shape[0], 4, _N_JOINT_OUTCOMES), dtype=np.float64)
     for group, row in enumerate(parameters):
@@ -301,6 +303,7 @@ def _build_joint_tables(parameters: NDArray[np.float64], *, beta: float) -> NDAr
     return tables
 
 
+@timed_work("exact_equilibrium_features")
 def _feature_table() -> NDArray[np.float64]:
     return np.asarray(
         [

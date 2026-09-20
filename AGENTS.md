@@ -363,3 +363,27 @@ last. A production bank must validate all 21 ordered fits before evaluation.
 The held-out evaluator and integrated full-study preflight/review remain required
 before production fitting. Do not interpret fixture success as task-quality,
 inference-savings, or hardware evidence.
+
+The integrated M4G gate is
+`uv run python -m thermo_lab.quality_budget_full_preflight --output-dir results/quality-budget-full-preflight`.
+It exercises all 21 fixture fits, 60 held-out fixture cells and 18 paired
+comparisons; independently replay terminal counts, joined moments and killed
+survival. Require `integrated_preflight_complete`, zero production fits/cells,
+and separate code-bound statistical and implementation approvals before running
+`thermo_lab.quality_budget_release`. Preserve the frozen protocol and all 213
+production roles. Freeze all 21 fifth checkpoints before any held-out evaluation;
+execute each distinct cell once per generation/replay phase with one PCG64
+uniform vector per operation, including invalid-particle trajectories.
+Persist all counts, histograms, paired moments, exact local errors and survival.
+Use simultaneous acceptance bounds for decisions; U-statistic and paired
+jackknife estimates remain descriptive. Report the complete finite-fit grid's
+training cost and separate CPU work categories without device claims.
+
+Production execution writes `execution.json` with final release pending. Require
+independent statistical and implementation review of the resulting evidence,
+all canonical repository gate commands successful, and complete persisted replay
+before `finalize_release` writes `completion.json` last. Runtime provenance stays
+outside scientific request identity but must validate and match its execution
+record digest. Reject missing/stale review, provenance and gate records, changed
+command arguments, rehashed numerical changes, and numeric type substitutions.
+Negative scientific results do not fail an otherwise valid release.

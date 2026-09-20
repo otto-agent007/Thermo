@@ -169,6 +169,51 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+  quality-budget-full-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      JAX_PLATFORMS: cpu
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Exercise complete fixture study and independent replay
+        run: >-
+          uv run python -m thermo_lab.quality_budget_full_preflight
+          --output-dir "${{ runner.temp }}/quality-budget-full-preflight"
+      - name: Require integrated completion
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          from pathlib import Path
+          output = Path(os.environ["RUNNER_TEMP"]) / "quality-budget-full-preflight"
+          record = json.loads((output / "completion.json").read_text())
+          assert record["status"] == "integrated_preflight_complete"
+          assert record["production_fits"] == 0
+          assert record["production_cells"] == 0
+          assert record["full_m4g_ready"] is False
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
+              stream.write((output / "report.md").read_text())
+          PYCODE
+      - name: Preserve integrated preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-budget-full-preflight
+          path: ${{ runner.temp }}/quality-budget-full-preflight
+          retention-days: 90
+          if-no-files-found: error
+
   asymmetry-preservation:
     runs-on: ubuntu-latest
     timeout-minutes: 15

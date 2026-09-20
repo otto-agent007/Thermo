@@ -8,6 +8,7 @@ checkpoint or consumes the reserved final-evaluation role.
 from __future__ import annotations
 
 from dataclasses import asdict
+from functools import lru_cache
 
 import numpy as np
 
@@ -19,6 +20,7 @@ from thermo_lab.matched_training_budget import _check_gradient, _table_digest
 from thermo_lab.quality_budget_preflight import _sources
 from thermo_lab.quality_budget_protocol import QualityBudgetProtocol, fit_manifest
 from thermo_lab.quality_budget_training_laws import LAWS, _check_law, sample_training_roles
+from thermo_lab.runtime_work import timed_work
 from thermo_lab.trajectory_reinforce import build_checked_fixture, build_exact_reference
 
 
@@ -103,17 +105,38 @@ def fit_digest(value):
 
 def _sample(parameters, request, role):
     inputs = request["inputs"]
-    return sample_training_roles(
-        parameters,
-        inputs["occurrence_target_indices"],
-        inputs["occurrence_site_indices"],
-        inputs["target_occupancy"],
-        horizon=request["horizon"],
-        occupancy_seed=role["occupancy_seed"],
-        gradient_seed=role["gradient_seed"],
+    return _sample_cached(
+        tuple(tuple(row) for row in parameters),
+        tuple(inputs["occurrence_target_indices"]),
+        tuple(tuple(edge) for edge in inputs["occurrence_site_indices"]),
+        tuple(inputs["target_occupancy"]),
+        request["horizon"],
+        role["occupancy_seed"],
+        role["gradient_seed"],
     )
 
 
+@lru_cache(maxsize=256)
+@timed_work("training_sampling")
+def _sample_cached(parameters, groups, sites, target, horizon, occupancy_seed, gradient_seed):
+    """Cache only internally computed immutable role evidence, never supplied results.
+
+    Hold the full 105-step study through report replay without the older
+    64-entry finite cache evicting each preceding expectation. Changed stored
+    checkpoints have different keys and are recomputed normally.
+    """
+    return sample_training_roles(
+        parameters,
+        groups,
+        sites,
+        target,
+        horizon=horizon,
+        occupancy_seed=occupancy_seed,
+        gradient_seed=gradient_seed,
+    )
+
+
+@timed_work("training_update_chain")
 def _run_fit(request):
     """Internal engine: caller supplies an internally built, authenticated request."""
     current = request["inputs"]["initial_parameters"]
@@ -153,6 +176,7 @@ def _run_fit(request):
     return {**result, "result_digest": fit_digest(result)}
 
 
+@timed_work("training_replay")
 def _validate_fit(evidence, request):
     """Never cache externally supplied evidence; replay at each stored checkpoint."""
     expected_keys = {
@@ -263,6 +287,7 @@ def run_fixture_fit(*, seed, horizon):
     return _validate_fit(_run_fit(request), request)
 
 
+@timed_work("training_bank_validation")
 def validate_training_bank(evidence, repository_root=None):
     """Only a complete ordered, replayed 21-fit bank may supply evaluation inputs."""
     requests = archived_requests(repository_root)
@@ -278,9 +303,14 @@ def validate_training_bank(evidence, repository_root=None):
     }
 
 
-def run_training_bank(repository_root=None):
+def run_training_bank(repository_root=None, *, on_fit=None):
     """Execute only after full-study preflight/review; no final evaluation here."""
     requests = archived_requests(repository_root)
-    fits = [_run_fit(request) for request in requests]
+    fits = []
+    for request in requests:
+        fit = _run_fit(request)
+        fits.append(fit)
+        if on_fit is not None:
+            on_fit(len(fits) - 1, fit)
     validate_training_bank(fits, repository_root)
     return fits
