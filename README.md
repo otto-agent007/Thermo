@@ -420,6 +420,37 @@ hop/asymmetry MAE each <= 0.01. Every requirement must pass in all three seeds.
 Simultaneous binomial bounds keep unresolved budgets visible when selecting
 the smallest passing budget. The primary cost is modeled Gibbs sweeps;
 independent trajectory counts remain fixed, and all six finite fits per seed
-count toward training cost. No M4G fitting or evaluation has run. Next is the
-acceptance/coverage preflight and matched training implementation, followed by
-the complete frozen study.
+count toward training cost. No M4G fitting or evaluation has run.
+
+The decision-component preflight now authenticates all three pinned archives,
+checks the 213 role seeds and complete cost ledger, validates simultaneous
+intervals against independent binomial-tail inversion, and exercises correlated
+counts and nonmonotone budget decisions. Run it from a repository checkout:
+
+```bash
+uv run python -m thermo_lab.quality_budget_preflight --output-dir results/quality-budget-preflight
+```
+
+Use a fresh destination. Completion is `component_preflight_complete` with
+`full_m4g_ready=false`: the command performs no fitting or held-out evaluation.
+The separate training-law component validates both stochastic roles at all six
+finite horizons and equilibrium on the existing three-site fixture. It retains
+the M3 exact checks and independently replays realized occupancy counts and
+shared-gradient sums and sum-squares using 42 validation seeds disjoint from
+every study role:
+
+```bash
+uv run python -m thermo_lab.quality_budget_training_preflight --output-dir results/quality-budget-training-preflight
+```
+
+Completion is `training_law_component_complete`, still with
+`full_m4g_ready=false`, zero fits, zero updates and zero study evaluation cells.
+The matched five-update full-program runner and its integrity preflight remain
+next, followed by the complete 21-fit/60-cell study. No task-quality or savings
+result follows from successful component checks.
+
+The [recorded component report](docs/experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
+includes replayable evidence, independent review and complete repository verification.
+
+The [training-law component report](docs/experiment-reports/2026-09-19-quality-budget-training-laws/summary.md)
+records the seven-law checks, independent reviews and complete repository verification.

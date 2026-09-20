@@ -1,0 +1,19 @@
+{
+  "original_implementation_commit": "4a50ded37737c1d7cb009d41614513cab362672b",
+  "recovered_implementation_commit": "661c582240be18e60772132e973f49acaee1dde4",
+  "identical_implementation_tree": "0b332d64affd4afff3c5844c74992ac217fb9e20",
+  "original_final_documentation_commit": "cc7f2ca606cb2b974ca241da968b038d63bcb321",
+  "original_test_counts": {
+    "unit_upstream": 1477,
+    "integration_a": 155,
+    "integration_b": 269
+  },
+  "original_experiment_gates_passed": 21,
+  "fresh_affected_tests_passed": 98,
+  "fresh_affected_tests_seconds": 27.06,
+  "preserved_evidence_result_digest": "sha256:07adfe6964346e9962301288a417381b1b13f962a5ea6a222c9e95cd322196dd",
+  "preserved_evidence_replay": "exact",
+  "original_raw_verification_logs_available": false,
+  "full_suite_rerun_on_recovery": false,
+  "note": "Original results are recorded conversation outcomes; preserved evidence retains original provenance."
+}

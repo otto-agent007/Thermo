@@ -1,0 +1,9 @@
+{
+  "status": "training_law_component_complete",
+  "full_m4g_ready": false,
+  "fits_executed": 0,
+  "evaluation_cells_executed": 0,
+  "parameter_updates": 0,
+  "request_hash": "sha256:0a8496a7ace6115e52a1688002335ae906c2cf2eb9285f1d468402b23fe843ae",
+  "result_digest": "sha256:07adfe6964346e9962301288a417381b1b13f962a5ea6a222c9e95cd322196dd"
+}
