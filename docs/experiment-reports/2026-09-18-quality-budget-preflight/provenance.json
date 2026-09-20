@@ -1,0 +1,73 @@
+{
+  "runtime": {
+    "python_version": "3.11.16",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "jax_version": "0.10.2",
+    "jaxlib_version": "0.10.2",
+    "jax_backend": "cpu",
+    "jax_devices": [
+      "cpu:cpu"
+    ],
+    "git_commit": "261ca1f5a6b8125c78806700fb750912ef24e62b",
+    "git_dirty": false,
+    "jax_enable_x64": false,
+    "packages": [
+      {
+        "distribution": "thermo-lab",
+        "version": "0.1.0",
+        "release_source_repository": null,
+        "release_source_commit": null,
+        "expected_wheel_sha256": null,
+        "artifact_verification": "unverified_or_not_a_pinned_release"
+      },
+      {
+        "distribution": "thrml",
+        "version": "0.1.4",
+        "release_source_repository": "https://github.com/extropic-ai/thrml",
+        "release_source_commit": "9c4e6fbb800f5e5c627122e668ff1b158ef3782b",
+        "expected_wheel_sha256": "6e2f38cecb562589d230ca063b5fcb5d2a6533201e37bb70c1f2dac4a63a0858",
+        "artifact_verification": "expected_hash_enforced_by_uv_lock_not_runtime_reverified"
+      },
+      {
+        "distribution": "extro-torx",
+        "version": "0.0.1",
+        "release_source_repository": "https://github.com/extropic-ai/torx",
+        "release_source_commit": "769d2f90abdfda14798fceb521143f4b99d370da",
+        "expected_wheel_sha256": "e51d6efe0a8bc62fb4b2b417d5e4ac8190e3fb22c9d14d9342c207afdc64a23c",
+        "artifact_verification": "expected_hash_enforced_by_uv_lock_not_runtime_reverified"
+      },
+      {
+        "distribution": "jax",
+        "version": "0.10.2",
+        "release_source_repository": null,
+        "release_source_commit": null,
+        "expected_wheel_sha256": null,
+        "artifact_verification": "unverified_or_not_a_pinned_release"
+      },
+      {
+        "distribution": "jaxlib",
+        "version": "0.10.2",
+        "release_source_repository": null,
+        "release_source_commit": null,
+        "expected_wheel_sha256": null,
+        "artifact_verification": "unverified_or_not_a_pinned_release"
+      },
+      {
+        "distribution": "equinox",
+        "version": "0.13.8",
+        "release_source_repository": null,
+        "release_source_commit": null,
+        "expected_wheel_sha256": null,
+        "artifact_verification": "unverified_or_not_a_pinned_release"
+      }
+    ]
+  },
+  "numeric_packages": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "elapsed_seconds": 2.295110942000065,
+  "timing_includes": "source authentication, statistics, write, full replay, report",
+  "timing_excludes": "runtime provenance collection and final completion I/O",
+  "timing_evidence_class": "software_simulation"
+}
