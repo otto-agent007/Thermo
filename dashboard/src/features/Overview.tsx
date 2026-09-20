@@ -14,10 +14,7 @@ export function Overview({ snapshot }: { snapshot: ProjectSnapshot }) {
       <div className="page-intro">
         <h2>
           {s ? (
-            <>
-              A completed study.
-              <br />A clear next question.
-            </>
+            "A completed study. A clear next question."
           ) : (
             "Project evidence unavailable"
           )}

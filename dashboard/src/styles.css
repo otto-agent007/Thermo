@@ -214,9 +214,6 @@ main {
   line-height: 1.17;
   margin-bottom: 13px;
 }
-.page-intro h2 br {
-  display: none;
-}
 .page-intro p {
   font-size: 16px;
   margin-bottom: 0;
@@ -531,9 +528,9 @@ footer span {
   }
   .sidebar nav {
     display: flex;
+    flex-wrap: wrap;
     gap: 4px;
     margin-top: 16px;
-    overflow: auto;
   }
   .sidebar nav a {
     font-size: 12px;

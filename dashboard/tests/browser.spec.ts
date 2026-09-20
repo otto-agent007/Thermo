@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 test("project status and sourced destinations are accessible", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1506, height: 1045 });
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: "Project overview" }),
