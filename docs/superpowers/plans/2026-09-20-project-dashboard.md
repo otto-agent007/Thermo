@@ -266,3 +266,11 @@ await expect(page.locator(':focus')).toBeVisible();
 - Interfaces consistently share model.ts and the same local/static payloads. Raw traces are split from initial payloads. The scientific engine is untouched.
 - Recommend Native execution: these five tasks share one adapter/view-model contract and the UI is read-only; implementing together reduces interface handoff overhead. One independent whole-branch review follows implementation.
 - This plan awaits the user's review and choice of Native or Subagent-driven execution before product code is written.
+
+## Native execution outcome — 2026-09-20
+
+Tasks 1–4 are implemented; Task 5 produced the private dated snapshot and stacked draft PR36. See `dashboard/VERIFICATION.md` for actual checks and limitations rather than treating the original proposed commands as execution evidence.
+
+Implementation rulings: authenticate the six approved files with reviewed byte hashes; retain exact large identities as strings; use portable `~` detail filenames; accept local checkpoints only when they match supported archived fit slots. The authored browser suite runs successfully in CI because the supported cloud preview was blocked. It covers desktop/mobile navigation and the principal experiment interaction; non-root hosting, exhaustive motion/accessibility and delayed-response browser scenarios are not claimed as completed. Code cancellation and static-mode behavior are implemented. Generated concept dates and activity counts were replaced by evidence; counts remain an open band per the written spec.
+
+Independent review corrections, actual screenshot comparison and scientific baseline preservation are recorded in the verification report. PR36 remains stacked on PR35 until that dependency lands. No merge was performed.
