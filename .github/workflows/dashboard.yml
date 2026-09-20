@@ -1,0 +1,27 @@
+name: Dashboard
+on:
+  pull_request:
+    paths: ['dashboard/**', '.github/workflows/dashboard.yml', 'docs/experiment-reports/**']
+  push:
+    branches: [main]
+    paths: ['dashboard/**', '.github/workflows/dashboard.yml', 'docs/experiment-reports/**']
+permissions:
+  contents: read
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser

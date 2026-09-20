@@ -508,3 +508,9 @@ At K=30, the loss bound and local hop/asymmetry thresholds pass for every seed
 and member, but the full task still fails. No inference-sweep savings claim
 follows. The result concerns the fixed five-update procedure, not optimized
 capacity, convergence or physical hardware.
+
+## Project dashboard
+
+The [research dashboard](dashboard/README.md) provides a read-only overview,
+interactive M4G results, milestone progress and source-linked research proposals.
+Run it locally for saved-checkpoint observations, or export a dated static snapshot.
