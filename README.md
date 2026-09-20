@@ -451,3 +451,6 @@ result follows from successful component checks.
 
 The [recorded component report](docs/experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
 includes replayable evidence, independent review and complete repository verification.
+
+The [training-law component report](docs/experiment-reports/2026-09-19-quality-budget-training-laws/summary.md)
+records the seven-law checks, independent reviews and complete repository verification.

@@ -73,7 +73,8 @@ decision-component preflight now authenticates sources, validates the acceptance
 rules, seeds and accounting, and reconstructs persisted evidence before reporting.
 The [recorded component preflight](experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
 passed all 1,848 repository tests and 20 experiment gates after independent review.
-The training-law component also validates all six finite laws plus equilibrium
+The [training-law component](experiment-reports/2026-09-19-quality-budget-training-laws/summary.md)
+also validates all six finite laws plus equilibrium
 on the existing three-site fixture, preserving M3 and independently replaying
 law-specific occupancy/gradient roles. Its 42 diagnostic seeds do not consume
 the 213 study roles. Next, integrate and validate the matched five-update
