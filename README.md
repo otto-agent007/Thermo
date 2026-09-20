@@ -420,7 +420,8 @@ hop/asymmetry MAE each <= 0.01. Every requirement must pass in all three seeds.
 Simultaneous binomial bounds keep unresolved budgets visible when selecting
 the smallest passing budget. The primary cost is modeled Gibbs sweeps;
 independent trajectory counts remain fixed, and all six finite fits per seed
-count toward training cost. No M4G fitting or evaluation has run.
+count toward training cost. The complete evaluator and reviewed release pipeline
+are now implemented; recorded production results appear below.
 
 The decision-component preflight now authenticates all three pinned archives,
 checks the 213 role seeds and complete cost ledger, validates simultaneous
@@ -457,10 +458,10 @@ uv run python -m thermo_lab.quality_budget_runner_preflight --output-dir results
 Completion is `training_runner_component_complete`, with zero **study** fits or
 evaluation cells and `full_m4g_ready=false`. The diagnostic roles are disjoint
 from production roles. A production training bank must contain all 21 ordered,
-replayed fits before it can supply evaluation parameters. Next: implement the
-60-cell held-out evaluator and integrated full-study preflight, obtain review,
-then execute the frozen 21-fit/60-cell study. No task-quality or savings result
-follows from successful component checks.
+replayed fits before it can supply evaluation parameters. The integrated
+preflight now exercises the complete 60-cell fixture evaluator and independently
+checks terminal counts, joined moments and killed survival. No task-quality or
+savings result follows from successful component checks.
 
 The [recorded component report](docs/experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
 includes replayable evidence, independent review and complete repository verification.
@@ -471,3 +472,39 @@ records the seven-law checks, independent reviews and complete repository verifi
 The [training-runner component report](docs/experiment-reports/2026-09-20-quality-budget-training-runner/summary.md)
 records the five-update engine, 105 independently replayed fixture updates,
 source-bound production requests, and remaining full-study gate.
+
+
+Run the integrated preflight in a fresh destination:
+
+```bash
+uv run python -m thermo_lab.quality_budget_full_preflight --output-dir results/quality-budget-full-preflight
+```
+
+Production requires independent statistical and implementation approvals bound
+to the exact implementation and integrated-preflight digests. With those records:
+
+```bash
+uv run python -m thermo_lab.quality_budget_release \
+  --preflight-dir results/quality-budget-full-preflight \
+  --review-record path/to/preproduction-review.json \
+  --output-dir results/quality-budget-study
+```
+
+The study retains all 21 fifth checkpoints, 60 held-out cells and 18 descriptive
+paired comparisons. It writes `execution.json` only after complete persisted
+replay. Final `completion.json` additionally requires independent production
+evidence reviews and successful canonical repository gates through
+`quality_budget_release.finalize_release`; `validate_release` rechecks them all.
+CPU work is reported separately for tables/derivatives, sampling, source checks,
+replay, reporting and I/O. Observed timings are excluded from scientific request
+identity and do not measure hardware latency or energy.
+
+
+The [complete M4G study](docs/experiment-reports/2026-09-20-task-quality-inference-budget/summary.md)
+records **both quality failure**: neither training procedure passes the joint
+contract at any tested budget. All 60 cells fail conservation requirements;
+terminal leakage is 58.74%–83.68% and maximum uninterrupted survival is 3.54%.
+At K=30, the loss bound and local hop/asymmetry thresholds pass for every seed
+and member, but the full task still fails. No inference-sweep savings claim
+follows. The result concerns the fixed five-update procedure, not optimized
+capacity, convergence or physical hardware.

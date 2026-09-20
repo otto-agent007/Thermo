@@ -22,8 +22,8 @@ The next research milestones are ordered by dependency:
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
 | M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
 | M4F: bounded asymmetry-preservation test | Complete: primary joint screen fails | Asymmetry MAE falls 88.86% and hop MAE 37.31% versus weighted-1, but survival falls 6.1496% → 6.1129%, failing the fixed preservation threshold. [Report](experiment-reports/2026-09-16-asymmetry-preservation/summary.md). Stop after the predeclared 7,400 updates. |
-| M4G: task quality versus inference budget | Decision and training-law components implemented; matched runner next | [Predeclared protocol](experiments/task-quality-inference-budget.md): request, roles, costs and simultaneous acceptance implemented; seven laws checked on the bounded fixture with independent sample replay. Full runner validation and the 21-fit/60-cell experiment remain pending. No M4G fitting or outcomes yet. Compare modeled Gibbs sweeps; independent trajectory counts stay fixed. |
-| M5: topology-aware meta-EBM | Queued after the M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+| M4G: task quality versus inference budget | Complete study executed; both quality failure | [Recorded study](experiment-reports/2026-09-20-task-quality-inference-budget/summary.md): all 21 fits, 105 updates and 60 cells retained. Neither procedure meets the joint contract at any tested budget; all cells fail conservation. No inference-sweep savings established. Independent trajectory counts remain fixed. |
+| M5: topology-aware meta-EBM | Next after the recorded M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
 [M4B comparison](experiments/matched-training-budget.md) before M5. It tested
@@ -32,7 +32,7 @@ the same inference horizon, rather than relying on either arm's improvement
 over its own initial state. Both arms use five updates and equal endpoint-draw
 budgets. The equilibrium oracle has no finite hardware-sweep cost, so this is
 not a matched-energy experiment. Keep particle leakage visible beside occupancy
-loss. M4G will test reduced inference budgets; Z1T activation fidelity under
+loss. M4G found no qualifying inference budget; Z1T activation fidelity under
 quantization and finite sampling remains a later opportunity. Neither is
 established by M4B.
 The completed result motivated the now-recorded
@@ -82,9 +82,14 @@ now authenticates the 21 production
 requests and checks every step and selected fifth checkpoint. Its separate
 preflight exercises the shared engine through 105 diagnostic three-site updates,
 replaying evolving-law draws independently without consuming production roles.
-Next: implement the 60-cell evaluator and integrated full-study replay/preflight,
-obtain review, then execute the unchanged 21-fit/60-cell study. Component checks
-do not establish full-study readiness or a scientific outcome.
+The [complete M4G evidence](experiment-reports/2026-09-20-task-quality-inference-budget/summary.md)
+now records all 21 fits and 60 held-out cells after integrated preflight and two
+independent preproduction approvals. Both procedures fail the joint quality
+contract at every tested K. All 60 cells fail conservation: leakage is
+58.74%–83.68%, and maximum uninterrupted survival is 3.54%. At K=30, population
+loss and local fidelity pass, illustrating why the full conservation contract
+must remain explicit. No inference-sweep savings are established. This records
+the M4G decision before starting M5; it does not prove an optimal-capacity limit.
 No global-capacity, convergence,
 hardware, or architecture conclusion follows from the fixed M4F search.
 
@@ -346,3 +351,12 @@ When Thermalizers and the Extropic simulator API become publicly usable:
 3. compare official compilation with any narrow internal reproduction tool;
 4. preserve exact validation and evidence classification;
 5. add physical Z1 only when device and measurement provenance are available.
+
+
+The [September 20 literature review](research/2026-09-20-conservation-directions.md)
+identifies two prospective follow-ups: an exact global survival-gradient audit
+of saved checkpoints, and a tiny count-preserving joint-sampler feasibility
+experiment. These remain proposals, separate from the completed M4G evidence
+and the M5 milestone. The first can diagnose objective conflict without new
+fitting; the second changes the software execution law and requires its own
+protocol and implementation evidence.
