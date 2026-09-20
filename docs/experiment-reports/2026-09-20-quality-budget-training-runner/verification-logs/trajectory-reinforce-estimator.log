@@ -1,0 +1,12 @@
+{
+  "aggregate": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/trajectory-reinforce-estimator/aggregate.json",
+  "completed_runs": 3,
+  "failed_runs": 0,
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/trajectory-reinforce-estimator/report.md",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "status": "complete"
+}

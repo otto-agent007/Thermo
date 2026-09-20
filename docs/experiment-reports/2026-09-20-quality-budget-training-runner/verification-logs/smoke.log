@@ -1,0 +1,10 @@
+{
+  "records": [
+    "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/smoke/torx-statevector.json",
+    "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/smoke/thrml-ising-chain.json"
+  ],
+  "status": "passed",
+  "thrml_max_marginal_error": 0.03711283095627915,
+  "thrml_total_variation": 0.04996368843548869,
+  "torx_max_abs_error": 0.0
+}

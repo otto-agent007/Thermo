@@ -1,0 +1,12 @@
+{
+  "aggregate": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/composed-finite-gibbs/aggregate.json",
+  "completed_runs": 3,
+  "failed_runs": 0,
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/composed-finite-gibbs/report.md",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "status": "complete"
+}

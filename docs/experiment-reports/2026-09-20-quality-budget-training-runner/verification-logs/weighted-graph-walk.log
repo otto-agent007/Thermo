@@ -1,0 +1,10 @@
+{
+  "aggregate": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/weighted-graph-walk/aggregate.json",
+  "completed_runs": 1,
+  "failed_runs": 0,
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/weighted-graph-walk/report.md",
+  "seeds": [
+    0
+  ],
+  "status": "complete"
+}

@@ -1,0 +1,10 @@
+{
+  "status": "training_runner_component_complete",
+  "full_m4g_ready": false,
+  "fixture_fits": 21,
+  "fixture_updates": 105,
+  "study_fits_executed": 0,
+  "evaluation_cells_executed": 0,
+  "request_hash": "sha256:0a8496a7ace6115e52a1688002335ae906c2cf2eb9285f1d468402b23fe843ae",
+  "result_digest": "sha256:a5af9d0e0153e336d791f04b738294b342dd9bbe7aa7039ab69cc1661be809ce"
+}
