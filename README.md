@@ -433,10 +433,21 @@ uv run python -m thermo_lab.quality_budget_preflight --output-dir results/qualit
 
 Use a fresh destination. Completion is `component_preflight_complete` with
 `full_m4g_ready=false`: the command performs no fitting or held-out evaluation.
-The next implementation is the matched seven-law training runner, its
-law-specific gradient/role validation and full integrity preflight, followed
-by the complete 21-fit/60-cell study. No task-quality or savings result follows
-from successful component checks.
+The separate training-law component validates both stochastic roles at all six
+finite horizons and equilibrium on the existing three-site fixture. It retains
+the M3 exact checks and independently replays realized occupancy counts and
+shared-gradient sums and sum-squares using 42 validation seeds disjoint from
+every study role:
+
+```bash
+uv run python -m thermo_lab.quality_budget_training_preflight --output-dir results/quality-budget-training-preflight
+```
+
+Completion is `training_law_component_complete`, still with
+`full_m4g_ready=false`, zero fits, zero updates and zero study evaluation cells.
+The matched five-update full-program runner and its integrity preflight remain
+next, followed by the complete 21-fit/60-cell study. No task-quality or savings
+result follows from successful component checks.
 
 The [recorded component report](docs/experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
 includes replayable evidence, independent review and complete repository verification.

@@ -63,6 +63,58 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+  quality-budget-training-laws:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      JAX_PLATFORMS: cpu
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Validate and replay seven training laws
+        run: >-
+          uv run python -m thermo_lab.quality_budget_training_preflight
+          --output-dir "${{ runner.temp }}/quality-budget-training-laws"
+      - name: Require bounded component completion
+        run: |
+          python - <<'PYCODE'
+          import json
+          import os
+          from pathlib import Path
+          output = Path(os.environ["RUNNER_TEMP"]) / "quality-budget-training-laws"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "training_law_component_complete"
+          assert completion["full_m4g_ready"] is False
+          assert completion["fits_executed"] == 0
+          assert completion["evaluation_cells_executed"] == 0
+          assert completion["parameter_updates"] == 0
+          evidence = json.loads((output / "preflight.json").read_text())
+          assert len(evidence["laws"]) == 7
+          assert completion["result_digest"] == evidence["result_digest"]
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PYCODE
+      - name: Preserve training-law evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-budget-training-laws
+          path: ${{ runner.temp }}/quality-budget-training-laws
+          retention-days: 90
+          if-no-files-found: error
+
   asymmetry-preservation:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -336,3 +336,15 @@ budget brackets. It must replay persisted evidence before reporting and write
 completion last. Preserve literal float64 thresholds without an epsilon. This
 component gate does not replace the matched runner, its training-law validation,
 or the full-study preflight and release.
+
+The separate M4G training-law component gate is
+`uv run python -m thermo_lab.quality_budget_training_preflight --output-dir results/quality-budget-training-preflight`.
+Use a fresh destination; require `training_law_component_complete`,
+`full_m4g_ready=false`, zero fits, updates and study evaluation cells. Preserve
+the existing three-site/two-operation fixture, all six M3 horizon contracts,
+the equilibrium reference, independent law-specific occupancy/gradient roles,
+and shared-occurrence reduction. Replay realized counts and gradient moments
+independently at the versioned numerical tolerances; validate all persisted
+evidence before reporting and write completion last. Keep the 42 validation
+roles distinct from every study role. This gate does not certify the full
+five-update runner or permit omission of its remaining integrity checks.

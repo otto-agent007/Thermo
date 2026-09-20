@@ -22,7 +22,7 @@ The next research milestones are ordered by dependency:
 | M4D: local conservation–fidelity trade-off | Complete: fixed exact K4 search | Mean local failure falls to 3.55%, but empty-edge creation rises and 500-operation survival worsens to 1.70e-8; directed hopping nearly vanishes. See the [report](experiment-reports/2026-09-16-local-conservation-tradeoff/summary.md). No optimal-capacity claim. |
 | M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
 | M4F: bounded asymmetry-preservation test | Complete: primary joint screen fails | Asymmetry MAE falls 88.86% and hop MAE 37.31% versus weighted-1, but survival falls 6.1496% → 6.1129%, failing the fixed preservation threshold. [Report](experiment-reports/2026-09-16-asymmetry-preservation/summary.md). Stop after the predeclared 7,400 updates. |
-| M4G: task quality versus inference budget | Decision-component preflight implemented; matched runner next | [Predeclared protocol](experiments/task-quality-inference-budget.md): request, roles, cost ledger, simultaneous acceptance and nonmonotone budget checks implemented. Full runner validation and the 21-fit/60-cell experiment remain pending. No M4G fitting or outcomes yet. Compare modeled Gibbs sweeps; independent trajectory counts stay fixed. |
+| M4G: task quality versus inference budget | Decision and training-law components implemented; matched runner next | [Predeclared protocol](experiments/task-quality-inference-budget.md): request, roles, costs and simultaneous acceptance implemented; seven laws checked on the bounded fixture with independent sample replay. Full runner validation and the 21-fit/60-cell experiment remain pending. No M4G fitting or outcomes yet. Compare modeled Gibbs sweeps; independent trajectory counts stay fixed. |
 | M5: topology-aware meta-EBM | Queued after the M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
@@ -73,8 +73,12 @@ decision-component preflight now authenticates sources, validates the acceptance
 rules, seeds and accounting, and reconstructs persisted evidence before reporting.
 The [recorded component preflight](experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
 passed all 1,848 repository tests and 20 experiment gates after independent review.
-Next, implement and validate the matched training runner before new fitting or
-evaluation. The component command does not satisfy the full runner preflight.
+The training-law component also validates all six finite laws plus equilibrium
+on the existing three-site fixture, preserving M3 and independently replaying
+law-specific occupancy/gradient roles. Its 42 diagnostic seeds do not consume
+the 213 study roles. Next, integrate and validate the matched five-update
+full-program runner before new fitting or evaluation. Neither component command
+satisfies the full runner preflight.
 No global-capacity, convergence,
 hardware, or architecture conclusion follows from the fixed M4F search.
 
@@ -133,7 +137,7 @@ inference budget at which each training method meets the same task-quality
 requirements? Fixed-K4 improvements motivate this experiment but do not answer
 it. M4F is now complete with a negative primary result. The
 [September 17 protocol](experiments/task-quality-inference-budget.md) fixes the
-following design. Its decision-component preflight is implemented; the matched
+following design. Its decision and bounded training-law components are implemented; the matched
 training runner, full runner preflight and full study remain pending.
 A positive M4F result is not a prerequisite and its search will not be extended.
 
