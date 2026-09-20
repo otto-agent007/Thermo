@@ -445,12 +445,29 @@ uv run python -m thermo_lab.quality_budget_training_preflight --output-dir resul
 
 Completion is `training_law_component_complete`, still with
 `full_m4g_ready=false`, zero fits, zero updates and zero study evaluation cells.
-The matched five-update full-program runner and its integrity preflight remain
-next, followed by the complete 21-fit/60-cell study. No task-quality or savings
-result follows from successful component checks.
+The training runner now binds all five updates to authenticated starting inputs,
+law-specific roles, exact tables, gradient moments and projected checkpoints.
+Its component preflight runs 21 three-site diagnostic fits (105 updates), with
+independent draw replay at every evolving checkpoint:
+
+```bash
+uv run python -m thermo_lab.quality_budget_runner_preflight --output-dir results/quality-budget-training-runner
+```
+
+Completion is `training_runner_component_complete`, with zero **study** fits or
+evaluation cells and `full_m4g_ready=false`. The diagnostic roles are disjoint
+from production roles. A production training bank must contain all 21 ordered,
+replayed fits before it can supply evaluation parameters. Next: implement the
+60-cell held-out evaluator and integrated full-study preflight, obtain review,
+then execute the frozen 21-fit/60-cell study. No task-quality or savings result
+follows from successful component checks.
 
 The [recorded component report](docs/experiment-reports/2026-09-18-quality-budget-preflight/summary.md)
 includes replayable evidence, independent review and complete repository verification.
 
 The [training-law component report](docs/experiment-reports/2026-09-19-quality-budget-training-laws/summary.md)
 records the seven-law checks, independent reviews and complete repository verification.
+
+The [training-runner component report](docs/experiment-reports/2026-09-20-quality-budget-training-runner/summary.md)
+records the five-update engine, 105 independently replayed fixture updates,
+source-bound production requests, and remaining full-study gate.

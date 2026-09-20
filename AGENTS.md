@@ -348,3 +348,18 @@ independently at the versioned numerical tolerances; validate all persisted
 evidence before reporting and write completion last. Keep the 42 validation
 roles distinct from every study role. This gate does not certify the full
 five-update runner or permit omission of its remaining integrity checks.
+
+
+The M4G training-runner component gate is
+`uv run python -m thermo_lab.quality_budget_runner_preflight --output-dir results/quality-budget-training-runner`.
+Use a fresh destination; require `training_runner_component_complete`, 21
+three-site fixture fits and 105 fixture updates, zero study fits/evaluation cells,
+and `full_m4g_ready=false`. Authenticate all 21 production requests without
+executing them. Preserve the separate 210-role diagnostic namespace, all seven
+laws, five projected updates, fifth-checkpoint selection, exact stored gradient
+identity and versioned numerical replay. Independently replay every evolving
+fixture checkpoint and reject rehashed changes before reporting; completion is
+last. A production bank must validate all 21 ordered fits before evaluation.
+The held-out evaluator and integrated full-study preflight/review remain required
+before production fitting. Do not interpret fixture success as task-quality,
+inference-savings, or hardware evidence.

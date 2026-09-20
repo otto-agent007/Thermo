@@ -77,9 +77,14 @@ The [training-law component](experiment-reports/2026-09-19-quality-budget-traini
 also validates all six finite laws plus equilibrium
 on the existing three-site fixture, preserving M3 and independently replaying
 law-specific occupancy/gradient roles. Its 42 diagnostic seeds do not consume
-the 213 study roles. Next, integrate and validate the matched five-update
-full-program runner before new fitting or evaluation. Neither component command
-satisfies the full runner preflight.
+the 213 study roles. The [training runner](experiment-reports/2026-09-20-quality-budget-training-runner/summary.md)
+now authenticates the 21 production
+requests and checks every step and selected fifth checkpoint. Its separate
+preflight exercises the shared engine through 105 diagnostic three-site updates,
+replaying evolving-law draws independently without consuming production roles.
+Next: implement the 60-cell evaluator and integrated full-study replay/preflight,
+obtain review, then execute the unchanged 21-fit/60-cell study. Component checks
+do not establish full-study readiness or a scientific outcome.
 No global-capacity, convergence,
 hardware, or architecture conclusion follows from the fixed M4F search.
 
