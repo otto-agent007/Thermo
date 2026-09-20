@@ -1,0 +1,13 @@
+{
+  "aggregate": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/thrml-run/aggregate.json",
+  "completed_runs": 4,
+  "failed_runs": 0,
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/thrml-run/report.md",
+  "seeds": [
+    7,
+    8,
+    9,
+    10
+  ],
+  "status": "complete"
+}

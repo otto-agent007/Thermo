@@ -1,0 +1,13 @@
+{
+  "horizons": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    30
+  ],
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/finite-sweep-gradient-contract/report.md",
+  "result_digest": "sha256:1b5d245ebe62b8997886d485fce5ea2c97ddb102c6fe6e45ebbed65607e5bac2",
+  "status": "complete"
+}

@@ -1,0 +1,518 @@
+Building source distribution...
+running egg_info
+writing src/thermo_lab.egg-info/PKG-INFO
+writing dependency_links to src/thermo_lab.egg-info/dependency_links.txt
+writing entry points to src/thermo_lab.egg-info/entry_points.txt
+writing requirements to src/thermo_lab.egg-info/requires.txt
+writing top-level names to src/thermo_lab.egg-info/top_level.txt
+reading manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+running sdist
+running egg_info
+writing src/thermo_lab.egg-info/PKG-INFO
+writing dependency_links to src/thermo_lab.egg-info/dependency_links.txt
+writing entry points to src/thermo_lab.egg-info/entry_points.txt
+writing requirements to src/thermo_lab.egg-info/requires.txt
+writing top-level names to src/thermo_lab.egg-info/top_level.txt
+reading manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+running check
+creating thermo_lab-0.1.0
+creating thermo_lab-0.1.0/configs/experiments
+creating thermo_lab-0.1.0/src/thermo_lab
+creating thermo_lab-0.1.0/src/thermo_lab.egg-info
+creating thermo_lab-0.1.0/src/thermo_lab/backends
+creating thermo_lab-0.1.0/src/thermo_lab/exact
+creating thermo_lab-0.1.0/src/thermo_lab/experiments
+creating thermo_lab-0.1.0/src/thermo_lab/hardware
+copying files to thermo_lab-0.1.0...
+copying LICENSE -> thermo_lab-0.1.0
+copying README.md -> thermo_lab-0.1.0
+copying pyproject.toml -> thermo_lab-0.1.0
+copying configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/thrml-independent-pasym-swap.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/thrml-ising-chain.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/thrml-model-context-pasym-swap.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/thrml-target-context-pasym-swap.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/torx-two-gate.toml -> thermo_lab-0.1.0/configs/experiments
+copying configs/experiments/torx-weighted-graph-walk.toml -> thermo_lab-0.1.0/configs/experiments
+copying src/thermo_lab/__init__.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/aggregate.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/asymmetry_preservation.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/asymmetry_preservation_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/asymmetry_reference.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/cli.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_pasym_swap_artifacts.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_pasym_swap_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_pasym_swap_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement_schema.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/config.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/conservation_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/conservation_diagnostic.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/conservation_tradeoff.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/conservation_tradeoff_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/context_conservation.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/context_conservation_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/diagnostics.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/evidence.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_refinement_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_refinement_sequence.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_sampler_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_sweep_estimator_reference.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_sweep_gradient_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_sweep_gradient_reference.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_sweep_gradients.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/finite_sweep_sampling.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/frozen_pair_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/frozen_pair_finite_sweeps.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/graph_walk_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/hashing.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/independent_compiler.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/matched_training_archive.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/matched_training_audit.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/matched_training_budget.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/model_context.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/model_context_compiler.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/model_context_pasym_swap_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/model_context_pasym_swap_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/pasym_swap_context.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/pasym_swap_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/pasym_swap_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/persistence.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/pinned_control_replay.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/provenance.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_acceptance.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_preflight.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_protocol.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_runner_preflight.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_statistics.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_training_laws.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_training_preflight.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/quality_budget_training_runner.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/record_schemas.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/records.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/runner.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/schemas.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/target_context_compiler.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/target_context_pasym_swap_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/target_context_pasym_swap_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/thermodynamic_kernel.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/trajectory_reinforce.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_refinement.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_refinement_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_refinement_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_reporting.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_results.py -> thermo_lab-0.1.0/src/thermo_lab
+copying src/thermo_lab.egg-info/PKG-INFO -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+copying src/thermo_lab.egg-info/SOURCES.txt -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+copying src/thermo_lab.egg-info/dependency_links.txt -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+copying src/thermo_lab.egg-info/entry_points.txt -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+copying src/thermo_lab.egg-info/requires.txt -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+copying src/thermo_lab.egg-info/top_level.txt -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+copying src/thermo_lab/backends/__init__.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/base.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/numpy_composed_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/numpy_composed_trajectory_refinement.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/numpy_exact_categorical.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_independent_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_local.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_model_context_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_target_context_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/torx_statevector.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/backends/torx_weighted_graph_walk.py -> thermo_lab-0.1.0/src/thermo_lab/backends
+copying src/thermo_lab/exact/__init__.py -> thermo_lab-0.1.0/src/thermo_lab/exact
+copying src/thermo_lab/exact/ising.py -> thermo_lab-0.1.0/src/thermo_lab/exact
+copying src/thermo_lab/exact/weighted_graph.py -> thermo_lab-0.1.0/src/thermo_lab/exact
+copying src/thermo_lab/experiments/__init__.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/independent_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/ising_chain.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/model_context_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/target_context_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/torx_smoke.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/trajectory_reinforce_pasym_swap.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/experiments/weighted_graph_walk.py -> thermo_lab-0.1.0/src/thermo_lab/experiments
+copying src/thermo_lab/hardware/__init__.py -> thermo_lab-0.1.0/src/thermo_lab/hardware
+copying src/thermo_lab/hardware/z1.py -> thermo_lab-0.1.0/src/thermo_lab/hardware
+copying src/thermo_lab.egg-info/SOURCES.txt -> thermo_lab-0.1.0/src/thermo_lab.egg-info
+Writing thermo_lab-0.1.0/setup.cfg
+Creating tar archive
+removing 'thermo_lab-0.1.0' (and everything under it)
+Building wheel from source distribution...
+running egg_info
+writing src/thermo_lab.egg-info/PKG-INFO
+writing dependency_links to src/thermo_lab.egg-info/dependency_links.txt
+writing entry points to src/thermo_lab.egg-info/entry_points.txt
+writing requirements to src/thermo_lab.egg-info/requires.txt
+writing top-level names to src/thermo_lab.egg-info/top_level.txt
+reading manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+creating build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_runner_preflight.py -> build/lib/thermo_lab
+copying src/thermo_lab/target_context_pasym_swap_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_refinement_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/trajectory_reinforce.py -> build/lib/thermo_lab
+copying src/thermo_lab/config.py -> build/lib/thermo_lab
+copying src/thermo_lab/pasym_swap_context.py -> build/lib/thermo_lab
+copying src/thermo_lab/conservation_diagnostic.py -> build/lib/thermo_lab
+copying src/thermo_lab/__init__.py -> build/lib/thermo_lab
+copying src/thermo_lab/model_context_pasym_swap_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/context_conservation_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/model_context_compiler.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_statistics.py -> build/lib/thermo_lab
+copying src/thermo_lab/thermodynamic_kernel.py -> build/lib/thermo_lab
+copying src/thermo_lab/diagnostics.py -> build/lib/thermo_lab
+copying src/thermo_lab/target_context_pasym_swap_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/asymmetry_preservation_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_acceptance.py -> build/lib/thermo_lab
+copying src/thermo_lab/graph_walk_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_pasym_swap.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_sweep_estimator_reference.py -> build/lib/thermo_lab
+copying src/thermo_lab/records.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_sweep_gradient_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/cli.py -> build/lib/thermo_lab
+copying src/thermo_lab/matched_training_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_refinement.py -> build/lib/thermo_lab
+copying src/thermo_lab/target_context_compiler.py -> build/lib/thermo_lab
+copying src/thermo_lab/pasym_swap_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_training_runner.py -> build/lib/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/provenance.py -> build/lib/thermo_lab
+copying src/thermo_lab/conservation_tradeoff_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/persistence.py -> build/lib/thermo_lab
+copying src/thermo_lab/hashing.py -> build/lib/thermo_lab
+copying src/thermo_lab/asymmetry_preservation.py -> build/lib/thermo_lab
+copying src/thermo_lab/independent_compiler.py -> build/lib/thermo_lab
+copying src/thermo_lab/model_context_pasym_swap_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_training_preflight.py -> build/lib/thermo_lab
+copying src/thermo_lab/pasym_swap_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/conservation_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/matched_training_archive.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement_schema.py -> build/lib/thermo_lab
+copying src/thermo_lab/context_conservation.py -> build/lib/thermo_lab
+copying src/thermo_lab/runner.py -> build/lib/thermo_lab
+copying src/thermo_lab/reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_pasym_swap_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/pinned_control_replay.py -> build/lib/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_refinement_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/model_context.py -> build/lib/thermo_lab
+copying src/thermo_lab/schemas.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_refinement_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_sweep_sampling.py -> build/lib/thermo_lab
+copying src/thermo_lab/record_schemas.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_sweep_gradient_reference.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_pasym_swap_reporting.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_trajectory_refinement_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_protocol.py -> build/lib/thermo_lab
+copying src/thermo_lab/evidence.py -> build/lib/thermo_lab
+copying src/thermo_lab/pasym_swap.py -> build/lib/thermo_lab
+copying src/thermo_lab/matched_training_budget.py -> build/lib/thermo_lab
+copying src/thermo_lab/asymmetry_reference.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_training_laws.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_sampler_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/frozen_pair_audit.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_refinement_sequence.py -> build/lib/thermo_lab
+copying src/thermo_lab/quality_budget_preflight.py -> build/lib/thermo_lab
+copying src/thermo_lab/composed_pasym_swap_artifacts.py -> build/lib/thermo_lab
+copying src/thermo_lab/conservation_tradeoff.py -> build/lib/thermo_lab
+copying src/thermo_lab/frozen_pair_finite_sweeps.py -> build/lib/thermo_lab
+copying src/thermo_lab/aggregate.py -> build/lib/thermo_lab
+copying src/thermo_lab/trajectory_reinforce_results.py -> build/lib/thermo_lab
+copying src/thermo_lab/finite_sweep_gradients.py -> build/lib/thermo_lab
+creating build/lib/thermo_lab/exact
+copying src/thermo_lab/exact/weighted_graph.py -> build/lib/thermo_lab/exact
+copying src/thermo_lab/exact/__init__.py -> build/lib/thermo_lab/exact
+copying src/thermo_lab/exact/ising.py -> build/lib/thermo_lab/exact
+creating build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/base.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/__init__.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_target_context_pasym_swap.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_local.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/torx_statevector.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/numpy_composed_pasym_swap.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/numpy_exact_categorical.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/torx_weighted_graph_walk.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_pasym_swap.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/numpy_composed_trajectory_refinement.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_model_context_pasym_swap.py -> build/lib/thermo_lab/backends
+copying src/thermo_lab/backends/thrml_independent_pasym_swap.py -> build/lib/thermo_lab/backends
+creating build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/target_context_pasym_swap.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/__init__.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/independent_pasym_swap.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/model_context_pasym_swap.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/torx_smoke.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/weighted_graph_walk.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/ising_chain.py -> build/lib/thermo_lab/experiments
+copying src/thermo_lab/experiments/trajectory_reinforce_pasym_swap.py -> build/lib/thermo_lab/experiments
+creating build/lib/thermo_lab/hardware
+copying src/thermo_lab/hardware/__init__.py -> build/lib/thermo_lab/hardware
+copying src/thermo_lab/hardware/z1.py -> build/lib/thermo_lab/hardware
+running egg_info
+writing src/thermo_lab.egg-info/PKG-INFO
+writing dependency_links to src/thermo_lab.egg-info/dependency_links.txt
+writing entry points to src/thermo_lab.egg-info/entry_points.txt
+writing requirements to src/thermo_lab.egg-info/requires.txt
+writing top-level names to src/thermo_lab.egg-info/top_level.txt
+reading manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/thermo_lab.egg-info/SOURCES.txt'
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/thermo_lab
+copying build/lib/thermo_lab/quality_budget_runner_preflight.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/target_context_pasym_swap_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/trajectory_reinforce_refinement_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/trajectory_reinforce.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/config.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/pasym_swap_context.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/conservation_diagnostic.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/__init__.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/model_context_pasym_swap_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/context_conservation_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/model_context_compiler.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_statistics.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/thermodynamic_kernel.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/diagnostics.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/target_context_pasym_swap_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/asymmetry_preservation_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_acceptance.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/graph_walk_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_sweep_estimator_reference.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/records.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_sweep_gradient_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/cli.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/matched_training_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/trajectory_reinforce_refinement.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+creating build/bdist.linux-x86_64/wheel/thermo_lab/exact
+copying build/lib/thermo_lab/exact/weighted_graph.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/exact
+copying build/lib/thermo_lab/exact/__init__.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/exact
+copying build/lib/thermo_lab/exact/ising.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/exact
+copying build/lib/thermo_lab/target_context_compiler.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/pasym_swap_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_training_runner.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/trajectory_reinforce_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+creating build/bdist.linux-x86_64/wheel/thermo_lab/backends
+copying build/lib/thermo_lab/backends/base.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/__init__.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/thrml_target_context_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/thrml_local.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/torx_statevector.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/numpy_composed_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/numpy_exact_categorical.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/torx_weighted_graph_walk.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/thrml_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/numpy_composed_trajectory_refinement.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/thrml_model_context_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/backends/thrml_independent_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/backends
+copying build/lib/thermo_lab/provenance.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/conservation_tradeoff_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/persistence.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/hashing.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/asymmetry_preservation.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/independent_compiler.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/model_context_pasym_swap_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_training_preflight.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/pasym_swap_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/conservation_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/matched_training_archive.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_trajectory_refinement_schema.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+creating build/bdist.linux-x86_64/wheel/thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/target_context_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/__init__.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/independent_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/model_context_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/torx_smoke.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/weighted_graph_walk.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/ising_chain.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/experiments/trajectory_reinforce_pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/experiments
+copying build/lib/thermo_lab/context_conservation.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/runner.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_pasym_swap_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_trajectory_refinement_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/pinned_control_replay.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+creating build/bdist.linux-x86_64/wheel/thermo_lab/hardware
+copying build/lib/thermo_lab/hardware/__init__.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/hardware
+copying build/lib/thermo_lab/hardware/z1.py -> build/bdist.linux-x86_64/wheel/./thermo_lab/hardware
+copying build/lib/thermo_lab/trajectory_reinforce_refinement_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/model_context.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/schemas.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_trajectory_refinement.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_refinement_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_sweep_sampling.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/record_schemas.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_sweep_gradient_reference.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_pasym_swap_reporting.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_trajectory_refinement_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_protocol.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/evidence.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/pasym_swap.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/matched_training_budget.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/asymmetry_reference.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_training_laws.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_sampler_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/frozen_pair_audit.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_refinement_sequence.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/quality_budget_preflight.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/composed_pasym_swap_artifacts.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/conservation_tradeoff.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/frozen_pair_finite_sweeps.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/aggregate.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/trajectory_reinforce_results.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+copying build/lib/thermo_lab/finite_sweep_gradients.py -> build/bdist.linux-x86_64/wheel/./thermo_lab
+running install_data
+creating build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data
+creating build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/thrml-independent-pasym-swap.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/thrml-ising-chain.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/thrml-model-context-pasym-swap.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/thrml-target-context-pasym-swap.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/torx-two-gate.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+copying configs/experiments/torx-weighted-graph-walk.toml -> build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.data/data/configs/experiments
+running install_egg_info
+Copying src/thermo_lab.egg-info to build/bdist.linux-x86_64/wheel/./thermo_lab-0.1.0-py3.11.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/thermo_lab-0.1.0.dist-info/WHEEL
+creating '/workspace/scratch/79db9729d9c0/Thermo/dist/.tmp-nux7ifgj/thermo_lab-0.1.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'thermo_lab/__init__.py'
+adding 'thermo_lab/aggregate.py'
+adding 'thermo_lab/asymmetry_preservation.py'
+adding 'thermo_lab/asymmetry_preservation_audit.py'
+adding 'thermo_lab/asymmetry_reference.py'
+adding 'thermo_lab/cli.py'
+adding 'thermo_lab/composed_pasym_swap.py'
+adding 'thermo_lab/composed_pasym_swap_artifacts.py'
+adding 'thermo_lab/composed_pasym_swap_reporting.py'
+adding 'thermo_lab/composed_pasym_swap_results.py'
+adding 'thermo_lab/composed_trajectory_refinement.py'
+adding 'thermo_lab/composed_trajectory_refinement_reporting.py'
+adding 'thermo_lab/composed_trajectory_refinement_results.py'
+adding 'thermo_lab/composed_trajectory_refinement_schema.py'
+adding 'thermo_lab/config.py'
+adding 'thermo_lab/conservation_audit.py'
+adding 'thermo_lab/conservation_diagnostic.py'
+adding 'thermo_lab/conservation_tradeoff.py'
+adding 'thermo_lab/conservation_tradeoff_audit.py'
+adding 'thermo_lab/context_conservation.py'
+adding 'thermo_lab/context_conservation_audit.py'
+adding 'thermo_lab/diagnostics.py'
+adding 'thermo_lab/evidence.py'
+adding 'thermo_lab/finite_refinement_audit.py'
+adding 'thermo_lab/finite_refinement_sequence.py'
+adding 'thermo_lab/finite_sampler_audit.py'
+adding 'thermo_lab/finite_sweep_estimator_reference.py'
+adding 'thermo_lab/finite_sweep_gradient_audit.py'
+adding 'thermo_lab/finite_sweep_gradient_reference.py'
+adding 'thermo_lab/finite_sweep_gradients.py'
+adding 'thermo_lab/finite_sweep_sampling.py'
+adding 'thermo_lab/frozen_pair_audit.py'
+adding 'thermo_lab/frozen_pair_finite_sweeps.py'
+adding 'thermo_lab/graph_walk_results.py'
+adding 'thermo_lab/hashing.py'
+adding 'thermo_lab/independent_compiler.py'
+adding 'thermo_lab/matched_training_archive.py'
+adding 'thermo_lab/matched_training_audit.py'
+adding 'thermo_lab/matched_training_budget.py'
+adding 'thermo_lab/model_context.py'
+adding 'thermo_lab/model_context_compiler.py'
+adding 'thermo_lab/model_context_pasym_swap_reporting.py'
+adding 'thermo_lab/model_context_pasym_swap_results.py'
+adding 'thermo_lab/pasym_swap.py'
+adding 'thermo_lab/pasym_swap_context.py'
+adding 'thermo_lab/pasym_swap_reporting.py'
+adding 'thermo_lab/pasym_swap_results.py'
+adding 'thermo_lab/persistence.py'
+adding 'thermo_lab/pinned_control_replay.py'
+adding 'thermo_lab/provenance.py'
+adding 'thermo_lab/quality_budget_acceptance.py'
+adding 'thermo_lab/quality_budget_preflight.py'
+adding 'thermo_lab/quality_budget_protocol.py'
+adding 'thermo_lab/quality_budget_runner_preflight.py'
+adding 'thermo_lab/quality_budget_statistics.py'
+adding 'thermo_lab/quality_budget_training_laws.py'
+adding 'thermo_lab/quality_budget_training_preflight.py'
+adding 'thermo_lab/quality_budget_training_runner.py'
+adding 'thermo_lab/record_schemas.py'
+adding 'thermo_lab/records.py'
+adding 'thermo_lab/reporting.py'
+adding 'thermo_lab/runner.py'
+adding 'thermo_lab/schemas.py'
+adding 'thermo_lab/target_context_compiler.py'
+adding 'thermo_lab/target_context_pasym_swap_reporting.py'
+adding 'thermo_lab/target_context_pasym_swap_results.py'
+adding 'thermo_lab/thermodynamic_kernel.py'
+adding 'thermo_lab/trajectory_reinforce.py'
+adding 'thermo_lab/trajectory_reinforce_refinement.py'
+adding 'thermo_lab/trajectory_reinforce_refinement_reporting.py'
+adding 'thermo_lab/trajectory_reinforce_refinement_results.py'
+adding 'thermo_lab/trajectory_reinforce_reporting.py'
+adding 'thermo_lab/trajectory_reinforce_results.py'
+adding 'thermo_lab/backends/__init__.py'
+adding 'thermo_lab/backends/base.py'
+adding 'thermo_lab/backends/numpy_composed_pasym_swap.py'
+adding 'thermo_lab/backends/numpy_composed_trajectory_refinement.py'
+adding 'thermo_lab/backends/numpy_exact_categorical.py'
+adding 'thermo_lab/backends/thrml_independent_pasym_swap.py'
+adding 'thermo_lab/backends/thrml_local.py'
+adding 'thermo_lab/backends/thrml_model_context_pasym_swap.py'
+adding 'thermo_lab/backends/thrml_pasym_swap.py'
+adding 'thermo_lab/backends/thrml_target_context_pasym_swap.py'
+adding 'thermo_lab/backends/torx_statevector.py'
+adding 'thermo_lab/backends/torx_weighted_graph_walk.py'
+adding 'thermo_lab/exact/__init__.py'
+adding 'thermo_lab/exact/ising.py'
+adding 'thermo_lab/exact/weighted_graph.py'
+adding 'thermo_lab/experiments/__init__.py'
+adding 'thermo_lab/experiments/independent_pasym_swap.py'
+adding 'thermo_lab/experiments/ising_chain.py'
+adding 'thermo_lab/experiments/model_context_pasym_swap.py'
+adding 'thermo_lab/experiments/target_context_pasym_swap.py'
+adding 'thermo_lab/experiments/torx_smoke.py'
+adding 'thermo_lab/experiments/trajectory_reinforce_pasym_swap.py'
+adding 'thermo_lab/experiments/weighted_graph_walk.py'
+adding 'thermo_lab/hardware/__init__.py'
+adding 'thermo_lab/hardware/z1.py'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/thrml-independent-pasym-swap.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/thrml-ising-chain.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/thrml-model-context-pasym-swap.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/thrml-target-context-pasym-swap.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/torx-two-gate.toml'
+adding 'thermo_lab-0.1.0.data/data/configs/experiments/torx-weighted-graph-walk.toml'
+adding 'thermo_lab-0.1.0.dist-info/licenses/LICENSE'
+adding 'thermo_lab-0.1.0.dist-info/METADATA'
+adding 'thermo_lab-0.1.0.dist-info/WHEEL'
+adding 'thermo_lab-0.1.0.dist-info/entry_points.txt'
+adding 'thermo_lab-0.1.0.dist-info/top_level.txt'
+adding 'thermo_lab-0.1.0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built dist/thermo_lab-0.1.0.tar.gz
+Successfully built dist/thermo_lab-0.1.0-py3-none-any.whl

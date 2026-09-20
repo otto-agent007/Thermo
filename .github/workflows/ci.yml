@@ -115,6 +115,60 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+  quality-budget-training-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      JAX_PLATFORMS: cpu
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Validate five updates at all seven laws
+        run: >-
+          uv run python -m thermo_lab.quality_budget_runner_preflight
+          --output-dir "${{ runner.temp }}/quality-budget-training-runner"
+      - name: Require bounded component completion
+        run: |
+          python - <<'PYCODE'
+          import json
+          import os
+          from pathlib import Path
+          output = Path(os.environ["RUNNER_TEMP"]) / "quality-budget-training-runner"
+          completion = json.loads((output / "completion.json").read_text())
+          assert completion["status"] == "training_runner_component_complete"
+          assert completion["full_m4g_ready"] is False
+          assert completion["study_fits_executed"] == 0
+          assert completion["evaluation_cells_executed"] == 0
+          assert completion["fixture_fits"] == 21
+          assert completion["fixture_updates"] == 105
+          evidence = json.loads((output / "preflight.json").read_text())
+          assert len(evidence["fixture_fits"]) == 21
+          assert evidence["independent_replay"]["steps_checked"] == 105
+          assert completion["result_digest"] == evidence["result_digest"]
+          report = (output / "report.md").read_text()
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(report)
+          PYCODE
+      - name: Preserve training-runner evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-budget-training-runner
+          path: ${{ runner.temp }}/quality-budget-training-runner
+          retention-days: 90
+          if-no-files-found: error
+
   asymmetry-preservation:
     runs-on: ubuntu-latest
     timeout-minutes: 15

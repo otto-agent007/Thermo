@@ -1,0 +1,10 @@
+{
+  "status": "complete",
+  "completed_runs": 3,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/bounded-finite-sweep-refinement/report.md"
+}

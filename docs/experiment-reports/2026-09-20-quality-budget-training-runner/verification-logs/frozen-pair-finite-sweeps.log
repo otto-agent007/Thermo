@@ -1,0 +1,11 @@
+{
+  "completed_runs": 3,
+  "completion": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/frozen-pair-finite-sweeps/completion.json",
+  "report": "/workspace/scratch/79db9729d9c0/Thermo/results/m4g-training-runner-verification/frozen-pair-finite-sweeps/report.md",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "status": "complete"
+}
