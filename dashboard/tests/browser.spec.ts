@@ -9,6 +9,7 @@ test("project status and sourced destinations are accessible", async ({
   await expect(
     page.getByText("Joint quality unmet", { exact: true }),
   ).toBeVisible();
+  await page.screenshot({ path: "test-results/overview.png", fullPage: true });
   await page.getByRole("link", { name: "Roadmap", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Roadmap and activity" }),
@@ -26,6 +27,7 @@ test("mobile has no page overflow and supports keyboard focus", async ({
   await expect(
     page.getByRole("heading", { name: "Project overview" }),
   ).toBeVisible();
+  await page.screenshot({ path: "test-results/mobile.png", fullPage: true });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -36,6 +38,16 @@ test("mobile has no page overflow and supports keyboard focus", async ({
 });
 test("filters, metrics, detail and CSV stay consistent", async ({ page }) => {
   await page.goto("/#experiments");
+  await expect(
+    page.getByRole("heading", {
+      name: "Task quality vs inference budget",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/experiments.png",
+    fullPage: true,
+  });
   await page.getByLabel("Seed", { exact: true }).selectOption("0");
   await page.getByLabel("Training member").selectOption("finite");
   await page.getByLabel("Inference horizon").selectOption("30");

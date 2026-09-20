@@ -58,6 +58,7 @@ export function Experiments({ snapshot }: { snapshot: ProjectSnapshot }) {
         <label>
           Seed
           <select
+            aria-label="Seed"
             value={filters.seeds[0] ?? "all"}
             onChange={(e) =>
               setFilters({
@@ -77,6 +78,7 @@ export function Experiments({ snapshot }: { snapshot: ProjectSnapshot }) {
         <label>
           Training member
           <select
+            aria-label="Training member"
             value={filters.members[0] ?? "all"}
             onChange={(e) =>
               setFilters({
@@ -95,6 +97,7 @@ export function Experiments({ snapshot }: { snapshot: ProjectSnapshot }) {
         <label>
           Inference horizon
           <select
+            aria-label="Inference horizon"
             value={filters.horizons[0] ?? "all"}
             onChange={(e) =>
               setFilters({
