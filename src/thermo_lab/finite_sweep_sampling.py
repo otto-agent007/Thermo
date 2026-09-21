@@ -25,6 +25,7 @@ from thermo_lab.finite_sweep_gradient_reference import CHECKED_HORIZONS
 from thermo_lab.finite_sweep_gradients import finite_sweep_joint_law
 from thermo_lab.frozen_pair_finite_sweeps import HorizonTerminalEvidence, paired_table_digest
 from thermo_lab.hashing import canonical_sha256
+from thermo_lab.runtime_work import timed_work
 from thermo_lab.thermodynamic_kernel import KernelParameters
 
 
@@ -68,6 +69,7 @@ def _request(parameters, groups, sites, *, site_count, batch_size, seed, beta, h
 
 
 @lru_cache(maxsize=64)
+@timed_work("exact_finite_tables_and_scores")
 def _tables(parameters, horizon, beta):
     laws = [finite_sweep_joint_law(KernelParameters(row), horizon, beta=beta) for row in parameters]
     probabilities = np.asarray([law.probabilities for law in laws])

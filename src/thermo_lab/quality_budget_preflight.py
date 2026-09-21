@@ -23,8 +23,10 @@ from thermo_lab.quality_budget_protocol import (
 )
 from thermo_lab.quality_budget_statistics import statistical_preflight, validation_contract
 from thermo_lab.records import RunRecord
+from thermo_lab.runtime_work import timed_work
 
 
+@timed_work("source_authentication")
 def _sources(repository_root):
     root = repository_root or find_repository_root(Path(__file__).resolve())
     if root is None:

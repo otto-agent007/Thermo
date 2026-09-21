@@ -11,6 +11,7 @@ from thermo_lab.conservation_diagnostic import (
 )
 from thermo_lab.finite_sweep_gradients import finite_sweep_joint_law
 from thermo_lab.independent_compiler import _checked_pasym_target
+from thermo_lab.runtime_work import timed_work
 from thermo_lab.thermodynamic_kernel import KernelParameters
 
 PENALTIES = (0.0, 1.0, 10.0)
@@ -74,6 +75,7 @@ def _fit_group(initial, target, penalty, evaluate):
     }
 
 
+@timed_work("exact_quality_metrics")
 def measure_tables(tables, targets, groups, sites, *, site_count):
     """Exact endpoint fidelity and killed survival; no terminal-distribution claim."""
     survival = exact_survival(tables, groups, sites, site_count=site_count)
