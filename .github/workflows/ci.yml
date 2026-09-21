@@ -609,6 +609,12 @@ jobs:
               uv run pytest
               tests/integration/test_asymmetry_preservation_audit.py
               -m "not slow"
+          - name: integration-quality-budget
+            command: >-
+              uv run pytest
+              tests/integration/test_quality_budget_full_preflight.py
+              tests/integration/test_quality_budget_study.py
+              -m "not slow"
           - name: integration-other
             command: >-
               uv run pytest tests/integration -m "not slow"
@@ -616,6 +622,8 @@ jobs:
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
               --ignore=tests/integration/test_context_conservation_audit.py
               --ignore=tests/integration/test_asymmetry_preservation_audit.py
+              --ignore=tests/integration/test_quality_budget_full_preflight.py
+              --ignore=tests/integration/test_quality_budget_study.py
           - name: upstream-regressions
             command: uv run pytest tests/upstream_regressions -m "not slow"
           - name: slow-contracts
