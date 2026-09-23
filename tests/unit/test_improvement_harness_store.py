@@ -1,9 +1,15 @@
+import fcntl
 import hashlib
 import json
+import multiprocessing
+import threading
 import uuid
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
+import thermo_lab.improvement_harness.store as store_module
 from thermo_lab.improvement_harness.plan import Plan
 from thermo_lab.improvement_harness.store import (
     append_review,
@@ -188,3 +194,84 @@ def test_read_rejects_invalid_review_even_with_valid_request(tmp_path, plan, cha
     path.write_text(json.dumps(review))
     with pytest.raises(ValueError):
         read_candidate(tmp_path, candidate.id)
+
+
+def _simultaneous_candidate_worker(root, plan_data, scan_barrier, outcomes):
+    """Align two real filesystem scans to expose a missing cross-process lock."""
+    original_iterdir = Path.iterdir
+    root = Path(root)
+
+    def aligned_iterdir(path):
+        entries = list(original_iterdir(path))
+        if path == root:
+            try:
+                scan_barrier.wait(timeout=2)
+            except threading.BrokenBarrierError:
+                pass  # A lock correctly allows only one process into this scan.
+        return iter(entries)
+
+    with patch.object(Path, "iterdir", aligned_iterdir):
+        try:
+            create_candidate(root, Plan.model_validate(plan_data))
+        except ValueError as error:
+            outcomes.put("limited" if "max_candidates" in str(error) else repr(error))
+        else:
+            outcomes.put("created")
+
+
+def test_candidate_budget_is_atomic_across_processes(tmp_path, plan):
+    context = multiprocessing.get_context("fork")
+    barrier = context.Barrier(2)
+    outcomes = context.Queue()
+    processes = [
+        context.Process(
+            target=_simultaneous_candidate_worker,
+            args=(str(tmp_path), plan.model_dump(mode="json"), barrier, outcomes),
+        )
+        for _ in range(2)
+    ]
+    try:
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join(timeout=10)
+        assert [process.exitcode for process in processes] == [0, 0]
+        assert sorted(outcomes.get(timeout=1) for _ in processes) == ["created", "limited"]
+        assert len([path for path in tmp_path.iterdir() if path.name[0] != "."]) == 1
+    finally:
+        for process in processes:
+            if process.is_alive():
+                process.terminate()
+                process.join(timeout=1)
+
+
+def _hold_lock(lock_path, started, release):
+    with Path(lock_path).open("r+b") as file:
+        fcntl.flock(file, fcntl.LOCK_EX)
+        started.set()
+        release.wait(timeout=5)
+
+
+def test_plan_lock_wait_is_bounded_and_timeout_consumes_no_candidate(tmp_path, plan, monkeypatch):
+    plan = plan.model_copy(update={"max_candidates": 2})
+    create_candidate(tmp_path, plan)
+    lock_path = next((tmp_path / ".locks").iterdir())
+    context = multiprocessing.get_context("fork")
+    started = context.Event()
+    release = context.Event()
+    holder = context.Process(target=_hold_lock, args=(str(lock_path), started, release))
+    holder.start()
+    try:
+        assert started.wait(timeout=2)
+        monkeypatch.setattr(store_module, "_LOCK_WAIT_SECONDS", 0.1)
+        with pytest.raises(TimeoutError, match="plan candidate lock"):
+            create_candidate(tmp_path, plan)
+        create_candidate(tmp_path, plan.model_copy(update={"objective": "unrelated"}))
+    finally:
+        release.set()
+        holder.join(timeout=2)
+        if holder.is_alive():
+            holder.terminate()
+            holder.join(timeout=1)
+    assert holder.exitcode == 0
+    create_candidate(tmp_path, plan)

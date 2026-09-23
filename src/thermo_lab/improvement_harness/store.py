@@ -1,9 +1,14 @@
 """Append-only local candidate records with byte-level integrity checks."""
 
+import fcntl
 import hashlib
 import json
+import os
 import re
+import time
 import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
@@ -11,6 +16,8 @@ from typing import Any, Literal
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
 from thermo_lab.improvement_harness.plan import Plan, plan_digest
+
+_LOCK_WAIT_SECONDS = 5.0
 
 
 class Candidate(BaseModel):
@@ -142,42 +149,69 @@ def _validate_result(result: dict[str, Any]) -> None:
         raise ValueError("invalid verification status")
 
 
+@contextmanager
+def _plan_lock(root: Path, digest: str) -> Iterator[None]:
+    """Serialize a plan's budget check and creation across local processes."""
+    locks_dir = root / ".locks"
+    locks_dir.mkdir(exist_ok=True)
+    if locks_dir.is_symlink():
+        raise ValueError("plan lock directory cannot be a symlink")
+    lock_path = locks_dir / f"{digest.removeprefix('sha256:')}.lock"
+    descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(descriptor, "r+b") as file:
+        deadline = time.monotonic() + _LOCK_WAIT_SECONDS
+        while True:
+            try:
+                fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("timed out waiting for plan candidate lock") from None
+                time.sleep(min(0.05, remaining))
+        try:
+            yield
+        finally:
+            fcntl.flock(file, fcntl.LOCK_UN)
+
+
 def create_candidate(root: Path, plan: Plan, parent_id: str | None = None) -> Candidate:
     """Create a new request, respecting the frozen plan's candidate budget."""
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
     digest = plan_digest(plan)
-    if parent_id is not None:
-        parent = read_candidate(root, parent_id)["request"]
-        if parent["plan_digest"] != digest:
-            raise ValueError("parent candidate belongs to another plan")
-    count = 0
-    for directory in root.iterdir():
-        if not directory.is_dir():
-            continue
-        try:
-            candidate_dir = _candidate_dir(root, directory.name)
-        except ValueError:
-            continue
-        request = _read_request(candidate_dir)
-        if request.get("plan_digest") == digest:
-            count += 1
-    if count >= plan.max_candidates:
-        raise ValueError("max_candidates reached for this plan")
-    candidate = Candidate(
-        schema_version=1,
-        id=str(uuid.uuid4()),
-        parent_id=parent_id,
-        track=plan.track,
-        objective=plan.objective,
-        baseline_commit=plan.baseline_commit,
-        allowed_paths=plan.allowed_paths,
-        plan_digest=digest,
-    )
-    directory = _candidate_dir(root, candidate.id)
-    directory.mkdir()
-    _write_record(directory, "request", candidate.model_dump(mode="json", exclude_none=True))
-    return candidate
+    with _plan_lock(root, digest):
+        if parent_id is not None:
+            parent = read_candidate(root, parent_id)["request"]
+            if parent["plan_digest"] != digest:
+                raise ValueError("parent candidate belongs to another plan")
+        count = 0
+        for directory in root.iterdir():
+            if not directory.is_dir():
+                continue
+            try:
+                candidate_dir = _candidate_dir(root, directory.name)
+            except ValueError:
+                continue
+            request = _read_request(candidate_dir)
+            if request.get("plan_digest") == digest:
+                count += 1
+        if count >= plan.max_candidates:
+            raise ValueError("max_candidates reached for this plan")
+        candidate = Candidate(
+            schema_version=1,
+            id=str(uuid.uuid4()),
+            parent_id=parent_id,
+            track=plan.track,
+            objective=plan.objective,
+            baseline_commit=plan.baseline_commit,
+            allowed_paths=plan.allowed_paths,
+            plan_digest=digest,
+        )
+        directory = _candidate_dir(root, candidate.id)
+        directory.mkdir()
+        _write_record(directory, "request", candidate.model_dump(mode="json", exclude_none=True))
+        return candidate
 
 
 def record_result(root: Path, candidate_id: str, result: dict[str, Any]) -> None:
