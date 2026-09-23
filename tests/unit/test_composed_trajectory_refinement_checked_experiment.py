@@ -100,7 +100,10 @@ def test_runner_dispatches_the_dedicated_checked_backend() -> None:
 
 
 def test_ci_packages_and_runs_the_checked_refinement_config() -> None:
-    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    entrypoint = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "  scientific:\n    uses: ./.github/workflows/scientific.yml\n" in entrypoint
+    workflow = (ROOT / ".github/workflows/scientific.yml").read_text(encoding="utf-8")
+    assert "on:\n  workflow_call:\n" in workflow
     config = "configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml"
 
     assert f'"{config}",' in workflow

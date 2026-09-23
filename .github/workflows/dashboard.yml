@@ -1,21 +1,20 @@
 name: Dashboard
 on:
-  pull_request:
-    paths: ['dashboard/**', '.github/workflows/dashboard.yml', 'docs/experiment-reports/**']
-  push:
-    branches: [main]
-    paths: ['dashboard/**', '.github/workflows/dashboard.yml', 'docs/experiment-reports/**']
+  workflow_call:
 permissions:
   contents: read
 jobs:
   dashboard:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: dashboard
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: npm
@@ -24,8 +23,26 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
-      - uses: actions/upload-artifact@v4
+      - name: Test the compiled snapshot
+        run: npm run test:browser
+        env:
+          DASHBOARD_STATIC: '1'
+      - name: Package the tested build
+        working-directory: .
+        run: >-
+          python3 .github/scripts/dashboard_bundle.py build
+          --output "$RUNNER_TEMP/dashboard-bundle"
+          --sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY"
+          --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Preserve exact tested build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dashboard-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/dashboard-bundle/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Preserve browser evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: dashboard-browser-evidence

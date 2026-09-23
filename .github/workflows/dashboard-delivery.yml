@@ -1,0 +1,104 @@
+name: Dashboard delivery
+
+on:
+  workflow_run:
+    workflows: [Thermo CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful main-push Thermo CI run ID
+        required: true
+        type: string
+      prepare_rollback:
+        description: Prepare an older successful main build (does not deploy it)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: dashboard-delivery
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Verify delivery candidate
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Trusted main code only. Never check out the artifact producer's branch or execute its files.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          ref: main
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - name: Authenticate the source run
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+          PREPARE_ROLLBACK: ${{ inputs.prepare_rollback || false }}
+        run: python .github/scripts/select_delivery.py
+      - name: Download only that run's dashboard artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.source.outputs.artifact }}
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/candidate
+      - name: Verify bundle identity, checksums and evidence completeness
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_ATTEMPT: ${{ steps.source.outputs.attempt }}
+        run: >-
+          python .github/scripts/dashboard_bundle.py verify
+          --output "$RUNNER_TEMP/candidate"
+          --sha "$SOURCE_SHA" --repository "$GITHUB_REPOSITORY"
+          --run-id "$SOURCE_RUN_ID" --attempt "$SOURCE_ATTEMPT"
+      - name: Recheck source eligibility before delivery
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          EXPECTED_SELECTION: ${{ toJSON(steps.source.outputs) }}
+          PREPARE_ROLLBACK: ${{ inputs.prepare_rollback || false }}
+        run: |
+          python .github/scripts/select_delivery.py
+          cp "$RUNNER_TEMP/delivery.json" "$RUNNER_TEMP/candidate/delivery.json"
+      - name: Retain verified delivery bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dashboard-delivery-${{ steps.source.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/candidate/dashboard.tar.gz
+            ${{ runner.temp }}/candidate/release.json
+            ${{ runner.temp }}/candidate/SHA256SUMS
+            ${{ runner.temp }}/candidate/delivery.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Record the publication handoff
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_ATTEMPT: ${{ steps.source.outputs.attempt }}
+          CI_ATTEMPT: ${{ steps.source.outputs.ci_attempt }}
+        run: |
+          {
+            printf '## Verified dashboard delivery\n\n'
+            printf 'Source commit: %s\n\n' "$SOURCE_SHA"
+            printf 'Source run: https://github.com/%s/actions/runs/%s (CI attempt %s, build attempt %s)\n\n' "$GITHUB_REPOSITORY" "$SOURCE_RUN_ID" "$CI_ATTEMPT" "$SOURCE_ATTEMPT"
+            printf 'The attached bundle is the tested build; it has not been rebuilt.\n\n'
+            printf '**Production has not been changed.** Publish this bundle through the authenticated private Sites workflow in docs/ci-cd.md.\n'
+          } >> "$GITHUB_STEP_SUMMARY"

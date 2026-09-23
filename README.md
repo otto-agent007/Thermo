@@ -17,6 +17,11 @@ local THRML Gibbs sampling—and a separately labeled Z1 cost-model projection.
 Unreleased or inaccessible systems are documented in the roadmap rather than
 represented by placeholder backends.
 
+## CI and delivery
+
+See [the CI/CD runbook](docs/ci-cd.md) for the required CI gate, verified dashboard
+bundles, repository-protection setup and private publication/rollback procedure.
+
 ## Quick start
 
 Python 3.11 and [uv](https://docs.astral.sh/uv/) are the supported baseline.
