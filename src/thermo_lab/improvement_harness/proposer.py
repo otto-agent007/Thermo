@@ -33,13 +33,13 @@ def build_proposer_prompt(
     )
 
 
-def run_codex(worktree: Path, prompt: str, seconds: int, *, baseline: str | None = None) -> str:
+def run_codex(worktree: Path, prompt: str, seconds: int, *, baseline: str) -> str:
     """Run the local proposer and return its recommendation text."""
     worktree = Path(worktree).resolve(strict=True)
     if seconds <= 0:
         raise ValueError("seconds must be positive")
     current_head = _head(worktree)
-    if baseline is not None and current_head != baseline.lower():
+    if current_head != baseline.lower():
         raise ValueError("baseline mismatch before proposal generation")
     allowed_env = {
         name: value
@@ -81,7 +81,7 @@ def run_codex(worktree: Path, prompt: str, seconds: int, *, baseline: str | None
             raise RuntimeError("proposer unavailable: Codex CLI is missing") from error
         except subprocess.TimeoutExpired as error:
             raise RuntimeError("proposer timed out") from error
-        if _head(worktree) != current_head:
+        if _head(worktree) != baseline.lower():
             raise ValueError("baseline mismatch after proposal generation")
         if completed.returncode != 0 or not message_path.is_file():
             raise RuntimeError("proposer did not produce a recommendation")

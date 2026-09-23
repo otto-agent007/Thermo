@@ -73,7 +73,7 @@ def test_codex_fails_without_successful_recommendation(
 
     monkeypatch.setattr("thermo_lab.improvement_harness.proposer.subprocess.run", fake_run)
     with pytest.raises(RuntimeError, match="recommendation"):
-        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10)
+        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10, baseline="a" * 40)
 
 
 def test_codex_missing_is_unavailable(tmp_path: Path, monkeypatch) -> None:
@@ -84,7 +84,7 @@ def test_codex_missing_is_unavailable(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr("thermo_lab.improvement_harness.proposer.subprocess.run", missing)
     with pytest.raises(RuntimeError, match="unavailable"):
-        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10)
+        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10, baseline="a" * 40)
 
 
 def test_codex_timeout_is_failed(tmp_path: Path, monkeypatch) -> None:
@@ -95,7 +95,7 @@ def test_codex_timeout_is_failed(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr("thermo_lab.improvement_harness.proposer.subprocess.run", timed_out)
     with pytest.raises(RuntimeError, match="timed out"):
-        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 1)
+        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 1, baseline="a" * 40)
 
 
 def test_codex_rejects_changed_head_after_generation(tmp_path: Path, monkeypatch) -> None:
@@ -109,7 +109,7 @@ def test_codex_rejects_changed_head_after_generation(tmp_path: Path, monkeypatch
 
     monkeypatch.setattr("thermo_lab.improvement_harness.proposer.subprocess.run", fake_run)
     with pytest.raises(ValueError, match="baseline mismatch"):
-        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10)
+        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10, baseline="a" * 40)
 
 
 def test_codex_rejects_wrong_frozen_baseline_before_launch(tmp_path: Path, monkeypatch) -> None:
@@ -126,3 +126,8 @@ def test_codex_rejects_wrong_frozen_baseline_before_launch(tmp_path: Path, monke
     with pytest.raises(ValueError, match="baseline mismatch"):
         run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10, baseline="b" * 40)
     assert not codex_called
+
+
+def test_codex_requires_frozen_baseline(tmp_path: Path) -> None:
+    with pytest.raises(TypeError, match="baseline"):
+        run_codex(tmp_path, "Objective: x. Paths: y. Checks: z.", 10)

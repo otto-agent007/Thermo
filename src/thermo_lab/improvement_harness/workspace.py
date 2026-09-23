@@ -3,6 +3,7 @@
 import os
 import re
 import subprocess
+import tempfile
 import uuid
 from pathlib import Path
 
@@ -111,21 +112,27 @@ def _was_symlink(worktree: Path, path: str) -> bool:
     )
 
 
+def _ignored_paths(worktree: Path) -> list[str]:
+    raw = _git(worktree, "ls-files", "--others", "--ignored", "--exclude-standard", "-z")
+    return [os.fsdecode(path) for path in raw.split(b"\0") if path]
+
+
 def export_checked_patch(worktree: Path, allowed_paths: tuple[str, ...]) -> bytes:
     """Stage only checked changed paths, then export a nonempty binary patch."""
     worktree = Path(worktree)
     status = _git(worktree, "status", "--porcelain=v1", "-z", "--untracked-files=all")
     paths = parse_status_z(status)
+    all_paths = paths + _ignored_paths(worktree)
     if any(
         not is_allowed_path(worktree, path, allowed_paths) or _was_symlink(worktree, path)
-        for path in paths
+        for path in all_paths
     ):
         raise ValueError("outside allowed paths")
-    if paths:
-        _git(worktree, "add", "--", *paths)
+    if all_paths:
+        _git(worktree, "add", "-f", "--", *all_paths)
     staged = parse_status_z(
         _git(worktree, "status", "--porcelain=v1", "-z", "--untracked-files=all")
-    )
+    ) + _ignored_paths(worktree)
     if any(
         not is_allowed_path(worktree, path, allowed_paths) or _was_symlink(worktree, path)
         for path in staged
@@ -137,9 +144,45 @@ def export_checked_patch(worktree: Path, allowed_paths: tuple[str, ...]) -> byte
     return patch
 
 
-def import_manual_patch(worktree: Path, patch: Path) -> None:
-    """Check patch applicability before mutating the candidate worktree."""
+def _manual_patch_paths(patch_bytes: bytes, numstat: bytes) -> list[str]:
+    """Accept ordinary Git diffs and reject ambiguous rename/copy headers."""
+    header_paths: list[str] = []
+    for line in patch_bytes.splitlines():
+        if not line.startswith(b"diff --git "):
+            continue
+        match = re.fullmatch(rb"diff --git a/([^\s]+) b/([^\s]+)", line)
+        if match is None or match.group(1) != match.group(2):
+            raise ValueError("outside allowed paths: ambiguous patch path")
+        header_paths.append(os.fsdecode(match.group(1)))
+    if re.search(rb"(?m)^(?:new file mode|new mode) 120000$", patch_bytes):
+        raise ValueError("outside allowed paths: symlink patch")
+    records = numstat.split(b"\0")
+    if not numstat or records[-1] != b"":
+        raise ValueError("invalid patch path list")
+    stat_paths: list[str] = []
+    for record in records[:-1]:
+        fields = record.split(b"\t", 2)
+        if len(fields) != 3 or not fields[2]:
+            raise ValueError("outside allowed paths: ambiguous patch path")
+        stat_paths.append(os.fsdecode(fields[2]))
+    if not header_paths or set(header_paths) != set(stat_paths):
+        raise ValueError("outside allowed paths: patch path mismatch")
+    return header_paths
+
+
+def import_manual_patch(worktree: Path, patch: Path, allowed_paths: tuple[str, ...]) -> None:
+    """Check applicability and every patch path before mutating the worktree."""
     worktree = Path(worktree)
-    patch = Path(patch).resolve(strict=True)
-    _git(worktree, "apply", "--check", str(patch))
-    _git(worktree, "apply", str(patch))
+    patch_bytes = Path(patch).read_bytes()
+    with tempfile.TemporaryDirectory(prefix="thermo-manual-patch-") as directory:
+        checked_patch = Path(directory) / "candidate.patch"
+        checked_patch.write_bytes(patch_bytes)
+        _git(worktree, "apply", "--check", str(checked_patch))
+        numstat = _git(worktree, "apply", "--numstat", "-z", str(checked_patch))
+        paths = _manual_patch_paths(patch_bytes, numstat)
+        if any(
+            not is_allowed_path(worktree, path, allowed_paths) or _was_symlink(worktree, path)
+            for path in paths
+        ):
+            raise ValueError("outside allowed paths")
+        _git(worktree, "apply", str(checked_patch))

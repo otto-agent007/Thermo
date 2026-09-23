@@ -111,6 +111,41 @@ def test_untracked_protected_file_is_rejected(repo: Path) -> None:
     assert git(repo, "diff", "--cached", "--name-only") == ""
 
 
+def test_ignored_protected_file_is_rejected_with_allowed_edit(repo: Path) -> None:
+    (repo / ".gitignore").write_text("results/\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "-m", "ignore results")
+    (repo / "dashboard" / "src" / "page.ts").write_text("after\n")
+    protected = repo / "results" / "harness" / "forged.json"
+    protected.parent.mkdir(parents=True)
+    protected.write_text("{}")
+    with pytest.raises(ValueError, match="outside allowed paths"):
+        export_checked_patch(repo, ("dashboard/src/",))
+    assert git(repo, "diff", "--cached", "--name-only") == ""
+
+
+def test_ignored_protected_file_added_during_staging_is_rejected(repo: Path, monkeypatch) -> None:
+    from thermo_lab.improvement_harness import workspace
+
+    (repo / ".gitignore").write_text("results/\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "-m", "ignore results")
+    (repo / "dashboard" / "src" / "page.ts").write_text("after\n")
+    real_git = workspace._git
+
+    def git_with_late_ignored_file(worktree, *args):
+        output = real_git(worktree, *args)
+        if args[:2] == ("add", "-f"):
+            protected = repo / "results" / "harness" / "late.json"
+            protected.parent.mkdir(parents=True)
+            protected.write_text("{}")
+        return output
+
+    monkeypatch.setattr(workspace, "_git", git_with_late_ignored_file)
+    with pytest.raises(ValueError, match="outside allowed paths"):
+        export_checked_patch(repo, ("dashboard/src/",))
+
+
 def test_rename_from_protected_path_is_rejected(repo: Path) -> None:
     protected = repo / "docs" / "experiment-reports" / "source.json"
     protected.parent.mkdir(parents=True)
@@ -147,7 +182,7 @@ def test_manual_patch_is_checked_before_apply(repo: Path, tmp_path: Path) -> Non
     patch = tmp_path / "bad.patch"
     patch.write_text("not a patch\n")
     with pytest.raises(subprocess.CalledProcessError):
-        import_manual_patch(repo, patch)
+        import_manual_patch(repo, patch, ("dashboard/src/",))
     assert (repo / "dashboard" / "src" / "page.ts").read_text() == "before\n"
 
 
@@ -157,5 +192,36 @@ def test_manual_patch_applies_after_check(repo: Path, tmp_path: Path) -> None:
     patch = tmp_path / "good.patch"
     patch.write_text(git(repo, "diff") + "\n")
     git(repo, "checkout", "--", "dashboard/src/page.ts")
-    import_manual_patch(repo, patch)
+    import_manual_patch(repo, patch, ("dashboard/src/",))
     assert target.read_text() == "after\n"
+
+
+def test_manual_patch_rejects_forbidden_path_before_apply(repo: Path, tmp_path: Path) -> None:
+    forbidden = repo / "docs" / "experiment-reports" / "forged.json"
+    forbidden.parent.mkdir(parents=True)
+    forbidden.write_text("before\n")
+    git(repo, "add", "docs/experiment-reports/forged.json")
+    git(repo, "commit", "-m", "protected fixture")
+    forbidden.write_text("after\n")
+    patch = tmp_path / "forbidden.patch"
+    patch.write_text(git(repo, "diff") + "\n")
+    git(repo, "checkout", "--", "docs/experiment-reports/forged.json")
+    with pytest.raises(ValueError, match="outside allowed paths"):
+        import_manual_patch(repo, patch, ("dashboard/src/",))
+    assert forbidden.read_text() == "before\n"
+
+
+def test_manual_patch_rejects_rename_from_forbidden_path(repo: Path, tmp_path: Path) -> None:
+    forbidden = repo / "docs" / "experiment-reports" / "source.json"
+    forbidden.parent.mkdir(parents=True)
+    forbidden.write_text("before\n")
+    git(repo, "add", "docs/experiment-reports/source.json")
+    git(repo, "commit", "-m", "protected fixture")
+    git(repo, "mv", "docs/experiment-reports/source.json", "dashboard/src/source.json")
+    patch = tmp_path / "rename.patch"
+    patch.write_text(git(repo, "diff", "--cached", "--binary") + "\n")
+    git(repo, "reset", "--hard", "HEAD")
+    with pytest.raises(ValueError, match="outside allowed paths"):
+        import_manual_patch(repo, patch, ("dashboard/src/",))
+    assert forbidden.read_text() == "before\n"
+    assert not (repo / "dashboard" / "src" / "source.json").exists()
