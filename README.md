@@ -529,6 +529,16 @@ path objectives coincide mathematically here. No full-program quality or savings
 claim follows. See the [protocol](docs/experiments/fixture-objective-step-comparison.md)
 and archived verification for reproduction.
 
+### Three-operation return fixture
+
+The [return protocol](docs/experiments/three-operation-return-fixture.md)
+adds edge (0,1) after the two-operation circuit. This exposes reverse-hop
+input 01 and multiple valid histories per endpoint, allowing the two path
+objectives to differ. The [exact six-arm study](docs/experiment-reports/2026-09-23-three-operation-return-fixture/summary.md)
+finds 93.47% and 93.59% survival for path KL and valid-terminal training
+with backtracking, respectively; reverse-hop and all-row fidelity remain
+poor. This small fixture does not establish full-program quality or savings.
+
 ## Project dashboard
 
 The [research dashboard](dashboard/README.md) provides a read-only overview,

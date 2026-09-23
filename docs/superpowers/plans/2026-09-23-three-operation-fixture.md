@@ -53,7 +53,10 @@
   result = evaluate(build_checked_fixture().model_parameters.values)
   reference = survival_gradient(
       np.asarray([build_checked_fixture().model_parameters.values]),
-      [0, 0, 0], [(0, 1), (1, 2), (0, 1)], horizon=4, site_count=3,
+      [0, 0, 0],
+      [(0, 1), (1, 2), (0, 1)],
+      horizon=4,
+      site_count=3,
   )
   assert result["metrics"]["survival"] == pytest.approx(reference["survival"], abs=1e-12)
   assert result["metrics"]["target_visited_rows"][2]["01"] > 0
@@ -86,27 +89,33 @@
   study = build_study()
   assert study["request"]["occurrences"] == [[0, 1], [1, 2], [0, 1]]
   assert study["accounting"] == {
-      "arm_evaluations": 1206, "preflight_evaluations": 19,
-      "generation_evaluations": 1225, "samples": 0,
+      "arm_evaluations": 1206,
+      "preflight_evaluations": 19,
+      "generation_evaluations": 1225,
+      "samples": 0,
   }
-  assert all(len(arm["rounds"]) == 25 and arm["evaluations"] == 201
-             for arm in study["arms"])
+  assert all(len(arm["rounds"]) == 25 and arm["evaluations"] == 201 for arm in study["arms"])
   ```
 - [ ] **Step 2: Run** `uv run pytest -q tests/unit/test_return_fixture_study.py`; expect import failure.
 - [ ] **Step 3: Implement the checked runner.** Copy the old study's behavioral contract into a separate new module, replacing the evaluator and request identity; bind implementation hashes for both new modules and dependency code, the exact schedule, target, parameters, all six arms, trial policy, and accounting. On each backtracking round evaluate all eight projected candidates from the same start and accept the first passing slope/Armijo check. Record each round's gradient norm and count components clipped by projection in the trial rows. Bind canonical request and result digests. `validate_study()` compares the entire persisted record against a newly built study, not merely its hashes. Render path gap and separate survival, hop, asymmetry, occupancy and reverse-row metrics without selecting a winner.
 
   ```python
   for index in range(8):
-      step = 2.0 ** -index
+      step = 2.0**-index
       raw = start - step * gradient
       proposal = np.clip(raw, -2.0, 2.0)
       result = evaluate(proposal)  # evaluate even after a candidate is selected
       slope = float(gradient @ (proposal - start))
       if selected is None and slope < 0 and result["objectives"][objective] <= value + 1e-4 * slope:
           selected = index
-      trials.append({"step": step, "parameters": proposal.tolist(),
-                     "clipped_components": int(np.count_nonzero(raw != proposal)),
-                     "evaluation": result})
+      trials.append(
+          {
+              "step": step,
+              "parameters": proposal.tolist(),
+              "clipped_components": int(np.count_nonzero(raw != proposal)),
+              "evaluation": result,
+          }
+      )
   ```
 - [ ] **Step 4: Test tampering and write order.** Deep-copy a real record, alter one of selection, objective value, budget, schedule or numeric type, repair its digest with `canonical_sha256`, and require `validate_study()` to reject each. In a fresh `tmp_path`, intercept report rendering to assert `study.json` exists while `completion.json` does not; on replay/report failure require no completion. Reusing an output directory must raise `FileExistsError`.
 - [ ] **Step 5: Run** `uv run pytest -q tests/unit/test_return_fixture_study.py` and `uv run ruff check src/thermo_lab/return_fixture_study.py tests/unit/test_return_fixture_study.py`; require zero failures. Commit runner and tests.

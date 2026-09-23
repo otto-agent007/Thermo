@@ -388,6 +388,17 @@ record digest. Reject missing/stale review, provenance and gate records, changed
 command arguments, rehashed numerical changes, and numeric type substitutions.
 Negative scientific results do not fail an otherwise valid release.
 
+The separate exact return-fixture gate is
+`uv run python -m thermo_lab.return_fixture_study --output-dir results/return-fixture-study`
+with a fresh destination. Preserve the existing two-operation archive and
+M4G requests. Require three sites, edges (0,1),(1,2),(0,1), K4, 64 complete
+visible paths, nine shared parameters and zero samples. Check all three exact
+gradients, six arms at 201 evaluator calls each, first-failure killed survival,
+the path-objective difference and separately reported local fidelity. Validate
+the complete persisted record before reporting; write completion last. The
+study is exact-reference evidence on one small fixture, not full M4G quality,
+inference savings or physical-hardware evidence.
+
 The saved M4G survival-gradient audit follows
 `docs/experiments/survival-gradient-audit.md`. Run
 `uv run python -m thermo_lab.survival_gradient_audit --output-dir results/survival-gradient-audit`
