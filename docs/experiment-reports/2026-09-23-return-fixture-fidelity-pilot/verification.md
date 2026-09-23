@@ -9,7 +9,10 @@ bytes and the request/result digests. Runtime provenance is separate.
   implementation, the new pilot suite passed 5 tests; the combined new and
   prior return-fixture suite passed 25 tests. The weight-zero regression was
   then strengthened to compare all 200 proposal traces against the committed
-  prior archive and passed independently.
+  prior archive. The first dedicated CI run exposed tiny cross-machine
+  float64 rounding differences in an exact-equality assertion. The corrected
+  test checks identical structure, types and choices while allowing 1e-12
+  absolute numeric differences; it passed locally and awaits CI rerun.
 - Both pilot gradient preflight points checked every shared parameter
   component against central differences at tolerance 1e-7. Exact path and
   terminal laws, killed survival, and the previous fixture's own 20 focused

@@ -5,9 +5,10 @@ forward 10→01 and reverse 01→10 visible-law indices, their shared nine-param
 derivatives, the 804 arm / 38 preflight evaluator-call accounting, or the
 complete persisted replay. The 18 penalty-gradient components at two interior
 points had maximum central-difference error 1.59e-9. The zero-weight runner
-exactly reproduces all 200 proposals, evaluations and choices in the saved
-three-operation path-KL/backtracking arm; the strengthened regression test
-compares the full archived trace, not just final metrics.
+reproduces all 200 proposals and evaluations within 1e-12 absolute tolerance,
+and makes identical choices in the saved three-operation path-KL/backtracking
+arm. The strengthened regression test compares the full archived trace,
+including structure and numeric types, not just final metrics.
 
 The weight-10 arm restores the reverse logical hop to 0.09072446 versus its
 0.09037112 target, from 0.00469740 at weight zero. Survival changes from

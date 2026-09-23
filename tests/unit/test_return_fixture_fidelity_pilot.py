@@ -11,6 +11,23 @@ import pytest
 from thermo_lab.trajectory_reinforce import build_checked_fixture
 
 
+def assert_equivalent_trace(actual, expected):
+    """Require identical structure and choices, allowing CPU float rounding."""
+    assert type(actual) is type(expected)
+    if isinstance(expected, dict):
+        assert actual.keys() == expected.keys()
+        for key in expected:
+            assert_equivalent_trace(actual[key], expected[key])
+    elif isinstance(expected, list):
+        assert len(actual) == len(expected)
+        for value, reference in zip(actual, expected, strict=True):
+            assert_equivalent_trace(value, reference)
+    elif isinstance(expected, float):
+        assert actual == pytest.approx(expected, abs=1e-12, rel=0)
+    else:
+        assert actual == expected
+
+
 @pytest.mark.parametrize(
     "parameters",
     [
@@ -58,14 +75,14 @@ def test_weight_zero_reproduces_saved_path_kl_backtracking():
     assert arm["evaluations"] == 201
     assert len(arm["rounds"]) == 25
     assert all(len(round_row["trials"]) == 8 for round_row in arm["rounds"])
-    assert arm["initial"]["base"] == archived["initial"]
-    assert arm["final"]["base"] == archived["final"]
+    assert_equivalent_trace(arm["initial"]["base"], archived["initial"])
+    assert_equivalent_trace(arm["final"]["base"], archived["final"])
     for new, old in zip(arm["rounds"], archived["rounds"], strict=True):
         assert new["selected_index"] == old["selected_index"]
-        assert new["parameters"] == old["parameters"]
+        assert_equivalent_trace(new["parameters"], old["parameters"])
         for trial, previous_trial in zip(new["trials"], old["trials"], strict=True):
-            assert trial["parameters"] == previous_trial["parameters"]
-            assert trial["evaluation"]["base"] == previous_trial["evaluation"]
+            assert_equivalent_trace(trial["parameters"], previous_trial["parameters"])
+            assert_equivalent_trace(trial["evaluation"]["base"], previous_trial["evaluation"])
     final = arm["final"]["base"]
     assert final["metrics"]["survival"] == pytest.approx(0.934739588, abs=1e-9)
     assert final["metrics"]["forward_hop_10"] == pytest.approx(0.000411512102, abs=1e-11)
