@@ -374,3 +374,30 @@ def test_review_rejects_symlink_output_root(setup, tmp_path):
         == 1
     )
     assert snapshot(candidate) == original
+
+
+@pytest.mark.parametrize(
+    "damage", ["missing_log", "changed_screenshot", "symlink_logs", "symlink_screenshots"]
+)
+def test_show_and_parent_reject_damaged_baseline_evidence(setup, tmp_path, damage):
+    _, plan_file, output, calls = setup
+    assert cli.main(["run", str(plan_file), "--output-dir", str(output)]) == 0
+    candidate = candidates(output)[0]
+    result = read_candidate(output, candidate.name)["result"]
+    baseline = (output / result["baseline_record"]).parent
+    if damage == "missing_log":
+        (baseline / "checks/unit.log").unlink()
+    elif damage == "changed_screenshot":
+        (baseline / "artifacts/mobile.png").write_bytes(b"altered baseline")
+    else:
+        name = "checks" if damage == "symlink_logs" else "artifacts"
+        outside = tmp_path / f"outside-{name}"
+        (baseline / name).rename(outside)
+        (baseline / name).symlink_to(outside, target_is_directory=True)
+    assert cli.main(["show", candidate.name, "--output-dir", str(output)]) == 1
+    assert (
+        cli.main(["run", str(plan_file), "--output-dir", str(output), "--parent", candidate.name])
+        == 1
+    )
+    assert len(candidates(output)) == 1
+    assert len(calls) == 10

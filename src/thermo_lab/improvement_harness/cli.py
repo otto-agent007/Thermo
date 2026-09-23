@@ -86,11 +86,24 @@ def _read_candidate_evidence(root: Path, candidate_id: str) -> dict:
         if _digest(_evidence_bytes(directory, relative)) != item.log_sha256:
             raise ValueError("candidate log digest mismatch")
     if result.get("baseline_record"):
+        expected = (
+            Path(".plans")
+            / record["request"]["plan_digest"].removeprefix("sha256:")
+            / "baseline"
+            / "result.json"
+        )
+        if result["baseline_record"] != expected.as_posix():
+            raise ValueError("baseline record path does not match candidate plan")
         if (
             _digest(_evidence_bytes(root, result["baseline_record"]))
             != result["baseline_record_digest"]
         ):
             raise ValueError("baseline record digest mismatch")
+        _read_baseline(
+            root / expected.parent,
+            record["request"]["plan_digest"],
+            record["request"]["baseline_commit"],
+        )
     return record
 
 
@@ -210,25 +223,27 @@ def _assert_patch(worktree: Path, plan: Plan, patch: bytes) -> None:
         raise ValueError("evaluation created untracked source")
 
 
+def _read_baseline(directory: Path, digest: str, baseline_commit: str) -> dict:
+    """Authenticate the complete baseline evidence graph, including path parents."""
+    _check_root(directory)
+    for name in ("result.json", "result.sha256"):
+        _check_root(directory / name)
+    result = _read_record(directory, "result")
+    if result["plan_digest"] != digest or result["baseline_commit"] != baseline_commit:
+        raise ValueError("baseline plan or source mismatch")
+    for check in result["checks"]:
+        item = CheckResult.model_validate(check)
+        if _digest(_evidence_bytes(directory, item.log_path)) != item.log_sha256:
+            raise ValueError("baseline log digest mismatch")
+    for name, digest in result.get("artifacts", {}).items():
+        if _digest(_evidence_bytes(directory, name)) != digest:
+            raise ValueError("baseline artifact digest mismatch")
+    return result
+
+
 def _baseline(plan: Plan, worktree: Path, directory: Path, remaining) -> dict:
     if (directory / "result.json").exists():
-        result = _read_record(directory, "result")
-        if result["plan_digest"] != plan_digest(plan):
-            raise ValueError("baseline plan mismatch")
-        for check in result["checks"]:
-            item = CheckResult.model_validate(check)
-            path = directory / item.log_path
-            if path.is_symlink() or _digest(path.read_bytes()) != item.log_sha256:
-                raise ValueError("baseline log digest mismatch")
-        for name, digest in result.get("artifacts", {}).items():
-            path = directory / name
-            if (
-                path.is_symlink()
-                or not path.resolve().is_relative_to(directory.resolve())
-                or _digest(path.read_bytes()) != digest
-            ):
-                raise ValueError("baseline artifact digest mismatch")
-        return result
+        return _read_baseline(directory, plan_digest(plan), plan.baseline_commit)
     # An interrupted baseline is never silently rerun under the same plan.
     directory.mkdir()
     if plan.track == "dashboard":

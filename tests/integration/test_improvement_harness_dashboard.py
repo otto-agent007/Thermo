@@ -85,3 +85,110 @@ def test_symlink_observation_destination_is_rejected(evaluation, monkeypatch, tm
     with pytest.raises(ValueError, match="symlink"):
         dashboard.evaluate_dashboard(plan, baseline, candidate, record_dir=records)
     assert list(outside.iterdir()) == []
+
+
+@pytest.mark.parametrize("role", ["baseline", "candidate"])
+def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path, role):
+    """Exercise Playwright's real webServer startup before browser availability."""
+    import json
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    from pathlib import Path
+
+    source_dashboard = Path(__file__).resolve().parents[2] / "dashboard"
+    node_modules = source_dashboard / "node_modules"
+    if not (node_modules / "@playwright/test/cli.js").is_file():
+        pytest.skip("dashboard Playwright dependency unavailable")
+    worktree_dashboard = tmp_path / role / "dashboard"
+    (worktree_dashboard / "tests").mkdir(parents=True)
+    (worktree_dashboard / "node_modules").symlink_to(node_modules, target_is_directory=True)
+    config_path = worktree_dashboard / "tests/playwright.config.ts"
+    config_path.write_text((source_dashboard / "tests/playwright.config.ts").read_text())
+    (worktree_dashboard / "package.json").write_text('{"type":"module"}')
+    (worktree_dashboard / "tests/browser.spec.ts").write_text(
+        'import { test } from "@playwright/test";\n'
+        'test("wrong server", async ({ page }) => { await page.goto("/"); });\n'
+    )
+    # Loading from another cwd must still select this configuration's worktree.
+    inspected = subprocess.run(
+        [
+            "node",
+            "--import",
+            str(node_modules / "tsx/dist/loader.mjs"),
+            "--input-type=module",
+            "-e",
+            f"import config from {json.dumps(str(config_path))}; "
+            "console.log(JSON.stringify(config.default ?? config));",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
+    )
+    config = json.loads(inspected.stdout)
+
+    class WrongServer(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"UNRELATED WORKTREE")
+
+        def log_message(self, *args):
+            pass
+
+    with HTTPServer(("127.0.0.1", 0), WrongServer) as server:
+        # Preserve the checked config behavior while reserving a test-only port.
+        config_path.write_text(config_path.read_text().replace("5173", str(server.server_port)))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            observed = subprocess.run(
+                [
+                    "node",
+                    str(node_modules / "@playwright/test/cli.js"),
+                    "test",
+                    "-c",
+                    str(worktree_dashboard / "tests/playwright.config.ts"),
+                ],
+                cwd=tmp_path,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+    assert observed.returncode != 0
+    assert "already used" in observed.stdout + observed.stderr
+    assert not list(worktree_dashboard.rglob("*.png"))
+    assert Path(config["webServer"]["cwd"]).resolve() == worktree_dashboard.resolve()
+    assert "--strictPort" in config["webServer"]["command"]
+
+    # A fresh owned server must run from this worktree even when Playwright was
+    # invoked elsewhere. APIRequestContext exercises that binding without a
+    # browser download or claiming visual UI verification.
+    (worktree_dashboard / "package.json").write_text(
+        '{"type":"module","scripts":{"dev":"node server.mjs"}}'
+    )
+    (worktree_dashboard / "server.mjs").write_text(
+        'import { createServer } from "node:http";\n'
+        'const port = Number(process.argv[process.argv.indexOf("--port") + 1]);\n'
+        'createServer((req, res) => res.end(process.cwd())).listen(port, "127.0.0.1");\n'
+    )
+    (worktree_dashboard / "tests/browser.spec.ts").write_text(
+        'import { test, expect } from "@playwright/test";\n'
+        'test("owned worktree", async ({ request }) => {\n'
+        '  const response = await request.get("/");\n'
+        f"  expect(await response.text()).toBe({json.dumps(str(worktree_dashboard))});\n"
+        "});\n"
+    )
+    owned = subprocess.run(
+        ["node", str(node_modules / "@playwright/test/cli.js"), "test", "-c", str(config_path)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert owned.returncode == 0, owned.stdout + owned.stderr
+    assert "1 passed" in owned.stdout
