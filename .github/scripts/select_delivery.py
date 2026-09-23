@@ -28,9 +28,54 @@ def select_run(run, repository, run_id, main_sha, rollback=False):
     return {
         "sha": run["head_sha"],
         "run_id": run_id,
-        "attempt": str(run["run_attempt"]),
-        "artifact": f"dashboard-{run_id}-{run['run_attempt']}",
+        "ci_attempt": str(run["run_attempt"]),
     }
+
+
+def select_build(selection, jobs):
+    producers = [job for job in jobs if job.get("name") == "dashboard / dashboard"]
+    if not producers or any(type(job.get("run_attempt")) is not int for job in producers):
+        raise ValueError("No identifiable dashboard producer job")
+    latest = max(job["run_attempt"] for job in producers)
+    matches = [job for job in producers if job["run_attempt"] == latest]
+    if len(matches) != 1:
+        raise ValueError("Ambiguous dashboard producer")
+    job = matches[0]
+    uploads = [
+        step for step in job.get("steps", []) if step.get("name") == "Preserve exact tested build"
+    ]
+    if (
+        not 1 <= latest <= int(selection["ci_attempt"])
+        or str(job.get("run_id")) != selection["run_id"]
+        or job.get("head_sha") != selection["sha"]
+        or job.get("status") != "completed"
+        or job.get("conclusion") != "success"
+        or len(uploads) != 1
+        or uploads[0].get("conclusion") != "success"
+    ):
+        raise ValueError("Latest dashboard producer did not successfully retain this source build")
+    return {
+        **selection,
+        "attempt": str(latest),
+        "artifact": f"dashboard-{selection['run_id']}-{latest}",
+    }
+
+
+def require_same_selection(selection, expected):
+    if json.loads(expected) != selection:
+        raise ValueError("Source CI/build selection changed while preparing delivery; retry")
+
+
+def run_jobs(repository, run_id):
+    jobs = []
+    for page in range(1, 101):
+        batch = api(
+            f"repos/{repository}/actions/runs/{run_id}/jobs?filter=all&per_page=100&page={page}"
+        )
+        jobs.extend(batch["jobs"])
+        if len(batch["jobs"]) < 100:
+            return jobs
+    raise ValueError("Too many historical jobs; cannot establish unique producer")
 
 
 def api(path):
@@ -59,11 +104,21 @@ def main():
         os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
         and os.environ.get("PREPARE_ROLLBACK") == "true"
     )
-    selection = select_run(run, repository, run_id, main_sha, rollback)
+    selection = select_build(
+        select_run(run, repository, run_id, main_sha, rollback), run_jobs(repository, run_id)
+    )
+    if os.environ.get("EXPECTED_SELECTION"):
+        require_same_selection(selection, os.environ["EXPECTED_SELECTION"])
+    Path(os.environ["RUNNER_TEMP"], "delivery.json").write_text(
+        json.dumps(selection, sort_keys=True, indent=2) + "\n"
+    )
     with Path(os.environ["GITHUB_OUTPUT"]).open("a") as stream:
         for key, value in selection.items():
             stream.write(f"{key}={value}\n")
-    print(f"Selected {selection['sha']} from run {run_id}, attempt {selection['attempt']}")
+    print(
+        f"Selected {selection['sha']} from run {run_id}, "
+        f"CI attempt {selection['ci_attempt']}, build attempt {selection['attempt']}"
+    )
 
 
 if __name__ == "__main__":

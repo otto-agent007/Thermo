@@ -10,6 +10,7 @@ import tarfile
 from pathlib import Path, PurePosixPath
 
 LIMIT = 100 * 1024 * 1024
+TAR_LIMIT = LIMIT + 16 * 1024 * 1024
 REQUIRED_STUDIES = {
     "full-row",
     "hop-fidelity",
@@ -117,6 +118,14 @@ def verify(output, sha, repository, run_id, attempt):
     entries = manifest.get("files")
     if not isinstance(entries, dict) or not entries:
         raise ValueError("Empty file manifest")
+    # Bound the entire decompressed stream, including extension headers that tarfile
+    # consumes internally before yielding a TarInfo member.
+    decompressed = 0
+    with gzip.open(output / "dashboard.tar.gz", "rb") as stream:
+        while chunk := stream.read(1024 * 1024):
+            decompressed += len(chunk)
+            if decompressed > TAR_LIMIT:
+                raise ValueError("Decompressed archive exceeds size limit")
     files = {}
     total = 0
     with tarfile.open(output / "dashboard.tar.gz", "r:gz") as archive:

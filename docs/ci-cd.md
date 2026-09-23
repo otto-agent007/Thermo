@@ -55,6 +55,7 @@ pass. Other CI groups must also pass before automatic delivery starts.
 | `dashboard.tar.gz` | Exact tested static `dist/` plus embedded `release.json` |
 | `release.json` | Full source SHA, repository, source run/attempt and every file hash |
 | `SHA256SUMS` | Transport checksums for the archive and manifest |
+| `delivery.json` | Selected successful CI attempt and actual dashboard producer attempt (delivery artifact only) |
 
 The bundle is deterministic for identical dist bytes and identity. A fresh build
 may have a different export timestamp, so builds at the same source SHA are not
@@ -62,14 +63,19 @@ claimed byte-identical. Run and attempt distinguish those builds.
 
 Delivery verifies the source through GitHub's API: same repository and head
 repository, `ci.yml`, successful completed **push** on **main**, full SHA, selected
-run ID and attempt. Automatic delivery also requires the source to still be the
-current main commit, rechecked immediately before retention. This prevents an
+run ID and attempt. The latest actual successful dashboard job and its successful
+artifact-upload step identify the build attempt. This may be earlier than the CI
+attempt when GitHub reruns only failed scientific jobs. No older artifact is
+substituted if the selected producer artifact is missing. Automatic delivery also requires the source to still be the
+current main commit, rechecked immediately before retention together with the
+original CI/build attempt selection. This prevents an
 older run finishing late from becoming the ordinary delivery candidate. It does
 not atomically lock main; the publication operator rechecks it before deployment.
 
 The verifier never extracts or executes incoming tar members. It rejects duplicate
 or unlisted paths, traversal, links, changed files, identity mismatches, missing
-M4G cell details, unavailable recent studies and oversized archives. SHA-256 here
+M4G cell details, unavailable recent studies and oversized archives. Decompressed
+bytes are bounded before tar parsing, including PAX/GNU metadata headers. SHA-256 here
 provides integrity checks, not an independent signature or a SLSA certification;
 trust in the producer comes from the GitHub run/artifact binding.
 

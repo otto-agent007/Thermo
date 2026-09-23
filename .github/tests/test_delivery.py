@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import dashboard_bundle as bundle
-from select_delivery import select_run
+from select_delivery import require_same_selection, select_build, select_run
 
 SHA = "a" * 40
 REPO = "otto-agent007/Thermo"
@@ -122,6 +122,22 @@ class BundleTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.verify(dest)
 
+    def test_oversized_compressed_metadata_is_rejected(self):
+        from unittest.mock import patch
+
+        dest = self.build()
+        original = (dest / "dashboard.tar.gz").read_bytes()
+        with tarfile.open(fileobj=io.BytesIO(original), mode="r:gz") as source:
+            entries = [(m, source.extractfile(m).read()) for m in source.getmembers()]
+        with tarfile.open(dest / "dashboard.tar.gz", "w:gz", format=tarfile.PAX_FORMAT) as out:
+            for i, (member, data) in enumerate(entries):
+                if i == 0:
+                    member.pax_headers = {"comment": "x" * 200000}
+                out.addfile(member, io.BytesIO(data))
+        bundle.write_checksums(dest)
+        with patch.object(bundle, "TAR_LIMIT", 100000), self.assertRaises(ValueError):
+            self.verify(dest)
+
     def test_sidecar_or_archive_corruption_fails(self):
         for name in ["release.json", "dashboard.tar.gz", "SHA256SUMS"]:
             dest = self.build(name.replace(".", "-"))
@@ -171,6 +187,52 @@ class RunTests(unittest.TestCase):
             select_run(self.run, REPO, "123", "b" * 40)
         result = select_run(self.run, REPO, "123", "b" * 40, rollback=True)
         self.assertEqual(result["sha"], SHA)
+
+    def producer(self, attempt=1, conclusion="success"):
+        return {
+            "name": "dashboard / dashboard",
+            "run_id": 123,
+            "run_attempt": attempt,
+            "head_sha": SHA,
+            "status": "completed",
+            "conclusion": conclusion,
+            "steps": [{"name": "Preserve exact tested build", "conclusion": "success"}],
+        }
+
+    def test_partial_rerun_reuses_successful_earlier_build(self):
+        self.run["run_attempt"] = 2
+        selected = select_run(self.run, REPO, "123", SHA)
+        build = select_build(selected, [self.producer()])
+        self.assertEqual(build["ci_attempt"], "2")
+        self.assertEqual(build["attempt"], "1")
+        self.assertEqual(build["artifact"], "dashboard-123-1")
+
+    def test_latest_actual_build_wins_and_failed_latest_never_falls_back(self):
+        self.run["run_attempt"] = 2
+        selected = select_run(self.run, REPO, "123", SHA)
+        self.assertEqual(
+            select_build(selected, [self.producer(), self.producer(2)])["artifact"],
+            "dashboard-123-2",
+        )
+        for latest in [
+            self.producer(2, "failure"),
+            {**self.producer(2), "steps": []},
+            {**self.producer(2), "head_sha": "b" * 40},
+        ]:
+            with self.subTest(latest=latest), self.assertRaises(ValueError):
+                select_build(selected, [self.producer(), latest])
+        with self.assertRaises(ValueError):
+            select_build(selected, [])
+        with self.assertRaises(ValueError):
+            select_build(selected, [self.producer(2), self.producer(2)])
+
+    def test_recheck_rejects_changed_ci_or_build_attempt(self):
+        selected = select_build(select_run(self.run, REPO, "123", SHA), [self.producer()])
+        require_same_selection(selected, json.dumps(selected))
+        for field in ["ci_attempt", "attempt", "sha", "run_id"]:
+            changed = {**selected, field: "different"}
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                require_same_selection(changed, json.dumps(selected))
 
     def test_all_children_required(self):
         from ci_gate import require_success

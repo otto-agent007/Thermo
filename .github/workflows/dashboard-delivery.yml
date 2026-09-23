@@ -72,8 +72,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          EXPECTED_SELECTION: ${{ toJSON(steps.source.outputs) }}
           PREPARE_ROLLBACK: ${{ inputs.prepare_rollback || false }}
-        run: python .github/scripts/select_delivery.py
+        run: |
+          python .github/scripts/select_delivery.py
+          cp "$RUNNER_TEMP/delivery.json" "$RUNNER_TEMP/candidate/delivery.json"
       - name: Retain verified delivery bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -82,6 +85,7 @@ jobs:
             ${{ runner.temp }}/candidate/dashboard.tar.gz
             ${{ runner.temp }}/candidate/release.json
             ${{ runner.temp }}/candidate/SHA256SUMS
+            ${{ runner.temp }}/candidate/delivery.json
           if-no-files-found: error
           retention-days: 90
       - name: Record the publication handoff
@@ -89,11 +93,12 @@ jobs:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
           SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
           SOURCE_ATTEMPT: ${{ steps.source.outputs.attempt }}
+          CI_ATTEMPT: ${{ steps.source.outputs.ci_attempt }}
         run: |
           {
             printf '## Verified dashboard delivery\n\n'
-            printf 'Source commit: `%s`\n\n' "$SOURCE_SHA"
-            printf 'Source run: https://github.com/%s/actions/runs/%s (attempt %s)\n\n' "$GITHUB_REPOSITORY" "$SOURCE_RUN_ID" "$SOURCE_ATTEMPT"
+            printf 'Source commit: %s\n\n' "$SOURCE_SHA"
+            printf 'Source run: https://github.com/%s/actions/runs/%s (CI attempt %s, build attempt %s)\n\n' "$GITHUB_REPOSITORY" "$SOURCE_RUN_ID" "$CI_ATTEMPT" "$SOURCE_ATTEMPT"
             printf 'The attached bundle is the tested build; it has not been rebuilt.\n\n'
-            printf '**Production has not been changed.** Publish this bundle through the authenticated private Sites workflow in `docs/ci-cd.md`.\n'
+            printf '**Production has not been changed.** Publish this bundle through the authenticated private Sites workflow in docs/ci-cd.md.\n'
           } >> "$GITHUB_STEP_SUMMARY"

@@ -27,4 +27,8 @@
 
 Initial inspection: PR42 remains open; main is unprotected and omits the full-row work. This PR is stacked on PR42 to avoid mixing implementation diffs. Scientific workflow bodies will be compared mechanically against the baseline, with only action pins, runner/tool setup and reporting metadata allowed to differ.
 
-Implementation verification: 10 delivery tests pass, 17 dashboard tests pass, production build/typecheck pass, actionlint 1.7.12 passes, and Ruff passes for pipeline scripts/tests. Mechanical comparison confirms every scientific run command, assertion, matrix, environment and timeout is preserved. Static Chromium and full scientific validation will run on the PR in GitHub.
+Implementation verification: 14 delivery tests pass, 17 dashboard tests pass, production build/typecheck pass, actionlint 1.7.12 passes, and Ruff passes for pipeline scripts/tests. Mechanical comparison confirms every scientific run command, assertion, matrix, environment and timeout is preserved. Static Chromium and full scientific validation will run on the PR in GitHub.
+
+Independent review: one important finding (failed-job reruns reuse earlier dashboard artifacts) and two smaller hardening findings (recheck binding and decompressed metadata limits). All addressed in one fix pass with regression cases; 14/14 delivery tests pass. No findings deferred.
+
+GitHub validation on initial branch head: compiled dashboard browser tests, packaging and upload pass. Pipeline lint exposed ShellCheck SC2016 on intentionally literal Markdown backticks; summary copy now avoids those constructs without weakening lint. Final head remains subject to the complete CI gate.
