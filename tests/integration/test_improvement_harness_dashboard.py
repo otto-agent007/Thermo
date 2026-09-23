@@ -127,6 +127,9 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
         timeout=30,
     )
     config = json.loads(inspected.stdout)
+    assert config["use"]["baseURL"] == "http://127.0.0.1:5174"
+    assert config["webServer"]["url"] == "http://127.0.0.1:5174"
+    assert "--port 5174" in config["webServer"]["command"]
 
     class WrongServer(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -139,7 +142,7 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
 
     with HTTPServer(("127.0.0.1", 0), WrongServer) as server:
         # Preserve the checked config behavior while reserving a test-only port.
-        config_path.write_text(config_path.read_text().replace("5173", str(server.server_port)))
+        config_path.write_text(config_path.read_text().replace("5174", str(server.server_port)))
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
