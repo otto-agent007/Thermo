@@ -287,6 +287,113 @@ def test_manual_intake_and_parent_tampering(setup, tmp_path):
     assert len(candidates(output)) == 1
 
 
+def test_oversized_manual_recommendation_is_inspectable_failure(setup, tmp_path):
+    repo, plan_file, output, calls = setup
+    path = repo / "dashboard/src/title.txt"
+    path.write_text("manual\n")
+    patch = tmp_path / "manual.diff"
+    patch.write_text(git(repo, "diff") + "\n")
+    path.write_text("before\n")
+    recommendation = tmp_path / "recommendation.md"
+    recommendation.write_text("x" * 100_001)
+    assert (
+        cli.main(
+            [
+                "run",
+                str(plan_file),
+                "--output-dir",
+                str(output),
+                "--manual-patch",
+                str(patch),
+                "--recommendation-file",
+                str(recommendation),
+            ]
+        )
+        == 1
+    )
+    candidate = candidates(output)[0]
+    result = read_candidate(output, candidate.name)["result"]
+    assert result["execution"] == "failed"
+    assert "recommendation" in result["diagnostic"]
+    assert result.get("recommendation") is None
+    assert not (candidate / "recommendation.md").exists()
+    assert not calls
+
+
+def test_symlink_manual_recommendation_is_inspectable_failure(setup, tmp_path):
+    repo, plan_file, output, calls = setup
+    path = repo / "dashboard/src/title.txt"
+    path.write_text("manual\n")
+    patch = tmp_path / "manual.diff"
+    patch.write_text(git(repo, "diff") + "\n")
+    path.write_text("before\n")
+    target = tmp_path / "real-recommendation.md"
+    target.write_text("Useful title change")
+    recommendation = tmp_path / "recommendation.md"
+    recommendation.symlink_to(target)
+    assert (
+        cli.main(
+            [
+                "run",
+                str(plan_file),
+                "--output-dir",
+                str(output),
+                "--manual-patch",
+                str(patch),
+                "--recommendation-file",
+                str(recommendation),
+            ]
+        )
+        == 1
+    )
+    candidate = candidates(output)[0]
+    result = read_candidate(output, candidate.name)["result"]
+    assert result["execution"] == "failed"
+    assert "regular file" in result["diagnostic"]
+    assert not calls
+
+
+def test_oversized_codex_message_is_inspectable_failure(setup, monkeypatch):
+    from thermo_lab.improvement_harness import proposer
+
+    _, plan_file, output, calls = setup
+
+    def fake_runner(argv, **kwargs):
+        from pathlib import Path
+
+        Path(argv[argv.index("--output-last-message") + 1]).write_text("x" * 100_001)
+        return subprocess.CompletedProcess(argv, 0, b"", b"")
+
+    monkeypatch.setattr(proposer, "_bounded_run", fake_runner)
+    monkeypatch.setattr(cli, "run_codex", proposer.run_codex)
+    assert cli.main(["run", str(plan_file), "--output-dir", str(output)]) == 1
+    candidate = candidates(output)[0]
+    result = read_candidate(output, candidate.name)["result"]
+    assert result["execution"] == "failed"
+    assert "recommendation is too large" in result["diagnostic"]
+    assert result.get("recommendation") is None
+    assert not (candidate / "recommendation.md").exists()
+    assert not calls
+
+
+def test_oversized_result_is_reduced_to_visible_failure(setup, monkeypatch):
+    _, plan_file, output, _ = setup
+    original = cli.dashboard.evaluate_dashboard
+
+    def oversized(*args, **kwargs):
+        result = original(*args, **kwargs)
+        result["unexpected_output"] = "x" * 1_000_000
+        return result
+
+    monkeypatch.setattr(cli.dashboard, "evaluate_dashboard", oversized)
+    assert cli.main(["run", str(plan_file), "--output-dir", str(output)]) == 1
+    candidate = candidates(output)[0]
+    result = read_candidate(output, candidate.name)["result"]
+    assert result["execution"] == "failed"
+    assert result["diagnostic"] == "result is too large for dashboard review"
+    assert (candidate / "result.json").stat().st_size <= 1_000_000
+
+
 def test_proposal_overrun_stops_before_evaluation(setup, monkeypatch):
     _, plan_file, output, calls = setup
     original = cli.run_codex

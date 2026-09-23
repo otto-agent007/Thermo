@@ -12,10 +12,12 @@ from pathlib import Path
 
 from thermo_lab.improvement_harness import dashboard
 from thermo_lab.improvement_harness.checks import CATALOG, CheckResult, compare_baseline, run_checks
+from thermo_lab.improvement_harness.limits import MAX_RESULT_BYTES, read_recommendation
 from thermo_lab.improvement_harness.plan import Plan, load_plan, plan_digest
 from thermo_lab.improvement_harness.proposer import build_proposer_prompt, run_codex
 from thermo_lab.improvement_harness.research import claim_heldout, evaluate_three_site
 from thermo_lab.improvement_harness.store import (
+    _json_bytes,
     _plan_lock,
     _read_record,
     _write_record,
@@ -376,7 +378,7 @@ def run_candidate(
                         candidate_worktree, root / parent / "patch.diff", plan.allowed_paths
                     )
                 if manual_patch is not None:
-                    recommendation = Path(recommendation_file).read_text(encoding="utf-8")
+                    recommendation = read_recommendation(Path(recommendation_file))
                     if not recommendation.strip():
                         raise ValueError("manual recommendation is empty")
                     import_manual_patch(candidate_worktree, manual_patch, plan.allowed_paths)
@@ -499,6 +501,20 @@ def run_candidate(
                 if artifact.is_file():
                     artifacts[name] = _digest(artifact.read_bytes())
             result.update(finished_at=datetime.now(UTC).isoformat(), duration_seconds=elapsed)
+            if len(_json_bytes(result)) > MAX_RESULT_BYTES:
+                result = {
+                    "schema_version": 1,
+                    "execution": "failed",
+                    "verification": "failed",
+                    "research_outcome": "inconclusive"
+                    if plan.track == "research"
+                    else "not_applicable",
+                    "checks": [],
+                    "diagnostic": "result is too large for dashboard review",
+                    "started_at": result["started_at"],
+                    "finished_at": result["finished_at"],
+                    "duration_seconds": elapsed,
+                }
             record_result(root, candidate.id, result)
             with (directory / "report.md").open("x", encoding="utf-8") as file:
                 file.write(render_candidate(read_candidate(root, candidate.id)))

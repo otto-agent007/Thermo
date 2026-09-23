@@ -7,6 +7,8 @@ import tempfile
 import uuid
 from pathlib import Path
 
+from thermo_lab.improvement_harness.limits import MAX_PATCH_BYTES, read_bounded_regular_file
+
 
 def _git(repo: Path, *args: str) -> bytes:
     return subprocess.run(
@@ -138,7 +140,18 @@ def export_checked_patch(worktree: Path, allowed_paths: tuple[str, ...]) -> byte
         for path in staged
     ):
         raise ValueError("outside allowed paths")
-    patch = _git(worktree, "diff", "--cached", "--binary", "--no-ext-diff")
+    with tempfile.TemporaryFile() as output:
+        subprocess.run(
+            ["git", "-C", str(worktree), "diff", "--cached", "--binary", "--no-ext-diff"],
+            shell=False,
+            check=True,
+            stdout=output,
+            stderr=subprocess.PIPE,
+        )
+        if output.tell() > MAX_PATCH_BYTES:
+            raise ValueError("patch is too large")
+        output.seek(0)
+        patch = output.read(MAX_PATCH_BYTES + 1)
     if not patch:
         raise ValueError("no diff to export")
     return patch
@@ -173,7 +186,7 @@ def _manual_patch_paths(patch_bytes: bytes, numstat: bytes) -> list[str]:
 def import_manual_patch(worktree: Path, patch: Path, allowed_paths: tuple[str, ...]) -> None:
     """Check applicability and every patch path before mutating the worktree."""
     worktree = Path(worktree)
-    patch_bytes = Path(patch).read_bytes()
+    patch_bytes = read_bounded_regular_file(Path(patch), MAX_PATCH_BYTES, "patch")
     with tempfile.TemporaryDirectory(prefix="thermo-manual-patch-") as directory:
         checked_patch = Path(directory) / "candidate.patch"
         checked_patch.write_bytes(patch_bytes)

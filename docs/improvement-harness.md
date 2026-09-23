@@ -25,7 +25,10 @@ uv run thermo-harness run results/harness-inputs/dashboard-plan.json \
 
 Prepare the patch in a separate checkout at the plan's baseline, using
 `git diff --binary`; provide a nonempty recommendation describing the change
-and remaining limits. Manual intake requires both files. The source checkout
+and remaining limits. Recommendations must be at most 100,000 UTF-8 bytes and
+patches at most 1,000,000 bytes, matching the dashboard's read limits. Oversized
+inputs produce a failed candidate record for inspection. Manual intake requires
+both files. The source checkout
 must still be clean at the frozen commit when `run` starts. The harness creates
 separate baseline and candidate worktrees, checks the patch allowlist, retains
 observations and prints the candidate ID. Neither passing checks nor a zero

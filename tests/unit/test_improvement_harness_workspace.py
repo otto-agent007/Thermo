@@ -178,11 +178,29 @@ def test_export_rejects_empty_patch(repo: Path) -> None:
         export_checked_patch(repo, ("dashboard/src/",))
 
 
+def test_export_rejects_patch_larger_than_dashboard_limit(repo: Path) -> None:
+    (repo / "dashboard" / "src" / "large.txt").write_text("x" * 1_000_000)
+    with pytest.raises(ValueError, match="patch.*too large"):
+        export_checked_patch(repo, ("dashboard/src/",))
+
+
 def test_manual_patch_is_checked_before_apply(repo: Path, tmp_path: Path) -> None:
     patch = tmp_path / "bad.patch"
     patch.write_text("not a patch\n")
     with pytest.raises(subprocess.CalledProcessError):
         import_manual_patch(repo, patch, ("dashboard/src/",))
+    assert (repo / "dashboard" / "src" / "page.ts").read_text() == "before\n"
+
+
+def test_manual_patch_rejects_oversized_and_nonregular_input(repo: Path, tmp_path: Path) -> None:
+    patch = tmp_path / "large.diff"
+    patch.write_bytes(b"x" * 1_000_001)
+    with pytest.raises(ValueError, match="patch.*too large"):
+        import_manual_patch(repo, patch, ("dashboard/src/",))
+    link = tmp_path / "link.diff"
+    link.symlink_to(patch)
+    with pytest.raises(ValueError, match="regular file"):
+        import_manual_patch(repo, link, ("dashboard/src/",))
     assert (repo / "dashboard" / "src" / "page.ts").read_text() == "before\n"
 
 

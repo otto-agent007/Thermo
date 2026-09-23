@@ -179,3 +179,42 @@ def test_codex_failure_uses_bounded_runner_and_safe_local_detail(
         "TMPDIR",
     }
     assert seen[0][1]["timeout"] == 10
+
+
+def test_codex_rejects_oversized_recommendation(tmp_path: Path, monkeypatch) -> None:
+    from thermo_lab.improvement_harness import proposer
+
+    monkeypatch.setattr(proposer, "_head", lambda worktree: "a" * 40)
+
+    def fake_runner(argv, **kwargs):
+        Path(argv[argv.index("--output-last-message") + 1]).write_text("x" * 100_001)
+        return subprocess.CompletedProcess(argv, 0, b"", b"")
+
+    monkeypatch.setattr(proposer, "_bounded_run", fake_runner)
+    with pytest.raises(ValueError, match="recommendation.*too large"):
+        run_codex(tmp_path, "Objective: x", 10, baseline="a" * 40)
+
+
+def test_codex_failure_redacts_credential_bearing_detail(tmp_path: Path, monkeypatch) -> None:
+    from thermo_lab.improvement_harness import proposer
+
+    monkeypatch.setattr(proposer, "_head", lambda worktree: "a" * 40)
+
+    def fake_runner(argv, **kwargs):
+        return subprocess.CompletedProcess(
+            argv,
+            7,
+            b"",
+            b'error: {"token":"fake-secret-value"}\n'
+            b"error: Authorization: Basic dXNlcjpwYXNz\n"
+            b'error: invalid configuration OPENAI_API_KEY="fake secret value"\n',
+        )
+
+    monkeypatch.setattr(proposer, "_bounded_run", fake_runner)
+    with pytest.raises(RuntimeError) as failure:
+        run_codex(tmp_path, "Objective: x", 10, baseline="a" * 40)
+    message = str(failure.value)
+    assert "fake-secret-value" not in message
+    assert "dXNlcjpwYXNz" not in message
+    assert "fake secret value" not in message
+    assert "invalid configuration" in message

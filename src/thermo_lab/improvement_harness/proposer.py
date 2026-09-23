@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from thermo_lab.improvement_harness.checks import _bounded_run
+from thermo_lab.improvement_harness.limits import read_recommendation
 
 _LOCAL_DIAGNOSTIC_CHARS = 512
 
@@ -23,16 +24,17 @@ def _safe_stderr_tail(stderr: bytes | str | None) -> str:
         for line in tail.splitlines()
         if re.match(r"(?i)^\s*(?:error|fatal|warning|caused by):", line)
     ]
-    detail = " | ".join(lines)
-    detail = re.sub(
-        r"(?i)\b(authorization\s*:\s*bearer)\s+\S+",
-        r"\1 [redacted]",
-        detail,
+    # Truncate each credential-bearing line at the key: values may be quoted,
+    # contain spaces, or appear in JSON, so token-by-token replacement is unsafe.
+    credential = re.compile(
+        r"(?i)\b(?:authorization|[a-z0-9_]*(?:api[_-]?key|token|password|secret))"
+        r"[\"']?\s*[:=]"
     )
-    detail = re.sub(
-        r"(?i)\b((?:[A-Za-z0-9_]*_)?(?:api[_-]?key|token|password|secret)\s*[:=]\s*)\S+",
-        r"\1[redacted]",
-        detail,
+    detail = " | ".join(
+        line[: match.start()].rstrip() + " [redacted]"
+        if (match := credential.search(line))
+        else line
+        for line in lines
     )
     detail = re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "[redacted]", detail)
     return detail[-_LOCAL_DIAGNOSTIC_CHARS:]
@@ -123,7 +125,7 @@ def run_codex(worktree: Path, prompt: str, seconds: int, *, baseline: str) -> st
             raise ValueError("baseline mismatch after proposal generation")
         if completed.returncode != 0 or not message_path.is_file():
             raise RuntimeError(_failure_message(completed.returncode, completed.stderr))
-        recommendation = message_path.read_text(encoding="utf-8")
+        recommendation = read_recommendation(message_path)
         if not recommendation.strip():
             raise RuntimeError(_failure_message(completed.returncode, completed.stderr))
         return recommendation
