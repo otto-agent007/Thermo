@@ -1,0 +1,52 @@
+[
+  {
+    "name": "cli-dashboard",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"dashboard\",\n  \"objective\": \"Improve dashboard readability\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"dashboard/src/\"\n  ],\n  \"primary_metric\": \"checks\",\n  \"direction\": \"pass\",\n  \"threshold\": 1.0,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:7a4673686e5515c03535122ffa32f1c5cc18e53b5f43fabd14b22acc1c86f76a"
+  },
+  {
+    "name": "cli-research",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Improve dashboard readability\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": 0.0,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:ced730ee70afb3b43b9f1e46ef73d86ac374e4235fd755b8820909d9f7a04312"
+  },
+  {
+    "name": "threshold--0.0",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -0.0,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:048cfaa2c2cc69a3de63bf0b1985f751677e23a8f26246203875b70ce9ec20d2"
+  },
+  {
+    "name": "threshold--0.1",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -0.1,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:0a4beefcd4498d56b36c5e06593229dc0d353b899602010b186a971afad3d38d"
+  },
+  {
+    "name": "threshold--0.125",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -0.125,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:3e7156ac5522b91043d2f0ad226a3b09ea7664c41ec4f1e19f05b9bca412516c"
+  },
+  {
+    "name": "threshold--1e-07",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -1e-7,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:1c5a4292060e74b4bbb4039ec42c5b748f8b957078c9592b036adee9038a57b4"
+  },
+  {
+    "name": "threshold--0.0001",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -0.0001,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:a06067d982de943cec05e74fad47e9da9706d956e74eeab343a7aea7195f2004"
+  },
+  {
+    "name": "threshold--1e+16",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -1e+16,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:dbf9ad2a00d3b1b5ee17665226becb98be850f64bb8f874bcba18763d22fb497"
+  },
+  {
+    "name": "threshold--1e+23",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -1e+23,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:081fb89916012c1b0f30f83412a37eb3d8353d3811226ca514524e9d1cccdbf6"
+  },
+  {
+    "name": "threshold--5e-324",
+    "raw": "{\n  \"schema_version\": 1,\n  \"track\": \"research\",\n  \"objective\": \"Canonical caf\u00e9 \ud83d\ude80 plan\",\n  \"baseline_commit\": \"f99ed07a0aec59aa4d70277f9a6f72a5912275ee\",\n  \"allowed_paths\": [\n    \"src/thermo_lab/research_candidates/three_site.py\"\n  ],\n  \"primary_metric\": \"exact_objective_delta\",\n  \"direction\": \"lower\",\n  \"threshold\": -5e-324,\n  \"max_candidates\": 2,\n  \"wall_seconds\": 1800,\n  \"heldout_role\": null\n}\n",
+    "digest": "sha256:310182f3786009854184c1296f8ba7829b2d67818274fff998f2397460eb8808"
+  }
+]

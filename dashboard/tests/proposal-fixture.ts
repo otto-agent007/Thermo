@@ -12,6 +12,9 @@ export async function record(dir: string, name: string, value: unknown) {
 export async function proposalFixture(
   root: string,
   track: "dashboard" | "research" = "dashboard",
+  threshold = track === "dashboard" ? 1 : 0,
+  objective = "Improve dashboard readability",
+  producer?: { raw: string; digest: string },
 ) {
   const dir = join(root, "results/harness", proposalId);
   await mkdir(join(dir, "candidate/artifacts"), { recursive: true });
@@ -23,17 +26,48 @@ export async function proposalFixture(
   );
   await writeFile(join(dir, "patch.diff"), patch);
   await writeFile(join(dir, "candidate/artifacts/overview.png"), png);
+  const plan = producer
+    ? JSON.parse(producer.raw)
+    : {
+        schema_version: 1,
+        track,
+        objective,
+        baseline_commit: "a".repeat(40),
+        allowed_paths:
+          track === "dashboard"
+            ? ["dashboard/src/"]
+            : ["src/thermo_lab/research_candidates/three_site.py"],
+        primary_metric:
+          track === "dashboard" ? "checks" : "exact_objective_delta",
+        direction: track === "dashboard" ? "pass" : "lower",
+        threshold,
+        max_candidates: 2,
+        wall_seconds: 1800,
+        heldout_role: null,
+      };
+  // Ordinary fixtures use only simple 1.0, 0.0 or negative-decimal thresholds.
+  // Producer fixtures supply independently computed Python digests for edge cases.
+  const canonical = JSON.stringify(
+    Object.fromEntries(
+      Object.entries(plan)
+        .filter(([, value]) => value !== null)
+        .sort(([a], [b]) => a.localeCompare(b)),
+    ),
+  )
+    .replace(/"threshold":(-?\d+)([,}])/, '"threshold":$1.0$2')
+    .replace(
+      /[\u007f-\uffff]/g,
+      (value) => "\\u" + value.charCodeAt(0).toString(16).padStart(4, "0"),
+    );
+  const planRaw = producer?.raw ?? JSON.stringify(plan);
   const request = {
     schema_version: 1,
     id: proposalId,
-    track,
-    objective: "Improve dashboard readability",
-    baseline_commit: "a".repeat(40),
-    allowed_paths:
-      track === "dashboard"
-        ? ["dashboard/src/"]
-        : ["src/thermo_lab/research_candidates/three_site.py"],
-    plan_digest: "sha256:" + "b".repeat(64),
+    track: plan.track as "dashboard" | "research",
+    objective: plan.objective,
+    baseline_commit: plan.baseline_commit,
+    allowed_paths: plan.allowed_paths,
+    plan_digest: producer?.digest ?? digest(canonical),
   };
   const log = "fixture check complete\n";
   const commands: [string, string[]][] =
@@ -84,7 +118,7 @@ export async function proposalFixture(
     execution: "complete",
     verification: "passed",
   }));
-  const baselineRelative = `.plans/${"b".repeat(64)}/baseline`;
+  const baselineRelative = `.plans/${request.plan_digest.slice(7)}/baseline`;
   const baselineDir = join(root, "results/harness", baselineRelative);
   await mkdir(join(baselineDir, "checks"), { recursive: true });
   await mkdir(join(dir, "candidate/checks"), { recursive: true });
@@ -104,7 +138,7 @@ export async function proposalFixture(
     candidateArtifacts[`candidate/artifacts/${name}.png`] = digest(png);
   }
   for (const [name, content] of [
-    ["plan.json", JSON.stringify(request)],
+    ["plan.json", planRaw],
     [
       "recommendation.md",
       "Increase contrast and spacing. Owner visual review required.",
@@ -121,11 +155,13 @@ export async function proposalFixture(
     observed_at: "2026-09-23T10:00:00+00:00",
     visual_evidence: "available",
   });
+  const scienceOutcome =
+    0.2 - 0.25 < plan.threshold ? "improved" : "inconclusive";
   const result = {
     schema_version: 1,
     execution: "complete",
     verification: "passed",
-    research_outcome: track === "research" ? "improved" : "not_applicable",
+    research_outcome: track === "research" ? scienceOutcome : "not_applicable",
     science:
       track === "research"
         ? {
@@ -137,7 +173,7 @@ export async function proposalFixture(
             baseline_commit: request.baseline_commit,
             execution: "complete",
             verification: "passed",
-            research_outcome: "improved",
+            research_outcome: scienceOutcome,
             primary_metric: "exact_objective_delta",
             parameters: Array(9).fill(0),
           }
@@ -166,5 +202,5 @@ export async function proposalFixture(
   };
   await record(dir, "request", request);
   await record(dir, "result", result);
-  return { dir, request, result, patch, png };
+  return { dir, request, result, patch, png, plan };
 }

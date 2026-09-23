@@ -24,10 +24,13 @@ async function fixture(
     root: string,
     value: Awaited<ReturnType<typeof proposalFixture>>,
   ) => Promise<void>,
+  track: "dashboard" | "research" = "dashboard",
+  threshold?: number,
+  objective?: string,
 ) {
   const root = await mkdtemp(join(tmpdir(), "thermo-proposals-"));
   try {
-    await fn(root, await proposalFixture(root));
+    await fn(root, await proposalFixture(root, track, threshold, objective));
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -133,18 +136,13 @@ test("static export excludes an unreviewed draft and produces an empty portable 
   }));
 test("research summaries read exact values from the CLI science observation", () =>
   fixture(async (root, f) => {
-    await record(f.dir, "request", {
-      ...f.request,
-      track: "research",
-      allowed_paths: ["src/thermo_lab/research_candidates/three_site.py"],
-    });
     await record(f.dir, "result", {
       ...f.result,
       research_outcome: "improved",
       science: {
         before: 0.25,
         after: 0.2,
-        delta: -0.05,
+        delta: 0.2 - 0.25,
         evidence: "exact_reference",
         scope: "three-site fixture only",
         baseline_commit: f.request.baseline_commit,
@@ -166,7 +164,7 @@ test("research summaries read exact values from the CLI science observation", ()
     assert.match(String(report.body), /After: 0.2/);
     assert.match(String(report.body), /Evidence: exact_reference/);
     assert.match(String(report.body), /Scope: three-site fixture only/);
-  }));
+  }, "research"));
 test("empty local proposal root is available with no records", async () => {
   const root = await mkdtemp(join(tmpdir(), "thermo-empty-"));
   try {
@@ -362,17 +360,17 @@ for (const missing of [
     }));
 test("research success without science stays inconclusive", () =>
   fixture(async (root, f) => {
-    await record(f.dir, "request", { ...f.request, track: "research" });
     await record(f.dir, "result", {
       ...f.result,
       research_outcome: "improved",
+      science: undefined,
     });
     const body = (await getPayload(root, "/data/proposals.json")).body as {
       items: { verification: string; researchOutcome: string }[];
     };
     assert.equal(body.items[0].verification, "inconclusive");
     assert.equal(body.items[0].researchOutcome, "inconclusive");
-  }));
+  }, "research"));
 for (const status of ["failed", "timed_out", "unavailable"])
   test(`legitimate ${status} draft without completed checks remains visible`, () =>
     fixture(async (root, f) => {
@@ -390,17 +388,21 @@ for (const status of ["failed", "timed_out", "unavailable"])
       assert.notEqual(body.items[0].verification, "passed");
     }));
 test("summary prose redacts Windows, UNC and single-component absolute paths", () =>
-  fixture(async (root, f) => {
-    const secret =
-      "Inspect C:\\Users\\owner\\private and /workspace and \\\\server\\share\\private";
-    await record(f.dir, "request", { ...f.request, objective: secret });
-    await record(f.dir, "result", { ...f.result, recommendation: secret });
-    const body = (await getPayload(root, "/data/proposals.json")).body;
-    assert.doesNotMatch(
-      JSON.stringify(body),
-      /Users|owner|private|workspace|server|share/,
-    );
-  }));
+  fixture(
+    async (root, f) => {
+      const secret =
+        "Inspect C:\\Users\\owner\\private and /workspace and \\\\server\\share\\private";
+      await record(f.dir, "result", { ...f.result, recommendation: secret });
+      const body = (await getPayload(root, "/data/proposals.json")).body;
+      assert.doesNotMatch(
+        JSON.stringify(body),
+        /Users|owner|private|workspace|server|share/,
+      );
+    },
+    "dashboard",
+    1,
+    "Inspect C:\\Users\\owner\\private and /workspace and \\\\server\\share\\private",
+  ));
 test("derived report is bounded, authenticated and excludes raw report/log/provenance contents", () =>
   fixture(async (root, f) => {
     await writeFile(
@@ -505,3 +507,189 @@ test("markdown-delimited POSIX paths are redacted in summary prose", () =>
     const body = (await getPayload(root, "/data/proposals.json")).body;
     assert.doesNotMatch(JSON.stringify(body), /workspace|private|worktree/);
   }));
+import producerPlans from "./fixtures/harness-producer-plans.json" with { type: "json" };
+for (const producer of producerPlans)
+  test(`accepts real Python-produced frozen plan identity: ${producer.name}`, async () => {
+    const root = await mkdtemp(join(tmpdir(), "thermo-produced-plan-"));
+    try {
+      const plan = JSON.parse(producer.raw);
+      await proposalFixture(
+        root,
+        plan.track,
+        plan.threshold,
+        plan.objective,
+        producer,
+      );
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: { verification: string }[];
+        issues: string[];
+      };
+      assert.equal(
+        body.items[0]?.verification,
+        "passed",
+        JSON.stringify(body.issues),
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+for (const threshold of [0, -0.1])
+  test(`science cannot claim improved when delta fails frozen threshold ${threshold}`, () =>
+    fixture(
+      async (root, f) => {
+        const before = threshold === 0 ? 0.2 : 0.25,
+          after = threshold === 0 ? 0.25 : 0.2;
+        await record(f.dir, "result", {
+          ...f.result,
+          research_outcome: "improved",
+          science: {
+            ...f.result.science,
+            before,
+            after,
+            delta: after - before,
+            research_outcome: "improved",
+          },
+        });
+        const body = (await getPayload(root, "/data/proposals.json")).body as {
+          items: unknown[];
+          issues: string[];
+        };
+        assert.deepEqual(body.items, []);
+        assert.ok(body.issues.length);
+      },
+      "research",
+      threshold,
+    ));
+for (const [before, after, threshold, outcome] of [
+  [0.2, 0.25, 0, "regressed"],
+  [0.25, 0.2, -0.1, "inconclusive"],
+  [0.25, 0.125, -0.125, "inconclusive"],
+  [0.25, 0.125, -0.1, "improved"],
+] as const)
+  test(`frozen threshold ${threshold} yields ${outcome} for ${after}-${before}`, () =>
+    fixture(
+      async (root, f) => {
+        await record(f.dir, "result", {
+          ...f.result,
+          research_outcome: outcome,
+          science: {
+            ...f.result.science,
+            before,
+            after,
+            delta: after - before,
+            research_outcome: outcome,
+          },
+        });
+        const body = (await getPayload(root, "/data/proposals.json")).body as {
+          items: { verification: string; researchOutcome: string }[];
+        };
+        assert.equal(body.items[0].verification, "passed");
+        assert.equal(body.items[0].researchOutcome, outcome);
+      },
+      "research",
+      threshold,
+    ));
+for (const defect of [
+  "threshold",
+  "baseline",
+  "objective",
+  "track",
+  "paths",
+  "schema",
+])
+  test(`rehashing plan artifact cannot break frozen ${defect} identity`, () =>
+    fixture(async (root, f) => {
+      const plan = { ...f.plan };
+      if (defect === "threshold") plan.threshold = -0.1;
+      if (defect === "baseline") plan.baseline_commit = "c".repeat(40);
+      if (defect === "objective") plan.objective = "Different objective";
+      if (defect === "track") plan.track = "dashboard";
+      if (defect === "paths") plan.allowed_paths = ["dashboard/src/"];
+      if (defect === "schema") plan.schema_version = 2;
+      const raw = JSON.stringify(plan);
+      await writeFile(join(f.dir, "plan.json"), raw);
+      await record(f.dir, "result", {
+        ...f.result,
+        artifacts: { ...f.result.artifacts, "plan.json": digest(raw) },
+      });
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: unknown[];
+        issues: string[];
+      };
+      assert.deepEqual(body.items, []);
+      assert.ok(body.issues.length);
+    }, "research"));
+for (const status of ["failed", "timed_out", "unavailable"])
+  test(`later ${status} execution preserves valid science and top-level inconclusive`, () =>
+    fixture(async (root, f) => {
+      await record(f.dir, "result", {
+        ...f.result,
+        execution: status,
+        verification: status === "failed" ? "failed" : "inconclusive",
+        research_outcome: "inconclusive",
+      });
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: { execution: string; researchOutcome: string }[];
+      };
+      assert.equal(body.items[0].execution, status);
+      assert.equal(body.items[0].researchOutcome, "inconclusive");
+    }, "research"));
+test("near-threshold science cannot substitute an approximately equal delta", () =>
+  fixture(async (root, f) => {
+    await record(f.dir, "result", {
+      ...f.result,
+      science: {
+        ...f.result.science,
+        before: 0.2,
+        after: 0.2,
+        delta: -1e-14,
+        research_outcome: "improved",
+      },
+    });
+    const body = (await getPayload(root, "/data/proposals.json")).body as {
+      items: unknown[];
+      issues: string[];
+    };
+    assert.deepEqual(body.items, []);
+    assert.ok(body.issues.length);
+  }, "research"));
+test("failed checks preserve a valid completed science outcome", () =>
+  fixture(async (root, f) => {
+    await record(f.dir, "result", {
+      ...f.result,
+      execution: "failed",
+      verification: "failed",
+      checks: [
+        {
+          ...f.result.checks[0],
+          execution: "failed",
+          verification: "failed",
+          exit_status: 99,
+        },
+        ...f.result.checks.slice(1),
+      ],
+    });
+    const body = (await getPayload(root, "/data/proposals.json")).body as {
+      items: {
+        execution: string;
+        verification: string;
+        researchOutcome: string;
+      }[];
+    };
+    assert.equal(body.items[0].execution, "failed");
+    assert.equal(body.items[0].verification, "failed");
+    assert.equal(body.items[0].researchOutcome, "improved");
+  }, "research"));
+test("top-level science outcome must agree with the completed observation", () =>
+  fixture(async (root, f) => {
+    await record(f.dir, "result", {
+      ...f.result,
+      research_outcome: "regressed",
+    });
+    const body = (await getPayload(root, "/data/proposals.json")).body as {
+      items: unknown[];
+      issues: string[];
+    };
+    assert.deepEqual(body.items, []);
+    assert.ok(body.issues.length);
+  }, "research"));

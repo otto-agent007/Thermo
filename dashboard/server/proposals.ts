@@ -93,6 +93,77 @@ const requestSchema = z
     allowed_paths: z.array(z.string().min(1)).min(1).max(20),
   })
   .strict();
+const planSchema = z
+  .object({
+    schema_version: z.literal(1),
+    track: z.enum(["dashboard", "research"]),
+    objective: z.string().min(1).max(8000),
+    baseline_commit: z.string().regex(/^[0-9a-f]{40}$/),
+    allowed_paths: z.array(z.string().min(1)).min(1).max(20),
+    primary_metric: z.enum(["checks", "exact_objective_delta"]),
+    direction: z.enum(["pass", "lower"]),
+    threshold: z.number(),
+    max_candidates: z.number().int().positive(),
+    wall_seconds: z.number().int().positive(),
+    heldout_role: z.string().nullable().optional(),
+  })
+  .strict();
+// Python plan_digest uses json.dumps(sort_keys=True, ensure_ascii=True), and
+// threshold is a float even when integral. JS JSON.stringify alone is not compatible.
+function pythonFloat(value: number) {
+  if (Object.is(value, -0)) return "-0.0";
+  const magnitude = Math.abs(value);
+  if (magnitude !== 0 && (magnitude < 1e-4 || magnitude >= 1e16)) {
+    const [mantissa, exponent] = value.toExponential().split("e");
+    const power = Number(exponent);
+    return `${mantissa}e${power < 0 ? "-" : "+"}${String(Math.abs(power)).padStart(2, "0")}`;
+  }
+  return Number.isInteger(value) ? `${value}.0` : String(value);
+}
+function frozenPlan(payload: Buffer, request: z.infer<typeof requestSchema>) {
+  const plan = planSchema.parse(JSON.parse(payload.toString("utf8")));
+  const canonical =
+    "{" +
+    Object.entries(plan)
+      .filter(([, value]) => value != null)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(
+        ([key, value]) =>
+          `${JSON.stringify(key)}:${key === "threshold" ? pythonFloat(value as number) : JSON.stringify(value)}`,
+      )
+      .join(",") +
+    "}";
+  const ascii = canonical.replace(
+    /[\u007f-\uffff]/g,
+    (value) => "\\u" + value.charCodeAt(0).toString(16).padStart(4, "0"),
+  );
+  if (
+    digest(ascii) !== request.plan_digest ||
+    plan.track !== request.track ||
+    plan.objective !== request.objective ||
+    plan.baseline_commit !== request.baseline_commit ||
+    JSON.stringify(plan.allowed_paths) !== JSON.stringify(request.allowed_paths)
+  )
+    throw Error("Frozen plan identity mismatch");
+  const expectedPath =
+    plan.track === "dashboard"
+      ? "dashboard/src/"
+      : "src/thermo_lab/research_candidates/three_site.py";
+  if (
+    plan.allowed_paths.length !== 1 ||
+    plan.allowed_paths[0] !== expectedPath ||
+    (plan.track === "dashboard"
+      ? plan.primary_metric !== "checks" ||
+        plan.direction !== "pass" ||
+        plan.threshold !== 1 ||
+        plan.heldout_role != null
+      : plan.primary_metric !== "exact_objective_delta" ||
+        plan.direction !== "lower" ||
+        plan.threshold > 0)
+  )
+    throw Error("Unsupported plan preset");
+  return plan;
+}
 const resultSchema = z.object({
   schema_version: z.literal(1),
   execution,
@@ -248,6 +319,8 @@ async function load(root: string, id: string) {
       throw Error("Invalid PNG");
     artifacts.set(name, value);
   }
+  const planBytes = artifacts.get("plan.json");
+  const plan = planBytes ? frozenPlan(planBytes, request) : undefined;
   let patch: Buffer | undefined;
   if (result.patch_digest)
     patch = await authenticated(root, `${dir}/patch.diff`, result.patch_digest);
@@ -330,12 +403,28 @@ async function load(root: string, id: string) {
     result.science &&
     (request.track !== "research" ||
       result.science.baseline_commit !== request.baseline_commit ||
-      Math.abs(
-        result.science.delta - (result.science.after - result.science.before),
-      ) > 1e-12)
+      result.science.delta !== result.science.after - result.science.before)
   )
     throw Error("Invalid science source");
-  const exact = request.track === "research" ? result.science : undefined;
+  const exact =
+    request.track === "research" && plan ? result.science : undefined;
+  if (exact && plan) {
+    const outcome =
+      exact.delta < plan.threshold
+        ? "improved"
+        : exact.delta > 0
+          ? "regressed"
+          : "inconclusive";
+    if (
+      exact.research_outcome !== outcome ||
+      (result.research_outcome !== outcome &&
+        !(
+          result.execution !== "complete" &&
+          result.research_outcome === "inconclusive"
+        ))
+    )
+      throw Error("Science outcome disagrees with frozen threshold");
+  }
   const completeCatalogs =
     matchesCatalog(request.track, baselineChecks) &&
     matchesCatalog(request.track, result.checks);
@@ -427,6 +516,7 @@ async function load(root: string, id: string) {
           `Before: ${exact.before}`,
           `After: ${exact.after}`,
           `Delta: ${exact.delta}`,
+          `Frozen threshold: ${plan!.threshold}`,
           `Evidence: ${exact.evidence}`,
           `Scope: ${exact.scope}`,
           "Bounded exact trial; no full-study or hardware claim.",
