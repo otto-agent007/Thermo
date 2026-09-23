@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import tempfile
@@ -82,16 +83,26 @@ def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> d
         # -B suppresses writes but still reads existing .pyc files. A fresh cache
         # prefix also prevents ignored/stale bytecode from overriding pinned source.
         argv = [sys.executable, "-B", "-P", "-s", "-X", f"pycache_prefix={cache}", "-m", module]
-        process = subprocess.run(
+        process = subprocess.Popen(
             argv,
             cwd=worktree,
             env=env,
-            input=payload.encode(),
+            stdin=subprocess.PIPE,
             stdout=stdout,
             stderr=stderr,
-            timeout=min(remaining, 300),
-            check=False,
+            start_new_session=True,
         )
+        try:
+            process.communicate(input=payload.encode(), timeout=min(remaining, 300))
+        finally:
+            # The hook may spawn children that outlive its direct process. Kill
+            # the whole isolated session before trusting its output or worktree.
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            if process.poll() is None:
+                process.wait()
         stdout.seek(0)
         output = stdout.read(_OUTPUT_BYTES + 1)
         if process.returncode:
