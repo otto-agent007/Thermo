@@ -15,6 +15,7 @@ from typing import Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
+from thermo_lab.improvement_harness.checks import CheckResult
 from thermo_lab.improvement_harness.plan import Plan, plan_digest
 
 _LOCK_WAIT_SECONDS = 5.0
@@ -147,6 +148,12 @@ def _validate_result(result: dict[str, Any]) -> None:
         raise ValueError("invalid execution status")
     if result.get("verification") not in {"passed", "failed", "inconclusive"}:
         raise ValueError("invalid verification status")
+    if "checks" in result:
+        checks = result["checks"]
+        if not isinstance(checks, list):
+            raise ValueError("checks must be a list")
+        for check in checks:
+            CheckResult.model_validate(check)
 
 
 @contextmanager
