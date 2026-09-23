@@ -61,8 +61,16 @@ These are the five risky inputs to exercise in the owning tasks:
 def test_plan_digest_ignores_json_key_order(tmp_path):
     a = tmp_path / "a.json"
     b = tmp_path / "b.json"
-    a.write_text('{"schema_version":1,"track":"dashboard","objective":"labels","baseline_commit":"' + "a" * 40 + '","allowed_paths":["dashboard/src/"],"primary_metric":"checks","direction":"pass","threshold":1,"max_candidates":1,"wall_seconds":120}')
-    b.write_text('{"track":"dashboard","schema_version":1,"objective":"labels","baseline_commit":"' + "a" * 40 + '","allowed_paths":["dashboard/src/"],"primary_metric":"checks","direction":"pass","threshold":1,"max_candidates":1,"wall_seconds":120}')
+    a.write_text(
+        '{"schema_version":1,"track":"dashboard","objective":"labels","baseline_commit":"'
+        + "a" * 40
+        + '","allowed_paths":["dashboard/src/"],"primary_metric":"checks","direction":"pass","threshold":1,"max_candidates":1,"wall_seconds":120}'
+    )
+    b.write_text(
+        '{"track":"dashboard","schema_version":1,"objective":"labels","baseline_commit":"'
+        + "a" * 40
+        + '","allowed_paths":["dashboard/src/"],"primary_metric":"checks","direction":"pass","threshold":1,"max_candidates":1,"wall_seconds":120}'
+    )
     assert plan_digest(load_plan(a)) == plan_digest(load_plan(b))
 ```
 
@@ -71,16 +79,24 @@ def test_plan_digest_ignores_json_key_order(tmp_path):
 
 ```python
 def plan_digest(plan: Plan) -> str:
-    raw = json.dumps(plan.model_dump(mode="json", exclude_none=True), sort_keys=True, separators=(",", ":")).encode()
+    raw = json.dumps(
+        plan.model_dump(mode="json", exclude_none=True), sort_keys=True, separators=(",", ":")
+    ).encode()
     return "sha256:" + hashlib.sha256(raw).hexdigest()
 ```
 - [ ] **Step 4: Write failing store tests.** Verify one `request.json` and one `result.json` per candidate, a second write fails, review records append without rewriting results, a second candidate is rejected when `max_candidates=1`, and unreadable or mismatched digests fail to load.
 
 ```python
 candidate = create_candidate(tmp_path, plan)
-record_result(tmp_path, candidate.id, {"schema_version": 1, "execution": "complete", "verification": "passed"})
+record_result(
+    tmp_path, candidate.id, {"schema_version": 1, "execution": "complete", "verification": "passed"}
+)
 with pytest.raises(FileExistsError):
-    record_result(tmp_path, candidate.id, {"schema_version": 1, "execution": "failed", "verification": "failed"})
+    record_result(
+        tmp_path,
+        candidate.id,
+        {"schema_version": 1, "execution": "failed", "verification": "failed"},
+    )
 ```
 
 - [ ] **Step 5: Implement the store using exclusive file creation (`open(..., "x")`) and SHA-256 verification on read.** Write `request.sha256` and `result.sha256` sidecars beside their JSON files, with the digest of the exact bytes. Keep review entries as `review-0001.json`, `review-0002.json`; each contains candidate ID, decision, note and observed time. Reject creating more than `plan.max_candidates` for the same plan digest. Never mutate request/result files.
@@ -88,7 +104,9 @@ with pytest.raises(FileExistsError):
 ```python
 with (candidate_dir / "request.json").open("x", encoding="utf-8") as file:
     file.write(request_json)
-(candidate_dir / "request.sha256").write_text(hashlib.sha256(request_json.encode()).hexdigest() + "\n")
+(candidate_dir / "request.sha256").write_text(
+    hashlib.sha256(request_json.encode()).hexdigest() + "\n"
+)
 ```
 - [ ] **Step 6: Run both focused tests, `uv run ruff check src/thermo_lab/improvement_harness tests/unit/test_improvement_harness_plan.py tests/unit/test_improvement_harness_store.py`, and commit the focused change.**
 
@@ -105,7 +123,22 @@ def test_untracked_protected_file_is_rejected(tmp_path):
     worktree = tmp_path / "repo"
     worktree.mkdir()
     subprocess.run(["git", "init", str(worktree)], check=True)
-    subprocess.run(["git", "-C", str(worktree), "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "--allow-empty", "-m", "base"], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(worktree),
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "--allow-empty",
+            "-m",
+            "base",
+        ],
+        check=True,
+    )
     (worktree / "docs/experiment-reports/new.json").parent.mkdir(parents=True)
     (worktree / "docs/experiment-reports/new.json").write_text("{}")
     with pytest.raises(ValueError, match="outside allowed paths"):
@@ -116,7 +149,9 @@ def test_untracked_protected_file_is_rejected(tmp_path):
 - [ ] **Step 3: Implement worktree and patch checks with `subprocess.run([...], shell=False, check=True)`.** Parse `git status --porcelain=v1 -z`, check both sides of renames, resolve every candidate path under the worktree, reject symlinks, stage only validated files with `git add -- <paths>`, and export `git diff --cached --binary`. Check `git rev-parse HEAD` against the frozen SHA before and after proposal generation.
 
 ```python
-changed = subprocess.run(["git", "-C", str(worktree), "status", "--porcelain=v1", "-z"], check=True, capture_output=True).stdout
+changed = subprocess.run(
+    ["git", "-C", str(worktree), "status", "--porcelain=v1", "-z"], check=True, capture_output=True
+).stdout
 paths = parse_status_z(changed)  # Return both paths for rename/copy records.
 if any(not is_allowed_path(worktree, path, allowed_paths) for path in paths):
     raise ValueError("outside allowed paths")
@@ -124,8 +159,26 @@ if any(not is_allowed_path(worktree, path, allowed_paths) for path in paths):
 - [ ] **Step 4: Implement the proposer adapter and fake it in tests.** Invoke `codex exec -C <worktree> -s workspace-write --output-last-message <path> <prompt>` with an allowlisted environment, a timeout, and a fixed prompt containing objective/paths/checks. Treat missing Codex, nonzero exit, timeout or absent recommendation as `unavailable`/`failed`; never invoke a shell to interpret model output. Manual intake is the credential-free fallback.
 
 ```python
-argv = ["codex", "exec", "-C", str(worktree), "-s", "workspace-write", "--output-last-message", str(message_path), prompt]
-completed = subprocess.run(argv, cwd=worktree, env=allowed_env, timeout=seconds, check=False, capture_output=True, text=True)
+argv = [
+    "codex",
+    "exec",
+    "-C",
+    str(worktree),
+    "-s",
+    "workspace-write",
+    "--output-last-message",
+    str(message_path),
+    prompt,
+]
+completed = subprocess.run(
+    argv,
+    cwd=worktree,
+    env=allowed_env,
+    timeout=seconds,
+    check=False,
+    capture_output=True,
+    text=True,
+)
 if completed.returncode != 0 or not message_path.is_file():
     raise RuntimeError("proposer did not produce a recommendation")
 ```
@@ -143,6 +196,7 @@ if completed.returncode != 0 or not message_path.is_file():
 def test_timeout_is_not_a_pass(tmp_path):
     def timed_out(argv, **kwargs):
         raise subprocess.TimeoutExpired(argv, 1)
+
     result = run_checks("dashboard", tmp_path, 1, runner=timed_out)[0]
     assert result.execution == "timed_out"
     assert result.verification == "inconclusive"
@@ -152,8 +206,20 @@ def test_timeout_is_not_a_pass(tmp_path):
 - [ ] **Step 3: Implement a constant catalog.** Dashboard: `npm test`, `npm run typecheck`, `npm run build`, `npm run test:browser` in `dashboard/`. Research: exact fixture check plus focused pytest/Ruff in the repository. Preflight installs use the pinned `uv sync --frozen` and `npm ci` commands and are reported as checks; missing dependencies are `unavailable`. Each command has a fixed cwd and per-command cap bounded by the plan's total wall budget. Capture stdout/stderr to files under the candidate record, hash them, and expose only a bounded tail in JSON.
 
 ```python
-CATALOG = {"dashboard": (("npm", "test"), ("npm", "run", "typecheck"), ("npm", "run", "build"), ("npm", "run", "test:browser")), "research": (("uv", "run", "pytest", "tests/unit/test_trajectory_reinforce_refinement.py", "-q"),)}
-completed = runner(argv, cwd=command_cwd, timeout=remaining_seconds, shell=False, capture_output=True)
+CATALOG = {
+    "dashboard": (
+        ("npm", "test"),
+        ("npm", "run", "typecheck"),
+        ("npm", "run", "build"),
+        ("npm", "run", "test:browser"),
+    ),
+    "research": (
+        ("uv", "run", "pytest", "tests/unit/test_trajectory_reinforce_refinement.py", "-q"),
+    ),
+}
+completed = runner(
+    argv, cwd=command_cwd, timeout=remaining_seconds, shell=False, capture_output=True
+)
 ```
 - [ ] **Step 4: Run the focused tests and Ruff checks, then commit.** Include a test that a missing Playwright binary is `unavailable`, not a passing skip.
 
@@ -183,9 +249,20 @@ print(json.dumps({"parameters": values}))
 # fixture_reference.py, executed from the frozen baseline worktree.
 fixture = build_checked_fixture()
 candidate = tuple(json.load(sys.stdin)["parameters"])
-before = evaluate_exact_shared_objective(fixture=fixture, shared_parameters=fixture.model_parameters.values)
+before = evaluate_exact_shared_objective(
+    fixture=fixture, shared_parameters=fixture.model_parameters.values
+)
 after = evaluate_exact_shared_objective(fixture=fixture, shared_parameters=candidate)
-print(json.dumps({"before": before.objective, "after": after.objective, "delta": after.objective - before.objective, "evidence": "exact_reference"}))
+print(
+    json.dumps(
+        {
+            "before": before.objective,
+            "after": after.objective,
+            "delta": after.objective - before.objective,
+            "evidence": "exact_reference",
+        }
+    )
+)
 ```
 
 The research plan preset fixes `track="research"`, `allowed_paths=["src/thermo_lab/research_candidates/three_site.py"]`, `primary_metric="exact_objective_delta"`, `direction="lower"`, `threshold=0`, `max_candidates=2`, and `wall_seconds=1800`. Task 5's `init-plan` command fills the current full baseline SHA before candidate generation. The initial hook returns `fixture.model_parameters.values`, so the unchanged baseline is a real observed zero-delta comparison. Do not claim the example is improved when the delta is zero.
@@ -222,7 +299,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "init-plan":
         return write_plan_from_preset(args.track, args.objective, args.output)
     if args.command == "run":
-        return run_candidate(load_plan(args.plan), args.output_dir, args.manual_patch, args.recommendation_file, args.parent)
+        return run_candidate(
+            load_plan(args.plan),
+            args.output_dir,
+            args.manual_patch,
+            args.recommendation_file,
+            args.parent,
+        )
     if args.command == "show":
         print(render_candidate(read_candidate(args.output_dir, args.candidate)))
         return 0
