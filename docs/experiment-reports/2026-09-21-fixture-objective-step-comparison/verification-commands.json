@@ -1,0 +1,606 @@
+[
+  {
+    "name": "sync-frozen",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "sync",
+      "--frozen"
+    ],
+    "returncode": 0,
+    "seconds": 0.012118113999349589
+  },
+  {
+    "name": "lock-check",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "lock",
+      "--check",
+      "--offline"
+    ],
+    "returncode": 0,
+    "seconds": 0.010627089999616146
+  },
+  {
+    "name": "ruff-format",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "ruff",
+      "format",
+      "--check",
+      "."
+    ],
+    "returncode": 0,
+    "seconds": 0.022943281999687315
+  },
+  {
+    "name": "ruff-check",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "ruff",
+      "check",
+      "."
+    ],
+    "returncode": 0,
+    "seconds": 0.026038332000098308
+  },
+  {
+    "name": "build",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "build"
+    ],
+    "returncode": 0,
+    "seconds": 1.3251618560007046
+  },
+  {
+    "name": "packaging",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "python",
+      "-c",
+      "from pathlib import Path\nimport tarfile, zipfile\nconfigs = sorted(str(p) for p in Path('configs/experiments').glob('*.toml'))\nwheel = next(Path('dist').glob('*.whl'))\nsdist = next(Path('dist').glob('*.tar.gz'))\nwith zipfile.ZipFile(wheel) as z:\n    names = z.namelist()\n    assert all(any(n.endswith(c) for n in names) for c in configs)\nwith tarfile.open(sdist) as z:\n    names = z.getnames()\n    assert all(any(n.endswith(c) for n in names) for c in configs)\n"
+    ],
+    "returncode": 0,
+    "seconds": 0.054394633000811154
+  },
+  {
+    "name": "composed-trajectory-refinement-one-step",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step"
+    ],
+    "returncode": 0,
+    "seconds": 73.53842765300033
+  },
+  {
+    "name": "smoke",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "smoke",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/smoke"
+    ],
+    "returncode": 0,
+    "seconds": 4.476318914999865
+  },
+  {
+    "name": "torx-run",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/torx-two-gate.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/torx-run"
+    ],
+    "returncode": 0,
+    "seconds": 2.280320341999868
+  },
+  {
+    "name": "thrml-run",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-ising-chain.toml",
+      "--seeds",
+      "7,8,9,10",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/thrml-run"
+    ],
+    "returncode": 0,
+    "seconds": 9.627112283000315
+  },
+  {
+    "name": "weighted-graph-walk",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/torx-weighted-graph-walk.toml",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/weighted-graph-walk"
+    ],
+    "returncode": 0,
+    "seconds": 5.574726152000039
+  },
+  {
+    "name": "quality-budget-full-preflight",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_full_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/quality-budget-full-preflight"
+    ],
+    "returncode": 0,
+    "seconds": 95.70619484200051
+  },
+  {
+    "name": "independent-pasym-swap",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-independent-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/independent-pasym-swap"
+    ],
+    "returncode": 0,
+    "seconds": 22.03168617600022
+  },
+  {
+    "name": "quality-budget-training-runner",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_runner_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/quality-budget-training-runner"
+    ],
+    "returncode": 0,
+    "seconds": 27.93904246599959
+  },
+  {
+    "name": "quality-budget-training-preflight",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_training_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/quality-budget-training-preflight"
+    ],
+    "returncode": 0,
+    "seconds": 10.465278876999946
+  },
+  {
+    "name": "quality-budget-preflight",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/quality-budget-preflight"
+    ],
+    "returncode": 0,
+    "seconds": 3.4073960879995866
+  },
+  {
+    "name": "finite-sweep-gradient-contract",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "thermo-lab",
+      "check-finite-sweep-gradients",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/finite-sweep-gradient-contract"
+    ],
+    "returncode": 0,
+    "seconds": 6.687139420000676
+  },
+  {
+    "name": "target-context-pasym-swap",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-target-context-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/target-context-pasym-swap"
+    ],
+    "returncode": 0,
+    "seconds": 64.75176216700038
+  },
+  {
+    "name": "model-context-pasym-swap",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-model-context-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/model-context-pasym-swap"
+    ],
+    "returncode": 0,
+    "seconds": 50.41528651799945
+  },
+  {
+    "name": "trajectory-reinforce-estimator",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/trajectory-reinforce-estimator"
+    ],
+    "returncode": 0,
+    "seconds": 15.779801018000398
+  },
+  {
+    "name": "trajectory-reinforce-one-step",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/trajectory-reinforce-one-step"
+    ],
+    "returncode": 0,
+    "seconds": 21.98950131299989
+  },
+  {
+    "name": "composed-finite-gibbs",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-finite-gibbs"
+    ],
+    "returncode": 0,
+    "seconds": 204.08438680899962
+  },
+  {
+    "name": "matched-training-budget",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "thermo-lab",
+      "compare-training-laws",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/m4b-sources/seed-0000000000.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/m4b-sources/seed-0000000001.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/m4b-sources/seed-0000000002.json",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/matched-training-budget"
+    ],
+    "returncode": 0,
+    "seconds": 409.66832194000017
+  },
+  {
+    "name": "survival-gradient-audit",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.survival_gradient_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/survival-gradient-audit"
+    ],
+    "returncode": 0,
+    "seconds": 30.33824237999943
+  },
+  {
+    "name": "fixture-objective-study",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.fixture_objective_study",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/fixture-objective-study"
+    ],
+    "returncode": 0,
+    "seconds": 6.469525401000283
+  },
+  {
+    "name": "frozen-pair-finite-sweeps",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "audit-finite-sweeps",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step/runs/seed-0000000000.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step/runs/seed-0000000001.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step/runs/seed-0000000002.json",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/frozen-pair-finite-sweeps"
+    ],
+    "returncode": 0,
+    "seconds": 122.48636767599965
+  },
+  {
+    "name": "conservation-diagnostic",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.conservation_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/conservation-diagnostic"
+    ],
+    "returncode": 0,
+    "seconds": 38.86420961800013
+  },
+  {
+    "name": "local-conservation-tradeoff",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.conservation_tradeoff_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/local-conservation-tradeoff"
+    ],
+    "returncode": 0,
+    "seconds": 101.09917384600067
+  },
+  {
+    "name": "bounded-finite-sweep-refinement",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "refine-finite-sweeps",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step/runs/seed-0000000000.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step/runs/seed-0000000001.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/composed-trajectory-refinement-one-step/runs/seed-0000000002.json",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/bounded-finite-sweep-refinement"
+    ],
+    "returncode": 0,
+    "seconds": 147.59821410099994
+  },
+  {
+    "name": "tests-unit-upstream",
+    "command": [
+      "taskset",
+      "-c",
+      "0,1",
+      "uv",
+      "run",
+      "pytest",
+      "tests/unit",
+      "tests/upstream_regressions",
+      "-q"
+    ],
+    "returncode": 0,
+    "seconds": 895.5304746280008
+  },
+  {
+    "name": "context-weighted-conservation",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.context_conservation_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/context-weighted-conservation"
+    ],
+    "returncode": 0,
+    "seconds": 196.89099954100038
+  },
+  {
+    "name": "asymmetry-preservation",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.asymmetry_preservation_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-research-followup/results/fixture-study-verification/asymmetry-preservation"
+    ],
+    "returncode": 0,
+    "seconds": 62.746940163000545
+  },
+  {
+    "name": "tests-integration-b",
+    "command": [
+      "taskset",
+      "-c",
+      "4,5",
+      "uv",
+      "run",
+      "pytest",
+      "tests/integration/test_cli.py",
+      "tests/integration/test_composed_trajectory_refinement_runner.py",
+      "tests/integration/test_conservation_tradeoff_audit.py",
+      "tests/integration/test_experiment_runner.py",
+      "tests/integration/test_matched_training_audit.py",
+      "tests/integration/test_numpy_composed_pasym_swap_backend.py",
+      "tests/integration/test_numpy_trajectory_refinement_backend.py",
+      "tests/integration/test_quality_budget_preflight.py",
+      "tests/integration/test_quality_budget_study.py",
+      "tests/integration/test_smoke_backends.py",
+      "tests/integration/test_thrml_independent_pasym_swap_backend.py",
+      "tests/integration/test_thrml_target_context_pasym_swap_backend.py",
+      "tests/integration/test_trajectory_reinforce_runner.py",
+      "tests/integration/test_weighted_graph_walk_runner.py",
+      "-q"
+    ],
+    "returncode": 0,
+    "seconds": 1020.201567733
+  },
+  {
+    "name": "tests-integration-a",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3",
+      "uv",
+      "run",
+      "pytest",
+      "tests/integration/test_asymmetry_preservation_audit.py",
+      "tests/integration/test_composed_pasym_swap_runner.py",
+      "tests/integration/test_conservation_audit.py",
+      "tests/integration/test_context_conservation_audit.py",
+      "tests/integration/test_independent_pasym_swap_runner.py",
+      "tests/integration/test_model_context_pasym_swap_runner.py",
+      "tests/integration/test_numpy_exact_categorical_backend.py",
+      "tests/integration/test_quality_budget_full_preflight.py",
+      "tests/integration/test_quality_budget_runner_preflight.py",
+      "tests/integration/test_quality_budget_training_preflight.py",
+      "tests/integration/test_target_context_pasym_swap_runner.py",
+      "tests/integration/test_thrml_model_context_pasym_swap_backend.py",
+      "tests/integration/test_trajectory_reinforce_refinement_runner.py",
+      "tests/integration/test_weighted_graph_walk_backend.py",
+      "-q"
+    ],
+    "returncode": 0,
+    "seconds": 1430.241556344
+  }
+]

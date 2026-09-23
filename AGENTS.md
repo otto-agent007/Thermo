@@ -387,3 +387,52 @@ outside scientific request identity but must validate and match its execution
 record digest. Reject missing/stale review, provenance and gate records, changed
 command arguments, rehashed numerical changes, and numeric type substitutions.
 Negative scientific results do not fail an otherwise valid release.
+
+The separate exact return-fixture gate is
+`uv run python -m thermo_lab.return_fixture_study --output-dir results/return-fixture-study`
+with a fresh destination. Preserve the existing two-operation archive and
+M4G requests. Require three sites, edges (0,1),(1,2),(0,1), K4, 64 complete
+visible paths, nine shared parameters and zero samples. Check all three exact
+gradients, six arms at 201 evaluator calls each, first-failure killed survival,
+the path-objective difference and separately reported local fidelity. Validate
+the complete persisted record before reporting; write completion last. The
+study is exact-reference evidence on one small fixture, not full M4G quality,
+inference savings or physical-hardware evidence.
+
+The distinct fidelity penalty pilot follows
+`docs/experiments/return-fixture-fidelity-pilot.md`. Run
+`uv run python -m thermo_lab.return_fixture_fidelity_pilot --output-dir results/return-fixture-fidelity-pilot`
+with a fresh destination. Require four weights (0, 1, 10, 100), 201 exact
+evaluator calls per arm, independently checked forward/reverse penalty
+gradients, zero samples, complete persisted replay and completion written last.
+Preserve the previous return-fixture study and its source hashes. Report
+per-direction hop errors and survival together; pilot thresholds are not
+full M4G quality or inference-savings evidence.
+
+The separate complete-row fidelity pilot follows
+`docs/experiments/return-fixture-full-row-pilot.md`. Run
+`uv run python -m thermo_lab.return_fixture_full_row_pilot --output-dir results/return-fixture-full-row-pilot`
+with a fresh destination. Freeze all 16 visible input/output errors, weights
+0/1/10/100, 201 calls per arm, the <=0.005 maximum entry error and >=0.95
+survival gate before execution. Check every shared gradient, retain all
+proposals and complete numerical replay before completion. Preserve older
+fixture archives and keep this exact three-site result separate from M4G
+quality, inference sampling and physical-hardware evidence.
+
+The saved M4G survival-gradient audit follows
+`docs/experiments/survival-gradient-audit.md`. Run
+`uv run python -m thermo_lab.survival_gradient_audit --output-dir results/survival-gradient-audit`
+with a fresh destination. Require 21 fits, 126 checkpoints, 105 recorded updates,
+zero new fits/samples, all seven small-fixture derivative checks and strict
+persisted replay before reporting/completion. Authenticate the six pinned M4G
+release files; never regenerate or tune training from these diagnostic results.
+Keep own-training-law survival slopes separate from held-out task-quality claims.
+
+The exact fixture objective-by-step comparison follows
+`docs/experiments/fixture-objective-step-comparison.md`. Run
+`uv run python -m thermo_lab.fixture_objective_study --output-dir results/fixture-objective-study`
+with a fresh destination. Require six arms, 201 evaluator calls per arm plus
+19 preflight evaluations, zero samples and full persisted replay before
+completion. Preserve K4, the two-operation shared fixture, caps [-2,2], and all
+rejected proposals. Two path-aware objectives coincide on this fixture; never
+report their agreement as independent evidence or claim full M4G quality.

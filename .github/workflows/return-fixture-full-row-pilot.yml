@@ -1,0 +1,43 @@
+name: Exact return fixture full-row pilot
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  full-row-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      JAX_PLATFORMS: cpu
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.17"
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run pytest tests/unit/test_return_fixture_full_row_pilot.py
+      - name: Generate and replay all full-row arms
+        run: uv run python -m thermo_lab.return_fixture_full_row_pilot --output-dir results/return-fixture-full-row-pilot
+      - name: Require completed evidence
+        run: |
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+          directory = Path('results/return-fixture-full-row-pilot')
+          completion = json.loads((directory / 'completion.json').read_text())
+          assert completion['status'] == 'return_fixture_full_row_pilot_complete'
+          assert completion['arms'] == 4 and completion['samples'] == 0
+          print((directory / 'summary.md').read_text())
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: return-fixture-full-row-pilot
+          path: results/return-fixture-full-row-pilot/

@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: /dashboard
+    schedule:
+      interval: weekly
+    groups:
+      dashboard-patch-and-minor:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 3

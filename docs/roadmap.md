@@ -360,3 +360,66 @@ experiment. These remain proposals, separate from the completed M4G evidence
 and the M5 milestone. The first can diagnose objective conflict without new
 fitting; the second changes the software execution law and requires its own
 protocol and implementation evidence.
+
+### Saved-checkpoint survival-gradient diagnosis (September 21)
+
+The [exact audit](experiment-reports/2026-09-21-survival-gradient-audit/summary.md)
+examines all 21 M4G fits and 105 existing updates under their own training laws.
+103 updates increase survival; two K1/seed0 updates decrease it. Every fit ends
+above its starting survival, and every local directional prediction matches the
+observed sign. K30 gains are only about 0.056–0.059 percentage points, leaving
+survival near 3.38%, far below 95%. These results weaken a general explanation
+that training opposes conservation; they do not establish that more updates
+would solve the gap. Shared-gradient cancellation and movement magnitudes are
+recorded as diagnostics, without claiming a capacity or convergence result.
+A survival-aware objective pilot or the separately proposed joint sampler still
+requires its own protocol. M5 remains the separate topology-aware milestone.
+
+### Exact objective-by-step pilot (September 21)
+
+The [completed fixture pilot](experiment-reports/2026-09-21-fixture-objective-step-comparison/summary.md)
+attains 95.8% two-operation survival with path-aware training and backtracking,
+while local hop/asymmetry errors remain about 4.77 / 7.67 percentage points.
+Both objective choice and step rule matter at the matched evaluator budget.
+Two structural limitations constrain interpretation: the path objectives are
+identical on this circuit, and reverse-hop parent contexts are absent.
+A separately specified return operation could expose reverse hops and merging
+histories before any full-program extension. Explicit local fidelity constraints
+or a richer kernel remain prospective investigations; no extra experiment or
+M4G production fitting was performed here. M5 remains separate.
+
+The [completed three-operation return fixture](experiment-reports/2026-09-23-three-operation-return-fixture/summary.md)
+shows a positive exact path-versus-terminal objective gap when the added
+return edge creates merging valid histories. At the matched 201-evaluator
+budget, path-KL and valid-terminal backtracking arms attain 93.47% and
+93.59% uninterrupted survival, respectively; neither reaches 95%. The
+logical reverse 01 hop target is 0.09037, while those trained arms produce
+about 0.0047 and 0.0045. The target visits that row in only 0.9536% of
+third-edge operations. This reveals a concrete survival/fidelity trade-off,
+not a full-program quality or inference-savings result. A separately
+predeclared fidelity constraint or richer kernel could test the gap.
+
+The [fidelity penalty pilot](experiment-reports/2026-09-23-return-fixture-fidelity-pilot/summary.md)
+tests four frozen penalty weights on that same return fixture with matched
+201-evaluator budgets. Weight 10 restores the rare reverse-hop probability
+to 0.09072 versus target 0.09037 while survival remains 93.55%. Its complete
+01 output row becomes less accurate (four-outcome MAE 0.26568 versus 0.19413
+at weight zero); the forward hop remains near zero and no arm reaches the
+declared survival and two-hop pilot gate. The forward target itself is under
+the gate's absolute 0.01 tolerance, so that criterion cannot certify useful
+forward motion. A next test should predeclare the *complete local row law*,
+or a relative tolerance for both hop directions, before another run; more
+penalty weights chosen after seeing this result would not be a clean test.
+M5 and any inference-budget experiment remain separate milestones.
+
+The [complete local-row pilot](experiment-reports/2026-09-23-return-fixture-full-row-pilot/summary.md)
+predeclares equal penalties for all 16 K4 visible conditional entries and a
+stricter maximum-entry error gate of 0.005 alongside 95% survival. On the
+same fixture and matched budget, weight 100 lowers the largest conditional
+error from 0.41631 at weight zero to 0.08507, but survival falls from
+0.93474 to 0.90660. The reverse 01→10 hop remains near 0.0053 versus
+0.09037 target; none of the four frozen arms qualifies. The full-row
+objective exposes a different trade-off from the earlier hop-only penalty.
+This does not settle joint feasibility or model capacity. A next study
+would need a separately frozen design, with a larger fitting budget or
+kernel alternative, before any M4G or inference-savings conclusion.

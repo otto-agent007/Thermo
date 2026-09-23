@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+const staticBuild = process.env.DASHBOARD_STATIC === "1";
 test("project status and sourced destinations are accessible", async ({
   page,
 }) => {
@@ -39,6 +40,7 @@ test("mobile has no page overflow and supports keyboard focus", async ({
 });
 test("filters, metrics, detail and CSV stay consistent", async ({ page }) => {
   await page.goto("/#experiments");
+  await page.getByLabel("Study", { exact: true }).selectOption("m4g");
   await expect(
     page.getByRole("heading", {
       name: "Task quality vs inference budget",
@@ -83,6 +85,41 @@ test("filters, metrics, detail and CSV stay consistent", async ({ page }) => {
     page.getByText("No cells match these filters. Reset to show all 60 cells."),
   ).toBeVisible();
 });
+test("recent evidence appears first and the study selector preserves all arms", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      name: "Complete local-row fidelity",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("90.66%", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Experiments", exact: true }).click();
+  await expect(page.getByLabel("Study", { exact: true })).toHaveValue(
+    "full-row",
+  );
+  await expect(
+    page.getByText("All four final arms", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("table").first().locator("tbody tr")).toHaveCount(
+    4,
+  );
+  await page
+    .getByLabel("Study", { exact: true })
+    .selectOption("survival-audit");
+  await expect(page.locator("table").first().locator("tbody tr")).toHaveCount(
+    21,
+  );
+  await page.getByRole("link", { name: "Roadmap", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Saved survival-gradient audit",
+      exact: true,
+    }),
+  ).toBeVisible();
+});
 test("failed refresh preserves previous view with an explicit notice", async ({
   page,
 }) => {
@@ -100,6 +137,10 @@ test("failed refresh preserves previous view with an explicit notice", async ({
 test("proposals expose read-only recommendations and validated links with keyboard navigation", async ({
   page,
 }) => {
+  test.skip(
+    staticBuild,
+    "local proposal fixtures are excluded from static builds",
+  );
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (msg) => {
@@ -157,6 +198,10 @@ test("proposals expose read-only recommendations and validated links with keyboa
 test("proposal refresh failure retains prior records with a notice", async ({
   page,
 }) => {
+  test.skip(
+    staticBuild,
+    "local proposal fixtures are excluded from static builds",
+  );
   await page.goto("/#proposals");
   await expect(
     page.getByRole("heading", { name: "Improve dashboard readability" }),
@@ -171,6 +216,10 @@ test("proposal refresh failure retains prior records with a notice", async ({
   ).toBeVisible();
 });
 test("mobile proposals fit the viewport", async ({ page }) => {
+  test.skip(
+    staticBuild,
+    "local proposal fixtures are excluded from static builds",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/#proposals");
   await expect(
@@ -185,4 +234,15 @@ test("mobile proposals fit the viewport", async ({ page }) => {
     path: "test-results/proposals-mobile.png",
     fullPage: true,
   });
+});
+
+test("published snapshot excludes local proposal drafts", async ({ page }) => {
+  test.skip(!staticBuild, "static build only");
+  await page.goto("/#proposals");
+  await expect(
+    page.getByRole("heading", { name: "No proposals available" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Local drafts are excluded from this static snapshot."),
+  ).toBeVisible();
 });

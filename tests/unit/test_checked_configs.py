@@ -78,7 +78,10 @@ def test_public_docs_declare_composed_scope_and_deferred_iterative_refinement() 
 
 
 def test_ci_checks_the_composed_study_and_packages_its_config() -> None:
-    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    entrypoint = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "  scientific:\n    uses: ./.github/workflows/scientific.yml\n" in entrypoint
+    workflow = (ROOT / ".github/workflows/scientific.yml").read_text(encoding="utf-8")
+    assert "on:\n  workflow_call:\n" in workflow
     config = "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml"
     experiment_entry = """          - name: composed-finite-gibbs
             command: >-

@@ -76,6 +76,9 @@ test("static export is dated, portable and contains all individual cell details"
     assert.ok(s.generatedAt);
     assert.ok(!raw.includes(root));
     assert.equal(s.study.cells.length, 60);
+    assert.equal(s.recentStudies.length, 5);
+    assert.equal(s.recentStudies[0].id, "full-row");
+    assert.equal(s.recentStudies[0].tables[0].rows.length, 4);
     assert.equal(
       JSON.parse(
         await readFile(join(dir, "data/cells/seed-0~finite~1.json"), "utf8"),

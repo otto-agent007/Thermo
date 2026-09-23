@@ -5,6 +5,7 @@ import { loadEvidence } from "./evidence.ts";
 import { observeActivity } from "./activity.ts";
 import { archive } from "./catalog.ts";
 import pins from "./archive-pins.json" with { type: "json" };
+import { recentReportPaths } from "./recent.ts";
 const cache = new Map<
   string,
   { key: string; pending: ReturnType<typeof loadEvidence> }
@@ -12,9 +13,12 @@ const cache = new Map<
 export async function getEvidence(root: string) {
   const key = (
     await Promise.all(
-      Object.keys(pins).map(async (name) => {
+      [
+        ...Object.keys(pins).map((name) => `${archive}/${name}`),
+        ...recentReportPaths,
+      ].map(async (name) => {
         try {
-          const s = await stat(join(root, archive, name));
+          const s = await stat(join(root, name));
           return `${s.ino}:${s.size}:${s.mtimeMs}:${s.ctimeMs}`;
         } catch {
           return "missing";

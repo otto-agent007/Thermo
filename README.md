@@ -20,6 +20,11 @@ represented by placeholder backends.
 For bounded local patch proposals and owner review, see the
 [improvement harness guide](docs/improvement-harness.md).
 
+## CI and delivery
+
+See [the CI/CD runbook](docs/ci-cd.md) for the required CI gate, verified dashboard
+bundles, repository-protection setup and private publication/rollback procedure.
+
 ## Quick start
 
 Python 3.11 and [uv](https://docs.astral.sh/uv/) are the supported baseline.
@@ -511,6 +516,62 @@ At K=30, the loss bound and local hop/asymmetry thresholds pass for every seed
 and member, but the full task still fails. No inference-sweep savings claim
 follows. The result concerns the fixed five-update procedure, not optimized
 capacity, convergence or physical hardware.
+
+### Saved M4G survival-gradient audit
+
+Run `uv run python -m thermo_lab.survival_gradient_audit --output-dir results/survival-gradient-audit`
+with a fresh destination. This authenticates the completed M4G archive and
+analyzes all 105 saved updates without new fitting or sampling. See the
+[protocol](docs/experiments/survival-gradient-audit.md) and
+[recorded findings](docs/experiment-reports/2026-09-21-survival-gradient-audit/summary.md).
+
+### Exact fixture objective and step comparison
+
+The [six-arm comparison](docs/experiment-reports/2026-09-21-fixture-objective-step-comparison/summary.md)
+finds that both objective choice and backtracking improve attained survival at
+201 evaluator calls per arm. Occupancy training reaches 60.2% / 89.1% survival
+with fixed steps / backtracking; path-aware training reaches 83.1% / 95.8%.
+These are exact two-operation fixture results. Local hop/asymmetry errors remain
+above the full study's tolerances, reverse-hop contexts are absent, and the two
+path objectives coincide mathematically here. No full-program quality or savings
+claim follows. See the [protocol](docs/experiments/fixture-objective-step-comparison.md)
+and archived verification for reproduction.
+
+### Three-operation return fixture
+
+The [return protocol](docs/experiments/three-operation-return-fixture.md)
+adds edge (0,1) after the two-operation circuit. This exposes reverse-hop
+input 01 and multiple valid histories per endpoint, allowing the two path
+objectives to differ. The [exact six-arm study](docs/experiment-reports/2026-09-23-three-operation-return-fixture/summary.md)
+finds 93.47% and 93.59% survival for path KL and valid-terminal training
+with backtracking, respectively; reverse-hop and all-row fidelity remain
+poor. This small fixture does not establish full-program quality or savings.
+
+### Forward and reverse fidelity pilot
+
+The [frozen pilot protocol](docs/experiments/return-fixture-fidelity-pilot.md)
+adds explicit forward and reverse hop-error penalties to the exact return
+fixture's path KL objective. At weight 10 the reverse hop reaches 0.09072
+against target 0.09037, but the 01 four-outcome row error rises and forward
+movement remains about 0.00049 against target 0.00963. No tested arm meets
+the declared survival and hop-error pilot gate. The
+[complete result](docs/experiment-reports/2026-09-23-return-fixture-fidelity-pilot/summary.md)
+retains all four weights and every proposal for replay. Run
+`uv run python -m thermo_lab.return_fixture_fidelity_pilot --output-dir results/return-fixture-fidelity-pilot`
+with a fresh output directory to reproduce this exact-reference CPU study.
+
+### Complete local-row fidelity pilot
+
+The [frozen full-row protocol](docs/experiments/return-fixture-full-row-pilot.md)
+penalizes errors in all 16 visible conditional probabilities, including
+unvisited input row 11, at the same 201-evaluator budget. The
+[four-arm result](docs/experiment-reports/2026-09-23-return-fixture-full-row-pilot/summary.md)
+reduces the largest error from 0.4163 at weight zero to 0.0851 at weight
+100, but every arm remains below 95% survival and above the declared
+0.005 maximum-entry error. This is a negative result on one short exact
+fixture, with no capacity or full-program inference claim. Run
+`uv run python -m thermo_lab.return_fixture_full_row_pilot --output-dir results/return-fixture-full-row-pilot`
+with a fresh output directory to reproduce the complete proposal trace.
 
 ## Project dashboard
 
