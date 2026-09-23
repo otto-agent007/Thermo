@@ -133,15 +133,37 @@ def test_dependency_cache_and_network_failures_are_unavailable(tmp_path, track, 
     [
         ("dashboard", b"npm ERR! enoent Could not read package-lock.json"),
         ("dashboard", b"npm ERR! lifecycle package install script failed"),
+        ("dashboard", b"npm ERR! code E404\nnpm ERR! Failed to fetch pinned package: HTTP 404"),
+        ("dashboard", b"npm ERR! code ELIFECYCLE\npostinstall: could not connect"),
+        ("dashboard", b"npm ERR! code ELIFECYCLE\npostinstall: EAI_AGAIN"),
         ("research", b"error: lockfile needs to be updated"),
+        ("research", b"error: Failed to fetch pinned package: HTTP 404"),
+        ("research", b"error: Failed to build wheel\nbuild stdout: DNS error"),
+        ("research", b"error: HTTP 404\nNo cached distribution available for pinned package"),
     ],
 )
-def test_dependency_lockfile_and_script_errors_are_failed(tmp_path, track, message):
+def test_dependency_lockfile_script_and_ambiguous_errors_are_failed(tmp_path, track, message):
     def failed(argv, **kwargs):
         return subprocess.CompletedProcess(argv, 1, stdout=b"", stderr=message)
 
     checks = run_checks(track, tmp_path, 120, runner=failed, record_dir=tmp_path / "record")
     assert len(checks) == 1
+    assert checks[0].execution == "failed"
+    assert checks[0].verification == "failed"
+
+
+def test_preflight_ignores_script_stdout_that_looks_like_an_npm_error(tmp_path):
+    def script_failure(argv, **kwargs):
+        return subprocess.CompletedProcess(
+            argv,
+            1,
+            stdout=b"npm ERR! code EAI_AGAIN",
+            stderr=b"npm ERR! code ELIFECYCLE",
+        )
+
+    checks = run_checks(
+        "dashboard", tmp_path, 120, runner=script_failure, record_dir=tmp_path / "record"
+    )
     assert checks[0].execution == "failed"
     assert checks[0].verification == "failed"
 

@@ -115,26 +115,36 @@ def _missing_browser(stderr: bytes, stdout: bytes) -> bool:
     return "executable doesn't exist" in message and "playwright install" in message
 
 
-def _missing_dependency(stderr: bytes, stdout: bytes) -> bool:
-    message = (stderr + stdout).decode("utf-8", errors="replace").lower()
-    return any(
-        marker in message
-        for marker in (
-            "enotcached",
-            "eai_again",
-            "no cached distribution available",
-            "dns error",
-            "failed to lookup address",
-            "temporary failure in name resolution",
-            "network is unreachable",
-            "failed to fetch",
-            "could not resolve",
-            "could not connect",
-            "cannot find module",
-            "module not found",
-            "not found in the registry",
+def _missing_dependency(tool: str, stderr: bytes) -> bool:
+    """Recognize infrastructure errors without masking a bad pin or install script."""
+    message = stderr.decode("utf-8", errors="replace").lower()
+    if tool == "npm":
+        codes = re.findall(r"(?m)^npm\s+(?:err!|error)\s+code\s+([a-z_0-9]+)\b", message)
+        return bool(codes) and all(code in {"enotcached", "eai_again"} for code in codes)
+    if tool == "uv":
+        if (
+            re.search(r"\b404\b", message)
+            or "lockfile needs to be updated" in message
+            or "failed to build" in message
+            or "build backend" in message
+        ):
+            return False
+        if "no cached distribution available" in message:
+            return True
+        has_network_cause = any(
+            cause in message
+            for cause in (
+                "dns error",
+                "failed to lookup address",
+                "temporary failure in name resolution",
+                "network is unreachable",
+            )
         )
-    )
+        has_fetch_context = any(
+            context in message for context in ("failed to download", "failed to fetch")
+        )
+        return has_network_cause and has_fetch_context
+    return False
 
 
 def _append_tail(buffer: bytearray, chunk: bytes) -> None:
@@ -252,7 +262,7 @@ def run_checks(
                     execution, verification = "complete", "passed"
                 elif name == "browser" and _missing_browser(stderr, stdout):
                     execution, verification = "unavailable", "inconclusive"
-                elif name == "dependencies" and _missing_dependency(stderr, stdout):
+                elif name == "dependencies" and _missing_dependency(argv[0], stderr):
                     execution, verification = "unavailable", "inconclusive"
                 else:
                     execution, verification = "failed", "failed"
