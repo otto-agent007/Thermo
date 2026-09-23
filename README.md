@@ -17,6 +17,9 @@ local THRML Gibbs sampling—and a separately labeled Z1 cost-model projection.
 Unreleased or inaccessible systems are documented in the roadmap rather than
 represented by placeholder backends.
 
+For bounded local patch proposals and owner review, see the
+[improvement harness guide](docs/improvement-harness.md).
+
 ## Quick start
 
 Python 3.11 and [uv](https://docs.astral.sh/uv/) are the supported baseline.
