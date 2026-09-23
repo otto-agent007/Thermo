@@ -61,3 +61,11 @@ Browser tests use temporary proposal records and an isolated server on strict
 port 5174, preserving the development preview on 5173. Screenshots are written
 to ignored `test-results/`, including `proposals-desktop.png` and
 `proposals-mobile.png` for manual layout review.
+
+A displayed verification pass requires the complete fixed check catalog,
+coherent command outcomes, an authenticated matching baseline, and the track's
+required evidence. Incomplete observations remain reviewable as inconclusive.
+**Download evidence report** provides a derived Markdown report with the full
+baseline source link, plan/patch/observation digests, validated check statuses
+and bounded exact research values when available. This read-only report is
+capped at 32 KiB and never serves the runner's raw report, logs or diagnostics.

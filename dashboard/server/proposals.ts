@@ -14,6 +14,73 @@ const check = z.object({
   execution,
   verification,
 });
+// Mirrors CheckResult v1 in improvement_harness/checks.py; logs never enter the response.
+const fullCheck = check
+  .extend({
+    catalog_version: z.literal(1),
+    argv: z.array(z.string()).min(1).max(20),
+    exit_status: z.number().int().nullable(),
+    duration_seconds: z.number().min(0),
+    log_sha256: hash,
+    log_tail: z.string().refine((value) => Array.from(value).length <= 4096),
+    log_path: z.string().regex(/^checks\/[a-zA-Z0-9_.-]+\.log$/),
+  })
+  .strict()
+  .refine((item) => {
+    if (item.execution === "complete")
+      return item.exit_status === 0 && item.verification === "passed";
+    if (item.execution === "failed")
+      return (
+        item.exit_status !== null &&
+        item.exit_status !== 0 &&
+        item.verification === "failed"
+      );
+    return item.verification === "inconclusive";
+  }, "Incoherent check status");
+type Check = z.infer<typeof fullCheck>;
+// Fixed catalog v1. Update alongside the Python catalog and contract tests.
+const catalogs: Record<"dashboard" | "research", [string, string[]][]> = {
+  dashboard: [
+    ["dependencies", ["npm", "ci"]],
+    ["unit", ["npm", "test"]],
+    ["typecheck", ["npm", "run", "typecheck"]],
+    ["build", ["npm", "run", "build"]],
+    ["browser", ["npm", "run", "test:browser"]],
+  ],
+  research: [
+    ["dependencies", ["uv", "sync", "--frozen"]],
+    [
+      "exact_fixture",
+      [
+        "uv",
+        "run",
+        "pytest",
+        "tests/unit/test_trajectory_reinforce_refinement.py::test_exact_objective_evaluation_ties_updated_parameters_across_both_occurrences",
+        "-q",
+      ],
+    ],
+    [
+      "focused_tests",
+      [
+        "uv",
+        "run",
+        "pytest",
+        "tests/unit/test_trajectory_reinforce_refinement.py",
+        "-q",
+      ],
+    ],
+    ["ruff", ["uv", "run", "ruff", "check", "src/thermo_lab", "tests/unit"]],
+  ],
+};
+const screenshotNames = ["overview", "mobile", "experiments"];
+const matchesCatalog = (track: "dashboard" | "research", checks: Check[]) =>
+  JSON.stringify(checks.map((item) => [item.name, item.argv])) ===
+  JSON.stringify(catalogs[track]);
+const checkSummary = ({
+  name,
+  execution,
+  verification,
+}: z.infer<typeof check>) => ({ name, execution, verification });
 const requestSchema = z
   .object({
     schema_version: z.literal(1),
@@ -36,22 +103,21 @@ const resultSchema = z.object({
   recommendation: z.string().max(100_000).optional(),
   patch_digest: hash.optional(),
   artifacts: z.record(z.string(), hash).default({}),
-  checks: z
-    .array(
-      check.extend({
-        catalog_version: z.literal(1),
-        log_path: z.string().regex(/^checks\/[a-zA-Z0-9_.-]+\.log$/),
-        log_sha256: hash,
-      }),
-    )
-    .max(10)
-    .default([]),
+  checks: z.array(fullCheck).max(10).default([]),
   baseline_checks: z.array(check).max(10).default([]),
   check_record_dir: z.enum(["candidate"]).optional(),
   baseline_record: z.string().optional(),
   baseline_record_digest: hash.optional(),
+  visual_evidence: z.enum(["available", "unavailable"]).optional(),
+  baseline_visual_evidence: z.enum(["available", "unavailable"]).optional(),
   science: z
     .object({
+      execution: z.literal("complete"),
+      verification: z.literal("passed"),
+      research_outcome: z.enum(["improved", "regressed", "inconclusive"]),
+      primary_metric: z.literal("exact_objective_delta"),
+      parameters: z.array(z.number().min(-2).max(2)).length(9),
+      delta: z.number(),
       before: z.number().min(0).max(3),
       after: z.number().min(0).max(3),
       evidence: z.literal("exact_reference"),
@@ -64,7 +130,8 @@ const digest = (bytes: string | Buffer) =>
   "sha256:" + createHash("sha256").update(bytes).digest("hex");
 const safeText = (value: string) =>
   value
-    .replace(/(?:[A-Za-z]:)?(?:\/[^\s/]+){2,}/g, "[local path]")
+    .replace(/(?:[A-Za-z]:[\\/]|\\\\)[^\s<>"']*/g, "[local path]")
+    .replace(/(^|[^\w])\/[^\s<>"'\x60)\]}]*/g, "$1[local path]")
     .slice(0, 4000);
 async function safePath(root: string, relative: string) {
   if (
@@ -154,7 +221,8 @@ async function load(root: string, id: string) {
     )
   )
     throw Error("Invalid request");
-  const result = resultSchema.parse((await record(root, dir, "result")).value);
+  const observed = await record(root, dir, "result");
+  const result = resultSchema.parse(observed.value);
   const artifacts = new Map<string, Buffer>();
   const entries = Object.entries(result.artifacts);
   if (entries.length > 8) throw Error("Too many artifacts");
@@ -192,6 +260,8 @@ async function load(root: string, id: string) {
       65_536,
     );
   }
+  let baselineChecks: Check[] = [];
+  let baselineVisual = false;
   if (result.baseline_record) {
     const baselineDir = `results/harness/.plans/${request.plan_digest.slice(7)}/baseline`;
     if (
@@ -206,16 +276,13 @@ async function load(root: string, id: string) {
       baseline.value.baseline_commit !== request.baseline_commit
     )
       throw Error("Changed baseline");
-    const checks = z
-      .array(
-        check.extend({
-          catalog_version: z.literal(1),
-          log_path: z.string().regex(/^checks\/[a-zA-Z0-9_.-]+\.log$/),
-          log_sha256: hash,
-        }),
-      )
-      .max(10)
-      .parse(baseline.value.checks);
+    const checks = z.array(fullCheck).max(10).parse(baseline.value.checks);
+    baselineChecks = checks;
+    if (
+      JSON.stringify(checks.map(checkSummary)) !==
+      JSON.stringify(result.baseline_checks.map(checkSummary))
+    )
+      throw Error("Baseline check summaries disagree");
     for (const item of checks)
       await authenticated(
         root,
@@ -231,6 +298,11 @@ async function load(root: string, id: string) {
       .parse(baseline.value.artifacts ?? {});
     for (const [name, expected] of Object.entries(baselineArtifacts))
       await authenticated(root, `${baselineDir}/${name}`, expected, 8_000_000);
+    baselineVisual =
+      baseline.value.visual_evidence === "available" &&
+      screenshotNames.every(
+        (name) => baselineArtifacts[`artifacts/${name}.png`],
+      );
   }
   let review: ProposalSummary["review"] = "proposed";
   for (const name of (await names(root, dir, 150)).filter((n) =>
@@ -257,34 +329,115 @@ async function load(root: string, id: string) {
   if (
     result.science &&
     (request.track !== "research" ||
-      result.science.baseline_commit !== request.baseline_commit)
+      result.science.baseline_commit !== request.baseline_commit ||
+      Math.abs(
+        result.science.delta - (result.science.after - result.science.before),
+      ) > 1e-12)
   )
     throw Error("Invalid science source");
   const exact = request.track === "research" ? result.science : undefined;
+  const completeCatalogs =
+    matchesCatalog(request.track, baselineChecks) &&
+    matchesCatalog(request.track, result.checks);
+  const completeArtifacts =
+    Boolean(patch) &&
+    ["plan.json", "recommendation.md", "patch.diff"].every((name) =>
+      artifacts.has(name),
+    );
+  const trackEvidence =
+    request.track === "dashboard"
+      ? baselineVisual &&
+        result.baseline_visual_evidence === "available" &&
+        result.visual_evidence === "available" &&
+        screenshotNames.every((name) =>
+          artifacts.has(`candidate/artifacts/${name}.png`),
+        )
+      : Boolean(exact && exact.research_outcome === result.research_outcome);
+  const checksPass = [...baselineChecks, ...result.checks].every(
+    (item) => item.verification === "passed",
+  );
+  const canPass =
+    result.execution === "complete" &&
+    completeCatalogs &&
+    completeArtifacts &&
+    trackEvidence &&
+    checksPass;
+  // An unfinished observation remains reviewable; absent evidence never certifies success.
+  const displayedVerification =
+    result.verification === "passed" && !canPass
+      ? "inconclusive"
+      : result.verification;
   const summary: ProposalSummary = {
     id,
     track: request.track,
     objective: safeText(request.objective),
     baseline: request.baseline_commit,
     execution: result.execution,
-    verification: result.verification,
-    researchOutcome: result.research_outcome ?? "inconclusive",
+    verification: displayedVerification,
+    researchOutcome:
+      request.track === "research" && !exact
+        ? "inconclusive"
+        : (result.research_outcome ?? "inconclusive"),
     review,
     recommendation: safeText(
       result.recommendation ?? "Recommendation unavailable.",
     ),
     baselineSummary: exact
       ? `Exact objective: ${exact.before}`
-      : checksSummary(result.baseline_checks),
+      : checksSummary(baselineChecks),
     candidateSummary: exact
       ? `Exact objective: ${exact.after}`
       : checksSummary(result.checks),
     patchUrl: patch ? prefix + "/patch.diff" : null,
+    reportUrl: prefix + "/report.md",
     screenshotUrls: ["overview", "mobile", "experiments"]
       .filter((name) => artifacts.has(`candidate/artifacts/${name}.png`))
       .map((name) => `${prefix}/artifacts/${name}.png`),
   };
-  return { summary, patch, artifacts };
+  // Derive the public report only from authenticated, validated fields. Never read report.md.
+  const statusLines = (checks: Check[]) =>
+    checks.length
+      ? checks.map(
+          (item) =>
+            `- ${safeText(item.name).replace(/[\[\]<>*_`]/g, "")}: ${item.execution} / ${item.verification}`,
+        )
+      : ["Unavailable"];
+  const report = [
+    `# Proposal ${id}`,
+    "",
+    `Track: ${request.track}`,
+    `Baseline commit: [${request.baseline_commit}](https://github.com/otto-agent007/Thermo/commit/${request.baseline_commit})`,
+    `Plan digest: ${request.plan_digest}`,
+    `Patch digest: ${result.patch_digest ?? "unavailable"}`,
+    `Observation digest: ${digest(observed.raw)}`,
+    `Execution: ${summary.execution}`,
+    `Verification: ${summary.verification}`,
+    `Research outcome: ${summary.researchOutcome}`,
+    `Owner review: ${review}`,
+    "",
+    "## Baseline checks",
+    ...statusLines(baselineChecks),
+    "",
+    "## Candidate checks",
+    ...statusLines(result.checks),
+    "",
+    ...(exact
+      ? [
+          "## Exact source observation",
+          `Before: ${exact.before}`,
+          `After: ${exact.after}`,
+          `Delta: ${exact.delta}`,
+          `Evidence: ${exact.evidence}`,
+          `Scope: ${exact.scope}`,
+          "Bounded exact trial; no full-study or hardware claim.",
+        ]
+      : ["Research observation: unavailable or not applicable."]),
+    "",
+    "Derived read-only report. Logs, diagnostics, local paths and review notes are omitted.",
+    "",
+  ].join("\n");
+  if (Buffer.byteLength(report) > 32_768) throw Error("Report too large");
+  return { summary, patch, artifacts, report };
 }
 export async function readProposals(
   repoRoot: string,
@@ -326,15 +479,21 @@ export async function readProposalArtifact(
   try {
     const value = await load(root, id);
     const body =
-      name === "patch.diff"
-        ? value.patch?.toString("utf8")
-        : value.artifacts.get(`candidate/artifacts/${name}`);
+      name === "report.md"
+        ? value.report
+        : name === "patch.diff"
+          ? value.patch?.toString("utf8")
+          : value.artifacts.get(`candidate/artifacts/${name}`);
     if (body !== undefined)
       return {
         status: 200,
         body,
         contentType:
-          name === "patch.diff" ? "text/x-diff; charset=utf-8" : "image/png",
+          name === "report.md"
+            ? "text/markdown; charset=utf-8"
+            : name === "patch.diff"
+              ? "text/x-diff; charset=utf-8"
+              : "image/png",
       };
   } catch {
     /* Fail closed with no filesystem diagnostics. */

@@ -44,6 +44,8 @@ test("proposal summary omits private provenance and serves authenticated patch a
     assert.equal(body.items[0].review, "proposed");
     assert.deepEqual(body.items[0].screenshotUrls, [
       route + "/artifacts/overview.png",
+      route + "/artifacts/mobile.png",
+      route + "/artifacts/experiments.png",
     ]);
     assert.doesNotMatch(JSON.stringify(body), /private|secret/);
     assert.equal((await getPayload(root, route + "/patch.diff")).body, f.patch);
@@ -111,7 +113,7 @@ test("proposal routes deny traversal, extra artifact names and all mutations", (
       route + "/artifacts/../overview.png",
       "/data/proposals/../../secret/patch.diff",
       route + "/%2e%2e/patch.diff",
-      route + "/report.md",
+      route + "/raw-result.json",
     ])
       assert.equal((await getPayload(root, path)).status, 404);
     for (const method of ["POST", "PUT", "DELETE", "PATCH"])
@@ -158,6 +160,12 @@ test("research summaries read exact values from the CLI science observation", ()
     };
     assert.equal(body.items[0].baselineSummary, "Exact objective: 0.25");
     assert.equal(body.items[0].candidateSummary, "Exact objective: 0.2");
+    const report = await getPayload(root, route + "/report.md");
+    assert.equal(report.status, 200);
+    assert.match(String(report.body), /Before: 0.25/);
+    assert.match(String(report.body), /After: 0.2/);
+    assert.match(String(report.body), /Evidence: exact_reference/);
+    assert.match(String(report.body), /Scope: three-site fixture only/);
   }));
 test("empty local proposal root is available with no records", async () => {
   const root = await mkdtemp(join(tmpdir(), "thermo-empty-"));
@@ -251,4 +259,249 @@ test("unknown baseline check catalog versions are unavailable", () =>
     };
     assert.deepEqual(body.items, []);
     assert.ok(body.issues.length);
+  }));
+for (const invalid of [
+  { execution: "timed_out", exit_status: 99, verification: "passed" },
+  { execution: "complete", exit_status: 99, verification: "passed" },
+  { execution: "failed", exit_status: 0, verification: "failed" },
+  { execution: "unavailable", exit_status: null, verification: "passed" },
+  { argv: [] },
+  { exit_status: 1.5 },
+  { duration_seconds: -1 },
+  { duration_seconds: null },
+  { log_tail: "x".repeat(4097) },
+  { extra: true },
+])
+  test(`invalid CheckResult semantics are rejected: ${Object.keys(invalid).join(",")} ${JSON.stringify(invalid).slice(0, 70)}`, () =>
+    fixture(async (root, f) => {
+      await record(f.dir, "result", {
+        ...f.result,
+        checks: [
+          { ...f.result.checks[0], ...invalid },
+          ...f.result.checks.slice(1),
+        ],
+      });
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: unknown[];
+        issues: string[];
+      };
+      assert.deepEqual(body.items, []);
+      assert.ok(body.issues.length);
+    }));
+test("baseline summary copies cannot claim passed checks over a failed authenticated baseline", () =>
+  fixture(async (root, f) => {
+    const baselineDir = join(
+      root,
+      "results/harness",
+      f.result.baseline_record,
+      "..",
+    );
+    const baseline = JSON.parse(
+      await readFile(join(baselineDir, "result.json"), "utf8"),
+    );
+    baseline.checks[0] = {
+      ...baseline.checks[0],
+      execution: "failed",
+      verification: "failed",
+      exit_status: 99,
+    };
+    await record(baselineDir, "result", baseline);
+    await record(f.dir, "result", {
+      ...f.result,
+      baseline_record_digest: digest(
+        await readFile(join(baselineDir, "result.json")),
+      ),
+    });
+    const body = (await getPayload(root, "/data/proposals.json")).body as {
+      items: unknown[];
+      issues: string[];
+    };
+    assert.deepEqual(body.items, []);
+    assert.ok(body.issues.length);
+  }));
+for (const missing of [
+  "checks",
+  "baseline",
+  "patch",
+  "plan",
+  "recommendation",
+  "screenshots",
+  "catalog",
+  "duplicate",
+])
+  test(`complete/passed is not displayed without ${missing} evidence`, () =>
+    fixture(async (root, f) => {
+      const result = { ...f.result, artifacts: { ...f.result.artifacts } };
+      if (missing === "checks") result.checks = [];
+      if (missing === "baseline") {
+        delete (result as Partial<typeof result>).baseline_record;
+        delete (result as Partial<typeof result>).baseline_record_digest;
+      }
+      if (missing === "patch")
+        delete (result as Partial<typeof result>).patch_digest;
+      if (missing === "plan") delete result.artifacts["plan.json"];
+      if (missing === "recommendation")
+        delete result.artifacts["recommendation.md"];
+      if (missing === "screenshots")
+        delete result.artifacts["candidate/artifacts/mobile.png"];
+      if (missing === "catalog")
+        result.checks[0] = { ...result.checks[0], argv: ["npm", "test"] };
+      if (missing === "duplicate")
+        result.checks = result.checks.map(() => result.checks[0]);
+      await record(f.dir, "result", result);
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: {
+          execution: string;
+          verification: string;
+          baselineSummary: string;
+        }[];
+      };
+      assert.equal(body.items[0].verification, "inconclusive");
+      if (missing === "baseline")
+        assert.equal(body.items[0].baselineSummary, "Unavailable");
+    }));
+test("research success without science stays inconclusive", () =>
+  fixture(async (root, f) => {
+    await record(f.dir, "request", { ...f.request, track: "research" });
+    await record(f.dir, "result", {
+      ...f.result,
+      research_outcome: "improved",
+    });
+    const body = (await getPayload(root, "/data/proposals.json")).body as {
+      items: { verification: string; researchOutcome: string }[];
+    };
+    assert.equal(body.items[0].verification, "inconclusive");
+    assert.equal(body.items[0].researchOutcome, "inconclusive");
+  }));
+for (const status of ["failed", "timed_out", "unavailable"])
+  test(`legitimate ${status} draft without completed checks remains visible`, () =>
+    fixture(async (root, f) => {
+      await record(f.dir, "result", {
+        schema_version: 1,
+        execution: status,
+        verification: status === "failed" ? "failed" : "inconclusive",
+        research_outcome: "not_applicable",
+        checks: [],
+      });
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: { execution: string; verification: string }[];
+      };
+      assert.equal(body.items[0].execution, status);
+      assert.notEqual(body.items[0].verification, "passed");
+    }));
+test("summary prose redacts Windows, UNC and single-component absolute paths", () =>
+  fixture(async (root, f) => {
+    const secret =
+      "Inspect C:\\Users\\owner\\private and /workspace and \\\\server\\share\\private";
+    await record(f.dir, "request", { ...f.request, objective: secret });
+    await record(f.dir, "result", { ...f.result, recommendation: secret });
+    const body = (await getPayload(root, "/data/proposals.json")).body;
+    assert.doesNotMatch(
+      JSON.stringify(body),
+      /Users|owner|private|workspace|server|share/,
+    );
+  }));
+test("derived report is bounded, authenticated and excludes raw report/log/provenance contents", () =>
+  fixture(async (root, f) => {
+    await writeFile(
+      join(f.dir, "report.md"),
+      "secret raw diagnostic /workspace C:\\Users\\owner",
+    );
+    const response = await getPayload(root, route + "/report.md");
+    assert.equal(response.status, 200);
+    assert.match(
+      String(response.body),
+      /Baseline commit:.*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/,
+    );
+    assert.ok(String(response.body).includes(f.request.plan_digest));
+    assert.ok(String(response.body).includes(f.result.patch_digest));
+    assert.match(String(response.body), /Baseline checks/);
+    assert.match(String(response.body), /Candidate checks/);
+    assert.doesNotMatch(
+      String(response.body),
+      /secret|workspace|Users|private|log_tail|source_state/,
+    );
+    assert.ok(Buffer.byteLength(String(response.body)) < 32_768);
+    assert.equal(
+      (await getPayload(root, route + "/report.md", "HEAD")).status,
+      200,
+    );
+    assert.equal(
+      (await getPayload(root, route + "/report.md", "POST")).status,
+      405,
+    );
+    await writeFile(join(f.dir, "patch.diff"), "changed");
+    assert.equal((await getPayload(root, route + "/report.md")).status, 404);
+  }));
+test("complete research catalog and authenticated exact evidence can verify passed", async () => {
+  const root = await mkdtemp(join(tmpdir(), "thermo-research-proposal-"));
+  try {
+    await proposalFixture(root, "research");
+    const body = (await getPayload(root, "/data/proposals.json")).body as {
+      items: {
+        verification: string;
+        researchOutcome: string;
+        candidateSummary: string;
+      }[];
+    };
+    assert.equal(body.items[0].verification, "passed");
+    assert.equal(body.items[0].researchOutcome, "improved");
+    assert.equal(body.items[0].candidateSummary, "Exact objective: 0.2");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+for (const defect of ["catalog", "screenshot", "timeout"])
+  test(`authenticated baseline ${defect} cannot certify a candidate`, () =>
+    fixture(async (root, f) => {
+      const baselineDir = join(
+        root,
+        "results/harness",
+        f.result.baseline_record,
+        "..",
+      );
+      const baseline = JSON.parse(
+        await readFile(join(baselineDir, "result.json"), "utf8"),
+      );
+      if (defect === "catalog") baseline.checks[0].argv = ["npm", "test"];
+      if (defect === "screenshot")
+        delete baseline.artifacts["artifacts/mobile.png"];
+      if (defect === "timeout")
+        baseline.checks[0] = {
+          ...baseline.checks[0],
+          execution: "timed_out",
+          verification: "inconclusive",
+          exit_status: 99,
+        };
+      await record(baselineDir, "result", baseline);
+      await record(f.dir, "result", {
+        ...f.result,
+        baseline_checks: baseline.checks.map(
+          ({
+            name,
+            execution,
+            verification,
+          }: {
+            name: string;
+            execution: string;
+            verification: string;
+          }) => ({ name, execution, verification }),
+        ),
+        baseline_record_digest: digest(
+          await readFile(join(baselineDir, "result.json")),
+        ),
+      });
+      const body = (await getPayload(root, "/data/proposals.json")).body as {
+        items: { verification: string }[];
+      };
+      assert.equal(body.items[0].verification, "inconclusive");
+    }));
+test("markdown-delimited POSIX paths are redacted in summary prose", () =>
+  fixture(async (root, f) => {
+    await record(f.dir, "result", {
+      ...f.result,
+      recommendation: "Fix `/workspace` before checking (/private/worktree).",
+    });
+    const body = (await getPayload(root, "/data/proposals.json")).body;
+    assert.doesNotMatch(JSON.stringify(body), /workspace|private|worktree/);
   }));

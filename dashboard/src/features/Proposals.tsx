@@ -150,6 +150,9 @@ export function Proposals({ local }: { local: boolean }) {
               ) : (
                 <span>Patch unavailable</span>
               )}
+              <a href={`.${item.reportUrl}`} download="report.md">
+                Download evidence report
+              </a>
               {item.screenshotUrls.map((url) => (
                 <a key={url} href={`.${url}`}>
                   View {url.split("/").at(-1)?.replace(".png", "")} screenshot

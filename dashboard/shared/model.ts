@@ -112,6 +112,7 @@ export type ProposalSummary = {
   baselineSummary: string;
   candidateSummary: string;
   patchUrl: string | null;
+  reportUrl: string;
   screenshotUrls: string[];
 };
 export type ProposalList = { items: ProposalSummary[]; issues: string[] };

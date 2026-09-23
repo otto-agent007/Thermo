@@ -41,7 +41,7 @@ export async function getPayload(
   if (path === "/data/proposals.json")
     return { status: 200, body: await readProposals(root) };
   const proposal =
-    /^\/data\/proposals\/([0-9a-f-]{36})\/(patch\.diff|artifacts\/(?:overview|mobile|experiments)\.png)$/.exec(
+    /^\/data\/proposals\/([0-9a-f-]{36})\/(patch\.diff|report\.md|artifacts\/(?:overview|mobile|experiments)\.png)$/.exec(
       path,
     );
   if (proposal)

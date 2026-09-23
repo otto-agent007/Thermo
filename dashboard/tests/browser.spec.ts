@@ -128,6 +128,18 @@ test("proposals expose read-only recommendations and validated links with keyboa
   const response = await page.request.get((await patch.getAttribute("href"))!);
   expect(response.headers()["content-type"]).toContain("text/x-diff");
   expect(await response.text()).toContain("diff --git");
+  const report = page.getByRole("link", { name: "Download evidence report" });
+  await page.keyboard.press("Tab");
+  await expect(report).toBeFocused();
+  const reportResponse = await page.request.get(
+    (await report.getAttribute("href"))!,
+  );
+  expect(reportResponse.status()).toBe(200);
+  expect(await reportResponse.text()).toContain("Baseline commit:");
+  expect(await reportResponse.text()).toContain("Plan digest:");
+  const reportDownload = page.waitForEvent("download");
+  await page.keyboard.press("Enter");
+  expect((await reportDownload).suggestedFilename()).toBe("report.md");
   const screenshot = page.getByRole("link", {
     name: "View overview screenshot",
   });
