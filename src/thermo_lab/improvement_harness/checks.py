@@ -1,7 +1,10 @@
 """Fixed, versioned checks for bounded candidate and baseline evaluation."""
 
 import hashlib
+import os
 import re
+import selectors
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -117,14 +120,92 @@ def _missing_dependency(stderr: bytes, stdout: bytes) -> bool:
     return any(
         marker in message
         for marker in (
-            "failed to download",
+            "enotcached",
+            "eai_again",
+            "no cached distribution available",
+            "dns error",
+            "failed to lookup address",
+            "temporary failure in name resolution",
+            "network is unreachable",
+            "failed to fetch",
             "could not resolve",
+            "could not connect",
             "cannot find module",
             "module not found",
-            "enoent",
             "not found in the registry",
         )
     )
+
+
+def _append_tail(buffer: bytearray, chunk: bytes) -> None:
+    """Retain only the newest bytes while continuing to drain the pipe."""
+    if len(chunk) >= _LOG_BYTES:
+        buffer[:] = chunk[-_LOG_BYTES:]
+    else:
+        buffer.extend(chunk)
+        if len(buffer) > _LOG_BYTES:
+            del buffer[: len(buffer) - _LOG_BYTES]
+
+
+def _bounded_run(
+    argv: list[str], *, cwd: Path, timeout: float, shell: bool, capture_output: bool
+) -> subprocess.CompletedProcess[bytes]:
+    """Drain both process pipes without holding more than two log caps in memory."""
+    if shell or not capture_output:
+        raise ValueError("bounded runner requires shell=False and captured output")
+    deadline = time.monotonic() + timeout
+    process = subprocess.Popen(
+        argv,
+        cwd=cwd,
+        shell=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
+    stdout = bytearray()
+    stderr = bytearray()
+    with selectors.DefaultSelector() as selector:
+        assert process.stdout is not None and process.stderr is not None
+        selector.register(process.stdout, selectors.EVENT_READ, stdout)
+        selector.register(process.stderr, selectors.EVENT_READ, stderr)
+        try:
+            while selector.get_map():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                ready = selector.select(remaining)
+                if not ready:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                for key, _ in ready:
+                    chunk = os.read(key.fileobj.fileno(), 65536)
+                    if chunk:
+                        _append_tail(key.data, chunk)
+                    else:
+                        selector.unregister(key.fileobj)
+                        key.fileobj.close()
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(argv, timeout)
+            returncode = process.wait(timeout=remaining)
+            return subprocess.CompletedProcess(argv, returncode, bytes(stdout), bytes(stderr))
+        except subprocess.TimeoutExpired as error:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait()
+            raise subprocess.TimeoutExpired(
+                argv, timeout, output=bytes(stdout), stderr=bytes(stderr)
+            ) from error
+        finally:
+            process.stdout.close()
+            process.stderr.close()
+            if process.poll() is None:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.wait()
 
 
 def run_checks(
@@ -132,16 +213,16 @@ def run_checks(
     cwd: Path,
     seconds: int,
     *,
-    runner=subprocess.run,
-    record_dir: Path | None = None,
+    record_dir: Path,
+    runner=_bounded_run,
 ) -> list[CheckResult]:
-    """Run only catalogued argv, using one total deadline and local log files."""
+    """Run only catalogued argv into one explicit observation directory."""
     if track not in CATALOG:
         raise ValueError(f"unknown track: {track}")
     if seconds <= 0:
         raise ValueError("seconds must be positive")
     cwd = Path(cwd)
-    record_dir = Path(record_dir) if record_dir is not None else cwd / "results" / "harness"
+    record_dir = Path(record_dir)
     checks_dir = record_dir / "checks"
     checks_dir.mkdir(parents=True, exist_ok=True)
     if checks_dir.is_symlink():
@@ -187,7 +268,8 @@ def run_checks(
             marker = b"[earlier output truncated]\n"
             payload = marker + payload[-(_LOG_BYTES - len(marker)) :]
         log_path = f"checks/{name}.log"
-        (record_dir / log_path).write_bytes(payload)
+        with (record_dir / log_path).open("xb") as log_file:
+            log_file.write(payload)
         results.append(
             CheckResult(
                 catalog_version=CATALOG_VERSION,
