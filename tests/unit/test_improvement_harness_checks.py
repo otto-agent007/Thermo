@@ -235,6 +235,23 @@ def test_real_runner_drains_large_stdout_and_stderr_with_bounded_capture(tmp_pat
     assert result.stderr.endswith(b"END-ERR")
 
 
+def test_real_runner_uses_supplied_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("SHOULD_NOT_LEAK", "hidden")
+    result = _bounded_run(
+        [
+            sys.executable,
+            "-c",
+            "import os; print(os.getenv('RUN_ONLY')); print(os.getenv('SHOULD_NOT_LEAK'))",
+        ],
+        cwd=tmp_path,
+        timeout=5,
+        shell=False,
+        capture_output=True,
+        env={"RUN_ONLY": "yes"},
+    )
+    assert result.stdout == b"yes\nNone\n"
+
+
 def test_real_runner_enforces_timeout(tmp_path):
     started = time.monotonic()
     with pytest.raises(subprocess.TimeoutExpired):

@@ -158,7 +158,13 @@ def _append_tail(buffer: bytearray, chunk: bytes) -> None:
 
 
 def _bounded_run(
-    argv: list[str], *, cwd: Path, timeout: float, shell: bool, capture_output: bool
+    argv: list[str],
+    *,
+    cwd: Path,
+    timeout: float,
+    shell: bool,
+    capture_output: bool,
+    env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[bytes]:
     """Drain both process pipes without holding more than two log caps in memory."""
     if shell or not capture_output:
@@ -167,6 +173,7 @@ def _bounded_run(
     process = subprocess.Popen(
         argv,
         cwd=cwd,
+        env=env,
         shell=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

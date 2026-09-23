@@ -1,9 +1,47 @@
 """Bounded local Codex proposer adapter."""
 
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
+
+from thermo_lab.improvement_harness.checks import _bounded_run
+
+_LOCAL_DIAGNOSTIC_CHARS = 512
+
+
+def _safe_stderr_tail(stderr: bytes | str | None) -> str:
+    """Keep a short local error hint while dropping logs and obvious credentials."""
+    if not stderr:
+        return ""
+    raw = stderr if isinstance(stderr, bytes) else stderr.encode("utf-8", errors="replace")
+    tail = raw[-2048:].decode("utf-8", errors="replace")
+    tail = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", tail)
+    lines = [
+        line.strip()
+        for line in tail.splitlines()
+        if re.match(r"(?i)^\s*(?:error|fatal|warning|caused by):", line)
+    ]
+    detail = " | ".join(lines)
+    detail = re.sub(
+        r"(?i)\b(authorization\s*:\s*bearer)\s+\S+",
+        r"\1 [redacted]",
+        detail,
+    )
+    detail = re.sub(
+        r"(?i)\b((?:[A-Za-z0-9_]*_)?(?:api[_-]?key|token|password|secret)\s*[:=]\s*)\S+",
+        r"\1[redacted]",
+        detail,
+    )
+    detail = re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "[redacted]", detail)
+    return detail[-_LOCAL_DIAGNOSTIC_CHARS:]
+
+
+def _failure_message(exit_status: int, stderr: bytes | str | None) -> str:
+    message = f"proposer did not produce a recommendation (exit {exit_status})"
+    detail = _safe_stderr_tail(stderr)
+    return f"{message}: {detail}" if detail else message
 
 
 def _head(worktree: Path) -> str:
@@ -67,25 +105,25 @@ def run_codex(worktree: Path, prompt: str, seconds: int, *, baseline: str) -> st
             prompt,
         ]
         try:
-            completed = subprocess.run(
+            completed = _bounded_run(
                 argv,
                 cwd=worktree,
                 env=allowed_env,
                 timeout=seconds,
-                check=False,
                 capture_output=True,
-                text=True,
                 shell=False,
             )
         except FileNotFoundError as error:
             raise RuntimeError("proposer unavailable: Codex CLI is missing") from error
         except subprocess.TimeoutExpired as error:
-            raise RuntimeError("proposer timed out") from error
+            detail = _safe_stderr_tail(error.stderr)
+            message = "proposer timed out"
+            raise RuntimeError(f"{message}: {detail}" if detail else message) from error
         if _head(worktree) != baseline.lower():
             raise ValueError("baseline mismatch after proposal generation")
         if completed.returncode != 0 or not message_path.is_file():
-            raise RuntimeError("proposer did not produce a recommendation")
+            raise RuntimeError(_failure_message(completed.returncode, completed.stderr))
         recommendation = message_path.read_text(encoding="utf-8")
         if not recommendation.strip():
-            raise RuntimeError("proposer did not produce a recommendation")
+            raise RuntimeError(_failure_message(completed.returncode, completed.stderr))
         return recommendation
