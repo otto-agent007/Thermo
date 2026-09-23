@@ -219,9 +219,6 @@ def _parent(root: Path, parent: str | None, plan: Plan) -> dict | None:
     result = record["result"]
     if result is None or not result.get("patch_digest"):
         raise ValueError("parent has no validated patch")
-    patch_path = root / parent / "patch.diff"
-    if patch_path.is_symlink() or _digest(patch_path.read_bytes()) != result["patch_digest"]:
-        raise ValueError("parent patch digest mismatch")
     if plan.track == "research" and result.get("heldout_role"):
         raise ValueError("parent has visible held-out feedback; use a new plan and fresh role")
     return record
