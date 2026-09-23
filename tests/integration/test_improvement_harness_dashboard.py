@@ -91,6 +91,7 @@ def test_symlink_observation_destination_is_rejected(evaluation, monkeypatch, tm
 def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path, role):
     """Exercise Playwright's real webServer startup before browser availability."""
     import json
+    import shutil
     import threading
     from http.server import BaseHTTPRequestHandler, HTTPServer
     from pathlib import Path
@@ -104,6 +105,15 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
     (worktree_dashboard / "node_modules").symlink_to(node_modules, target_is_directory=True)
     config_path = worktree_dashboard / "tests/playwright.config.ts"
     config_path.write_text((source_dashboard / "tests/playwright.config.ts").read_text())
+    server_path = worktree_dashboard / "tests/browser-server.ts"
+    server_source = (source_dashboard / "tests/browser-server.ts").read_text()
+    server_path.write_text(server_source)
+    for directory in ("server", "shared", "tests/fixtures"):
+        shutil.copytree(source_dashboard / directory, worktree_dashboard / directory)
+    shutil.copy2(
+        source_dashboard / "tests/proposal-fixture.ts",
+        worktree_dashboard / "tests/proposal-fixture.ts",
+    )
     (worktree_dashboard / "package.json").write_text('{"type":"module"}')
     (worktree_dashboard / "tests/browser.spec.ts").write_text(
         'import { test } from "@playwright/test";\n'
@@ -118,7 +128,8 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
             "--input-type=module",
             "-e",
             f"import config from {json.dumps(str(config_path))}; "
-            "console.log(JSON.stringify(config.default ?? config));",
+            f"import {{ archive }} from {json.dumps(str(source_dashboard / 'server/catalog.ts'))}; "
+            "console.log(JSON.stringify({config: config.default ?? config, archive}));",
         ],
         cwd=tmp_path,
         capture_output=True,
@@ -126,10 +137,16 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
         check=True,
         timeout=30,
     )
-    config = json.loads(inspected.stdout)
+    inspected_data = json.loads(inspected.stdout)
+    config = inspected_data["config"]
+    shutil.copytree(
+        source_dashboard.parent / inspected_data["archive"],
+        worktree_dashboard.parent / inspected_data["archive"],
+    )
     assert config["use"]["baseURL"] == "http://127.0.0.1:5174"
     assert config["webServer"]["url"] == "http://127.0.0.1:5174"
-    assert "--port 5174" in config["webServer"]["command"]
+    assert config["webServer"]["command"] == "node --import tsx tests/browser-server.ts"
+    assert 'host: "127.0.0.1", port: 5174, strictPort: true' in server_source
 
     class WrongServer(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -143,6 +160,7 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
     with HTTPServer(("127.0.0.1", 0), WrongServer) as server:
         # Preserve the checked config behavior while reserving a test-only port.
         config_path.write_text(config_path.read_text().replace("5174", str(server.server_port)))
+        server_path.write_text(server_source.replace("5174", str(server.server_port)))
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
@@ -166,24 +184,19 @@ def test_playwright_refuses_unrelated_server_and_binds_config_worktree(tmp_path,
     assert "already used" in observed.stdout + observed.stderr
     assert not list(worktree_dashboard.rglob("*.png"))
     assert Path(config["webServer"]["cwd"]).resolve() == worktree_dashboard.resolve()
-    assert "--strictPort" in config["webServer"]["command"]
 
     # A fresh owned server must run from this worktree even when Playwright was
     # invoked elsewhere. APIRequestContext exercises that binding without a
     # browser download or claiming visual UI verification.
-    (worktree_dashboard / "package.json").write_text(
-        '{"type":"module","scripts":{"dev":"node server.mjs"}}'
-    )
-    (worktree_dashboard / "server.mjs").write_text(
-        'import { createServer } from "node:http";\n'
-        'const port = Number(process.argv[process.argv.indexOf("--port") + 1]);\n'
-        'createServer((req, res) => res.end(process.cwd())).listen(port, "127.0.0.1");\n'
-    )
+    (worktree_dashboard / "index.html").write_text(f"<h1>{worktree_dashboard}</h1>")
     (worktree_dashboard / "tests/browser.spec.ts").write_text(
         'import { test, expect } from "@playwright/test";\n'
         'test("owned worktree", async ({ request }) => {\n'
         '  const response = await request.get("/");\n'
-        f"  expect(await response.text()).toBe({json.dumps(str(worktree_dashboard))});\n"
+        f"  expect(await response.text()).toContain({json.dumps(str(worktree_dashboard))});\n"
+        '  const proposals = await request.get("/data/proposals.json");\n'
+        "  expect((await proposals.json()).items[0].id).toBe("
+        '"12345678-1234-4234-8234-123456789abc");\n'
         "});\n"
     )
     owned = subprocess.run(
