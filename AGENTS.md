@@ -409,6 +409,16 @@ Preserve the previous return-fixture study and its source hashes. Report
 per-direction hop errors and survival together; pilot thresholds are not
 full M4G quality or inference-savings evidence.
 
+The separate complete-row fidelity pilot follows
+`docs/experiments/return-fixture-full-row-pilot.md`. Run
+`uv run python -m thermo_lab.return_fixture_full_row_pilot --output-dir results/return-fixture-full-row-pilot`
+with a fresh destination. Freeze all 16 visible input/output errors, weights
+0/1/10/100, 201 calls per arm, the <=0.005 maximum entry error and >=0.95
+survival gate before execution. Check every shared gradient, retain all
+proposals and complete numerical replay before completion. Preserve older
+fixture archives and keep this exact three-site result separate from M4G
+quality, inference sampling and physical-hardware evidence.
+
 The saved M4G survival-gradient audit follows
 `docs/experiments/survival-gradient-audit.md`. Run
 `uv run python -m thermo_lab.survival_gradient_audit --output-dir results/survival-gradient-audit`

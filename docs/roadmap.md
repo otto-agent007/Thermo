@@ -411,3 +411,15 @@ forward motion. A next test should predeclare the *complete local row law*,
 or a relative tolerance for both hop directions, before another run; more
 penalty weights chosen after seeing this result would not be a clean test.
 M5 and any inference-budget experiment remain separate milestones.
+
+The [complete local-row pilot](experiment-reports/2026-09-23-return-fixture-full-row-pilot/summary.md)
+predeclares equal penalties for all 16 K4 visible conditional entries and a
+stricter maximum-entry error gate of 0.005 alongside 95% survival. On the
+same fixture and matched budget, weight 100 lowers the largest conditional
+error from 0.41631 at weight zero to 0.08507, but survival falls from
+0.93474 to 0.90660. The reverse 01→10 hop remains near 0.0053 versus
+0.09037 target; none of the four frozen arms qualifies. The full-row
+objective exposes a different trade-off from the earlier hop-only penalty.
+This does not settle joint feasibility or model capacity. A next study
+would need a separately frozen design, with a larger fitting budget or
+kernel alternative, before any M4G or inference-savings conclusion.
