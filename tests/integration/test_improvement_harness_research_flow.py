@@ -222,3 +222,66 @@ def test_ignored_sourceless_package_is_rejected_before_execution(
         evaluate(worktrees)
 
     assert not marker.exists()
+
+
+def test_explicit_remaining_budget_preserves_frozen_plan(worktrees, monkeypatch):
+    research = importlib.import_module("thermo_lab.improvement_harness.research")
+    plan, baseline, candidate = worktrees
+    original = plan.model_dump_json()
+    deadlines = []
+    monkeypatch.setattr(research.time, "monotonic", lambda: 100.0)
+
+    def module(worktree, name, payload, deadline):
+        deadlines.append(deadline)
+        if name.endswith("fixture_candidate"):
+            return {"parameters": [0.0] * 9}
+        return {"delta": 0.0, "evidence": "exact_reference"}
+
+    monkeypatch.setattr(research, "_run_module", module)
+    research.evaluate_three_site(plan, baseline, candidate, seconds=0.25)
+    assert deadlines == [100.25, 100.25]
+    assert plan.model_dump_json() == original
+    with pytest.raises(TimeoutError, match="wall time"):
+        research.evaluate_three_site(plan, baseline, candidate, seconds=0)
+
+
+def test_cli_manual_research_uses_real_exact_comparison(worktrees, tmp_path, monkeypatch):
+    from thermo_lab.improvement_harness import cli
+    from thermo_lab.improvement_harness.checks import run_checks
+    from thermo_lab.improvement_harness.store import read_candidate
+
+    plan, baseline, candidate = worktrees
+    monkeypatch.chdir(baseline)
+    hook = candidate / HOOK
+    hook.write_text(
+        "from thermo_lab.trajectory_reinforce import build_exact_reference\n"
+        "def propose_parameters(fixture):\n"
+        "    gradient = build_exact_reference(fixture).score.shared\n"
+        "    return tuple(v - 0.25 * g for v, g in "
+        "zip(fixture.model_parameters.values, gradient))\n"
+    )
+    patch = tmp_path / "manual.diff"
+    patch.write_text(git(candidate, "diff", "--binary") + "\n")
+    recommendation = tmp_path / "recommendation.md"
+    recommendation.write_text("One exact-fixture gradient step; no broader scientific claim.")
+
+    def checks(track, cwd, seconds, *, record_dir):
+        return run_checks(
+            track,
+            cwd,
+            seconds,
+            record_dir=record_dir,
+            runner=lambda argv, **kwargs: subprocess.CompletedProcess(argv, 0, b"fake gate", b""),
+        )
+
+    monkeypatch.setattr(cli, "run_checks", checks)
+    output = tmp_path / "records"
+    assert cli.run_candidate(plan, output, patch, recommendation) == 0
+    directory = next(path for path in output.iterdir() if (path / "request.json").exists())
+    result = read_candidate(output, directory.name)["result"]
+    assert result["science"]["before"] == pytest.approx(0.5246570826850282, abs=1e-15)
+    assert result["science"]["delta"] < 0
+    assert result["science"]["evidence"] == "exact_reference"
+    assert result["research_outcome"] == "improved"
+    assert result["verification"] == "passed"
+    assert cli.main(["show", directory.name, "--output-dir", str(output)]) == 0

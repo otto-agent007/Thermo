@@ -110,7 +110,9 @@ def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> d
     return result
 
 
-def evaluate_three_site(plan: Plan, baseline_worktree: Path, candidate_worktree: Path) -> dict:
+def evaluate_three_site(
+    plan: Plan, baseline_worktree: Path, candidate_worktree: Path, *, seconds: float | None = None
+) -> dict:
     """Evaluate candidate parameters through the pinned baseline exact reference.
 
     This is a development fixture comparison. Callers must reserve any declared
@@ -125,10 +127,14 @@ def evaluate_three_site(plan: Plan, baseline_worktree: Path, candidate_worktree:
         or plan.threshold > 0
     ):
         raise ValueError("plan does not match the bounded research preset")
+    if seconds is not None and seconds <= 0:
+        raise TimeoutError("plan wall time exhausted")
     baseline = Path(baseline_worktree).resolve()
     candidate = Path(candidate_worktree).resolve()
     _check_sources(plan, baseline, candidate)
-    deadline = time.monotonic() + min(plan.wall_seconds, 1800)
+    deadline = time.monotonic() + min(
+        plan.wall_seconds, seconds if seconds is not None else plan.wall_seconds, 1800
+    )
     parameters = _run_module(
         candidate, "thermo_lab.improvement_harness.fixture_candidate", "", deadline
     )
