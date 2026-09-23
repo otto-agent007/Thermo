@@ -41,7 +41,7 @@ def test_only_fresh_passing_screenshots_are_retained(evaluation, monkeypatch, mo
         if argv[-1] == "test:browser":
             if mode != "missing":
                 for name in dashboard.SCREENSHOTS:
-                    (kwargs["cwd"] / "test-results" / name).write_bytes(b"fresh")
+                    (kwargs["cwd"] / "test-results" / name).write_bytes(b"\x89PNG\r\n\x1a\n")
             if mode == "failed":
                 return subprocess.CompletedProcess(argv, 1, stdout=b"assertion", stderr=b"")
             if mode == "unavailable":
@@ -68,6 +68,45 @@ def test_only_fresh_passing_screenshots_are_retained(evaluation, monkeypatch, mo
     assert "aesthetic_score" not in result
     if mode == "unavailable":
         assert result["execution"] == "unavailable"
+
+
+@pytest.mark.parametrize("role", ["baseline", "candidate"])
+@pytest.mark.parametrize(
+    "bad_image",
+    [b"not-a-png", b"\x89PNG\r\n\x1a\n" + b"x" * 8_000_000],
+    ids=["invalid-signature", "oversized"],
+)
+def test_invalid_or_oversized_screenshot_is_unavailable_for_either_role(
+    evaluation, monkeypatch, role, bad_image
+):
+    plan, baseline, candidate, records = evaluation
+    signature = b"\x89PNG\r\n\x1a\n"
+
+    def runner(argv, **kwargs):
+        if argv[-1] == "test:browser":
+            for name in dashboard.SCREENSHOTS:
+                target = baseline if role == "baseline" else candidate
+                payload = (
+                    bad_image
+                    if kwargs["cwd"].parent == target and name == "mobile.png"
+                    else signature
+                )
+                (kwargs["cwd"] / "test-results" / name).write_bytes(payload)
+        return subprocess.CompletedProcess(argv, 0, stdout=b"ok", stderr=b"")
+
+    monkeypatch.setattr(
+        dashboard,
+        "run_checks",
+        lambda track, cwd, seconds, *, record_dir: run_checks(
+            track, cwd, seconds, record_dir=record_dir, runner=runner
+        ),
+    )
+    result = dashboard.evaluate_dashboard(plan, baseline, candidate, record_dir=records)
+    observation = result["baseline_observation"] if role == "baseline" else result
+    assert observation["visual_evidence"] == "unavailable"
+    assert result["verification"] == "inconclusive"
+    target = records / role / "artifacts" / "mobile.png"
+    assert not target.exists()
 
 
 def test_record_destination_must_be_outside_worktrees(evaluation):

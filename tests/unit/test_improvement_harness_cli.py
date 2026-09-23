@@ -51,7 +51,7 @@ def setup(tmp_path, monkeypatch):
             directory = kwargs["cwd"] / "test-results"
             directory.mkdir(exist_ok=True)
             for name in ("overview.png", "mobile.png", "experiments.png"):
-                (directory / name).write_bytes(b"png")
+                (directory / name).write_bytes(b"\x89PNG\r\n\x1a\n")
         return subprocess.CompletedProcess(argv, 0, stdout=b"ok", stderr=b"")
 
     def checks(track, cwd, seconds, *, record_dir):

@@ -33,6 +33,10 @@ def valid_plan(**changes):
         {"baseline_commit": "main"},
         {"max_candidates": 0},
         {"wall_seconds": 0},
+        {"objective": "x" * 8_001},
+        {"objective": "é" * 4_001},
+        {"heldout_role": "r" * 129},
+        {"heldout_role": "bad/role"},
     ],
 )
 def test_plan_rejects_invalid_frozen_inputs(changes):

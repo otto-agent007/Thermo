@@ -12,7 +12,14 @@ from pathlib import Path
 
 from thermo_lab.improvement_harness import dashboard
 from thermo_lab.improvement_harness.checks import CATALOG, CheckResult, compare_baseline, run_checks
-from thermo_lab.improvement_harness.limits import MAX_RESULT_BYTES, read_recommendation
+from thermo_lab.improvement_harness.limits import (
+    MAX_PATCH_BYTES,
+    MAX_RECOMMENDATION_BYTES,
+    MAX_RESULT_BYTES,
+    MAX_SCREENSHOT_BYTES,
+    read_bounded_regular_file,
+    read_recommendation,
+)
 from thermo_lab.improvement_harness.plan import Plan, load_plan, plan_digest
 from thermo_lab.improvement_harness.proposer import build_proposer_prompt, run_codex
 from thermo_lab.improvement_harness.research import claim_heldout, evaluate_three_site
@@ -64,7 +71,16 @@ def _evidence_bytes(root: Path, relative: str) -> bytes:
         raise ValueError("evidence path escapes record root")
     target = root / path
     _check_root(target)
-    return target.read_bytes()
+    max_bytes = (
+        MAX_SCREENSHOT_BYTES
+        if path.suffix == ".png"
+        else MAX_RECOMMENDATION_BYTES
+        if path.name == "recommendation.md"
+        else 65_536
+        if "checks" in path.parts and path.suffix == ".log"
+        else MAX_PATCH_BYTES
+    )
+    return read_bounded_regular_file(target, max_bytes, "evidence")
 
 
 def _read_candidate_evidence(root: Path, candidate_id: str) -> dict:

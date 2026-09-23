@@ -8,6 +8,9 @@ from pathlib import Path
 MAX_RECOMMENDATION_BYTES = 100_000
 MAX_PATCH_BYTES = 1_000_000
 MAX_RESULT_BYTES = 1_000_000
+MAX_OBJECTIVE_BYTES = 8_000
+MAX_SCREENSHOT_BYTES = 8_000_000
+MAX_REVIEW_NOTE_BYTES = 100_000
 
 
 def read_bounded_regular_file(path: Path, max_bytes: int, label: str) -> bytes:

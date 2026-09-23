@@ -5,9 +5,14 @@ import time
 from pathlib import Path
 
 from thermo_lab.improvement_harness.checks import CheckResult, compare_baseline, run_checks
+from thermo_lab.improvement_harness.limits import (
+    MAX_SCREENSHOT_BYTES,
+    read_bounded_regular_file,
+)
 from thermo_lab.improvement_harness.plan import Plan
 
 SCREENSHOTS = ("overview.png", "mobile.png", "experiments.png")
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 def execution_status(checks: list[CheckResult]) -> str:
@@ -55,7 +60,12 @@ def observe_dashboard(worktree: Path, record_dir: Path, seconds: float) -> dict:
                 or not source.is_file()
             ):
                 continue
-            payload = source.read_bytes()
+            try:
+                payload = read_bounded_regular_file(source, MAX_SCREENSHOT_BYTES, "screenshot")
+            except (OSError, ValueError):
+                continue
+            if not payload.startswith(PNG_SIGNATURE):
+                continue
             with (artifact_dir / name).open("xb") as file:
                 file.write(payload)
             artifacts[f"artifacts/{name}"] = "sha256:" + hashlib.sha256(payload).hexdigest()

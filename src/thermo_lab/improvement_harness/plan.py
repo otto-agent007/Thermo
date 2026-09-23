@@ -8,13 +8,15 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from thermo_lab.improvement_harness.limits import MAX_OBJECTIVE_BYTES
+
 
 class Plan(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     schema_version: Literal[1]
     track: Literal["dashboard", "research"]
-    objective: str = Field(min_length=1)
+    objective: str = Field(min_length=1, max_length=MAX_OBJECTIVE_BYTES)
     baseline_commit: str
     allowed_paths: tuple[str, ...] = Field(min_length=1)
     primary_metric: str = Field(min_length=1)
@@ -23,6 +25,20 @@ class Plan(BaseModel):
     max_candidates: int = Field(ge=1)
     wall_seconds: int = Field(gt=0)
     heldout_role: str | None = None
+
+    @field_validator("objective")
+    @classmethod
+    def bounded_objective(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > MAX_OBJECTIVE_BYTES:
+            raise ValueError("objective is too large for dashboard review")
+        return value
+
+    @field_validator("heldout_role")
+    @classmethod
+    def valid_heldout_role(cls, value: str | None) -> str | None:
+        if value is not None and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", value) is None:
+            raise ValueError("invalid held-out role")
+        return value
 
     @field_validator("baseline_commit")
     @classmethod

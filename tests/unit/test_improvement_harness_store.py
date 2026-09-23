@@ -74,6 +74,14 @@ def test_reviews_append_without_changing_result(tmp_path, plan):
     assert len(read_candidate(tmp_path, candidate.id)["reviews"]) == 2
 
 
+@pytest.mark.parametrize("note", ["x" * 100_001, "é" * 50_001], ids=["ascii", "utf8"])
+def test_oversized_review_note_is_rejected_before_append(tmp_path, plan, note):
+    candidate = create_candidate(tmp_path, plan)
+    with pytest.raises(ValueError):
+        append_review(tmp_path, candidate.id, "accepted", note)
+    assert list((tmp_path / candidate.id).glob("review-*.json")) == []
+
+
 def test_candidate_limit_applies_to_same_plan_digest(tmp_path, plan):
     create_candidate(tmp_path, plan)
     with pytest.raises(ValueError, match="max_candidates"):

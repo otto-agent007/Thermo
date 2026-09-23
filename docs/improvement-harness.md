@@ -28,11 +28,13 @@ Prepare the patch in a separate checkout at the plan's baseline, using
 and remaining limits. Recommendations must be at most 100,000 UTF-8 bytes and
 patches at most 1,000,000 bytes, matching the dashboard's read limits. Oversized
 inputs produce a failed candidate record for inspection. Manual intake requires
-both files. The source checkout
-must still be clean at the frozen commit when `run` starts. The harness creates
+both files. The source checkout must still be clean at the frozen commit when
+`run` starts. The harness creates
 separate baseline and candidate worktrees, checks the patch allowlist, retains
 observations and prints the candidate ID. Neither passing checks nor a zero
 process exit constitutes acceptance.
+Plan objectives are limited to 8,000 UTF-8 bytes so the dashboard can read the
+frozen request. Held-out role names must be at most 128 safe ASCII characters.
 
 For a bounded research candidate, use `--track research` with `init-plan` and
 supply its patch and recommendation to `run` in the same way. The presets are:
@@ -97,7 +99,8 @@ uv run thermo-harness review CANDIDATE_ID --output-dir results/harness \
 ```
 
 Use `rejected` for a rejection. Review never substitutes for separate research
-release requirements or authorizes automatic publication.
+release requirements or authorizes automatic publication. Review notes are
+limited to 100,000 UTF-8 bytes.
 
 ## Read-only dashboard
 
@@ -106,6 +109,9 @@ reads validated records under `results/harness/`, shows all four status
 dimensions, and links to the draft patch, a derived evidence report and any
 validated dashboard screenshots. The report includes baseline source and
 plan/patch/observation digests; raw logs and local worktree paths are not served.
+Screenshots are retained as visual evidence only when each is a PNG of at most
+8,000,000 bytes; missing, invalid or larger files leave that observation
+unavailable for visual verification.
 A GitHub baseline link can resolve only after that commit is available remotely;
 inspect an unpushed baseline locally with `git show BASELINE_SHA`.
 Invalid or incomplete evidence is surfaced explicitly. No browser endpoint can

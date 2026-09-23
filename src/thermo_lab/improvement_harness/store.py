@@ -16,6 +16,7 @@ from typing import Any, Literal
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
 from thermo_lab.improvement_harness.checks import CheckResult
+from thermo_lab.improvement_harness.limits import MAX_OBJECTIVE_BYTES, MAX_REVIEW_NOTE_BYTES
 from thermo_lab.improvement_harness.plan import Plan, plan_digest
 
 _LOCK_WAIT_SECONDS = 5.0
@@ -30,7 +31,7 @@ class Candidate(BaseModel):
     id: str
     parent_id: str | None = None
     track: Literal["dashboard", "research"]
-    objective: str = Field(min_length=1)
+    objective: str = Field(min_length=1, max_length=MAX_OBJECTIVE_BYTES)
     baseline_commit: str
     allowed_paths: tuple[str, ...] = Field(min_length=1)
     plan_digest: str
@@ -46,6 +47,11 @@ class Candidate(BaseModel):
             if str(parsed) != value:
                 raise ValueError("candidate ID must be a canonical UUID")
         return value
+
+    @field_validator("objective")
+    @classmethod
+    def bounded_objective(cls, value: str) -> str:
+        return Plan.bounded_objective(value)
 
     @field_validator("baseline_commit")
     @classmethod
@@ -73,13 +79,20 @@ class Review(BaseModel):
     schema_version: Literal[1]
     candidate_id: str
     decision: Literal["proposed", "accepted", "rejected"]
-    note: str = Field(min_length=1)
+    note: str = Field(min_length=1, max_length=MAX_REVIEW_NOTE_BYTES)
     observed_at: AwareDatetime
 
     @field_validator("candidate_id")
     @classmethod
     def canonical_uuid(cls, value: str) -> str:
         return Candidate.canonical_uuid(value)
+
+    @field_validator("note")
+    @classmethod
+    def bounded_note(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > MAX_REVIEW_NOTE_BYTES:
+            raise ValueError("review note is too large")
+        return value
 
     @field_validator("observed_at", mode="before")
     @classmethod
