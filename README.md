@@ -528,3 +528,9 @@ above the full study's tolerances, reverse-hop contexts are absent, and the two
 path objectives coincide mathematically here. No full-program quality or savings
 claim follows. See the [protocol](docs/experiments/fixture-objective-step-comparison.md)
 and archived verification for reproduction.
+
+## Project dashboard
+
+The [research dashboard](dashboard/README.md) provides a read-only overview,
+interactive M4G results, milestone progress and source-linked research proposals.
+Run it locally for saved-checkpoint observations, or export a dated static snapshot.
