@@ -17,6 +17,9 @@ local THRML Gibbs sampling—and a separately labeled Z1 cost-model projection.
 Unreleased or inaccessible systems are documented in the roadmap rather than
 represented by placeholder backends.
 
+For bounded local patch proposals and owner review, see the
+[improvement harness guide](docs/improvement-harness.md).
+
 ## CI and delivery
 
 See [the CI/CD runbook](docs/ci-cd.md) for the required CI gate, verified dashboard

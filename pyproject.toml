@@ -19,6 +19,7 @@ Issues = "https://github.com/otto-agent007/Thermo/issues"
 
 [project.scripts]
 thermo-lab = "thermo_lab.cli:main"
+thermo-harness = "thermo_lab.improvement_harness.cli:main"
 
 [dependency-groups]
 dev = [

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from thermo_lab.backends.numpy_composed_pasym_swap import _composed_provenance
 from thermo_lab.composed_pasym_swap_reporting import _checked_runtime_provenance
 from thermo_lab.records import RunRecord
 
@@ -14,10 +15,17 @@ def test_archived_platform_is_preserved_and_only_explicitly_portable():
         "docs/experiment-reports/2026-09-11-bounded-finite-sweep-refinement/seed-0000000000.json"
     )
     record = RunRecord.model_validate(json.loads(path.read_text())["source_record"])
+    current_python = _composed_provenance(None).python_version
+    if record.provenance.python_version != current_python:
+        with pytest.raises(ValueError, match="runtime provenance"):
+            _checked_runtime_provenance(record, allow_historical_platform=True)
     other = record.model_copy(
         update={
             "provenance": record.provenance.model_copy(
-                update={"platform": "Linux-historical-other-host"}
+                update={
+                    "platform": "Linux-historical-other-host",
+                    "python_version": current_python,
+                }
             )
         }
     )
@@ -25,6 +33,15 @@ def test_archived_platform_is_preserved_and_only_explicitly_portable():
         _checked_runtime_provenance(other)
     _checked_runtime_provenance(other, allow_historical_platform=True)
     assert other.provenance.platform == "Linux-historical-other-host"
+    wrong = other.model_copy(
+        update={
+            "provenance": other.provenance.model_copy(
+                update={"python_version": f"{current_python}-mismatch"}
+            )
+        }
+    )
+    with pytest.raises(ValueError, match="runtime provenance"):
+        _checked_runtime_provenance(wrong, allow_historical_platform=True)
     wrong = other.model_copy(
         update={"provenance": other.provenance.model_copy(update={"jax_backend": "gpu"})}
     )
