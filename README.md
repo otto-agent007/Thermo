@@ -529,6 +529,29 @@ path objectives coincide mathematically here. No full-program quality or savings
 claim follows. See the [protocol](docs/experiments/fixture-objective-step-comparison.md)
 and archived verification for reproduction.
 
+### Three-operation return fixture
+
+The [return protocol](docs/experiments/three-operation-return-fixture.md)
+adds edge (0,1) after the two-operation circuit. This exposes reverse-hop
+input 01 and multiple valid histories per endpoint, allowing the two path
+objectives to differ. The [exact six-arm study](docs/experiment-reports/2026-09-23-three-operation-return-fixture/summary.md)
+finds 93.47% and 93.59% survival for path KL and valid-terminal training
+with backtracking, respectively; reverse-hop and all-row fidelity remain
+poor. This small fixture does not establish full-program quality or savings.
+
+### Forward and reverse fidelity pilot
+
+The [frozen pilot protocol](docs/experiments/return-fixture-fidelity-pilot.md)
+adds explicit forward and reverse hop-error penalties to the exact return
+fixture's path KL objective. At weight 10 the reverse hop reaches 0.09072
+against target 0.09037, but the 01 four-outcome row error rises and forward
+movement remains about 0.00049 against target 0.00963. No tested arm meets
+the declared survival and hop-error pilot gate. The
+[complete result](docs/experiment-reports/2026-09-23-return-fixture-fidelity-pilot/summary.md)
+retains all four weights and every proposal for replay. Run
+`uv run python -m thermo_lab.return_fixture_fidelity_pilot --output-dir results/return-fixture-fidelity-pilot`
+with a fresh output directory to reproduce this exact-reference CPU study.
+
 ## Project dashboard
 
 The [research dashboard](dashboard/README.md) provides a read-only overview,
