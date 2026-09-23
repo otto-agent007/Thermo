@@ -509,6 +509,26 @@ and member, but the full task still fails. No inference-sweep savings claim
 follows. The result concerns the fixed five-update procedure, not optimized
 capacity, convergence or physical hardware.
 
+### Saved M4G survival-gradient audit
+
+Run `uv run python -m thermo_lab.survival_gradient_audit --output-dir results/survival-gradient-audit`
+with a fresh destination. This authenticates the completed M4G archive and
+analyzes all 105 saved updates without new fitting or sampling. See the
+[protocol](docs/experiments/survival-gradient-audit.md) and
+[recorded findings](docs/experiment-reports/2026-09-21-survival-gradient-audit/summary.md).
+
+### Exact fixture objective and step comparison
+
+The [six-arm comparison](docs/experiment-reports/2026-09-21-fixture-objective-step-comparison/summary.md)
+finds that both objective choice and backtracking improve attained survival at
+201 evaluator calls per arm. Occupancy training reaches 60.2% / 89.1% survival
+with fixed steps / backtracking; path-aware training reaches 83.1% / 95.8%.
+These are exact two-operation fixture results. Local hop/asymmetry errors remain
+above the full study's tolerances, reverse-hop contexts are absent, and the two
+path objectives coincide mathematically here. No full-program quality or savings
+claim follows. See the [protocol](docs/experiments/fixture-objective-step-comparison.md)
+and archived verification for reproduction.
+
 ## Project dashboard
 
 The [research dashboard](dashboard/README.md) provides a read-only overview,
