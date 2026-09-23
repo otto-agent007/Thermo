@@ -552,6 +552,19 @@ retains all four weights and every proposal for replay. Run
 `uv run python -m thermo_lab.return_fixture_fidelity_pilot --output-dir results/return-fixture-fidelity-pilot`
 with a fresh output directory to reproduce this exact-reference CPU study.
 
+### Complete local-row fidelity pilot
+
+The [frozen full-row protocol](docs/experiments/return-fixture-full-row-pilot.md)
+penalizes errors in all 16 visible conditional probabilities, including
+unvisited input row 11, at the same 201-evaluator budget. The
+[four-arm result](docs/experiment-reports/2026-09-23-return-fixture-full-row-pilot/summary.md)
+reduces the largest error from 0.4163 at weight zero to 0.0851 at weight
+100, but every arm remains below 95% survival and above the declared
+0.005 maximum-entry error. This is a negative result on one short exact
+fixture, with no capacity or full-program inference claim. Run
+`uv run python -m thermo_lab.return_fixture_full_row_pilot --output-dir results/return-fixture-full-row-pilot`
+with a fresh output directory to reproduce the complete proposal trace.
+
 ## Project dashboard
 
 The [research dashboard](dashboard/README.md) provides a read-only overview,
