@@ -387,3 +387,14 @@ A separately specified return operation could expose reverse hops and merging
 histories before any full-program extension. Explicit local fidelity constraints
 or a richer kernel remain prospective investigations; no extra experiment or
 M4G production fitting was performed here. M5 remains separate.
+
+The [completed three-operation return fixture](experiment-reports/2026-09-23-three-operation-return-fixture/summary.md)
+shows a positive exact path-versus-terminal objective gap when the added
+return edge creates merging valid histories. At the matched 201-evaluator
+budget, path-KL and valid-terminal backtracking arms attain 93.47% and
+93.59% uninterrupted survival, respectively; neither reaches 95%. The
+logical reverse 01 hop target is 0.09037, while those trained arms produce
+about 0.0047 and 0.0045. The target visits that row in only 0.9536% of
+third-edge operations. This reveals a concrete survival/fidelity trade-off,
+not a full-program quality or inference-savings result. A separately
+predeclared fidelity constraint or richer kernel could test the gap.
