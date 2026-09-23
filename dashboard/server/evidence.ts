@@ -11,6 +11,7 @@ import {
   studySource,
 } from "./catalog.ts";
 import { readBounded } from "./files.ts";
+import { loadRecentStudies } from "./recent.ts";
 import type {
   CellDetail,
   CellSummary,
@@ -129,6 +130,7 @@ export async function loadEvidence(
     },
     science: { state: "unknown", label: "Unavailable", source: studySource },
     study: null,
+    recentStudies: await loadRecentStudies(repoRoot),
     activity: {
       availability: "unavailable",
       observedAt: now,
@@ -345,5 +347,43 @@ export async function loadEvidence(
         }
       : m,
   );
+  const recentMilestones = snapshot.recentStudies
+    .slice()
+    .reverse()
+    .map((study) => ({
+      id: study.id,
+      question: study.title,
+      conclusion: study.finding,
+      state: study.availability === "available" ? "Complete" : "Unavailable",
+      evidenceClasses: ["exact_reference"],
+      sources: study.sources,
+    }));
+  snapshot.milestones.splice(
+    snapshot.milestones.length - 1,
+    0,
+    ...recentMilestones,
+    {
+      id: "Next",
+      question: "Direct local-fitting diagnostic",
+      conclusion:
+        "Proposed: fit the complete target table with a larger fixed budget and predetermined starts, then evaluate the same three-operation circuit. No new run has been executed.",
+      state: "Proposed",
+      evidenceClasses: [],
+      sources: snapshot.recentStudies[0].sources.slice(0, 1),
+    },
+  );
+  snapshot.research = [
+    ...snapshot.recentStudies
+      .filter((s) => s.availability === "available")
+      .map((study) => ({
+        id: study.id,
+        kind: "finding" as const,
+        title: study.title,
+        text: study.finding,
+        scope: study.scope,
+        sources: study.sources,
+      })),
+    ...research,
+  ];
   return { snapshot, details };
 }

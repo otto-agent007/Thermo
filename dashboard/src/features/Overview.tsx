@@ -3,9 +3,11 @@ import { Status } from "../components/Status";
 import { Sources } from "../components/SourceLink";
 import { ActivityPanel } from "./Roadmap";
 import { ArrowRight } from "lucide-react";
+import { RecentStudyPanel } from "./RecentStudy";
 const percent = (n: number) => (100 * n).toFixed(2) + "%";
 export function Overview({ snapshot }: { snapshot: ProjectSnapshot }) {
   const s = snapshot.study;
+  const latest = snapshot.recentStudies[0];
   const cells = s?.cells ?? [];
   const leak = cells.map((c) => c.leakage);
   const survival = cells.map((c) => c.survival);
@@ -13,18 +15,32 @@ export function Overview({ snapshot }: { snapshot: ProjectSnapshot }) {
     <>
       <div className="page-intro">
         <h2>
-          {s ? (
-            "A completed study. A clear next question."
-          ) : (
-            "Project evidence unavailable"
-          )}
+          {latest?.availability === "available"
+            ? "Better local fidelity. Survival still falls short."
+            : s
+              ? "M4G complete. Recent evidence unavailable."
+              : "Project evidence unavailable"}
         </h2>
         <p>
-          M4G tests whether limited sampling budgets can preserve task quality.
+          Latest archived studies: September 21–23, 2026. Can limited sampling
+          budgets preserve task quality?
         </p>
       </div>
       <div className="content-grid">
         <div className="main-column">
+          {latest && <RecentStudyPanel study={latest} compact />}
+          <section className="panel recent-list">
+            <h2>Recent work</h2>
+            {snapshot.recentStudies.slice(1).map((study) => (
+              <article key={study.id}>
+                <time dateTime={study.date}>{study.date}</time>
+                <h3>{study.title}</h3>
+                <p>{study.finding}</p>
+                <Sources sources={study.sources.slice(0, 1)} />
+              </article>
+            ))}
+          </section>
+          <h2>Earlier M4G release · 500 operations</h2>
           <section className="status-strip">
             <Status title="Execution" status={snapshot.execution} />
             <Status title="Verification" status={snapshot.verification} />
@@ -88,12 +104,12 @@ export function Overview({ snapshot }: { snapshot: ProjectSnapshot }) {
                   Ranges span all 60 cells. All 60 fail the joint contract. No
                   inference-sweep savings established.
                 </p>
-                <a className="text-action" href="#experiments">
-                  Explore the evidence <ArrowRight size={16} />
+                <a className="text-action" href="#experiments/m4g">
+                  Open the M4G explorer <ArrowRight size={16} />
                 </a>
               </section>
               <section className="panel">
-                <h2>Recent evidence</h2>
+                <h2>M4G evidence</h2>
                 <div className="evidence-row">
                   <span className="milestone-id">M4G</span>
                   <div>
@@ -121,10 +137,11 @@ export function Overview({ snapshot }: { snapshot: ProjectSnapshot }) {
           <ActivityPanel activity={snapshot.activity} />
           <section className="panel next">
             <h2>Next on the roadmap</h2>
-            <strong>M5 · Topology-aware meta-EBM</strong>
+            <strong>Direct local-fitting diagnostic</strong>
             <p>
-              Reproduce the 12-spin target and evaluate connectivity and
-              complete execution costs.
+              Proposed: fit the complete target transition table with a larger
+              fixed budget and predetermined starts, then measure survival on
+              the same three-operation fixture.
             </p>
             <a className="text-action" href="#roadmap">
               View roadmap <ArrowRight size={16} />
@@ -132,8 +149,8 @@ export function Overview({ snapshot }: { snapshot: ProjectSnapshot }) {
             <hr />
             <h3>Research proposals</h3>
             <p>
-              Exact survival-gradient audit and a count-preserving joint sampler
-              pilot.
+              Separate optimization limits from kernel limits. M5 and the
+              count-preserving sampler remain later investigations.
             </p>
             <a href="#research">Read the research</a>
           </section>

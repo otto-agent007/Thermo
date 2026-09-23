@@ -8,7 +8,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useProject } from "./useProject";
-import { Experiments } from "./features/Experiments";
+import { Experiments } from "./features/StudyBrowser";
 import { Overview } from "./features/Overview";
 import { Roadmap } from "./features/Roadmap";
 import { Research } from "./features/Research";
@@ -26,9 +26,12 @@ const titles: Record<string, string> = {
 };
 export default function App() {
   const { data, error, refreshing, refresh } = useProject();
-  const [view, setView] = useState(location.hash.slice(1) || "overview");
+  const [view, setView] = useState(
+    location.hash.slice(1).split("/")[0] || "overview",
+  );
   useEffect(() => {
-    const change = () => setView(location.hash.slice(1) || "overview");
+    const change = () =>
+      setView(location.hash.slice(1).split("/")[0] || "overview");
     window.addEventListener("hashchange", change);
     return () => window.removeEventListener("hashchange", change);
   }, []);
@@ -80,7 +83,7 @@ export default function App() {
           <div>
             <h1>{titles[view] ?? "Project overview"}</h1>
             <p>
-              Research <span>/</span> M4G <span>/</span>{" "}
+              Research <span>/</span> Thermo <span>/</span>{" "}
               {titles[view] ?? "Overview"}
             </p>
           </div>
@@ -123,10 +126,10 @@ export default function App() {
               )}
               <footer>
                 {data.mode === "snapshot"
-                  ? "Dated snapshot · changes appear after a new export."
+                  ? "Published snapshot · Refresh reloads this publication. New studies require a new publication."
                   : "Local records · refresh every 15 seconds while visible."}{" "}
                 <span>
-                  Evidence commit{" "}
+                  M4G evidence commit{" "}
                   {data.sourceCommit?.slice(0, 12) ?? "unavailable"}
                 </span>
                 <a

@@ -1,0 +1,27 @@
+{
+  "docs/experiment-reports/2026-09-23-return-fixture-full-row-pilot": {
+    "summary.md": "324cf69eae0dae4709e4fc60e6a3417d0530b2c66157352e8034bc172054d3c3",
+    "completion.json": "de5d15fa59bca464aa631af52833d5d1be6c9110aa4ca4885dc8ce3bc69c2678",
+    "review.md": "f830575a8788ab7301b1f7c4c51f672f0eade8b4da3bd3aebe76f7aca45a7135"
+  },
+  "docs/experiment-reports/2026-09-23-return-fixture-fidelity-pilot": {
+    "summary.md": "3361ee64499517e1bb60f17360fd91bf02324ecdf7d8a74119ca3b0b77da4ba6",
+    "completion.json": "a37a9dcfffaee56dd9de56514c6ce3f8c1c9f990f32048c0d00fb90a0ad06044",
+    "review.md": "03ea30a8b7401e0a7054b75db490e798bc833b79860054d242a504fee3d89b71"
+  },
+  "docs/experiment-reports/2026-09-23-three-operation-return-fixture": {
+    "summary.md": "01e85c43848aae2926252c4fc0c139cb9a08c7073f8951e02ec879737c729955",
+    "completion.json": "c01790030435ecf386d56765fc7cf3342b2c814868752e64c059a5adc66d633c",
+    "review.md": "e9c41396fb18e969b1b05343991570edfb0656b2cc02fbb5853c177e10a6662c"
+  },
+  "docs/experiment-reports/2026-09-21-fixture-objective-step-comparison": {
+    "summary.md": "1e7f6f1f57fd20f44b0cfe4df01517449c65837f85677c92c6a3f5d357cfd56f",
+    "completion.json": "56fc3b157658137ec51bf4b6a607c982ce237871763d22f875fe67f835858d33",
+    "review.md": "d6e02b86bf9ea21a34e21830d5203296315061e39bd5dcc2950c9923e040395c"
+  },
+  "docs/experiment-reports/2026-09-21-survival-gradient-audit": {
+    "summary.md": "0dd0a2eee00499f123efbd67c39f7b84d84ae19e396ae22bd9922367ba5bd051",
+    "completion.json": "d39fc9153c240dd3be3fedb6804d0fc3937331bdb548ca34164aeff46d639776",
+    "review.md": "5f5ec9082f74393624586d8d5e3d7ba72ffac69db4e39c569475472b58c4bcb5"
+  }
+}

@@ -39,6 +39,7 @@ test("mobile has no page overflow and supports keyboard focus", async ({
 });
 test("filters, metrics, detail and CSV stay consistent", async ({ page }) => {
   await page.goto("/#experiments");
+  await page.getByLabel("Study", { exact: true }).selectOption("m4g");
   await expect(
     page.getByRole("heading", {
       name: "Task quality vs inference budget",
@@ -81,6 +82,41 @@ test("filters, metrics, detail and CSV stay consistent", async ({ page }) => {
   await page.getByLabel("Search cells").fill("no-match");
   await expect(
     page.getByText("No cells match these filters. Reset to show all 60 cells."),
+  ).toBeVisible();
+});
+test("recent evidence appears first and the study selector preserves all arms", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      name: "Complete local-row fidelity",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("90.66%", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Experiments", exact: true }).click();
+  await expect(page.getByLabel("Study", { exact: true })).toHaveValue(
+    "full-row",
+  );
+  await expect(
+    page.getByText("All four final arms", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("table").first().locator("tbody tr")).toHaveCount(
+    4,
+  );
+  await page
+    .getByLabel("Study", { exact: true })
+    .selectOption("survival-audit");
+  await expect(page.locator("table").first().locator("tbody tr")).toHaveCount(
+    21,
+  );
+  await page.getByRole("link", { name: "Roadmap", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Saved survival-gradient audit",
+      exact: true,
+    }),
   ).toBeVisible();
 });
 test("failed refresh preserves previous view with an explicit notice", async ({

@@ -1,0 +1,8 @@
+{
+  "name": "thermo-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix dashboard run dev --",
+    "dashboard:build": "npm --prefix dashboard run build"
+  }
+}
