@@ -9,10 +9,18 @@ export function evidencePlugin(root: string): Plugin {
         try {
           const result = await getPayload(root, req.url, req.method);
           res.statusCode = result.status;
-          res.setHeader("Content-Type", "application/json");
+          res.setHeader(
+            "Content-Type",
+            result.contentType ?? "application/json",
+          );
+          res.setHeader("X-Content-Type-Options", "nosniff");
           res.setHeader("Cache-Control", "no-store");
           res.end(
-            req.method === "HEAD" ? undefined : JSON.stringify(result.body),
+            req.method === "HEAD"
+              ? undefined
+              : result.contentType
+                ? (result.body as string | Buffer)
+                : JSON.stringify(result.body),
           );
         } catch {
           res.statusCode = 503;

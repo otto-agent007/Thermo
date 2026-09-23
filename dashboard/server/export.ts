@@ -15,6 +15,10 @@ export async function exportSnapshot(
   await mkdir(join(stage, "cells"));
   try {
     await writeFile(join(stage, "project.json"), JSON.stringify(snapshot));
+    await writeFile(
+      join(stage, "proposals.json"),
+      JSON.stringify({ items: [], issues: [] }),
+    );
     for (const [id, detail] of details)
       await writeFile(
         join(stage, "cells", id.replaceAll("/", "~") + ".json"),

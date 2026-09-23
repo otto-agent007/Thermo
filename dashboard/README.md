@@ -46,3 +46,18 @@ npm run test:browser
 Tests cover real React filter/keyboard interaction in a DOM harness, real archive extraction, exact seed identities, missing/changed evidence, partial checkpoints bound to expected archived fit slots, symlink escape, read-only routes, static export, filters and CSV. Browser tests cover desktop/mobile navigation, metric selection, details, downloads and failed refresh. They require an environment that can start the Vite server and run Chromium.
 
 Scientific regression gates remain defined in the repository's `AGENTS.md`; this dashboard does not alter those gates or dependency pins.
+
+The **Proposals** view reads local, digest-checked harness records from
+`results/harness/`. Execution, verification, research outcome and owner review
+are separate; a research result is a bounded three-site exact trial. Draft
+patches and the three named screenshots are read-only links. Invalid or missing
+evidence is reported as unavailable; logs and local source paths are omitted.
+The adapter caps proposals at 100, JSON/patch files at 1 MB, PNGs at 8 MB, and
+rejects symlinks and paths outside the repository. No browser mutation or job
+execution endpoint exists. Static builds export an empty proposal list; local
+drafts and their artifacts are never copied to the published snapshot.
+
+Browser tests use temporary proposal records and an isolated server on strict
+port 5174, preserving the development preview on 5173. Screenshots are written
+to ignored `test-results/`, including `proposals-desktop.png` and
+`proposals-mobile.png` for manual layout review.

@@ -1,3 +1,4 @@
+import { readProposals, readProposalArtifact } from "./proposals.ts";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import { loadEvidence } from "./evidence.ts";
@@ -33,10 +34,22 @@ export async function getPayload(
   root: string,
   route: string,
   method = "GET",
-): Promise<{ status: number; body: unknown }> {
+): Promise<{ status: number; body: unknown; contentType?: string }> {
   if (!["GET", "HEAD"].includes(method))
     return { status: 405, body: { error: "Read-only API" } };
   const path = route.split("?")[0];
+  if (path === "/data/proposals.json")
+    return { status: 200, body: await readProposals(root) };
+  const proposal =
+    /^\/data\/proposals\/([0-9a-f-]{36})\/(patch\.diff|artifacts\/(?:overview|mobile|experiments)\.png)$/.exec(
+      path,
+    );
+  if (proposal)
+    return readProposalArtifact(
+      root,
+      proposal[1],
+      proposal[2].replace("artifacts/", ""),
+    );
   if (path === "/data/project.json") {
     const [{ snapshot }, activity] = await Promise.all([
       getEvidence(root),

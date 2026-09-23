@@ -99,3 +99,19 @@ export type Filters = {
   horizons: Horizon[];
   query: string;
 };
+export type ProposalSummary = {
+  id: string;
+  track: "dashboard" | "research";
+  objective: string;
+  baseline: string;
+  execution: string;
+  verification: string;
+  researchOutcome: string;
+  review: "proposed" | "accepted" | "rejected";
+  recommendation: string;
+  baselineSummary: string;
+  candidateSummary: string;
+  patchUrl: string | null;
+  screenshotUrls: string[];
+};
+export type ProposalList = { items: ProposalSummary[]; issues: string[] };

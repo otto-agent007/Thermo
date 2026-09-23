@@ -97,3 +97,80 @@ test("failed refresh preserves previous view with an explicit notice", async ({
     page.getByText("Joint quality unmet", { exact: true }),
   ).toBeVisible();
 });
+test("proposals expose read-only recommendations and validated links with keyboard navigation", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(msg.text());
+  });
+  await page.setViewportSize({ width: 1506, height: 1045 });
+  await page.goto("/");
+  const nav = page.getByRole("link", { name: "Proposals", exact: true });
+  await nav.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("heading", { name: "Improvement proposals" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Improve dashboard readability" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Increase contrast and spacing. Owner visual review required.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Owner review", { exact: true })).toBeVisible();
+  const patch = page.getByRole("link", { name: "View draft patch" });
+  await patch.focus();
+  await expect(patch).toBeFocused();
+  const response = await page.request.get((await patch.getAttribute("href"))!);
+  expect(response.headers()["content-type"]).toContain("text/x-diff");
+  expect(await response.text()).toContain("diff --git");
+  const screenshot = page.getByRole("link", {
+    name: "View overview screenshot",
+  });
+  expect(
+    (
+      await page.request.get((await screenshot.getAttribute("href"))!)
+    ).headers()["content-type"],
+  ).toBe("image/png");
+  await page.screenshot({
+    path: "test-results/proposals-desktop.png",
+    fullPage: true,
+  });
+  expect(errors).toEqual([]);
+});
+test("proposal refresh failure retains prior records with a notice", async ({
+  page,
+}) => {
+  await page.goto("/#proposals");
+  await expect(
+    page.getByRole("heading", { name: "Improve dashboard readability" }),
+  ).toBeVisible();
+  await page.route("**/data/proposals.json", (route) => route.abort());
+  await page.getByRole("button", { name: "Refresh proposals" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Showing previous proposals",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Improve dashboard readability" }),
+  ).toBeVisible();
+});
+test("mobile proposals fit the viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#proposals");
+  await expect(
+    page.getByRole("heading", { name: "Improve dashboard readability" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/proposals-mobile.png",
+    fullPage: true,
+  });
+});

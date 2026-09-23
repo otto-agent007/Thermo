@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   BookOpen,
+  FileCheck,
   FlaskConical,
   House,
   Map,
@@ -11,18 +12,21 @@ import { useProject } from "./useProject";
 import { Experiments } from "./features/Experiments";
 import { Overview } from "./features/Overview";
 import { Roadmap } from "./features/Roadmap";
+import { Proposals } from "./features/Proposals";
 import { Research } from "./features/Research";
 const nav = [
   ["overview", "Overview", House],
   ["experiments", "Experiments", FlaskConical],
   ["roadmap", "Roadmap", Map],
   ["research", "Research", BookOpen],
+  ["proposals", "Proposals", FileCheck],
 ] as const;
 const titles: Record<string, string> = {
   overview: "Project overview",
   experiments: "Experiments",
   roadmap: "Roadmap and activity",
   research: "Research",
+  proposals: "Proposals",
 };
 export default function App() {
   const { data, error, refreshing, refresh } = useProject();
@@ -112,7 +116,9 @@ export default function App() {
             <p>Loading project evidence…</p>
           ) : (
             <>
-              {view === "experiments" ? (
+              {view === "proposals" ? (
+                <Proposals local={data.mode === "local"} />
+              ) : view === "experiments" ? (
                 <Experiments snapshot={data} />
               ) : view === "roadmap" ? (
                 <Roadmap snapshot={data} />

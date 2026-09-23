@@ -949,3 +949,92 @@ dialog details summary {
     font-size: 16px;
   }
 }
+.proposals > .row-between {
+  gap: 16px;
+  align-items: flex-start;
+}
+.proposal-scope {
+  max-width: 850px;
+  margin: 18px 0 24px;
+  line-height: 1.65;
+  color: #536475;
+}
+.proposal-list {
+  display: grid;
+  gap: 20px;
+}
+.proposal-card {
+  padding: 24px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.proposal-card h3 {
+  margin: 20px 0 12px;
+  font-size: 20px;
+}
+.proposal-recommendation {
+  white-space: pre-wrap;
+  line-height: 1.65;
+  max-width: 850px;
+}
+.proposal-status {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  border-block: 1px solid #e5ebef;
+  padding: 20px 0;
+  margin: 24px 0;
+}
+.proposal-status dt,
+.proposal-source dt {
+  color: #647384;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.proposal-status dd {
+  margin: 0;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+.proposal-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.proposal-comparison > div {
+  background: #f5f8fa;
+  border-radius: 6px;
+  padding: 16px;
+}
+.proposal-comparison p {
+  margin-bottom: 0;
+}
+.proposal-source {
+  margin: 22px 0;
+  display: grid;
+  gap: 12px;
+}
+.proposal-source dd {
+  margin: 0;
+}
+.proposal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 1px solid #e5ebef;
+  padding-top: 18px;
+}
+@media (max-width: 700px) {
+  .proposals > .row-between {
+    flex-direction: column;
+  }
+  .proposal-card {
+    padding: 18px;
+  }
+  .proposal-status {
+    grid-template-columns: 1fr 1fr;
+  }
+  .proposal-comparison {
+    grid-template-columns: 1fr;
+  }
+}
