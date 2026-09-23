@@ -74,7 +74,7 @@ export const milestones: Milestone[] = [
     "M5",
     "Topology-aware meta-EBM",
     "Reproduce the 12-spin target, then evaluate connectivity and complete costs.",
-    "Next",
+    "Later",
   ],
 ].map(([id, question, conclusion, state]) => ({
   id,
@@ -104,13 +104,19 @@ export const research: ResearchItem[] = [
     sources: [studySource],
   },
   {
-    id: "gradient",
+    id: "local-fit",
     kind: "proposal",
-    title: "Audit the exact survival gradient",
-    text: "Differentiate the 25-state killed transition process to identify where the current objective misses cumulative conservation loss.",
+    title: "Separate fitting limits from kernel limits",
+    text: "Proposed next: fit the complete local target table with a larger fixed budget and predetermined starts, then evaluate survival on the same three-operation circuit.",
     scope:
-      "Proposed audit only. No fitting, additional training, or new result is recorded.",
-    sources: [review],
+      "A future diagnostic, not yet executed. The recent pilots do not prove joint infeasibility or capacity limits.",
+    sources: [
+      {
+        label: "Full-row pilot review",
+        url: "https://github.com/otto-agent007/Thermo/blob/918f67f62b9478276bc23d9e4a9a805937c58cf4/docs/experiment-reports/2026-09-23-return-fixture-full-row-pilot/review.md",
+        recordedAt: "2026-09-23",
+      },
+    ],
   },
   {
     id: "joint",

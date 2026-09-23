@@ -24,7 +24,16 @@ test("skip shortcut preserves experiment filters and focuses main content", asyn
   const { default: App } = await import("../src/App");
   try {
     await act(async () => root.render(createElement(App)));
-    const seed = document.querySelector("select")!;
+    const study = document.querySelector<HTMLSelectElement>("#study-picker")!;
+    await act(async () => {
+      study.value = "m4g";
+      study.dispatchEvent(
+        new window.Event("change", { bubbles: true }) as unknown as Event,
+      );
+    });
+    const seed = document.querySelector<HTMLSelectElement>(
+      'select[aria-label="Seed"]',
+    )!;
     await act(async () => {
       seed.value = "0";
       seed.dispatchEvent(

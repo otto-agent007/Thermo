@@ -44,3 +44,33 @@ The existing 32-command local gate runner completed. 29 commands exited successf
 With the original checkout frozen clean at `4bddc2c97d49982293130c8eb33b0d4311afbe93`, all affected checks passed unchanged: the three-seed composed command exited 0, the aggregation test passed (1/1), and the complete composed-runner file passed (11/11). The initial unit partition had 1602 passes plus that one failure; the first integration partition had 189 passes plus those four fixture errors. No scientific checks or implementations were weakened. Subsequent UI layout work stayed in a separate worktree; scientific tracked files remain byte-identical.
 
 GitHub's broader scientific CI is separate from these local results and must finish before merging. PR36 is kept as a draft and depends on PR35.
+
+## Follow-up studies refresh — 2026-09-23
+
+The dashboard now includes all five September 21–23 follow-up studies, with the
+complete-row fidelity pilot first. Each summary, completion record and review is
+authenticated against committed SHA-256 pins before its tables or conclusions
+are exposed. Report authentication is not a fresh scientific replay. Each study
+retains its original scope and gate; the proposed direct local-fitting diagnostic
+is explicitly unexecuted. The original M4G explorer retains all 60 cells.
+
+TypeScript checking, all 17 dashboard tests, static snapshot export and production
+build pass. A separate reviewer verified all 15 file pins and exercised 30
+missing/changed-file cases through the cached service: the affected study fails
+closed while the other four remain available. No important integrity or
+interpretation issue remained.
+
+The supervised browser preview confirms the latest four-arm overview, six-option
+study selector, 21-row saved audit, original M4G filters and cell details, completed
+roadmap entries and proposed next diagnostic. The browser-test suite was updated;
+its automated Chromium run remains a GitHub Dashboard CI gate. The root npm wrapper
+lets the preview read repository-level reports without changing the scientific
+files. Hosted mode remains an exported snapshot and requires republication for
+new results; its Refresh button only reloads the published snapshot.
+
+Scientific source, tests, configs and archives are byte-identical to the reviewed
+full-row evidence tree `d042f5d5a83e75eacf2762c1bccb6e9097929299`, published at
+`918f67f62b9478276bc23d9e4a9a805937c58cf4`. No new scientific run was performed for
+this UI refresh. PR41 was merged into its feature-branch base after PR40 merged to
+main; the dashboard integration therefore also carries that already-reviewed
+full-row work forward to main.

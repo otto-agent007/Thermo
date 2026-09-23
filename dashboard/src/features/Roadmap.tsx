@@ -27,8 +27,8 @@ export function ActivityPanel({ activity }: { activity: Activity }) {
         </p>
       ))}
       <p className="fine">
-        Local files matched to archived fit slots; release completion comes from the
-        archive.
+        Local files matched to archived fit slots; release completion comes from
+        the archive.
       </p>
     </section>
   );
@@ -48,7 +48,9 @@ export function Roadmap({ snapshot }: { snapshot: ProjectSnapshot }) {
           <div className="milestones">
             {snapshot.milestones.map((m) => (
               <article className="milestone" key={m.id}>
-                <span className="milestone-id">{m.id}</span>
+                <span className="milestone-id">
+                  {m.id.startsWith("M") || m.id === "Next" ? m.id : "Study"}
+                </span>
                 <div>
                   <div className="row-between">
                     <h3>{m.question}</h3>

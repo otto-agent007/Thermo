@@ -78,6 +78,22 @@ export type StudySummary = {
   }[];
   sources: Source[];
 };
+export type ReportTable = {
+  title: string;
+  columns: string[];
+  rows: string[][];
+};
+export type RecentStudy = {
+  id: string;
+  title: string;
+  date: string;
+  availability: Availability;
+  finding: string;
+  scope: string;
+  gate: string;
+  tables: ReportTable[];
+  sources: Source[];
+};
 export type ProjectSnapshot = {
   schemaVersion: 1;
   mode: "local" | "snapshot";
@@ -89,6 +105,7 @@ export type ProjectSnapshot = {
   verification: Status;
   science: Status;
   study: StudySummary | null;
+  recentStudies: RecentStudy[];
   activity: Activity;
   milestones: Milestone[];
   research: ResearchItem[];

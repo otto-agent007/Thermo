@@ -37,11 +37,12 @@ export function Experiments({ snapshot }: { snapshot: ProjectSnapshot }) {
       </div>
       <details className="panel catalog">
         <summary>
-          Experiment catalog · {snapshot.milestones.length - 1} recorded
-          milestones
+          Experiment catalog ·{" "}
+          {snapshot.milestones.filter((m) => m.evidenceClasses.length).length}{" "}
+          recorded milestones
         </summary>
         {snapshot.milestones
-          .filter((m) => m.id !== "M5")
+          .filter((m) => m.evidenceClasses.length)
           .map((m) => (
             <article key={m.id}>
               <h3>
