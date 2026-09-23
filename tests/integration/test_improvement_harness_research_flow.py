@@ -26,7 +26,7 @@ def worktrees(tmp_path):
     baseline.mkdir()
     source = Path(__file__).resolve().parents[2] / "src"
     shutil.copytree(source, baseline / "src", ignore=shutil.ignore_patterns("__pycache__"))
-    (baseline / ".gitignore").write_text("__pycache__/\n")
+    (baseline / ".gitignore").write_text("__pycache__/\n*.py[cod]\n")
     git(baseline, "init", "-q")
     git(baseline, "add", ".")
     git(
@@ -185,3 +185,40 @@ def test_candidate_runtime_reference_edit_is_rejected(worktrees):
     )
     with pytest.raises(ValueError, match="protected"):
         evaluate(worktrees)
+
+
+@pytest.mark.parametrize(
+    ("worktree_index", "module", "payload"),
+    [
+        (
+            1,
+            "fixture_reference",
+            '{"before":1,"after":0,"delta":-1,"evidence":"exact_reference"}',
+        ),
+        (
+            2,
+            "fixture_candidate",
+            '{"parameters":[0.25,-0.35,0.20,0.45,-0.30,-0.40,0.25,0.30,-0.20]}',
+        ),
+    ],
+)
+def test_ignored_sourceless_package_is_rejected_before_execution(
+    worktrees, tmp_path, worktree_index, module, payload
+):
+    worktree = worktrees[worktree_index]
+    package = worktree / "src/thermo_lab/improvement_harness" / module
+    package.mkdir()
+    replacement = tmp_path / "replacement.py"
+    replacement.write_text("")
+    py_compile.compile(str(replacement), cfile=str(package / "__init__.pyc"), doraise=True)
+    marker = tmp_path / "forged-module-executed"
+    replacement.write_text(
+        f"from pathlib import Path\nPath({str(marker)!r}).touch()\nprint({payload!r})\n"
+    )
+    py_compile.compile(str(replacement), cfile=str(package / "__main__.pyc"), doraise=True)
+    assert git(worktree, "status", "--porcelain") == ""
+
+    with pytest.raises(ValueError, match="protected.*ignored"):
+        evaluate(worktrees)
+
+    assert not marker.exists()

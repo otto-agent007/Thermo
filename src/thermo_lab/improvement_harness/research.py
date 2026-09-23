@@ -51,13 +51,20 @@ def _check_sources(plan: Plan, baseline: Path, candidate: Path) -> None:
     )
     if any(path != _HOOK or not is_allowed_path(candidate, path, (_HOOK,)) for path in paths):
         raise ValueError("candidate changed protected files outside allowed paths")
-    # Ignored Python source can shadow imports despite a clean ordinary Git status.
+    # Ignored source and sourceless bytecode can shadow tracked modules even when
+    # Git status is clean. Only ordinary caches redirected by pycache_prefix are safe.
     for worktree in (baseline, candidate):
         ignored = _git(
             worktree, "ls-files", "--others", "--ignored", "--exclude-standard", "-z", "--", "src"
         )
-        if any(path.endswith(b".py") for path in ignored.split(b"\0")):
-            raise ValueError("protected source includes ignored Python files")
+        for raw_path in ignored.split(b"\0"):
+            path = Path(os.fsdecode(raw_path))
+            redirected_cache = path.parent.name == "__pycache__" and re.fullmatch(
+                rf".+\.{re.escape(sys.implementation.cache_tag)}(?:\.opt-[12])?\.pyc",
+                path.name,
+            )
+            if path.suffix in {".py", ".pyc"} and not redirected_cache:
+                raise ValueError("protected source includes ignored Python files or bytecode")
 
 
 def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> dict:
