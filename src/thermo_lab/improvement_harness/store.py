@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
 
 from thermo_lab.improvement_harness.plan import Plan, plan_digest
 
@@ -18,14 +18,67 @@ class Candidate(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: Literal[1] = 1
+    schema_version: Literal[1]
     id: str
     parent_id: str | None = None
     track: Literal["dashboard", "research"]
-    objective: str
+    objective: str = Field(min_length=1)
     baseline_commit: str
-    allowed_paths: tuple[str, ...]
+    allowed_paths: tuple[str, ...] = Field(min_length=1)
     plan_digest: str
+
+    @field_validator("id", "parent_id")
+    @classmethod
+    def canonical_uuid(cls, value: str | None) -> str | None:
+        if value is not None:
+            try:
+                parsed = uuid.UUID(value)
+            except (ValueError, AttributeError) as error:
+                raise ValueError("candidate ID must be a UUID") from error
+            if str(parsed) != value:
+                raise ValueError("candidate ID must be a canonical UUID")
+        return value
+
+    @field_validator("baseline_commit")
+    @classmethod
+    def full_commit(cls, value: str) -> str:
+        return Plan.full_commit(value)
+
+    @field_validator("allowed_paths")
+    @classmethod
+    def relative_prefixes(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        return Plan.relative_prefixes(value)
+
+    @field_validator("plan_digest")
+    @classmethod
+    def valid_plan_digest(cls, value: str) -> str:
+        if re.fullmatch(r"sha256:[0-9a-f]{64}", value) is None:
+            raise ValueError("invalid plan digest")
+        return value
+
+
+class Review(BaseModel):
+    """One append-only owner decision with an observed, timezone-aware time."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1]
+    candidate_id: str
+    decision: Literal["proposed", "accepted", "rejected"]
+    note: str = Field(min_length=1)
+    observed_at: AwareDatetime
+
+    @field_validator("candidate_id")
+    @classmethod
+    def canonical_uuid(cls, value: str) -> str:
+        return Candidate.canonical_uuid(value)
+
+    @field_validator("observed_at", mode="before")
+    @classmethod
+    def observed_time_is_text(cls, value: Any) -> str:
+        if not isinstance(value, str):
+            raise ValueError("observed_at must be an ISO 8601 string")
+        return value
 
 
 def _candidate_dir(root: Path, candidate_id: str) -> Path:
@@ -72,6 +125,14 @@ def _read_record(directory: Path, name: str) -> dict[str, Any]:
     return parsed
 
 
+def _read_request(directory: Path) -> dict[str, Any]:
+    request = _read_record(directory, "request")
+    Candidate.model_validate(request)
+    if request["id"] != directory.name:
+        raise ValueError("invalid candidate request identity")
+    return request
+
+
 def _validate_result(result: dict[str, Any]) -> None:
     if result.get("schema_version") != 1:
         raise ValueError("unsupported result schema_version")
@@ -98,12 +159,13 @@ def create_candidate(root: Path, plan: Plan, parent_id: str | None = None) -> Ca
             candidate_dir = _candidate_dir(root, directory.name)
         except ValueError:
             continue
-        request = _read_record(candidate_dir, "request")
+        request = _read_request(candidate_dir)
         if request.get("plan_digest") == digest:
             count += 1
     if count >= plan.max_candidates:
         raise ValueError("max_candidates reached for this plan")
     candidate = Candidate(
+        schema_version=1,
         id=str(uuid.uuid4()),
         parent_id=parent_id,
         track=plan.track,
@@ -121,7 +183,7 @@ def create_candidate(root: Path, plan: Plan, parent_id: str | None = None) -> Ca
 def record_result(root: Path, candidate_id: str, result: dict[str, Any]) -> None:
     """Write the sole result for a candidate; never replace an observation."""
     directory = _candidate_dir(root, candidate_id)
-    _read_record(directory, "request")
+    _read_request(directory)
     _validate_result(result)
     _write_record(directory, "result", result)
 
@@ -129,7 +191,7 @@ def record_result(root: Path, candidate_id: str, result: dict[str, Any]) -> None
 def append_review(root: Path, candidate_id: str, decision: str, note: str) -> Path:
     """Append an owner decision without modifying request or result bytes."""
     directory = _candidate_dir(root, candidate_id)
-    _read_record(directory, "request")
+    _read_request(directory)
     if decision not in {"proposed", "accepted", "rejected"}:
         raise ValueError("invalid review decision")
     review = {
@@ -139,6 +201,7 @@ def append_review(root: Path, candidate_id: str, decision: str, note: str) -> Pa
         "note": note,
         "observed_at": datetime.now(UTC).isoformat(),
     }
+    Review.model_validate(review)
     payload = _json_bytes(review)
     for number in range(1, 10000):
         path = directory / f"review-{number:04d}.json"
@@ -154,9 +217,7 @@ def append_review(root: Path, candidate_id: str, decision: str, note: str) -> Pa
 def read_candidate(root: Path, candidate_id: str) -> dict[str, Any]:
     """Read only records whose request/result bytes match their sidecars."""
     directory = _candidate_dir(root, candidate_id)
-    request = _read_record(directory, "request")
-    if request.get("id") != candidate_id or request.get("schema_version") != 1:
-        raise ValueError("invalid candidate request identity or version")
+    request = _read_request(directory)
     has_result = (directory / "result.json").exists()
     has_digest = (directory / "result.sha256").exists()
     if has_result != has_digest:
@@ -167,7 +228,8 @@ def read_candidate(root: Path, candidate_id: str) -> dict[str, Any]:
     reviews = []
     for path in sorted(directory.glob("review-*.json")):
         review = json.loads(path.read_bytes())
-        if review.get("candidate_id") != candidate_id or review.get("schema_version") != 1:
-            raise ValueError("invalid review identity or version")
+        Review.model_validate(review)
+        if review["candidate_id"] != candidate_id:
+            raise ValueError("invalid review identity")
         reviews.append(review)
     return {"request": request, "result": result, "reviews": reviews}

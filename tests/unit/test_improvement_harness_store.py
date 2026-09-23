@@ -127,3 +127,64 @@ def test_read_rejects_unsupported_result_version_even_with_matching_digest(tmp_p
     (directory / "result.sha256").write_text(hashlib.sha256(payload).hexdigest() + "\n")
     with pytest.raises(ValueError, match="result schema_version"):
         read_candidate(tmp_path, candidate.id)
+
+
+def _rewrite_request_with_matching_digest(directory, changes):
+    request = json.loads((directory / "request.json").read_text())
+    request.update(changes)
+    for name, value in changes.items():
+        if value is None:
+            request.pop(name)
+    payload = (json.dumps(request, sort_keys=True) + "\n").encode()
+    (directory / "request.json").write_bytes(payload)
+    (directory / "request.sha256").write_text(hashlib.sha256(payload).hexdigest() + "\n")
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"schema_version": None},
+        {"track": "unapproved"},
+        {"baseline_commit": None},
+        {"baseline_commit": "main"},
+        {"allowed_paths": ["/etc/"]},
+        {"plan_digest": "sha256:bad"},
+    ],
+)
+def test_read_rejects_invalid_request_even_with_matching_digest(tmp_path, plan, changes):
+    candidate = create_candidate(tmp_path, plan)
+    _rewrite_request_with_matching_digest(tmp_path / candidate.id, changes)
+    with pytest.raises(ValueError):
+        read_candidate(tmp_path, candidate.id)
+
+
+def test_invalid_request_cannot_be_used_as_parent(tmp_path, plan):
+    plan = plan.model_copy(update={"max_candidates": 2})
+    candidate = create_candidate(tmp_path, plan)
+    _rewrite_request_with_matching_digest(tmp_path / candidate.id, {"baseline_commit": None})
+    with pytest.raises(ValueError):
+        create_candidate(tmp_path, plan, parent_id=candidate.id)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"decision": "approved"},
+        {"decision": None},
+        {"note": None},
+        {"note": ""},
+        {"observed_at": None},
+        {"observed_at": "2026-09-23T10:00:00"},
+    ],
+)
+def test_read_rejects_invalid_review_even_with_valid_request(tmp_path, plan, changes):
+    candidate = create_candidate(tmp_path, plan)
+    path = append_review(tmp_path, candidate.id, "proposed", "Inspect")
+    review = json.loads(path.read_text())
+    review.update(changes)
+    for name, value in changes.items():
+        if value is None:
+            review.pop(name)
+    path.write_text(json.dumps(review))
+    with pytest.raises(ValueError):
+        read_candidate(tmp_path, candidate.id)
