@@ -1,0 +1,6 @@
+{
+  "implementation_commit": "386338d",
+  "study_json_sha256": "ea191f4a267313f263750cc7715008b93c8349d628e96bcc0edbe612ac22a5c3",
+  "compressed_sha256": "ce919d36cc57ed0280602d3ae4bb537061407f4d015ee28d242a17dda4f1fad7",
+  "scope": "exact fixture diagnostic; no new samples or full-program fitting"
+}

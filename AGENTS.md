@@ -387,3 +387,21 @@ outside scientific request identity but must validate and match its execution
 record digest. Reject missing/stale review, provenance and gate records, changed
 command arguments, rehashed numerical changes, and numeric type substitutions.
 Negative scientific results do not fail an otherwise valid release.
+
+The saved M4G survival-gradient audit follows
+`docs/experiments/survival-gradient-audit.md`. Run
+`uv run python -m thermo_lab.survival_gradient_audit --output-dir results/survival-gradient-audit`
+with a fresh destination. Require 21 fits, 126 checkpoints, 105 recorded updates,
+zero new fits/samples, all seven small-fixture derivative checks and strict
+persisted replay before reporting/completion. Authenticate the six pinned M4G
+release files; never regenerate or tune training from these diagnostic results.
+Keep own-training-law survival slopes separate from held-out task-quality claims.
+
+The exact fixture objective-by-step comparison follows
+`docs/experiments/fixture-objective-step-comparison.md`. Run
+`uv run python -m thermo_lab.fixture_objective_study --output-dir results/fixture-objective-study`
+with a fresh destination. Require six arms, 201 evaluator calls per arm plus
+19 preflight evaluations, zero samples and full persisted replay before
+completion. Preserve K4, the two-operation shared fixture, caps [-2,2], and all
+rejected proposals. Two path-aware objectives coincide on this fixture; never
+report their agreement as independent evidence or claim full M4G quality.

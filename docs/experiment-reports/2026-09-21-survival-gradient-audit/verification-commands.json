@@ -1,0 +1,572 @@
+[
+  {
+    "name": "sync-frozen",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "sync",
+      "--frozen"
+    ],
+    "returncode": 0,
+    "seconds": 0.009441466001590015
+  },
+  {
+    "name": "lock-check",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "lock",
+      "--check",
+      "--offline"
+    ],
+    "returncode": 0,
+    "seconds": 0.007246949997352203
+  },
+  {
+    "name": "ruff-format",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "ruff",
+      "format",
+      "--check",
+      "."
+    ],
+    "returncode": 0,
+    "seconds": 0.016762546998506878
+  },
+  {
+    "name": "ruff-check",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "ruff",
+      "check",
+      "."
+    ],
+    "returncode": 0,
+    "seconds": 0.01480484300191165
+  },
+  {
+    "name": "build",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "build"
+    ],
+    "returncode": 0,
+    "seconds": 14.578617767998367
+  },
+  {
+    "name": "packaging",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "python",
+      "-c",
+      "from pathlib import Path\nimport tarfile, zipfile\nconfigs = sorted(str(p) for p in Path('configs/experiments').glob('*.toml'))\nwheel = next(Path('dist').glob('*.whl'))\nsdist = next(Path('dist').glob('*.tar.gz'))\nwith zipfile.ZipFile(wheel) as z:\n    names = z.namelist()\n    assert all(any(n.endswith(c) for n in names) for c in configs)\nwith tarfile.open(sdist) as z:\n    names = z.getnames()\n    assert all(any(n.endswith(c) for n in names) for c in configs)\n"
+    ],
+    "returncode": 0,
+    "seconds": 0.0615930620006111
+  },
+  {
+    "name": "composed-trajectory-refinement-one-step",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-composed-pasym-swap-trajectory-refinement-one-step.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step"
+    ],
+    "returncode": 0,
+    "seconds": 60.91414855200128
+  },
+  {
+    "name": "smoke",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "smoke",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/smoke"
+    ],
+    "returncode": 0,
+    "seconds": 3.330945931000315
+  },
+  {
+    "name": "torx-run",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/torx-two-gate.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/torx-run"
+    ],
+    "returncode": 0,
+    "seconds": 1.6083630779976374
+  },
+  {
+    "name": "thrml-run",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-ising-chain.toml",
+      "--seeds",
+      "7,8,9,10",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/thrml-run"
+    ],
+    "returncode": 0,
+    "seconds": 7.139484258997982
+  },
+  {
+    "name": "quality-budget-full-preflight",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_full_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/quality-budget-full-preflight"
+    ],
+    "returncode": 0,
+    "seconds": 73.57644540399997
+  },
+  {
+    "name": "weighted-graph-walk",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/torx-weighted-graph-walk.toml",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/weighted-graph-walk"
+    ],
+    "returncode": 0,
+    "seconds": 4.002752762000455
+  },
+  {
+    "name": "independent-pasym-swap",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-independent-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/independent-pasym-swap"
+    ],
+    "returncode": 0,
+    "seconds": 18.819453069998417
+  },
+  {
+    "name": "quality-budget-training-runner",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_runner_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/quality-budget-training-runner"
+    ],
+    "returncode": 0,
+    "seconds": 23.30605163099972
+  },
+  {
+    "name": "quality-budget-training-preflight",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_training_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/quality-budget-training-preflight"
+    ],
+    "returncode": 0,
+    "seconds": 7.688811386000452
+  },
+  {
+    "name": "quality-budget-preflight",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.quality_budget_preflight",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/quality-budget-preflight"
+    ],
+    "returncode": 0,
+    "seconds": 2.9496777210006258
+  },
+  {
+    "name": "finite-sweep-gradient-contract",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "thermo-lab",
+      "check-finite-sweep-gradients",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/finite-sweep-gradient-contract"
+    ],
+    "returncode": 0,
+    "seconds": 5.298173675997532
+  },
+  {
+    "name": "target-context-pasym-swap",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-target-context-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/target-context-pasym-swap"
+    ],
+    "returncode": 0,
+    "seconds": 50.18051381600162
+  },
+  {
+    "name": "model-context-pasym-swap",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/thrml-model-context-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/model-context-pasym-swap"
+    ],
+    "returncode": 0,
+    "seconds": 39.91741424800057
+  },
+  {
+    "name": "trajectory-reinforce-estimator",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-trajectory-reinforce-pasym-swap.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/trajectory-reinforce-estimator"
+    ],
+    "returncode": 0,
+    "seconds": 13.191562494997925
+  },
+  {
+    "name": "trajectory-reinforce-one-step",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-trajectory-reinforce-pasym-swap-one-step.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/trajectory-reinforce-one-step"
+    ],
+    "returncode": 0,
+    "seconds": 18.477252167998813
+  },
+  {
+    "name": "composed-finite-gibbs",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "run",
+      "configs/experiments/numpy-composed-pasym-swap-finite-gibbs.toml",
+      "--seeds",
+      "0,1,2",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-finite-gibbs"
+    ],
+    "returncode": 0,
+    "seconds": 173.64206438899782
+  },
+  {
+    "name": "matched-training-budget",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "thermo-lab",
+      "compare-training-laws",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/m4b-sources/seed-0000000000.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/m4b-sources/seed-0000000001.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/m4b-sources/seed-0000000002.json",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/matched-training-budget"
+    ],
+    "returncode": 0,
+    "seconds": 351.0373953109993
+  },
+  {
+    "name": "frozen-pair-finite-sweeps",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "audit-finite-sweeps",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step/runs/seed-0000000000.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step/runs/seed-0000000001.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step/runs/seed-0000000002.json",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/frozen-pair-finite-sweeps"
+    ],
+    "returncode": 0,
+    "seconds": 100.2655554869998
+  },
+  {
+    "name": "conservation-diagnostic",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.conservation_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/conservation-diagnostic"
+    ],
+    "returncode": 0,
+    "seconds": 31.90005833700343
+  },
+  {
+    "name": "local-conservation-tradeoff",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.conservation_tradeoff_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/local-conservation-tradeoff"
+    ],
+    "returncode": 0,
+    "seconds": 79.52025858699926
+  },
+  {
+    "name": "bounded-finite-sweep-refinement",
+    "command": [
+      "taskset",
+      "-c",
+      "6",
+      "uv",
+      "run",
+      "thermo-lab",
+      "refine-finite-sweeps",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step/runs/seed-0000000000.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step/runs/seed-0000000001.json",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/composed-trajectory-refinement-one-step/runs/seed-0000000002.json",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/bounded-finite-sweep-refinement"
+    ],
+    "returncode": 0,
+    "seconds": 124.75536654399912
+  },
+  {
+    "name": "tests-unit-upstream",
+    "command": [
+      "taskset",
+      "-c",
+      "0,1",
+      "uv",
+      "run",
+      "pytest",
+      "tests/unit",
+      "tests/upstream_regressions",
+      "-q"
+    ],
+    "returncode": 0,
+    "seconds": 684.8598185129995
+  },
+  {
+    "name": "context-weighted-conservation",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.context_conservation_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/context-weighted-conservation"
+    ],
+    "returncode": 0,
+    "seconds": 162.3310188150026
+  },
+  {
+    "name": "asymmetry-preservation",
+    "command": [
+      "taskset",
+      "-c",
+      "7,8",
+      "uv",
+      "run",
+      "python",
+      "-m",
+      "thermo_lab.asymmetry_preservation_audit",
+      "--output-dir",
+      "/workspace/scratch/79db9729d9c0/Thermo-survival-audit/results/survival-verification-final/asymmetry-preservation"
+    ],
+    "returncode": 0,
+    "seconds": 56.748767032000615
+  },
+  {
+    "name": "tests-integration-b",
+    "command": [
+      "taskset",
+      "-c",
+      "4,5",
+      "uv",
+      "run",
+      "pytest",
+      "tests/integration/test_cli.py",
+      "tests/integration/test_composed_trajectory_refinement_runner.py",
+      "tests/integration/test_conservation_tradeoff_audit.py",
+      "tests/integration/test_experiment_runner.py",
+      "tests/integration/test_matched_training_audit.py",
+      "tests/integration/test_numpy_composed_pasym_swap_backend.py",
+      "tests/integration/test_numpy_trajectory_refinement_backend.py",
+      "tests/integration/test_quality_budget_preflight.py",
+      "tests/integration/test_quality_budget_study.py",
+      "tests/integration/test_smoke_backends.py",
+      "tests/integration/test_thrml_independent_pasym_swap_backend.py",
+      "tests/integration/test_thrml_target_context_pasym_swap_backend.py",
+      "tests/integration/test_trajectory_reinforce_runner.py",
+      "tests/integration/test_weighted_graph_walk_runner.py",
+      "-q"
+    ],
+    "returncode": 0,
+    "seconds": 864.207359717002
+  },
+  {
+    "name": "tests-integration-a",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3",
+      "uv",
+      "run",
+      "pytest",
+      "tests/integration/test_asymmetry_preservation_audit.py",
+      "tests/integration/test_composed_pasym_swap_runner.py",
+      "tests/integration/test_conservation_audit.py",
+      "tests/integration/test_context_conservation_audit.py",
+      "tests/integration/test_independent_pasym_swap_runner.py",
+      "tests/integration/test_model_context_pasym_swap_runner.py",
+      "tests/integration/test_numpy_exact_categorical_backend.py",
+      "tests/integration/test_quality_budget_full_preflight.py",
+      "tests/integration/test_quality_budget_runner_preflight.py",
+      "tests/integration/test_quality_budget_training_preflight.py",
+      "tests/integration/test_target_context_pasym_swap_runner.py",
+      "tests/integration/test_thrml_model_context_pasym_swap_backend.py",
+      "tests/integration/test_trajectory_reinforce_refinement_runner.py",
+      "tests/integration/test_weighted_graph_walk_backend.py",
+      "-q"
+    ],
+    "returncode": 0,
+    "seconds": 1245.6265008049995
+  }
+]

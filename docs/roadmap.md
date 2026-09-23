@@ -360,3 +360,30 @@ experiment. These remain proposals, separate from the completed M4G evidence
 and the M5 milestone. The first can diagnose objective conflict without new
 fitting; the second changes the software execution law and requires its own
 protocol and implementation evidence.
+
+### Saved-checkpoint survival-gradient diagnosis (September 21)
+
+The [exact audit](experiment-reports/2026-09-21-survival-gradient-audit/summary.md)
+examines all 21 M4G fits and 105 existing updates under their own training laws.
+103 updates increase survival; two K1/seed0 updates decrease it. Every fit ends
+above its starting survival, and every local directional prediction matches the
+observed sign. K30 gains are only about 0.056–0.059 percentage points, leaving
+survival near 3.38%, far below 95%. These results weaken a general explanation
+that training opposes conservation; they do not establish that more updates
+would solve the gap. Shared-gradient cancellation and movement magnitudes are
+recorded as diagnostics, without claiming a capacity or convergence result.
+A survival-aware objective pilot or the separately proposed joint sampler still
+requires its own protocol. M5 remains the separate topology-aware milestone.
+
+### Exact objective-by-step pilot (September 21)
+
+The [completed fixture pilot](experiment-reports/2026-09-21-fixture-objective-step-comparison/summary.md)
+attains 95.8% two-operation survival with path-aware training and backtracking,
+while local hop/asymmetry errors remain about 4.77 / 7.67 percentage points.
+Both objective choice and step rule matter at the matched evaluator budget.
+Two structural limitations constrain interpretation: the path objectives are
+identical on this circuit, and reverse-hop parent contexts are absent.
+A separately specified return operation could expose reverse hops and merging
+histories before any full-program extension. Explicit local fidelity constraints
+or a richer kernel remain prospective investigations; no extra experiment or
+M4G production fitting was performed here. M5 remains separate.
