@@ -1,7 +1,7 @@
 # Raised-cap finite-K4 path-KL screen (M4H)
 
-**Status: draft protocol, not approved.** Nothing below has been fitted or run.
-Change any frozen value only by revising this document before the study runs.
+**Status: frozen 2026-09-25 before any fit.** Change a frozen value only by a
+new protocol version; results obtained under this version keep its identity.
 
 ## Question and scope
 
@@ -63,8 +63,10 @@ tolerance 1e-6) and the exact analytic gradient from the M3 finite-K law.
 
 Twenty starts, identical in number for every group and arm:
 
-- the four existing compiler start roles (`uniform_baseline_warm_start`,
-  `fixed_zero`, `fixed_positive`, `fixed_antithetic_negative`);
+- `archived_initial`: that group's row of the archived initialization shared
+  by M4C–M4F (inside [−2, 2], so admissible under every cap);
+- the three fixed compiler start roles `fixed_zero`, `fixed_positive` and
+  `fixed_antithetic_negative`;
 - eight uniform draws in [−c, c]⁹;
 - eight random corners of the box.
 
@@ -122,22 +124,27 @@ For every arm:
 
 ## Implementation gates
 
-The exact evaluators currently reject any parameter outside [−2, 2]. Add a
-keyword `parameter_cap` with default 2.0 to `finite_sweep_joint_law`,
-`endpoint_tables`, `endpoint_laws` and the table helpers the study calls.
-With the default, every existing study, archive replay and test must be
-unchanged. Do not modify `QualityBudgetProtocol` or any other frozen design.
+The shared exact evaluators reject any parameter outside [−2, 2], and four
+archived fixture studies bind the SHA-256 of `finite_sweep_gradients.py`.
+Leave those files unchanged. The study module carries its own capped K law,
+built from the same `_sweep_with_jacobian` transition with the same
+operation order; a unit test requires it to equal `finite_sweep_joint_law`
+bitwise inside [−2, 2]. Do not modify `QualityBudgetProtocol` or any other
+frozen design.
 
 Before fitting:
 
-1. Replaying the archived M4C initialization through the generalized
-   evaluators at c = 2 reproduces its recorded K4 survival (0.00040392135) within
-   the existing replay tolerance.
+1. Replaying the archived M4C initialization through the study's evaluator
+   at c = 2 reproduces its recorded K4 survival (0.00040392135) within absolute
+   1e-12, and the independently propagated target visitation equals the pooled
+   `derive_contexts()` profiles times multiplicity within absolute 1e-12.
 2. The pooled Σ_g J_g equals the enumerated trajectory KL from
    `return_fixture_objectives` on the three-site fixture at a shared parameter
    vector, within 1e-12 relative.
-3. All nine gradient components of J_g match centered differences at two
-   interior vectors and one vector with components on the bound, for each cap.
+3. All nine gradient components of J_g match centered differences (step 1e-6,
+   error scaled by max(1, |gradient|) at most 1e-6) for groups 0, 18 and 36 at
+   two interior vectors and one vector with three components on the bound, for
+   each cap.
 4. Evaluating the K4 law at c = 6 corners gives finite, normalized
    probabilities with no underflow to zero on the target support.
 
@@ -152,5 +159,9 @@ unit test and a reusable CI workflow joined to `ci.yml`.
 
 ## Protocol review record
 
-Draft, 2026-09-25. Awaiting review of the arms, the start budget and the
-decision contract before any implementation.
+- 2026-09-25: drafted. The project owner approved proceeding with the
+  drafted arms, the 20-start budget and the three-way decision contract.
+- 2026-09-25, before any fit: the uniform-baseline warm start was replaced by
+  the archived initialization (the uniform baseline requires the THRML compile
+  route), and the evaluator change moved into the study module to preserve
+  archived source-hash bindings. Both changes are recorded above.
