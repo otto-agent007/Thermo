@@ -118,3 +118,46 @@ def test_decision_follows_the_frozen_contract():
     )
     assert screen.decide([arm("h2", 4.0, "fail")]) == "survival_fails_in_every_arm"
     assert screen.decide([arm("h2", 4.0, None, "integrity_failure")]) == "integrity_failure"
+
+
+def test_archived_evidence_replays_without_refitting(inputs):
+    """Fast CI replay: pinned request, digests, selections and every metric.
+
+    The full fit-and-replay gate stays `python -m thermo_lab.kernel_capacity_screen`.
+    """
+    import gzip
+    import json
+    from pathlib import Path
+
+    from thermo_lab.hashing import canonical_sha256
+
+    archive = (
+        Path(__file__).parents[2] / "docs/experiment-reports/2026-09-25-kernel-capacity-screen"
+    )
+    record = json.loads(gzip.decompress((archive / "study.json.gz").read_bytes()))
+    completion = json.loads((archive / "completion.json").read_text())
+    assert record["request"] == json.loads(json.dumps(screen.study_request()))
+    assert record["request_digest"] == canonical_sha256(record["request"])
+    assert record["result_digest"] == canonical_sha256(
+        {key: record[key] for key in ("preflight", "comparators", "arms", "outcome")}
+    )
+    assert completion["result_digest"] == record["result_digest"]
+    assert completion["replayed"] and completion["samples"] == 0
+    for comparator in record["comparators"]:
+        parameters = inputs["m4h"][comparator["cap"]]["parameters"]
+        metrics, per_group = screen.evaluate(parameters, "base", comparator["cap"], inputs)
+        assert screen._close(comparator["metrics"], screen._json(metrics))
+        assert screen._close(comparator["per_group"], screen._json(per_group))
+    for arm in record["arms"]:
+        assert arm["status"] == "complete"
+        for fit in arm["fits"]:
+            admissible = [a for a in fit["attempts"] if a["admissible"]]
+            best = min(admissible, key=lambda a: (a["objective"], a["parameters"]))
+            assert fit["selected"] == best["index"]
+            assert arm["parameters"][fit["group"]] == best["parameters"]
+        parameters = np.asarray(arm["parameters"])
+        metrics, per_group = screen.evaluate(parameters, arm["family"], arm["cap"], inputs)
+        assert screen._close(arm["metrics"], screen._json(metrics))
+        assert screen._close(arm["per_group"], screen._json(per_group))
+        assert arm["classification"] == screen.classify(arm["metrics"])
+    assert record["outcome"] == screen.decide(record["arms"]) == "survival_fails_in_every_arm"

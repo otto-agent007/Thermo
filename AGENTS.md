@@ -452,3 +452,18 @@ The full fit-and-replay takes about 25 minutes, so CI relies on the existing
 unit-test job running `tests/unit/test_raised_cap_screen.py`, which pins the request and replays
 every archived metric from the stored fits without refitting. Rerun the full
 command locally whenever the runner or its bound sources change.
+
+The one-feature kernel-capacity screen (M4I) follows
+`docs/experiments/kernel-capacity-screen.md` and closes the conservation line;
+M5 is next regardless of its outcome. Run
+`uv run python -m thermo_lab.kernel_capacity_screen --output-dir results/kernel-capacity-screen`
+with a fresh destination (`--workers` sets fitting processes; the record must
+not depend on it). Require four new arms (second hidden spin and
+output-output coupling, each at caps 2 and 4), the M4H base comparators
+replayed from the pinned archive, 21 predeclared starts per group, K4
+fitting, zero samples, a passing preflight and complete persisted replay
+before completion. Import M4H helpers rather than editing
+`raised_cap_screen.py`. The families' spin-update counts are algorithmic, not
+device operations; no hardware or Z1-connectivity claim follows. CI runs
+`tests/unit/test_kernel_capacity_screen.py` through the unit-test job,
+including the archived-evidence replay without refitting.
