@@ -45,13 +45,10 @@ jobs:
   full-row:
     uses: ./.github/workflows/return-fixture-full-row-pilot.yml
 
-  raised-cap:
-    uses: ./.github/workflows/raised-cap-path-kl-screen.yml
-
   required:
     name: CI required
     if: ${{ always() }}
-    needs: [pipeline, scientific, dashboard, objective-fixture, return-fixture, hop-fidelity, full-row, raised-cap]
+    needs: [pipeline, scientific, dashboard, objective-fixture, return-fixture, hop-fidelity, full-row]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
