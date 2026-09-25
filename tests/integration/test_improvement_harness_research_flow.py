@@ -68,22 +68,29 @@ def test_timed_out_fixture_cannot_leave_a_child_to_write_after_return(tmp_path):
     source.mkdir()
     spawned = tmp_path / "child-spawned"
     sentinel = tmp_path / "late-write"
+    # The fixture must spawn its child well inside the deadline, even on a slow
+    # CI runner with a cold bytecode cache. The child outsleeps the whole
+    # deadline, so it can only write after _run_module has returned.
+    deadline_seconds = 2.0
+    child_delay = deadline_seconds + 0.5
     child_code = (
-        f"import time; from pathlib import Path; time.sleep(0.8); Path({str(sentinel)!r}).touch()"
+        f"import time; from pathlib import Path; time.sleep({child_delay}); "
+        f"Path({str(sentinel)!r}).touch()"
     )
     (source / "timeout_probe.py").write_text(
         "import subprocess, sys, time\n"
         "from pathlib import Path\n"
         f"subprocess.Popen([sys.executable, '-c', {child_code!r}])\n"
         f"Path({str(spawned)!r}).touch()\n"
-        "time.sleep(5)\n"
+        "time.sleep(60)\n"
     )
 
     with pytest.raises(subprocess.TimeoutExpired):
-        research._run_module(tmp_path, "timeout_probe", "", time.monotonic() + 0.35)
+        research._run_module(tmp_path, "timeout_probe", "", time.monotonic() + deadline_seconds)
 
     assert spawned.exists(), "the fixture must have spawned its child before timing out"
-    time.sleep(0.9)
+    # The child started before return, so a surviving child writes within child_delay.
+    time.sleep(child_delay + 0.5)
     assert not sentinel.exists(), "a timed-out fixture left a child running"
 
 
