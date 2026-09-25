@@ -23,7 +23,9 @@ The next research milestones are ordered by dependency:
 | M4E: matched context-weighting comparison | Complete: exact matched-budget evidence | All three weighted cells improve survival, hop error and asymmetry error versus matched uniform controls. Only penalty 0 passes all three against initialization: survival 0.0404% → 0.829%. Stronger penalties reach 6.15%/8.28% survival but worsen asymmetry. [Report](experiment-reports/2026-09-16-context-weighted-conservation/summary.md). |
 | M4F: bounded asymmetry-preservation test | Complete: primary joint screen fails | Asymmetry MAE falls 88.86% and hop MAE 37.31% versus weighted-1, but survival falls 6.1496% → 6.1129%, failing the fixed preservation threshold. [Report](experiment-reports/2026-09-16-asymmetry-preservation/summary.md). Stop after the predeclared 7,400 updates. |
 | M4G: task quality versus inference budget | Complete study executed; both quality failure | [Recorded study](experiment-reports/2026-09-20-task-quality-inference-budget/summary.md): all 21 fits, 105 updates and 60 cells retained. Neither procedure meets the joint contract at any tested budget; all cells fail conservation. No inference-sweep savings established. Independent trajectory counts remain fixed. |
-| M5: topology-aware meta-EBM | Next after the recorded M4G evidence decision | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
+| M4H: raised-cap path-KL screen | Complete: survival fails at caps 4 and 6 | [Recorded study](experiment-reports/2026-09-25-raised-cap-path-kl-screen/summary.md): exact K4 S(500) 58.58% at cap 4 and 70.74% at cap 6; hop and asymmetry fail. |
+| M4I: one-feature capacity screen | Complete: closes the conservation line | [Recorded study](experiment-reports/2026-09-25-kernel-capacity-screen/summary.md): at cap 4 both features meet hop/asymmetry limits; best S(500) 89.61% (output coupling), short of 95%. |
+| M5: topology-aware meta-EBM | Next: the conservation line closed with M4I | Reproduce the 12-spin target, then measure connectivity, embedding, finite thermalization, and complete execution costs under the Phase 4 evidence contract. |
 
 The September 12 research decision added the bounded
 [M4B comparison](experiments/matched-training-budget.md) before M5. It tested
@@ -423,3 +425,34 @@ objective exposes a different trade-off from the earlier hop-only penalty.
 This does not settle joint feasibility or model capacity. A next study
 would need a separately frozen design, with a larger fitting budget or
 kernel alternative, before any M4G or inference-savings conclusion.
+
+### Raised-cap finite-K4 path-KL screen (M4H, September 25)
+
+The [cap-leakage analysis](research/2026-09-23-cap-leakage-analysis.md) found
+the best empty/occupied leakage product near e^(−4c), so the ±2 cap alone
+floors it at 3.4e-4. The [frozen screen](experiments/raised-cap-path-kl-screen.md)
+recompiled all 37 groups against their exact K4 endpoint laws with the
+target-visitation path KL at caps 2, 4 and 6. The
+[recorded outcome](experiment-reports/2026-09-25-raised-cap-path-kl-screen/summary.md)
+is `survival_fails_at_both_caps`: exact S(500) at K4 rises from 3.64% (cap 2
+control) to 58.58% (cap 4) and 70.74% (cap 6), against 95%. Hop MAE stays
+near 0.020 and asymmetry MAE near 0.037 at both raised caps. Empty-edge
+leakage falls to a median 1.3e-7 at cap 6, but occupied-edge leakage stays
+near 6%. The predeclared next step is a one-feature capacity screen: one extra
+hidden spin or one output–output coupling. This is exact local-search
+evidence, not a certified optimum, sampled M4G quality or hardware evidence.
+
+### One-feature kernel-capacity screen (M4I, September 25): conservation line closed
+
+The [frozen screen](experiments/kernel-capacity-screen.md) added one feature
+at a time to the five-spin kernel, a second hidden spin (H2) or an
+output–output coupling (OO), at caps 2 and 4, with the M4H objective and
+budget. The [recorded outcome](experiment-reports/2026-09-25-kernel-capacity-screen/summary.md)
+is `survival_fails_in_every_arm`. At cap 4 both features meet the hop and
+asymmetry limits at K4 (H2 0.0017/0.0031, OO 0.0028/0.0050), and S(500)
+rises from 58.58% (base) to 83.42% (H2) and 89.61% (OO), short of 95%. At
+cap 2 neither feature moves survival above 5.4%. The path KL at OO cap 4 is
+0.114 nats against the 0.051 certificate. By the predeclared rule this closes
+the conservation line with no follow-up; both features together, a longer K
+budget and a structurally conserving sampler remain open questions only.
+M5 is next.

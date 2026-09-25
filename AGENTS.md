@@ -436,3 +436,34 @@ with a fresh destination. Require six arms, 201 evaluator calls per arm plus
 completion. Preserve K4, the two-operation shared fixture, caps [-2,2], and all
 rejected proposals. Two path-aware objectives coincide on this fixture; never
 report their agreement as independent evidence or claim full M4G quality.
+
+The raised-cap path-KL screen (M4H) follows
+`docs/experiments/raised-cap-path-kl-screen.md`. Run
+`uv run python -m thermo_lab.raised_cap_screen --output-dir results/raised-cap-path-kl-screen`
+with a fresh destination. Require three arms (caps 2, 4 and 6), 37 groups,
+20 predeclared starts per group, K4 fitting, zero samples, a passing preflight
+and complete persisted replay before completion. Authenticate the pinned
+local-trade-off and M4C archives by SHA-256. Keep the study's capped K law
+bitwise equal to `finite_sweep_joint_law` inside [-2, 2] and leave the shared
+evaluators unchanged, since archived fixture studies bind their hashes. Cap 2
+is an ungated control; the exact screen is not sampled M4G quality,
+inference-savings or hardware evidence, and the cap is a Thermo convention.
+The full fit-and-replay takes about 25 minutes, so CI relies on the existing
+unit-test job running `tests/unit/test_raised_cap_screen.py`, which pins the request and replays
+every archived metric from the stored fits without refitting. Rerun the full
+command locally whenever the runner or its bound sources change.
+
+The one-feature kernel-capacity screen (M4I) follows
+`docs/experiments/kernel-capacity-screen.md` and closes the conservation line;
+M5 is next regardless of its outcome. Run
+`uv run python -m thermo_lab.kernel_capacity_screen --output-dir results/kernel-capacity-screen`
+with a fresh destination (`--workers` sets fitting processes; the record must
+not depend on it). Require four new arms (second hidden spin and
+output-output coupling, each at caps 2 and 4), the M4H base comparators
+replayed from the pinned archive, 21 predeclared starts per group, K4
+fitting, zero samples, a passing preflight and complete persisted replay
+before completion. Import M4H helpers rather than editing
+`raised_cap_screen.py`. The families' spin-update counts are algorithmic, not
+device operations; no hardware or Z1-connectivity claim follows. CI runs
+`tests/unit/test_kernel_capacity_screen.py` through the unit-test job,
+including the archived-evidence replay without refitting.
