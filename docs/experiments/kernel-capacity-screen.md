@@ -1,6 +1,8 @@
 # One-feature kernel-capacity screen (M4I)
 
-**Status: draft protocol, not approved.** Nothing below has been fitted or run.
+**Status: frozen 2026-09-25 before any fit.** This is the final experiment
+in the conservation line that began with M4B. Change a frozen value only by a
+new protocol version.
 
 ## Question and scope
 
@@ -43,6 +45,14 @@ independent, and given both hiddens and the inputs, the outputs are
 independent. OO breaks the output block, so o₀ and o₁ are updated in
 separate phases, in that fixed order. Each family resets uniformly over its
 free states before every operation, as the base family does.
+
+Implement every family as single-spin Gibbs updates in the fixed order of
+the table (h, g, o₀, o₁ for H2; h, o₀, o₁ otherwise) over the enumerated free
+states. Within a phase whose spins are conditionally independent, sequential
+single-spin updates equal the block update, so the base family in this form
+is the M3 law. The exact survival evaluator reads only the visible law, so a
+family's visible (4, 4) law is passed to it as a (4, 8) table with the second
+hidden half zero.
 
 Both families nest the base: with the added parameters at zero, g is
 independent of the outputs and o₀, o₁ are conditionally independent given h,
@@ -92,22 +102,26 @@ record must not depend on scheduling.
 
 ## Decision contract
 
+This screen closes the conservation line. Whatever the outcome, no further
+conservation pilot, fixture study or objective variant follows from it; the
+next milestone is M5 (the topology-aware meta-EBM).
+
 For each new arm, the exact M4G thresholds at K4, inclusive, float64, no
 epsilon: S(500) ≥ 0.95, hop MAE ≤ 0.01 and asymmetry MAE ≤ 0.01 over the 37
 groups. Population loss and sampled leakage stay outside this exact screen.
 
 Outcomes, fixed before the run:
 
-- **Pass** by any arm: write a sampled M4G-contract protocol for one passing
-  arm, choosing the lowest cap, then the fewest added parameters (OO before
-  H2).
-- **Survival passes, fidelity fails** in some arm and no arm passes: write a
-  predeclared fidelity-constrained follow-up for that family.
+- **Pass** by any arm: one sampled M4G-contract study follows, for the
+  passing arm with the lowest cap, then the fewest added parameters (OO before
+  H2). It runs alongside M5, not before it.
+- **Survival passes, fidelity fails** in some arm and no arm passes: record
+  it; no follow-up. The capacity question is answered for this objective.
 - **Survival fails in every arm**: a single added feature is not enough at K4
-  under this objective. Stop this line and return the choice to the project
-  owner: both features together, a longer K budget (which changes the
-  inference-sweep question), or the structurally conserving sampler in
-  section 4 of the September 21 note. None is preselected.
+  under this objective. Record it; no follow-up.
+
+Both-features, longer-K and structurally conserving variants stay listed as
+open questions in the report, not as scheduled work.
 
 ## Required report
 
@@ -127,20 +141,22 @@ For every new arm and each base comparator:
 ## Implementation gates
 
 Leave the shared evaluators and `raised_cap_screen.py` unchanged; archived
-studies bind their hashes. Before fitting:
+studies bind their hashes. Import M4H's inputs, visitation, constants and
+gates from `raised_cap_screen.py` rather than copying them. Before fitting:
 
 1. **Nesting**: with added parameters at zero, each family's visible K4 and
-   equilibrium laws equal the base laws within 1e-14 at the archived
-   initialization and at the M4H selected fits; the warm-start path KL equals
-   the archived M4H objective within 1e-12.
-2. **Valid Gibbs kernel**: every phase's transition rows sum to one within
-   1e-14, and each family's full sweep leaves its enumerated Boltzmann
+   equilibrium laws equal the M3 base laws within absolute 1e-12 at the
+   archived initialization and at the M4H selected fits, and each warm start's
+   J_g equals the archived M4H objective within relative 1e-9.
+2. **Valid Gibbs kernel**: every single-spin transition row sums to one within
+   1e-12, and each family's full sweep leaves its enumerated Boltzmann
    conditional stationary within 1e-12 at three parameter vectors per cap.
 3. **Gradients**: all components of J_g match centered differences (step
    1e-6, scaled error at most 1e-6) for groups 0, 18 and 36 at two interior
    vectors and one on the bound, for each new arm.
 4. **Base replay**: the M4H cap-2 and cap-4 base metrics replay from their
-   stored parameters as in `tests/unit/test_raised_cap_screen.py`.
+   stored parameters through `raised_cap_screen.evaluate_arm` within relative
+   1e-9 and absolute 1e-12, with the archive pinned by SHA-256.
 
 ## Persistence and CI
 
@@ -148,11 +164,14 @@ Follow M4H. The request binds families, arms, objective, starts and seeds,
 optimizer settings, gates, the pinned M4H and local-trade-off archives, and
 source-file hashes. Persist every start's trace, the selected parameters,
 digests, provenance and the report as gzipped canonical JSON, and replay
-completely before writing `completion.json` last. CI runs the focused unit
-tests and replays the archived evidence without refitting; the full run is a
-local gate.
+completely before writing `completion.json` last. Add no workflow: the
+existing unit-test CI job runs the focused tests, which replay the archived
+evidence without refitting. The full run is a local gate.
 
 ## Protocol review record
 
-Draft, 2026-09-25. Awaiting the project owner's review of the families, the
-two caps, the 21-start budget and the decision contract.
+- 2026-09-25: drafted.
+- 2026-09-25, before any fit: the project owner approved the families, caps
+  and budget, and made this the final conservation experiment with M5 next
+  regardless of outcome. The decision contract and implementation notes
+  above reflect that.
