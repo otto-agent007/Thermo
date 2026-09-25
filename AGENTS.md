@@ -448,3 +448,7 @@ bitwise equal to `finite_sweep_joint_law` inside [-2, 2] and leave the shared
 evaluators unchanged, since archived fixture studies bind their hashes. Cap 2
 is an ungated control; the exact screen is not sampled M4G quality,
 inference-savings or hardware evidence, and the cap is a Thermo convention.
+The full fit-and-replay takes about 25 minutes, so CI instead runs
+`tests/unit/test_raised_cap_screen.py`, which pins the request and replays
+every archived metric from the stored fits without refitting. Rerun the full
+command locally whenever the runner or its bound sources change.

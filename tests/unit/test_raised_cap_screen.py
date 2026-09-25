@@ -147,3 +147,50 @@ def test_classification_follows_the_frozen_contract():
     assert screen.decide([arm(4.0, None, "integrity_failure"), arm(6.0, "pass")]) == (
         "integrity_failure"
     )
+
+
+def assert_close(stored, recomputed, path="record"):
+    """Structure and discrete values exact; floats within the replay tolerance."""
+    if isinstance(stored, dict):
+        assert stored.keys() == recomputed.keys(), path
+        for key in stored:
+            assert_close(stored[key], recomputed[key], f"{path}.{key}")
+    elif isinstance(stored, list):
+        assert len(stored) == len(recomputed), path
+        for index, (a, b) in enumerate(zip(stored, recomputed, strict=True)):
+            assert_close(a, b, f"{path}[{index}]")
+    elif isinstance(stored, float) and not isinstance(recomputed, bool):
+        assert recomputed == pytest.approx(stored, rel=1e-9, abs=screen.REPLAY_TOLERANCE), path
+    else:
+        assert stored == recomputed, path
+
+
+def test_archived_evidence_replays_without_refitting(inputs):
+    """Fast CI replay: pinned request, digests and every metric of the selected fits.
+
+    The full fit-and-replay gate stays `python -m thermo_lab.raised_cap_screen`.
+    """
+    from thermo_lab.hashing import canonical_sha256
+
+    archive = ROOT / "docs/experiment-reports/2026-09-25-raised-cap-path-kl-screen"
+    record = json.loads(gzip.decompress((archive / "study.json.gz").read_bytes()))
+    completion = json.loads((archive / "completion.json").read_text())
+    assert record["request"] == json.loads(json.dumps(screen.study_request()))
+    assert record["request_digest"] == canonical_sha256(record["request"])
+    assert record["result_digest"] == canonical_sha256(
+        {key: record[key] for key in ("preflight", "arms", "outcome")}
+    )
+    assert completion["result_digest"] == record["result_digest"]
+    assert completion["replayed"] and completion["samples"] == 0
+    for arm_index, arm in enumerate(record["arms"]):
+        assert arm["cap"] == screen.CAPS[arm_index] and arm["status"] == "complete"
+        for fit in arm["fits"]:
+            admissible = [a for a in fit["attempts"] if a["admissible"]]
+            best = min(admissible, key=lambda a: (a["objective"], a["parameters"]))
+            assert fit["selected"] == best["index"]
+            assert arm["parameters"][fit["group"]] == best["parameters"]
+        metrics, per_group = screen.evaluate_arm(np.asarray(arm["parameters"]), arm["cap"], inputs)
+        assert_close(arm["metrics"], json.loads(json.dumps(metrics)))
+        assert_close(arm["per_group"], json.loads(json.dumps(per_group)))
+        assert arm["classification"] == screen.classify(arm["cap"], arm["metrics"])
+    assert record["outcome"] == screen.decide(record["arms"]) == "survival_fails_at_both_caps"
