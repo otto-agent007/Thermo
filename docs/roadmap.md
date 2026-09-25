@@ -423,3 +423,19 @@ objective exposes a different trade-off from the earlier hop-only penalty.
 This does not settle joint feasibility or model capacity. A next study
 would need a separately frozen design, with a larger fitting budget or
 kernel alternative, before any M4G or inference-savings conclusion.
+
+### Raised-cap finite-K4 path-KL screen (M4H, September 25)
+
+The [cap-leakage analysis](research/2026-09-23-cap-leakage-analysis.md) found
+the best empty/occupied leakage product near e^(−4c), so the ±2 cap alone
+floors it at 3.4e-4. The [frozen screen](experiments/raised-cap-path-kl-screen.md)
+recompiled all 37 groups against their exact K4 endpoint laws with the
+target-visitation path KL at caps 2, 4 and 6. The
+[recorded outcome](experiment-reports/2026-09-25-raised-cap-path-kl-screen/summary.md)
+is `survival_fails_at_both_caps`: exact S(500) at K4 rises from 3.64% (cap 2
+control) to 58.58% (cap 4) and 70.74% (cap 6), against 95%. Hop MAE stays
+near 0.020 and asymmetry MAE near 0.037 at both raised caps. Empty-edge
+leakage falls to a median 1.3e-7 at cap 6, but occupied-edge leakage stays
+near 6%. The predeclared next step is a one-feature capacity screen: one extra
+hidden spin or one output–output coupling. This is exact local-search
+evidence, not a certified optimum, sampled M4G quality or hardware evidence.

@@ -436,3 +436,15 @@ with a fresh destination. Require six arms, 201 evaluator calls per arm plus
 completion. Preserve K4, the two-operation shared fixture, caps [-2,2], and all
 rejected proposals. Two path-aware objectives coincide on this fixture; never
 report their agreement as independent evidence or claim full M4G quality.
+
+The raised-cap path-KL screen (M4H) follows
+`docs/experiments/raised-cap-path-kl-screen.md`. Run
+`uv run python -m thermo_lab.raised_cap_screen --output-dir results/raised-cap-path-kl-screen`
+with a fresh destination. Require three arms (caps 2, 4 and 6), 37 groups,
+20 predeclared starts per group, K4 fitting, zero samples, a passing preflight
+and complete persisted replay before completion. Authenticate the pinned
+local-trade-off and M4C archives by SHA-256. Keep the study's capped K law
+bitwise equal to `finite_sweep_joint_law` inside [-2, 2] and leave the shared
+evaluators unchanged, since archived fixture studies bind their hashes. Cap 2
+is an ungated control; the exact screen is not sampled M4G quality,
+inference-savings or hardware evidence, and the cap is a Thermo convention.
