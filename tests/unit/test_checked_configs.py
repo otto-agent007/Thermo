@@ -37,7 +37,7 @@ COMPOSED_PASYM_SWAP_CONFIG = (
 
 
 def test_public_docs_declare_composed_scope_and_deferred_iterative_refinement() -> None:
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    studies = (ROOT / "docs/studies.md").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     roadmap = (ROOT / "docs/roadmap.md").read_text(encoding="utf-8")
     experiment = (ROOT / "docs/experiments/biased-random-walk.md").read_text(encoding="utf-8")
@@ -47,9 +47,9 @@ def test_public_docs_declare_composed_scope_and_deferred_iterative_refinement() 
         "  --output-dir results/composed-pasym-swap-finite-gibbs"
     )
 
-    assert command in readme
+    assert command in studies
     assert command in agents
-    for text in (readme, roadmap, experiment):
+    for text in (studies, roadmap, experiment):
         assert "500" in text
         assert "25-site" in text
         assert "finite-Gibbs" in text

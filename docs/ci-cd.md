@@ -1,9 +1,8 @@
 # Thermo CI and dashboard delivery
 
 Every pull request, main push, merge-queue group and manual CI run enters
-**Thermo CI**. Its single **CI required** check succeeds only after all seven
-job groups succeed: pipeline validation, scientific gates, dashboard, objective
-fixture, return fixture, hop-fidelity pilot and full-row pilot. A cancelled,
+**Thermo CI**. Its single **CI required** check succeeds only after all three
+job groups succeed: pipeline validation, scientific gates and dashboard. A cancelled,
 failed or skipped group fails the aggregate. There are no path filters that can
 leave required checks pending or silently omit a scientific gate.
 
@@ -21,7 +20,8 @@ flowchart TD
   H --> I[Authenticated private publication]
 ```
 
-The four fixture workflows are included in the scientific branch of this diagram.
+The four exact fixture studies run as the `fixture-study` matrix job inside the
+scientific gates.
 Only the final publication step is operator-run. **A green Dashboard delivery run
 means a verified bundle is available; it does not mean the live site changed.**
 

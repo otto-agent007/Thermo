@@ -593,6 +593,66 @@ jobs:
               assert all(any(name.endswith(config) for name in names) for config in configs)
           PY
 
+  fixture-study:
+    name: fixture-study (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: fixture_objective_study
+            status: fixture_study_complete
+            arms: 6
+          - module: return_fixture_study
+            status: return_fixture_study_complete
+            arms: 6
+          - module: return_fixture_fidelity_pilot
+            status: return_fixture_fidelity_pilot_complete
+            arms: 4
+          - module: return_fixture_full_row_pilot
+            status: return_fixture_full_row_pilot_complete
+            arms: 4
+    env:
+      JAX_PLATFORMS: cpu
+      PYTHONHASHSEED: "0"
+      OUTPUT: ${{ github.workspace }}/results/${{ matrix.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.17"
+          enable-cache: true
+      - name: Install frozen environment
+        run: uv sync --frozen
+      - name: Generate and replay every arm
+        run: uv run python -m "thermo_lab.${{ matrix.module }}" --output-dir "$OUTPUT"
+      - name: Require completion and show results
+        env:
+          STATUS: ${{ matrix.status }}
+          ARMS: ${{ matrix.arms }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          p = Path(os.environ["OUTPUT"])
+          done = json.loads((p / "completion.json").read_text())
+          assert done["status"] == os.environ["STATUS"]
+          assert done["arms"] == int(os.environ["ARMS"]) and done["samples"] == 0
+          print((p / "summary.md").read_text())
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: ${{ matrix.module }}
+          path: ${{ env.OUTPUT }}/
+
   test:
     name: test (${{ matrix.name }})
     runs-on: ubuntu-latest
