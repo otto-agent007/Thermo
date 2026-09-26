@@ -6,6 +6,7 @@ import { observeActivity } from "./activity.ts";
 import { archive } from "./catalog.ts";
 import pins from "./archive-pins.json" with { type: "json" };
 import { recentReportPaths } from "./recent.ts";
+import { observeCycle, type CycleOptions } from "./cycle.ts";
 const cache = new Map<
   string,
   { key: string; pending: ReturnType<typeof loadEvidence> }
@@ -38,6 +39,7 @@ export async function getPayload(
   root: string,
   route: string,
   method = "GET",
+  options: CycleOptions = {},
 ): Promise<{ status: number; body: unknown; contentType?: string }> {
   if (!["GET", "HEAD"].includes(method))
     return { status: 405, body: { error: "Read-only API" } };
@@ -55,13 +57,15 @@ export async function getPayload(
       proposal[2].replace("artifacts/", ""),
     );
   if (path === "/data/project.json") {
-    const [{ snapshot }, activity] = await Promise.all([
+    const observedAt = options.observedAt ?? new Date().toISOString();
+    const [{ snapshot }, activity, cycle] = await Promise.all([
       getEvidence(root),
       observeActivity(root),
+      observeCycle({ ...options, observedAt }),
     ]);
     return {
       status: 200,
-      body: { ...snapshot, generatedAt: new Date().toISOString(), activity },
+      body: { ...snapshot, generatedAt: observedAt, activity, cycle },
     };
   }
   if (path.startsWith("/data/cells/") && path.endsWith(".json")) {

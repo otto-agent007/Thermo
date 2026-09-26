@@ -1,0 +1,13 @@
+# Example only. Do not install/enable before the durable host, authenticated
+# dedicated evidence clone and exact branch have been authorized and verified.
+[Unit]
+Description=Publish bounded Thermo research observations and evidence
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Thermo
+ExecStart=%h/Thermo/.venv/bin/python -m thermo_lab.research_cycle.publisher --state-root %h/thermo-research-state --job-id m5a-first-cycle --evidence-repo %h/thermo-evidence --branch evidence/m5a-first-cycle
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+TimeoutStartSec=10min
+Nice=10

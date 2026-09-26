@@ -14,6 +14,7 @@ import math
 import multiprocessing
 import os
 import platform
+import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor
 from itertools import combinations, product
@@ -25,6 +26,7 @@ from scipy.optimize import minimize
 from scipy.special import expit, logsumexp
 
 from thermo_lab.hashing import canonical_json, canonical_sha256
+from thermo_lab.persistence import atomic_write_text
 
 D = 12
 STATES = 1 << D
@@ -562,16 +564,70 @@ def _close(stored, rebuilt, path="record"):
         raise ValueError(f"replay value differs at {path}: {stored!r} vs {rebuilt!r}")
 
 
+def _validate_fit_records(fits):
+    """Check the frozen fitting ledger without repeating optimization."""
+    expected = {
+        f"{reading}|{seed}|{cap}": structures(make_target(seed, reading))
+        for reading, seed in _targets()
+        for cap in CAPS
+    }
+    if not isinstance(fits, dict) or fits.keys() != expected.keys():
+        raise ValueError("fit grid differs from the frozen protocol")
+    attempt_fields = {"objective", "iterations", "success", "termination"}
+    for key, structures_ in expected.items():
+        sites = fits[key]
+        if not isinstance(sites, list) or len(sites) != D:
+            raise ValueError(f"fit site count differs at {key}")
+        for site, (structure, fit) in enumerate(zip(structures_, sites, strict=True)):
+            label = f"fit[{key}][{site}]"
+            if not isinstance(fit, dict) or fit.keys() != {"selected", "parameters", "attempts"}:
+                raise ValueError(f"invalid fit structure at {label}")
+            parameters, attempts, selected = fit["parameters"], fit["attempts"], fit["selected"]
+            if (
+                not isinstance(parameters, list)
+                or len(parameters) != parameter_count(structure)
+                or any(type(p) not in (int, float) or not math.isfinite(p) for p in parameters)
+            ):
+                raise ValueError(f"invalid fit parameters at {label}")
+            if not isinstance(attempts, list) or len(attempts) != RANDOM_STARTS + 1:
+                raise ValueError(f"fit attempt count differs at {label}")
+            for attempt in attempts:
+                if (
+                    not isinstance(attempt, dict)
+                    or attempt.keys() != attempt_fields
+                    or type(attempt["objective"]) not in (int, float)
+                    or not math.isfinite(attempt["objective"])
+                    or type(attempt["iterations"]) is not int
+                    or attempt["iterations"] < 0
+                    or type(attempt["success"]) is not bool
+                    or not isinstance(attempt["termination"], str)
+                ):
+                    raise ValueError(f"invalid fit attempt metadata at {label}")
+            if type(selected) is not int or not 0 <= selected < len(attempts):
+                raise ValueError(f"invalid fit selection at {label}")
+            lowest = min(range(len(attempts)), key=lambda i: (attempts[i]["objective"], i))
+            if selected != lowest:
+                raise ValueError(f"fit selection is not the lowest objective at {label}")
+
+
+def _validate_record_identity(record):
+    if canonical_json(record.get("request")) != canonical_json(study_request()):
+        raise ValueError("study request differs from the frozen protocol or implementation")
+    if record["request_digest"] != canonical_sha256(record["request"]):
+        raise ValueError("request digest mismatch")
+    body = ("targets", "fits", "chains", "integrity")
+    if record["result_digest"] != canonical_sha256({key: record[key] for key in body}):
+        raise ValueError("result digest does not match the stored record")
+    _validate_fit_records(record["fits"])
+
+
 def validate_study(record, workers=None, mixing_replay=None):
     """Replay from stored parameters without refitting.
 
     ``mixing_replay`` lists the (reading, seed) targets whose Dobrushin and
     spectral scans are recomputed; the default recomputes all ten.
     """
-    if canonical_json(record.get("request")) != canonical_json(study_request()):
-        raise ValueError("study request differs from the frozen protocol or implementation")
-    if record["request_digest"] != canonical_sha256(record["request"]):
-        raise ValueError("request digest mismatch")
+    _validate_record_identity(record)
     targets = _targets()
     stored_mixing = [target["mixing"] for target in record["targets"]]
     replay_set = set(targets if mixing_replay is None else mixing_replay)
@@ -589,8 +645,6 @@ def validate_study(record, workers=None, mixing_replay=None):
             value = objective(fit["parameters"], structure, inputs, exact_logit(structure, inputs))
             _close(fit["attempts"][fit["selected"]]["objective"], value[0], f"fits[{key}]")
     body = ("targets", "fits", "chains", "integrity")
-    if record["result_digest"] != canonical_sha256({key: record[key] for key in body}):
-        raise ValueError("result digest does not match the stored record")
     rebuilt = build_study(workers, fits=record["fits"], mixing_results=stored_mixing)
     _close(
         {key: record[key] for key in (*body, "request", "request_digest")},
@@ -732,67 +786,179 @@ def render_report(record, *, replayed=False, seconds=None):
     return "\n".join(lines) + "\n"
 
 
-def run_study(output_dir, *, replay=True, workers=None):
-    destination = Path(output_dir)
-    destination.mkdir(parents=True, exist_ok=False)
-    started = time.monotonic()
-    record = build_study(workers)
-    if not record["integrity"]["passed"]:
-        (destination / "study.json.gz").write_bytes(
-            gzip.compress((canonical_json(record) + "\n").encode(), mtime=0)
-        )
-        raise ValueError(
-            "integrity requirements failed: " + "; ".join(record["integrity"]["failures"])
-        )
-    generated = time.monotonic()
-    (destination / "study.json.gz").write_bytes(
-        gzip.compress((canonical_json(record) + "\n").encode(), mtime=0)
-    )
-    persisted = json.loads(gzip.decompress((destination / "study.json.gz").read_bytes()))
-    if replay:
-        validate_study(persisted, workers)
-    replayed = time.monotonic()
-    (destination / "summary.md").write_text(
-        render_report(persisted, replayed=replay, seconds=replayed - started)
-    )
-    provenance = {
+def _runtime(workers):
+    return {
         "python": platform.python_version(),
         "numpy": np.__version__,
         "scipy": scipy.__version__,
         "platform": platform.platform(),
         "workers": workers or os.cpu_count(),
-        "generation_seconds": generated - started,
-        "replay_seconds": replayed - generated,
+    }
+
+
+def _atomic_write_archive(path, data):
+    """Publish a complete gzip stream with a single atomic rename."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=path.parent, prefix=f".{path.name}.", delete=False
+        ) as f:
+            temporary = Path(f.name)
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+def _finish_replay(destination, record, archive, generation, workers):
+    replay_started = time.monotonic()
+    runtime = _runtime(workers)
+    validate_study(record, workers)
+    replay_seconds = time.monotonic() - replay_started
+    provenance = {
+        "schema": "meta_ebm_cap_baseline.provenance.v2",
+        "generation": generation,
+        "replay": {
+            "runtime": runtime,
+            "replay_seconds": replay_seconds,
+            "source_archive_sha256": hashlib.sha256(archive).hexdigest(),
+            "request_digest": record["request_digest"],
+            "result_digest": record["result_digest"],
+        },
         "timing_scope": "CPU exact reference including host overhead; no hardware claims",
     }
-    (destination / "provenance.json").write_text(canonical_json(provenance) + "\n")
-    (destination / "completion.json").write_text(
+    report = render_report(record, replayed=True)
+    if generation["status"] == "available":
+        minutes = generation["generation_seconds"] / 60
+        report += f"\nOriginal generation took {minutes:.1f} wall-clock minutes.\n"
+    else:
+        report += "\nOriginal generation runtime provenance is unavailable.\n"
+    report += f"This full replay took {replay_seconds / 60:.1f} wall-clock minutes.\n"
+    atomic_write_text(destination / "summary.md", report)
+    atomic_write_text(destination / "provenance.json", canonical_json(provenance) + "\n")
+    atomic_write_text(
+        destination / "completion.json",
         canonical_json(
             {
                 "status": "meta_ebm_cap_baseline_complete",
-                "targets": len(persisted["targets"]),
+                "targets": len(record["targets"]),
                 "caps": len(CAPS),
                 "methods": len(METHODS),
-                "chains": len(persisted["chains"]),
+                "chains": len(record["chains"]),
                 "samples": 0,
-                "integrity": persisted["integrity"]["passed"],
-                "replayed": replay,
-                "request_digest": persisted["request_digest"],
-                "result_digest": persisted["result_digest"],
+                "integrity": record["integrity"]["passed"],
+                "replayed": True,
+                "request_digest": record["request_digest"],
+                "result_digest": record["result_digest"],
                 "provenance_digest": canonical_sha256(provenance),
             }
         )
-        + "\n"
+        + "\n",
     )
+    return record
+
+
+def run_study(output_dir, *, replay=True, workers=None):
+    if replay is not True:
+        raise ValueError("full replay is required before study completion")
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=False)
+    started = time.monotonic()
+    runtime = _runtime(workers)
+    record = build_study(workers)
+    archive = gzip.compress((canonical_json(record) + "\n").encode(), mtime=0)
+    generation = {
+        "status": "available",
+        "runtime": runtime,
+        "generation_seconds": time.monotonic() - started,
+        "request_digest": record["request_digest"],
+        "result_digest": record["result_digest"],
+        "archive_sha256": hashlib.sha256(archive).hexdigest(),
+    }
+    # Persist provenance first so any published archive can survive interrupted replay.
+    atomic_write_text(destination / "generation-provenance.json", canonical_json(generation) + "\n")
+    _atomic_write_archive(destination / "study.json.gz", archive)
+    if not record["integrity"]["passed"]:
+        raise ValueError(
+            "integrity requirements failed: " + "; ".join(record["integrity"]["failures"])
+        )
+    persisted = json.loads(gzip.decompress((destination / "study.json.gz").read_bytes()))
+    _finish_replay(destination, persisted, archive, generation, workers)
     return persisted
+
+
+def _original_generation(source, record, archive):
+    path = source / "generation-provenance.json"
+    if path.exists():
+        generation = json.loads(path.read_text())
+    elif (source / "provenance.json").exists():
+        previous = json.loads((source / "provenance.json").read_text())
+        if "generation" in previous:
+            generation = previous["generation"]
+        else:
+            # Legacy files describe both phases together. Retain those bytes' data,
+            # but do not pretend they supply independently bound generation metadata.
+            return {
+                "status": "unavailable",
+                "reason": "legacy provenance lacks a separately bound generation record",
+                "legacy_provenance": previous,
+            }
+    else:
+        return {"status": "unavailable", "reason": "source has no generation provenance"}
+    if generation.get("status") == "unavailable":
+        return generation
+    expected = {
+        "request_digest": record["request_digest"],
+        "result_digest": record["result_digest"],
+        "archive_sha256": hashlib.sha256(archive).hexdigest(),
+    }
+    if generation.get("status") != "available" or any(
+        generation.get(key) != value for key, value in expected.items()
+    ):
+        raise ValueError("generation provenance does not match the source archive")
+    if not isinstance(generation.get("runtime"), dict) or not isinstance(
+        generation.get("generation_seconds"), (int, float)
+    ):
+        raise ValueError("generation provenance is incomplete")
+    canonical_json(generation)  # Reject non-finite metadata before preserving it.
+    return generation
+
+
+def replay_study(source_dir: Path, output_dir: Path, *, workers=None):
+    """Fully replay an existing generated archive into a fresh directory, never refitting.
+
+    Source archives must match this implementation. Missing historical generation
+    metadata stays explicitly unavailable; this invocation records replay only.
+    """
+    source, destination = Path(source_dir), Path(output_dir)
+    if destination.exists():
+        raise FileExistsError(f"replay destination already exists: {destination}")
+    archive = (source / "study.json.gz").read_bytes()
+    record = json.loads(gzip.decompress(archive))
+    _validate_record_identity(record)
+    generation = _original_generation(source, record, archive)
+    destination.mkdir(parents=True, exist_ok=False)
+    atomic_write_text(destination / "generation-provenance.json", canonical_json(generation) + "\n")
+    _atomic_write_archive(destination / "study.json.gz", archive)
+    persisted = json.loads(gzip.decompress((destination / "study.json.gz").read_bytes()))
+    return _finish_replay(destination, persisted, archive, generation, workers)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--workers", type=int, default=None)
+    parser.add_argument(
+        "--replay-from", type=Path, help="replay an existing archive without fitting"
+    )
     args = parser.parse_args()
-    run_study(args.output_dir, workers=args.workers)
+    if args.replay_from is not None:
+        replay_study(args.replay_from, args.output_dir, workers=args.workers)
+    else:
+        run_study(args.output_dir, workers=args.workers)
     print(args.output_dir / "summary.md")
 
 

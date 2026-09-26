@@ -1,5 +1,6 @@
 import type { ProjectSnapshot } from "../../shared/model";
 import { Sources } from "../components/SourceLink";
+import { ResearchCycle } from "./ResearchCycle";
 export function Research({ snapshot }: { snapshot: ProjectSnapshot }) {
   return (
     <>
@@ -10,6 +11,7 @@ export function Research({ snapshot }: { snapshot: ProjectSnapshot }) {
         </p>
       </div>
       <div className="research-list">
+        <ResearchCycle cycle={snapshot.cycle} mode={snapshot.mode} />
         {snapshot.research.map((r) => (
           <article className="panel research-item" key={r.id}>
             <span className={`tag ${r.kind === "proposal" ? "proposal" : ""}`}>

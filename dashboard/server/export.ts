@@ -3,12 +3,19 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEvidence } from "./evidence.ts";
 import { observeActivity } from "./activity.ts";
+import { observeCycle, type CycleOptions } from "./cycle.ts";
 export async function exportSnapshot(
   root: string,
   destination: string,
+  options: CycleOptions = {},
 ): Promise<void> {
   const { snapshot, details } = await loadEvidence(root);
   snapshot.mode = "snapshot";
+  snapshot.generatedAt = options.observedAt ?? new Date().toISOString();
+  snapshot.cycle = await observeCycle({
+    ...options,
+    observedAt: snapshot.generatedAt,
+  });
   snapshot.activity = await observeActivity(root);
   await mkdir(destination, { recursive: true });
   const stage = await mkdtemp(join(destination, ".data-"));

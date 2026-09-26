@@ -246,3 +246,65 @@ test("published snapshot excludes local proposal drafts", async ({ page }) => {
     page.getByText("Local drafts are excluded from this static snapshot."),
   ).toBeVisible();
 });
+
+test("research cycle observation stays pending through navigation and refresh", async ({
+  page,
+}) => {
+  test.skip(
+    staticBuild,
+    "isolated cycle status belongs to the local fixture server",
+  );
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type()))
+      errors.push(message.text());
+  });
+  await page.setViewportSize({ width: 1506, height: 1045 });
+  await page.goto("/");
+  await expect(page).toHaveTitle(/Thermo/);
+  await page.getByRole("link", { name: "Research", exact: true }).click();
+  const cycle = page.getByRole("region", { name: "Research cycle" });
+  await expect(
+    cycle.getByRole("heading", { name: "Awaiting independent review" }),
+  ).toBeVisible();
+  await expect(cycle).toContainText("Local status observation");
+  await expect(cycle).toContainText("not live worker telemetry");
+  await expect(cycle).toContainText(
+    "A negative result can be a successful execution",
+  );
+  await expect(cycle).not.toContainText("SECRET");
+  await expect(page.locator("vite-error-overlay")).toHaveCount(0);
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(cycle).toContainText("Pending");
+  await expect(
+    page.getByRole("button", { name: "Refresh", exact: true }),
+  ).toBeEnabled();
+  await page.screenshot({
+    path: "/tmp/thermo-cycle-desktop.png",
+    fullPage: false,
+  });
+  expect(errors).toEqual([]);
+});
+
+test("research cycle hashes and observation text fit a mobile viewport", async ({
+  page,
+}) => {
+  test.skip(
+    staticBuild,
+    "isolated cycle status belongs to the local fixture server",
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#research");
+  const cycle = page.getByRole("region", { name: "Research cycle" });
+  await expect(cycle).toContainText("m5a-browser-fixture");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "/tmp/thermo-cycle-mobile.png",
+    fullPage: true,
+  });
+});

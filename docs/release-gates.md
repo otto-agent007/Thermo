@@ -392,3 +392,24 @@ before completion. Import M4H helpers rather than editing
 device operations; no hardware or Z1-connectivity claim follows. CI runs
 `tests/unit/test_kernel_capacity_screen.py` through the unit-test job,
 including the archived-evidence replay without refitting.
+
+## M5a: exact meta-EBM cap baseline
+
+Follow `docs/experiments/meta-ebm-cap-baseline.md`. Run the full CPU study with
+`uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline --workers 2`
+in a fresh directory. Require ten targets (both readings, five seeds), nine
+caps, both compile methods, all 180 chains, zero samples, passing integrity,
+and full persisted replay before completion. Preserve the frozen scientific
+choices; a negative descriptive outcome is valid evidence.
+
+The protocol's archive-backed CI replay coverage is a release requirement,
+not a claim that an archive already exists. Until a full valid run is
+recorded, component tests establish implementation behavior only. The first
+archival PR must pin the request, replay persisted evidence without refitting,
+and exercise the protocol's ordinary/slow replay coverage. A recovered archive
+must retain its original generation provenance separately from new replay
+provenance. Never reconstruct missing provenance by guessing.
+
+The continuous-research wrapper additionally binds source, environment,
+attempts, budgets, transfer evidence, and independent review. Its completion
+is separate from this scientific gate and from live dashboard publication.

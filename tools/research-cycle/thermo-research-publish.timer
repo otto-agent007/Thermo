@@ -1,0 +1,11 @@
+# Example only. This timer is not installed or enabled by the repository.
+[Unit]
+Description=Observe the Thermo research cycle every ten minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=10min
+Unit=thermo-research-publish.service
+
+[Install]
+WantedBy=timers.target

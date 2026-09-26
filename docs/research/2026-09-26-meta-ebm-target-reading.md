@@ -18,7 +18,7 @@ what an M5 reproduction would measure.
 A fifth, milder ambiguity: the main text says the kernels are compiled
 *variationally* under uniform inputs, while the appendix says the numbers come
 from a *constructive recipe with clipping*, whose hidden-spin parameters are
-not specified. M5a uses the variational fit.
+not specified. The frozen M5a protocol uses both methods.
 
 ## 1. Hidden-spin biases are required for three-body terms
 
@@ -26,23 +26,25 @@ The appendix kernel energy is
 
 E(x, w, y) = −(Jᵀx + h_y) y − Σₐ (αₐᵀx) wₐ − Σₐ βₐ wₐ y.
 
-Write fₐ(s) = ½[softplus(−2(s − βₐ)) − softplus(−2(s + βₐ))] for the feature a
-hidden spin contributes to the output half log-odds, with s = αₐᵀx. Using
-softplus(z) = z + softplus(−z), one finds fₐ(−s) = 2βₐ − fₐ(s). So with no
-hidden bias, θ(x) − θ(−x) carries every non-constant term and
-½[θ(x) + θ(−x)] = h_y + Σₐ βₐ is constant. The kernel log-odds minus a
+Summing the two hidden-spin values gives the feature
+fₐ(s) = ½[log cosh(s + βₐ) − log cosh(s − βₐ)], with s = αₐᵀx.
+Since log cosh is even, fₐ(−s) = −fₐ(s). So with no hidden bias,
+θ(x) − θ(−x) carries every non-constant term and
+½[θ(x) + θ(−x)] = h_y is constant. The kernel log-odds minus a
 constant is an odd function of the inputs. The three-body contribution to a
 site's log-odds is x_m x_m′, which is even. It cannot be represented, however
 large the couplings.
 
-Numerically (probe, four ±1 inputs): across 200 random bias-free kernels, the
-even part of θ varies by at most 7×10⁻¹⁵. The best least-squares fit of x₀x₁
-has mean squared error 1.000, the full variance of the target. Adding one
-hidden bias bₐ (the term −bₐwₐ) makes the fit exact (MSE 8×10⁻¹²). An explicit
-construction uses one hidden spin with α = c(e₀ + e₁), b = 2c and β = c. Its
-feature equals (c/2) relu(−(x₀ + x₁)) up to terms exponentially small in c, and
-x₀x₁ = 2 relu(−(x₀ + x₁)) + x₀ + x₁ − 1. The maximum error of this
-construction is 1.8×10⁻², 1.8×10⁻⁵ and 4×10⁻¹⁰ at c = 2, 5 and 10.
+**Correction, September 26:** the original probe instead used
+½[softplus(−2(s − βₐ)) − softplus(−2(s + βₐ))], which equals βₐ − fₐ(s),
+not fₐ(s). This changes the capped parameter family because its offset is
+not generally absorbable into the capped output field. Both the NumPy
+evaluation and JAX fit now use the log-cosh expression above. Regression
+checks compare it with direct hidden-spin enumeration at cap boundaries and
+with nonzero hidden biases. The earlier numerical fit and construction-error
+claims are withdrawn; the algebraic oddness argument remains valid. The
+production M5a runner already used the correct expression, and its frozen
+scientific protocol is unchanged.
 
 The paper's reported small errors imply its implementation had biases. Z1's
 native energy has a field hᵢ on every spin, so hidden biases are legitimate
@@ -89,24 +91,14 @@ One compiled sweep injects its sweep residual
 at every sweep: δ̃_t ≤ η_sweep (1 − ρ_D^t)/(1 − ρ_D) from a common start. On an
 exactly enumerable target, η_sweep is exact to compute.
 
-## 4. A first cap sweep (reading B, seed 1)
+## 4. Withdrawn exploratory cap sweep
 
-Variational fit (mean KL under uniform blanket inputs, L-BFGS-B, six starts),
-hidden biases included, n_h = number of triples containing the site. The
-bias is the total-variation error after 40 sweeps from a uniform start.
-
-| Cap | ε̄ | ε̄/(1−ρ_D) | ε̄/(1−SLEM) | Bias | Sweeps to settle |
-|---|---|---|---|---|---|
-| 0.3 | 0.244 | 1.08 | 0.341 | 0.125 | 1 |
-| 1 | 0.012 | 0.051 | 0.016 | 0.0017 | 2 |
-| 2 | 0.0027 | 0.012 | 0.0038 | 0.0007 | 1 |
-| 10 | 0.0020 | 0.009 | 0.0028 | 0.0005 | 1 |
-
-The picture is qualitatively the paper's. The bias settles within a few sweeps,
-stays below both floors, and grows as the cap tightens. The magnitudes differ
-(the paper reports 0.46 at cap 0.3). Plausible causes are the instance, the
-compile method, and the reading. Above cap 2 the residual stops improving
-(ε̄ ≈ 0.002), which points to the six-start optimizer rather than the cap.
+The previous reading-B, seed-1 cap table used the incorrect hidden-spin
+feature described above. Its cap-dependent errors, bias, settling times and
+optimizer interpretation are withdrawn. No corrected cap sweep has been
+recorded, so no replacement numbers are supplied here. The ideal-target
+mixing calculations in §2 do not use the compiled hidden-spin feature; they
+remain exploratory observations, not a completed M5a result.
 
 ## Implications for M5
 
@@ -115,5 +107,5 @@ compile method, and the reading. Above cap 2 the residual stops improving
 - Kernels need hidden biases; the cap applies to them.
 - Report Dobrushin and spectral coefficients separately, and call only the
   Dobrushin floor a bound.
-- The fit budget needs enough starts, or a structured initialization, that
-  large caps are not optimizer-limited.
+- Report every declared fit and its optimizer diagnostics; this withdrawn
+  probe does not establish whether the frozen fit budget is sufficient.
