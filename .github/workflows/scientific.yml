@@ -729,7 +729,13 @@ jobs:
       - name: Install frozen environment
         run: uv sync --frozen
       - name: Install the improvement-harness sandbox
-        run: sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+        # Ubuntu 24.04 runners restrict unprivileged user namespaces through
+        # AppArmor, which stops bwrap configuring its loopback interface. The
+        # runner VM is disposable, so lift the restriction for this job only.
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          bwrap --ro-bind / / --unshare-all --dev /dev --proc /proc true
       - name: Run test shard
         run: ${{ matrix.command }}
 
