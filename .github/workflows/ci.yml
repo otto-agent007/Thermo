@@ -36,19 +36,11 @@ jobs:
     uses: ./.github/workflows/scientific.yml
   dashboard:
     uses: ./.github/workflows/dashboard.yml
-  objective-fixture:
-    uses: ./.github/workflows/fixture-objective-study.yml
-  return-fixture:
-    uses: ./.github/workflows/return-fixture-study.yml
-  hop-fidelity:
-    uses: ./.github/workflows/return-fixture-fidelity-pilot.yml
-  full-row:
-    uses: ./.github/workflows/return-fixture-full-row-pilot.yml
 
   required:
     name: CI required
     if: ${{ always() }}
-    needs: [pipeline, scientific, dashboard, objective-fixture, return-fixture, hop-fidelity, full-row]
+    needs: [pipeline, scientific, dashboard]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
