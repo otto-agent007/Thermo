@@ -1,8 +1,9 @@
 # M5a: exact meta-EBM cap baseline
 
-*Status: **draft for owner review**, not frozen. Nothing below has been run as
-a study. The exploratory basis is
-[the September 26 research note](../research/2026-09-26-meta-ebm-target-reading.md).*
+*Status: **frozen September 26, 2026** after owner review (both readings, five
+seeds, both compile methods). The exploratory basis is
+[the September 26 research note](../research/2026-09-26-meta-ebm-target-reading.md).
+Changes after this point require a dated amendment below.*
 
 ## Question
 
@@ -88,11 +89,12 @@ n likewise. Each compile method then fixes the parameters as follows.
   The paper's main-text formula uses the opposite sign for β (its appendix
   relabels β → −β); the energy above is authoritative.
 - **Variational.** Minimize the mean KL(target ‖ kernel) over uniform blanket
-  inputs. Use L-BFGS-B in float64 with box bounds [−J_max, J_max], exact JAX
-  gradients and at most 5,000 iterations. There are 8 starts: the
-  constructive parameters, plus 7 uniform draws in [−min(J_max, 1), min(J_max, 1)]
-  from `PCG64` seeded by the canonical hash of (seed, reading, site, cap).
-  Keep the lowest final objective.
+  inputs. Use L-BFGS-B in float64 with box bounds [−J_max, J_max], exact
+  analytic NumPy gradients (checked against centered differences in the tests)
+  and at most 5,000 iterations. There are 8 starts: the constructive
+  parameters, plus 7 uniform draws in [−min(J_max, 1), min(J_max, 1)] from
+  `numpy.random.default_rng([5, reading index, seed, site, cap index])`.
+  Keep the lowest final objective, ties broken by start order.
 
 ## Measurements
 
@@ -125,7 +127,11 @@ These checks can only fail through an implementation error:
 4. The proven bound holds: δ̃_t ≤ η_sweep(1 − ρ_D^t)/(1 − ρ_D) + 10⁻¹² for all
    t ≤ 30, and bias ≤ floor_D + 10⁻¹².
 5. The complete record replays from its stored parameters and the target
-   seeds before reporting, and `completion.json` is written last.
+   seeds before reporting, and `completion.json` is written last. Replay
+   rebuilds targets, constructive kernels and every metric, and recomputes the
+   selected variational objectives from the stored parameters. It does not
+   refit. Replayed floats must match to relative 10⁻⁹ and absolute 10⁻¹⁰;
+   integers, strings and structure must match exactly.
 
 ## Descriptive comparisons (non-gating)
 
@@ -146,8 +152,8 @@ These are reported for every target and cap, with no pass/fail:
 
 Run with `uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline`
 and a fresh destination; `--workers` must not change the record. Work runs on
-CPU in float64 with JAX x64 enabled only within the study scope, and that
-configuration is recorded as provenance.
+CPU in NumPy/SciPy float64; JAX is not used. Library versions are recorded as
+runtime provenance, outside the request identity.
 
 The canonical request binds the seeds, readings, caps, compile budgets,
 tolerances and dtype. Outputs are one `study.json.gz` record (targets,
@@ -157,8 +163,11 @@ persisted.
 
 Following [CLAUDE.md](../../CLAUDE.md), CI runs a unit test that pins the
 request and replays the archived metrics from the stored parameters, without
-refitting. The full run stays a local gate. The expected cost is about one to
-two CPU-hours; the implementation will report the measured time.
+refitting. The Dobrushin and spectral scans cost about two minutes per target,
+so the ordinary unit job replays them for none and the `slow` job replays one
+target. The full local replay covers all ten. The full run stays a local gate.
+The expected cost is about one to two CPU-hours; the report records the
+measured time.
 
 ## Not claimed
 
