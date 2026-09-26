@@ -212,37 +212,31 @@ def test_failure_preserves_diagnostics(setup, monkeypatch):
     assert "missing CLI" in (candidate / "report.md").read_text()
 
 
-def test_heldout_reserved_before_evaluation_and_blocks_same_plan(setup, monkeypatch):
+def test_research_preset_rejects_heldout_role_without_heldout_data(setup):
+    """No research evaluator has held-out inputs, so a role would reuse development data."""
     _, plan_file, output, _ = setup
-    plan = load_plan(plan_file).model_copy(update={"track": "research", "heldout_role": "final"})
-    # Keep the fake source hook within this fixture's declared allowlist; the real
-    # scientific evaluator separately enforces the exact research preset.
-    monkeypatch.setattr(cli, "_validate_preset", lambda plan: None)
-    events = []
-    real_claim = cli.claim_heldout
-
-    def claim(*args):
-        events.append("claim")
-        return real_claim(*args)
-
-    def evaluate(*args, **kwargs):
-        events.append("evaluate")
-        assert events == ["claim", "evaluate"]
-        return {
-            "execution": "complete",
-            "verification": "passed",
-            "research_outcome": "inconclusive",
-            "evidence": "exact_reference",
+    plan = load_plan(plan_file).model_copy(
+        update={
+            "track": "research",
+            "heldout_role": "final",
+            "allowed_paths": ("src/thermo_lab/research_candidates/three_site.py",),
+            "primary_metric": "exact_objective_delta",
+            "direction": "lower",
+            "threshold": 0,
         }
-
-    monkeypatch.setattr(cli, "claim_heldout", claim)
-    monkeypatch.setattr(cli, "evaluate_three_site", evaluate)
-    assert cli.run_candidate(plan, output) == 0
-    parent = candidates(output)[0]
-    assert cli.run_candidate(plan, output, parent=parent.name) == 1
+    )
+    with pytest.raises(ValueError, match="preset"):
+        cli._validate_preset(plan)
+    cli._validate_preset(plan.model_copy(update={"heldout_role": None}))
     assert cli.run_candidate(plan, output) == 1
-    assert len(candidates(output)) == 1
-    assert events == ["claim", "evaluate"]
+    assert not output.exists() or not any(output.iterdir())
+
+
+def test_worktrees_are_removed_after_each_run(setup):
+    repo, plan_file, output, _ = setup
+    assert cli.main(["run", str(plan_file), "--output-dir", str(output)]) == 0
+    assert not any((repo / ".worktrees").iterdir())
+    assert "harness-" not in git(repo, "worktree", "list")
 
 
 def test_time_budget_is_shared_by_candidates(setup, monkeypatch):
