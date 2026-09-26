@@ -1,6 +1,7 @@
 """Bounded three-site comparisons and append-only held-out role reservations."""
 
 import json
+import math
 import os
 import re
 import signal
@@ -10,15 +11,22 @@ import tempfile
 import time
 from pathlib import Path
 
+from thermo_lab.improvement_harness import sandbox
+from thermo_lab.improvement_harness.limits import MAX_PATCH_BYTES, read_bounded_regular_file
 from thermo_lab.improvement_harness.plan import Plan
 from thermo_lab.improvement_harness.workspace import _git, _head, is_allowed_path, parse_status_z
 
 _HOOK = "src/thermo_lab/research_candidates/three_site.py"
+_DRIVER = "src/thermo_lab/improvement_harness/fixture_candidate.py"
 _OUTPUT_BYTES = 65536
 
 
 def claim_heldout(root: Path, plan_digest: str, role: str, candidate_id: str) -> None:
-    """Reserve before execution; a failed run also consumes its held-out role."""
+    """Reserve before execution; a failed run also consumes its held-out role.
+
+    No current preset has held-out data: the research preset rejects plans
+    that declare a role until an evaluator with genuinely held-out inputs exists.
+    """
     if re.fullmatch(r"sha256:[0-9a-f]{64}", plan_digest) is None:
         raise ValueError("invalid plan digest")
     if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", role) is None:
@@ -68,24 +76,15 @@ def _check_sources(plan: Plan, baseline: Path, candidate: Path) -> None:
                 raise ValueError("protected source includes ignored Python files or bytecode")
 
 
-def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> dict:
-    """Select worktree source explicitly, excluding caller Python import settings."""
+def _run(argv: list[str], cwd: Path, env: dict, payload: str, deadline: float) -> dict:
+    """Run one bounded JSON subprocess and kill its whole session afterwards."""
     remaining = deadline - time.monotonic()
     if remaining <= 0:
-        raise subprocess.TimeoutExpired(module, 0)
-    env = {key: value for key, value in os.environ.items() if not key.startswith("PYTHON")}
-    env.update(PYTHONPATH=str(worktree / "src"), JAX_PLATFORMS="cpu")
-    with (
-        tempfile.TemporaryDirectory(prefix="thermo-fixture-cache-") as cache,
-        tempfile.TemporaryFile() as stdout,
-        tempfile.TemporaryFile() as stderr,
-    ):
-        # -B suppresses writes but still reads existing .pyc files. A fresh cache
-        # prefix also prevents ignored/stale bytecode from overriding pinned source.
-        argv = [sys.executable, "-B", "-P", "-s", "-X", f"pycache_prefix={cache}", "-m", module]
+        raise subprocess.TimeoutExpired(argv, 0)
+    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
         process = subprocess.Popen(
             argv,
-            cwd=worktree,
+            cwd=cwd,
             env=env,
             stdin=subprocess.PIPE,
             stdout=stdout,
@@ -109,6 +108,8 @@ def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> d
             stderr.seek(0, os.SEEK_END)
             stderr.seek(max(0, stderr.tell() - 4096))
             message = stderr.read().decode(errors="replace")
+            if message.startswith("bwrap:"):
+                raise sandbox.SandboxUnavailable(f"sandbox unavailable: {message.strip()}")
             raise ValueError(f"fixture subprocess failed ({process.returncode}): {message}")
     if len(output) > _OUTPUT_BYTES:
         raise ValueError("fixture JSON output exceeds limit")
@@ -119,6 +120,51 @@ def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> d
     if not isinstance(result, dict):
         raise ValueError("fixture JSON output must be an object")
     return result
+
+
+def _run_module(worktree: Path, module: str, payload: str, deadline: float) -> dict:
+    """Run trusted baseline source, excluding caller Python import settings."""
+    env = {key: value for key, value in os.environ.items() if not key.startswith("PYTHON")}
+    env.update(PYTHONPATH=str(worktree / "src"), JAX_PLATFORMS="cpu")
+    with tempfile.TemporaryDirectory(prefix="thermo-fixture-cache-") as cache:
+        # -B suppresses writes but still reads existing .pyc files. A fresh cache
+        # prefix also prevents ignored/stale bytecode from overriding pinned source.
+        argv = [sys.executable, "-B", "-P", "-s", "-X", f"pycache_prefix={cache}", "-m", module]
+        return _run(argv, worktree, env, payload, deadline)
+
+
+def _stage_hook(baseline: Path, candidate: Path, stage: Path) -> None:
+    """Copy only the candidate hook and the baseline's protected driver."""
+    packages = ("thermo_lab", "thermo_lab/research_candidates", "thermo_lab/improvement_harness")
+    for package in packages:
+        (stage / package).mkdir(parents=True, exist_ok=True)
+        (stage / package / "__init__.py").write_text("")
+    for source, relative in ((candidate / _HOOK, _HOOK), (baseline / _DRIVER, _DRIVER)):
+        payload = read_bounded_regular_file(source, MAX_PATCH_BYTES, "hook source")
+        (stage / relative.removeprefix("src/")).write_bytes(payload)
+
+
+def _run_hook(baseline: Path, candidate: Path, inputs: dict, deadline: float) -> dict:
+    """Run the hook in the strict sandbox: standard library only, no network or repository."""
+    with tempfile.TemporaryDirectory(prefix="thermo-hook-") as directory:
+        stage = Path(directory)
+        _stage_hook(baseline, candidate, stage)
+        argv = sandbox.hook_command(stage, "thermo_lab.improvement_harness.fixture_candidate")
+        return _run(argv, stage, {}, json.dumps(inputs, allow_nan=False), deadline)
+
+
+def _checked_parameters(output: dict, cap: float) -> list[float]:
+    values = output.get("parameters")
+    if set(output) != {"parameters"} or not isinstance(values, list) or len(values) != 9:
+        raise ValueError("hook must return exactly nine values")
+    for value in values:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError("hook values must be finite numbers")
+        if not math.isfinite(value):
+            raise ValueError("hook values must be finite numbers")
+        if abs(value) > cap:
+            raise ValueError("hook values must stay inside the parameter cap")
+    return values
 
 
 def evaluate_three_site(
@@ -146,17 +192,14 @@ def evaluate_three_site(
     deadline = time.monotonic() + min(
         plan.wall_seconds, seconds if seconds is not None else plan.wall_seconds, 1800
     )
-    parameters = _run_module(
-        candidate, "thermo_lab.improvement_harness.fixture_candidate", "", deadline
-    )
-    # A hook may write files while running; check again before trusting baseline imports.
+    reference = "thermo_lab.improvement_harness.fixture_reference"
+    inputs = _run_module(baseline, reference, json.dumps({"request": "inputs"}), deadline)
+    first = _run_hook(baseline, candidate, inputs, deadline)
+    if _run_hook(baseline, candidate, inputs, deadline) != first:
+        raise ValueError("hook output must be deterministic")
+    parameters = {"parameters": _checked_parameters(first, inputs["cap"])}
     _check_sources(plan, baseline, candidate)
-    result = _run_module(
-        baseline,
-        "thermo_lab.improvement_harness.fixture_reference",
-        json.dumps(parameters, allow_nan=False),
-        deadline,
-    )
+    result = _run_module(baseline, reference, json.dumps(parameters, allow_nan=False), deadline)
     _check_sources(plan, baseline, candidate)
     delta = result["delta"]
     outcome = "improved" if delta < plan.threshold else "regressed" if delta > 0 else "inconclusive"

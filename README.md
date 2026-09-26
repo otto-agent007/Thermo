@@ -37,7 +37,9 @@ its command and its limitations.
 ## Quick start
 
 Python 3.11 and [uv](https://docs.astral.sh/uv/) are the supported baseline.
-Everything runs on CPU without credentials or network access.
+Everything runs on CPU without credentials or network access. The
+improvement-harness tests also need Linux with bubblewrap
+(`sudo apt-get install bubblewrap`), which sandboxes candidate code.
 
 ```bash
 uv sync --frozen

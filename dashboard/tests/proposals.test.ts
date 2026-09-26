@@ -243,7 +243,7 @@ test("unknown baseline check catalog versions are unavailable", () =>
     const baseline = JSON.parse(
       await readFile(join(baselineDir, "result.json"), "utf8"),
     );
-    baseline.checks[0].catalog_version = 2;
+    baseline.checks[0].catalog_version = 3;
     await record(baselineDir, "result", baseline);
     await record(f.dir, "result", {
       ...f.result,

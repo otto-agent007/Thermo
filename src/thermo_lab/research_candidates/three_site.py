@@ -1,8 +1,11 @@
-"""Editable parameter proposal for the bounded three-site fixture only."""
+"""Editable parameter proposal for the bounded three-site fixture only.
 
-from thermo_lab.trajectory_reinforce import TrajectoryFixture
+The harness runs this hook in a sandbox holding only the Python standard
+library. It receives the checked initial parameters and the symmetric cap,
+never the scorer, and must return nine finite values inside the cap.
+"""
 
 
-def propose_parameters(fixture: TrajectoryFixture) -> tuple[float, ...]:
+def propose_parameters(parameters: tuple[float, ...], cap: float) -> tuple[float, ...]:
     """Start with the observed baseline; no scientific improvement is assumed."""
-    return fixture.model_parameters.values
+    return parameters

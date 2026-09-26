@@ -54,6 +54,11 @@ def create_candidate_worktree(repo: Path, baseline: str, candidate_id: str) -> P
     return worktree
 
 
+def remove_candidate_worktree(repo: Path, worktree: Path) -> None:
+    """Delete a finished worktree; its patch, logs and artifacts live in the record."""
+    _git(Path(repo).resolve(), "worktree", "remove", "--force", "--force", str(worktree))
+
+
 def parse_status_z(raw: bytes) -> list[str]:
     """Parse porcelain v1 -z, including both sides of rename/copy records."""
     if not raw:

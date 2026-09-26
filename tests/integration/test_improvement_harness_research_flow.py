@@ -5,6 +5,7 @@ import py_compile
 import shutil
 import struct
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -62,6 +63,25 @@ def evaluate(worktrees):
     return research.evaluate_three_site(*worktrees)
 
 
+def step_hook(sign):
+    """A hook returning one precomputed exact-gradient step as literal values."""
+    from thermo_lab.trajectory_reinforce import build_checked_fixture, build_exact_reference
+
+    fixture = build_checked_fixture()
+    gradient = build_exact_reference(fixture).score.shared
+    values = tuple(
+        float(v + sign * 0.25 * g)
+        for v, g in zip(fixture.model_parameters.values, gradient, strict=True)
+    )
+    return f"def propose_parameters(parameters, cap):\n    return {values!r}\n"
+
+
+def write_hook(worktrees, source):
+    hook = worktrees[2] / HOOK
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_text(source)
+
+
 def test_timed_out_fixture_cannot_leave_a_child_to_write_after_return(tmp_path):
     research = importlib.import_module("thermo_lab.improvement_harness.research")
     source = tmp_path / "src"
@@ -106,28 +126,9 @@ def test_default_candidate_is_observed_zero_not_improvement(worktrees):
     assert git(worktrees[1], "status", "--porcelain") == ""
 
 
-@pytest.mark.parametrize(
-    ("expression", "outcome"),
-    [
-        (
-            "tuple(v - 0.25 * g for v, g in zip(fixture.model_parameters.values, gradient))",
-            "improved",
-        ),
-        (
-            "tuple(v + 0.25 * g for v, g in zip(fixture.model_parameters.values, gradient))",
-            "regressed",
-        ),
-    ],
-)
-def test_valid_scientific_result_is_separate_from_verification(worktrees, expression, outcome):
-    hook = worktrees[2] / HOOK
-    hook.parent.mkdir(parents=True, exist_ok=True)
-    hook.write_text(
-        "from thermo_lab.trajectory_reinforce import build_exact_reference\n"
-        "def propose_parameters(fixture):\n"
-        "    gradient = build_exact_reference(fixture).score.shared\n"
-        f"    return {expression}\n"
-    )
+@pytest.mark.parametrize(("sign", "outcome"), [(-1, "improved"), (1, "regressed")])
+def test_valid_scientific_result_is_separate_from_verification(worktrees, sign, outcome):
+    write_hook(worktrees, step_hook(sign))
     result = evaluate(worktrees)
     assert result["research_outcome"] == outcome
     assert (result["delta"] < 0) == (outcome == "improved")
@@ -153,12 +154,69 @@ def test_candidate_reference_edit_is_rejected_before_execution(worktrees):
         evaluate(worktrees)
 
 
-@pytest.mark.parametrize("expression", ["(0.0,) * 8", "(float('nan'),) + (0.0,) * 8", "(3.0,) * 9"])
-def test_invalid_hook_output_is_rejected_by_frozen_reference(worktrees, expression):
-    hook = worktrees[2] / HOOK
-    hook.parent.mkdir(parents=True, exist_ok=True)
-    hook.write_text(f"def propose_parameters(fixture):\n    return {expression}\n")
+@pytest.mark.parametrize(
+    "expression",
+    [
+        "(0.0,) * 8",
+        "(float('nan'),) + (0.0,) * 8",
+        "(3.0,) * 9",
+        "(cap + 0.01,) + (0.0,) * 8",
+        "(True,) + (0.0,) * 8",
+    ],
+)
+def test_invalid_hook_output_is_rejected_before_scoring(worktrees, expression):
+    write_hook(worktrees, f"def propose_parameters(parameters, cap):\n    return {expression}\n")
     with pytest.raises(ValueError, match="nine|finite|cap|JSON"):
+        evaluate(worktrees)
+
+
+@pytest.mark.parametrize(
+    ("module", "message"),
+    [("thermo_lab.trajectory_reinforce_refinement", "No module"), ("numpy", "No module")],
+)
+def test_hook_cannot_import_the_scorer_or_numerical_packages(worktrees, module, message):
+    write_hook(
+        worktrees,
+        f"import {module}\ndef propose_parameters(parameters, cap):\n    return parameters\n",
+    )
+    with pytest.raises(ValueError, match=message):
+        evaluate(worktrees)
+
+
+def test_hook_sees_no_network_home_or_repository(worktrees):
+    repository = str(worktrees[1])
+    home = Path.home().resolve()
+    python = Path(sys.executable).resolve()
+    # Binding a Python install under $HOME creates only its empty parent path.
+    allowed = {python.relative_to(home).parts[0]} if python.is_relative_to(home) else set()
+    write_hook(
+        worktrees,
+        "import os, socket\n"
+        "def propose_parameters(parameters, cap):\n"
+        "    try:\n"
+        "        socket.create_connection(('1.1.1.1', 53), timeout=2)\n"
+        "        raise SystemExit('network reachable')\n"
+        "    except OSError:\n"
+        "        pass\n"
+        f"    if os.path.exists({repository!r}):\n"
+        "        raise SystemExit('repository visible')\n"
+        f"    home = {str(home)!r}\n"
+        f"    extra = set(os.listdir(home)) - {allowed!r} if os.path.isdir(home) else set()\n"
+        "    if extra:\n"
+        "        raise SystemExit(f'home visible: {sorted(extra)}')\n"
+        "    return parameters\n",
+    )
+    assert evaluate(worktrees)["delta"] == 0
+
+
+def test_nondeterministic_hook_is_rejected(worktrees):
+    write_hook(
+        worktrees,
+        "import random\n"
+        "def propose_parameters(parameters, cap):\n"
+        "    return tuple(random.uniform(-cap, cap) for _ in parameters)\n",
+    )
+    with pytest.raises(ValueError, match="deterministic"):
         evaluate(worktrees)
 
 
@@ -197,27 +255,25 @@ def test_baseline_scoring_ignores_untracked_bytecode_cache(worktrees, tmp_path):
 
 def test_stricter_predeclared_threshold_is_required_for_improvement(worktrees):
     plan, baseline, candidate = worktrees
-    (candidate / HOOK).write_text(
-        "from thermo_lab.trajectory_reinforce import build_exact_reference\n"
-        "def propose_parameters(fixture):\n"
-        "    gradient = build_exact_reference(fixture).score.shared\n"
-        "    return tuple(v - 0.25 * g for v, g in "
-        "zip(fixture.model_parameters.values, gradient))\n"
-    )
+    write_hook(worktrees, step_hook(-1))
     result = evaluate((plan.model_copy(update={"threshold": -1.0}), baseline, candidate))
     assert result["delta"] < 0
     assert result["research_outcome"] == "inconclusive"
 
 
-def test_candidate_runtime_reference_edit_is_rejected(worktrees):
-    (worktrees[2] / HOOK).write_text(
+def test_hook_cannot_write_the_repository(worktrees):
+    target = worktrees[2] / "src/thermo_lab/trajectory_reinforce_refinement.py"
+    original = target.read_bytes()
+    write_hook(
+        worktrees,
         "from pathlib import Path\n"
-        "def propose_parameters(fixture):\n"
-        "    Path('src/thermo_lab/trajectory_reinforce_refinement.py').write_text('')\n"
-        "    return fixture.model_parameters.values\n"
+        "def propose_parameters(parameters, cap):\n"
+        f"    Path({str(target)!r}).write_text('')\n"
+        "    return parameters\n",
     )
-    with pytest.raises(ValueError, match="protected"):
+    with pytest.raises(ValueError, match="fixture subprocess failed"):
         evaluate(worktrees)
+    assert target.read_bytes() == original
 
 
 @pytest.mark.parametrize(
@@ -266,13 +322,18 @@ def test_explicit_remaining_budget_preserves_frozen_plan(worktrees, monkeypatch)
 
     def module(worktree, name, payload, deadline):
         deadlines.append(deadline)
-        if name.endswith("fixture_candidate"):
-            return {"parameters": [0.0] * 9}
+        if payload == '{"request": "inputs"}':
+            return {"parameters": [0.0] * 9, "cap": 2.0}
         return {"delta": 0.0, "evidence": "exact_reference"}
 
+    def hook(baseline, candidate, inputs, deadline):
+        deadlines.append(deadline)
+        return {"parameters": inputs["parameters"]}
+
     monkeypatch.setattr(research, "_run_module", module)
+    monkeypatch.setattr(research, "_run_hook", hook)
     research.evaluate_three_site(plan, baseline, candidate, seconds=0.25)
-    assert deadlines == [100.25, 100.25]
+    assert deadlines == [100.25] * 4
     assert plan.model_dump_json() == original
     with pytest.raises(TimeoutError, match="wall time"):
         research.evaluate_three_site(plan, baseline, candidate, seconds=0)
@@ -285,14 +346,7 @@ def test_cli_manual_research_uses_real_exact_comparison(worktrees, tmp_path, mon
 
     plan, baseline, candidate = worktrees
     monkeypatch.chdir(baseline)
-    hook = candidate / HOOK
-    hook.write_text(
-        "from thermo_lab.trajectory_reinforce import build_exact_reference\n"
-        "def propose_parameters(fixture):\n"
-        "    gradient = build_exact_reference(fixture).score.shared\n"
-        "    return tuple(v - 0.25 * g for v, g in "
-        "zip(fixture.model_parameters.values, gradient))\n"
-    )
+    write_hook(worktrees, step_hook(-1))
     patch = tmp_path / "manual.diff"
     patch.write_text(git(candidate, "diff", "--binary") + "\n")
     recommendation = tmp_path / "recommendation.md"

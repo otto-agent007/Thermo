@@ -22,7 +22,7 @@ from thermo_lab.improvement_harness.limits import (
 )
 from thermo_lab.improvement_harness.plan import Plan, load_plan, plan_digest
 from thermo_lab.improvement_harness.proposer import build_proposer_prompt, run_codex
-from thermo_lab.improvement_harness.research import claim_heldout, evaluate_three_site
+from thermo_lab.improvement_harness.research import evaluate_three_site
 from thermo_lab.improvement_harness.store import (
     _json_bytes,
     _plan_lock,
@@ -41,6 +41,7 @@ from thermo_lab.improvement_harness.workspace import (
     import_manual_patch,
     is_allowed_path,
     parse_status_z,
+    remove_candidate_worktree,
 )
 
 _HOOK = "src/thermo_lab/research_candidates/three_site.py"
@@ -161,6 +162,9 @@ def _validate_preset(plan: Plan) -> None:
             and plan.primary_metric == "exact_objective_delta"
             and plan.direction == "lower"
             and plan.threshold <= 0
+            # No research evaluator has held-out inputs yet, so a declared
+            # role would only reuse the development comparison.
+            and plan.heldout_role is None
         )
     if not valid:
         raise ValueError("plan does not match the fixed track preset")
@@ -343,9 +347,6 @@ def run_candidate(
         with _plan_lock(plan_dir, plan_digest(plan)):
             _freeze_plan(plan_dir, plan)
             parent_record = _parent(root, parent, plan)
-            heldout_dir = root / "heldout" / plan_digest(plan).removeprefix("sha256:")
-            if plan.track == "research" and heldout_dir.exists() and any(heldout_dir.iterdir()):
-                raise ValueError("held-out role already exposed under this plan; use a new plan")
             seconds = _remaining_budget(plan_dir, plan)
             if seconds <= 0:
                 raise TimeoutError("plan wall time exhausted")
@@ -373,14 +374,17 @@ def run_candidate(
                 "checks": [],
                 "started_at": datetime.now(UTC).isoformat(),
             }
+            worktrees: list[Path] = []
             try:
                 _freeze_plan(directory, plan)
                 baseline_worktree = create_candidate_worktree(
                     repo, plan.baseline_commit, str(uuid.uuid4())
                 )
+                worktrees.append(baseline_worktree)
                 candidate_worktree = create_candidate_worktree(
                     repo, plan.baseline_commit, candidate.id
                 )
+                worktrees.append(candidate_worktree)
                 result["source_state"] = {
                     "baseline_worktree": str(baseline_worktree),
                     "candidate_worktree": str(candidate_worktree),
@@ -463,9 +467,6 @@ def run_candidate(
                         f"candidate/{name}": digest for name, digest in result["artifacts"].items()
                     }
                 else:
-                    if plan.heldout_role:
-                        claim_heldout(root, plan_digest(plan), plan.heldout_role, candidate.id)
-                        result["heldout_role"] = plan.heldout_role
                     science = evaluate_three_site(
                         plan, baseline_worktree, candidate_worktree, seconds=remaining()
                     )
@@ -508,6 +509,11 @@ def run_candidate(
                 elapsed = time.monotonic() - started
                 with run_path.with_suffix(".finished").open("x", encoding="ascii") as file:
                     file.write(str(elapsed))
+                for worktree in worktrees:
+                    try:
+                        remove_candidate_worktree(repo, worktree)
+                    except (OSError, subprocess.SubprocessError) as error:
+                        print(f"thermo-harness: worktree not removed: {error}", file=sys.stderr)
             artifacts = result.setdefault("artifacts", {})
             for name in ("plan.json", "recommendation.md", "patch.diff"):
                 artifact = directory / name

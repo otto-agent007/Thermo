@@ -14,10 +14,10 @@ const check = z.object({
   execution,
   verification,
 });
-// Mirrors CheckResult v1 in improvement_harness/checks.py; logs never enter the response.
+// Mirrors CheckResult v1/v2 in improvement_harness/checks.py; logs never enter the response.
 const fullCheck = check
   .extend({
-    catalog_version: z.literal(1),
+    catalog_version: z.union([z.literal(1), z.literal(2)]),
     argv: z.array(z.string()).min(1).max(20),
     exit_status: z.number().int().nullable(),
     duration_seconds: z.number().min(0),
