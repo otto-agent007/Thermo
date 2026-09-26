@@ -12,12 +12,18 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from thermo_lab.improvement_harness import sandbox
 from thermo_lab.improvement_harness.plan import Plan
 
-CATALOG_VERSION = 1
+CATALOG_VERSION = 2
 _LOG_BYTES = 65536
 _TAIL_CHARACTERS = 4096
 _COMMAND_CAP_SECONDS = 300
+
+# The dependency step installs only protected, lockfile-pinned packages and needs
+# the network. Every later step can execute candidate code, so it runs in the
+# check sandbox with no network, a read-only host and a hidden $HOME.
+_DEPENDENCY_ENV = ("PATH", "HOME", "LANG", "LC_ALL", "TERM")
 
 # name, argv, cwd relative to the supplied repository worktree
 CATALOG: dict[str, tuple[tuple[str, tuple[str, ...], str], ...]] = {
@@ -42,6 +48,11 @@ CATALOG: dict[str, tuple[tuple[str, tuple[str, ...], str], ...]] = {
             ".",
         ),
         (
+            "candidate_hook",
+            ("uv", "run", "pytest", "tests/unit/test_research_candidate_hook.py", "-q"),
+            ".",
+        ),
+        (
             "focused_tests",
             ("uv", "run", "pytest", "tests/unit/test_trajectory_reinforce_refinement.py", "-q"),
             ".",
@@ -56,7 +67,7 @@ class CheckResult(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    catalog_version: Literal[1]
+    catalog_version: Literal[1, 2]
     name: str = Field(min_length=1)
     argv: tuple[str, ...] = Field(min_length=1)
     exit_status: int | None
@@ -256,17 +267,29 @@ def run_checks(
             execution, verification = "timed_out", "inconclusive"
         else:
             try:
+                if name == "dependencies":
+                    command, env = (
+                        list(argv),
+                        {key: os.environ[key] for key in _DEPENDENCY_ENV if key in os.environ},
+                    )
+                else:
+                    command = sandbox.check_command(list(argv), worktree=cwd, cwd=command_cwd)
+                    env = None
                 completed = runner(
-                    list(argv),
+                    command,
                     cwd=command_cwd,
                     timeout=remaining_seconds,
                     shell=False,
                     capture_output=True,
+                    env=env,
                 )
                 exit_status = completed.returncode
                 stdout, stderr = _bytes(completed.stdout), _bytes(completed.stderr)
                 if exit_status == 0:
                     execution, verification = "complete", "passed"
+                elif name != "dependencies" and stderr.startswith(b"bwrap:"):
+                    # The sandbox itself failed to start; never blame the candidate.
+                    execution, verification = "unavailable", "inconclusive"
                 elif name == "browser" and _missing_browser(stderr, stdout):
                     execution, verification = "unavailable", "inconclusive"
                 elif name == "dependencies" and _missing_dependency(argv[0], stderr):
@@ -276,7 +299,7 @@ def run_checks(
             except subprocess.TimeoutExpired as error:
                 stdout, stderr = _bytes(error.stdout), _bytes(error.stderr)
                 execution, verification = "timed_out", "inconclusive"
-            except FileNotFoundError as error:
+            except (FileNotFoundError, sandbox.SandboxUnavailable) as error:
                 stderr = str(error).encode("utf-8", errors="replace")
                 execution, verification = "unavailable", "inconclusive"
         duration = time.monotonic() - started

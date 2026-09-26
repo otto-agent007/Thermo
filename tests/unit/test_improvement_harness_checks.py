@@ -3,10 +3,17 @@ import subprocess
 import sys
 import time
 import uuid
+from pathlib import Path
 
 import pytest
 
-from thermo_lab.improvement_harness.checks import _bounded_run, compare_baseline, run_checks
+from thermo_lab.improvement_harness import sandbox
+from thermo_lab.improvement_harness.checks import (
+    CATALOG_VERSION,
+    _bounded_run,
+    compare_baseline,
+    run_checks,
+)
 from thermo_lab.improvement_harness.plan import Plan
 from thermo_lab.improvement_harness.store import create_candidate, record_result
 
@@ -55,7 +62,7 @@ def test_passing_catalog_commands_use_fixed_argv_cwd_and_bounded_logs(tmp_path):
     assert all(call[1]["shell"] is False and call[1]["capture_output"] is True for call in calls)
     assert all(0 < call[1]["timeout"] <= 120 for call in calls)
     assert all(check.execution == "complete" and check.verification == "passed" for check in checks)
-    assert all(check.catalog_version == 1 for check in checks)
+    assert all(check.catalog_version == CATALOG_VERSION == 2 for check in checks)
     assert len(checks[0].log_tail) <= 4096
     raw = (record_dir / checks[0].log_path).read_bytes()
     assert len(raw) <= 65536
@@ -301,3 +308,68 @@ def test_store_rejects_malformed_typed_check_even_with_valid_top_level_status(tm
                 "checks": [malformed],
             },
         )
+
+
+def test_dependency_step_gets_network_but_allowlisted_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("GH_TOKEN", "secret")
+    calls = []
+
+    def passing(argv, **kwargs):
+        calls.append((argv, kwargs))
+        return subprocess.CompletedProcess(argv, 0, stdout=b"", stderr=b"")
+
+    run_checks("research", tmp_path, 120, runner=passing, record_dir=tmp_path / "record")
+    dependency_argv, dependency_kwargs = calls[0]
+    assert dependency_argv == ["uv", "sync", "--frozen"]
+    assert "GH_TOKEN" not in dependency_kwargs["env"]
+    assert set(dependency_kwargs["env"]) <= {"PATH", "HOME", "LANG", "LC_ALL", "TERM"}
+
+
+@pytest.mark.parametrize("track", ["research", "dashboard"])
+def test_every_step_after_dependencies_runs_in_the_sandbox(tmp_path, monkeypatch, track):
+    monkeypatch.setenv("GH_TOKEN", "secret")
+    monkeypatch.setattr(sandbox, "_bwrap", lambda: "/usr/bin/bwrap")
+    calls = []
+
+    def passing(argv, **kwargs):
+        calls.append(argv)
+        return subprocess.CompletedProcess(argv, 0, stdout=b"", stderr=b"")
+
+    checks = run_checks(track, tmp_path, 120, runner=passing, record_dir=tmp_path / "record")
+    assert len(checks) == len(calls) > 1
+    for argv, check in zip(calls[1:], checks[1:], strict=True):
+        assert argv[0] == "/usr/bin/bwrap"
+        assert argv[argv.index("--") + 1 :] == list(check.argv)
+        for flag in ("--unshare-all", "--clearenv", "--new-session", "--die-with-parent"):
+            assert flag in argv
+        assert ["--tmpfs", str(Path.home())] == argv[argv.index(str(Path.home())) - 1 :][:2]
+        assert "GH_TOKEN" not in argv and "secret" not in argv
+
+
+def test_missing_sandbox_is_unavailable_not_a_candidate_failure(tmp_path, monkeypatch):
+    def missing():
+        raise sandbox.SandboxUnavailable("sandbox unavailable: bwrap missing")
+
+    monkeypatch.setattr(sandbox, "_bwrap", missing)
+
+    def passing(argv, **kwargs):
+        return subprocess.CompletedProcess(argv, 0, stdout=b"", stderr=b"")
+
+    checks = run_checks("research", tmp_path, 120, runner=passing, record_dir=tmp_path / "record")
+    assert checks[0].verification == "passed"
+    assert all(check.execution == "unavailable" for check in checks[1:])
+    assert all(check.verification == "inconclusive" for check in checks[1:])
+
+
+def test_sandbox_setup_failure_is_unavailable(tmp_path):
+    def setup_failure(argv, **kwargs):
+        if argv[0] == "uv":
+            return subprocess.CompletedProcess(argv, 0, stdout=b"", stderr=b"")
+        return subprocess.CompletedProcess(
+            argv, 1, stdout=b"", stderr=b"bwrap: setting up uid map: Permission denied\n"
+        )
+
+    checks = run_checks(
+        "research", tmp_path, 120, runner=setup_failure, record_dir=tmp_path / "record"
+    )
+    assert all(check.execution == "unavailable" for check in checks[1:])

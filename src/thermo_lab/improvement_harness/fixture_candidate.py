@@ -1,15 +1,19 @@
-"""Protected subprocess entry point for extracting the editable candidate hook."""
+"""Protected driver staged beside the editable hook inside the hook sandbox.
+
+The sandbox holds only the standard library and the staged hook package, so
+the hook receives plain inputs and cannot import the scorer.
+"""
 
 import json
+import sys
 
 from thermo_lab.research_candidates.three_site import propose_parameters
-from thermo_lab.trajectory_reinforce import build_checked_fixture
 
 
 def main() -> None:
-    fixture = build_checked_fixture()
-    values = propose_parameters(fixture)
-    print(json.dumps({"parameters": values}, allow_nan=False))
+    payload = json.load(sys.stdin)
+    values = propose_parameters(tuple(payload["parameters"]), payload["cap"])
+    print(json.dumps({"parameters": list(values)}, allow_nan=False))
 
 
 if __name__ == "__main__":

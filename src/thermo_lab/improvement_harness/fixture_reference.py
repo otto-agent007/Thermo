@@ -30,8 +30,17 @@ def score_parameters(parameters: object) -> dict:
     }
 
 
+def checked_inputs() -> dict:
+    """The only fixture data the sandboxed hook receives."""
+    fixture = build_checked_fixture()
+    return {"parameters": list(fixture.model_parameters.values), "cap": fixture.parameter_cap}
+
+
 def main() -> None:
     payload = json.load(sys.stdin)
+    if payload == {"request": "inputs"}:
+        print(json.dumps(checked_inputs(), allow_nan=False))
+        return
     if not isinstance(payload, dict) or set(payload) != {"parameters"}:
         raise ValueError("expected a parameters JSON object")
     print(json.dumps(score_parameters(payload["parameters"]), allow_nan=False))
