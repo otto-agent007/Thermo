@@ -728,6 +728,8 @@ jobs:
           enable-cache: true
       - name: Install frozen environment
         run: uv sync --frozen
+      - name: Install the improvement-harness sandbox
+        run: sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
       - name: Run test shard
         run: ${{ matrix.command }}
 

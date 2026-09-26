@@ -5,7 +5,30 @@ adopt changes, commit candidates, push, merge, publish, or release research.
 Start from a clean committed checkout with Python dependencies installed using
 `uv sync --frozen`. Dashboard candidates also require Node, npm dependencies,
 and the Chromium version expected by the pinned Playwright package; see the
-[dashboard setup](../dashboard/README.md).
+[dashboard setup](../dashboard/README.md). Linux with
+[bubblewrap](https://github.com/containers/bubblewrap) (`bwrap`) is required;
+on Ubuntu, `sudo apt-get install bubblewrap`.
+
+## Sandboxing
+
+Every command that can execute candidate code runs under `bwrap` and fails
+closed: if the sandbox is missing or cannot start, the check or hook is
+recorded as `unavailable` and verification stays `inconclusive`, never failed.
+
+| Command | Network | Writable | Visible |
+| --- | --- | --- | --- |
+| Codex proposer | none | candidate worktree | Codex's own `workspace-write` sandbox |
+| Research hook | none | nothing | system libraries, the Python standard library, and a staged copy of the hook plus its protected driver |
+| Checks after `dependencies` | loopback only | the worktree | host filesystem read-only; `$HOME`, `/run` and `/tmp` replaced by empty mounts except the toolchain's install directories |
+| `dependencies` (`uv sync`, `npm ci`) | yes | normal | unsandboxed, with an allowlisted environment (`PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM`) |
+
+The dependency step is the one exception because it needs the network. It runs
+only protected, lockfile-pinned installs; candidates cannot edit
+`pyproject.toml`, `uv.lock` or `dashboard/package*.json`. Files outside `$HOME`
+stay readable to checks, but with no network and no writable path outside the
+worktree they cannot leave the machine except through the bounded logs and patch
+that the owner reviews. Every sandboxed environment is cleared and rebuilt from
+an allowlist, so credentials in environment variables never reach candidate code.
 
 ## Freeze a plan and evaluate a patch
 
@@ -34,7 +57,7 @@ separate baseline and candidate worktrees, checks the patch allowlist, retains
 observations and prints the candidate ID. Neither passing checks nor a zero
 process exit constitutes acceptance.
 Plan objectives are limited to 8,000 UTF-8 bytes so the dashboard can read the
-frozen request. Held-out role names must be at most 128 safe ASCII characters.
+frozen request.
 
 For a bounded research candidate, use `--track research` with `init-plan` and
 supply its patch and recommendation to `run` in the same way. The presets are:
@@ -42,11 +65,15 @@ supply its patch and recommendation to `run` in the same way. The presets are:
 | Track | Editable scope | Comparison |
 | --- | --- | --- |
 | Dashboard | `dashboard/src/` | Dependency install, unit tests, typecheck, static build and browser checks; owner visual review remains required. |
-| Research | `src/thermo_lab/research_candidates/three_site.py` | Nine finite parameters within the existing fixture's bounds, scored against the frozen three-site exact objective, plus dependency, fixture, focused-test and Ruff checks. |
+| Research | `src/thermo_lab/research_candidates/three_site.py` | Nine finite, deterministic parameters within the existing fixture's cap, scored against the frozen three-site exact objective, plus dependency, fixture, hook-contract, focused-test and Ruff checks. |
 
-Research code implements `propose_parameters(fixture) -> tuple[float, ...]`.
-The initial hook returns unchanged baseline parameters: its observed delta is
-zero and its outcome is inconclusive. A strictly negative delta passes the
+Research code implements `propose_parameters(parameters, cap) -> tuple[float, ...]`,
+receiving the checked initial parameters and the symmetric cap as plain values.
+The hook runs with only the Python standard library: it cannot import the
+scorer, `thermo_lab` internals, NumPy or SciPy. The harness runs it twice and
+rejects different outputs, then checks for nine finite numbers inside the cap
+before the baseline worktree scores them. The initial hook returns unchanged
+baseline parameters: its observed delta is zero and its outcome is inconclusive. A strictly negative delta passes the
 preset improvement threshold; a positive delta is regressed. This is only a
 three-site `exact_reference` trial, with no full-program, inference-budget,
 convergence, simulation-speed, physical-device or scientific-release claim.
@@ -56,9 +83,10 @@ Each generated preset starts with a limit of two candidates and 1,800 seconds
 of cumulative active execution per plan. A retry consumes another slot; failed
 runs remain inspectable. Before its first run, review the plan JSON and reduce its budget
 if needed; there is no CLI budget-override flag. Once frozen, the plan cannot
-be edited. An optional research held-out role is reserved once; exposing it prevents more
-research candidates under that plan, including children. Changing a plan must
-not be used to treat exposed held-out evidence as fresh evidence.
+be edited. The research preset rejects plans that declare `heldout_role`: the
+three-site fixture has no held-out data, so a role would only relabel the
+development comparison. Held-out evaluation returns with an evaluator that has
+genuinely held-out inputs.
 
 Omit both manual-input options to use the installed local Codex proposer. It
 must support the adapter's strict configuration and restricted sandbox flags;
@@ -80,7 +108,9 @@ Each candidate directory retains its frozen plan, request, recommendation,
 The result binds plan, patch and evidence hashes, command arguments, bounded
 logs, durations and the baseline observation. Failed early attempts may lack
 a patch or recommendation. Local records can contain diagnostics and absolute
-worktree paths; keep them out of tracked files and published snapshots. A
+worktree paths; keep them out of tracked files and published snapshots. Both
+worktrees are removed when a run finishes; everything the review needs is in
+the candidate record. A
 candidate's Git HEAD stays at the baseline; its patch digest identifies the
 uncommitted proposed change.
 
