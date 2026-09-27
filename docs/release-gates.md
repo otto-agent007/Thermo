@@ -396,18 +396,31 @@ including the archived-evidence replay without refitting.
 ## M5a: exact meta-EBM cap baseline
 
 Follow `docs/experiments/meta-ebm-cap-baseline.md`. Run the full CPU study with
-`uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline --workers 2`
-in a fresh directory. Require ten targets (both readings, five seeds), nine
+`uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline --workers 4 --fit-workers 8`
+in a fresh directory. If interrupted, resume in that same directory with the
+same command plus `--resume`; the runner authenticates its checkpoint against
+the frozen request and implementation hashes. Require ten targets (both
+readings, five seeds), nine
 caps, both compile methods, all 180 chains, zero samples, passing integrity,
-and full persisted replay before completion. Preserve the frozen scientific
-choices; a negative descriptive outcome is valid evidence.
+and full persisted replay before completion. `--workers` limits the dense
+mixing and chain phases; `--fit-workers` only increases independent fitting
+concurrency. The run log and status record explain caught failures and the last
+known phase after an uncatchable stop. Checkpoints are recovery data, not
+evidence. Autosave recovery coverage is
+`uv run pytest tests/unit/test_meta_ebm_cap_baseline.py -k 'run_checkpoints_completed_work_and_resumes_without_repeating_it or resume_rejects_checkpoint_for_changed_request_before_work' -q`.
+If final replay is interrupted, it restarts from the durable generated archive;
+it never refits or loses generated results, but repeats replay computation.
+Preserve the frozen scientific choices; a negative descriptive outcome is
+valid evidence.
 
-The protocol's archive-backed CI replay coverage is a release requirement,
-not a claim that an archive already exists. Until a full valid run is
-recorded, component tests establish implementation behavior only. The first
-archival PR must pin the request, replay persisted evidence without refitting,
-and exercise the protocol's ordinary/slow replay coverage. A recovered archive
-must retain its original generation provenance separately from new replay
+The recorded archive and report are under
+`docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/`. The ordinary unit
+test `test_recorded_archive_pins_request_result_and_provenance` pins the
+request and archive metadata. The slow CI job runs
+`test_recorded_archive_replays_stored_parameters_without_refitting`, which
+replays archived metrics for one target and its 18 chains without new fits;
+the full ten-target replay was completed locally. A recovered archive must
+retain its original generation provenance separately from new replay
 provenance. Never reconstruct missing provenance by guessing.
 
 The continuous-research wrapper additionally binds source, environment,

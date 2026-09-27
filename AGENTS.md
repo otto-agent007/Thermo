@@ -44,7 +44,7 @@ preparing for future TSU hardware. Correct evidence labeling is a release gate.
 - Notebooks may visualize or call library code later; they must not become the
   sole source of an algorithm.
 
-## Shared project state (updated 2026-09-26)
+## Shared project state (updated 2026-09-27)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -52,9 +52,11 @@ preparing for future TSU hardware. Correct evidence labeling is a release gate.
   `L00 · L01 ≈ e^(-4c)` on leakage. Raising the cap and adding one kernel
   feature brought S(500) to 89.6%, still short of 95%. Don't propose more
   conservation pilots unless the owner reopens the line.
-- **M5a is underway:** PR #52 merged its frozen cap-baseline protocol and CPU runner.
-  Recorded full-study evidence is still pending. The parent milestone is
-  `docs/experiments/topology-aware-meta-ebm.md`.
+- **M5a is recorded:** PR #52 merged its frozen protocol and CPU runner. The
+  full ten-target, 180-chain exact-reference study and replay are archived in
+  `docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/`. This is the
+  fully connected baseline; topology and hardware measurements remain open.
+  The parent milestone is `docs/experiments/topology-aware-meta-ebm.md`.
 - Charter tracks that haven't started yet (`PROJECT_CHARTER.md`): native THRML
   algorithms (Potts, associative memory, Max-Cut), and Torx Bayesian and
   state-space inference. When you're choosing what comes after M5, look here
@@ -84,6 +86,23 @@ as given. To avoid a repeat:
 
 ## Engineering habits
 
+- **Autosave every experiment.** New experiment runners must atomically persist
+  each completed independent data-generation unit (for example, a seed, target,
+  or batch) and the current phase to their output directory, and resume from
+  the latest valid checkpoint after interruption. Choose checkpoint
+  granularity so a stop cannot discard a long-running unit's accumulated work.
+  Bind reusable checkpoints to the canonical request and relevant
+  implementation/source hashes; reject mismatches instead of silently reusing
+  work. Record attempts, progress, and caught errors in durable status/log
+  files. For long runs, capture available CPU and memory limits and OOM
+  counters. Test interruption and resume, including preservation of completed
+  work and rejection of a changed request. During validation, checkpoint
+  completed units when practical; otherwise the gate must name the verified
+  persisted archive as the recovery boundary and ensure resume never repeats
+  data generation. Replay persisted evidence before writing `completion.json`,
+  and retain recovery data until that validation succeeds. Use the M5a runner
+  as the generation-checkpoint reference; keep checkpoint payloads
+  study-specific and don't edit hash-bound sources to add recovery behavior.
 - **Reuse the shared provenance layer**: `hashing.py` (`canonical_json`,
   `canonical_sha256`), `records.py`, `provenance.py`, `persistence.py`
   (`atomic_write_text`), `evidence.py`. Don't write another per-study
@@ -207,6 +226,11 @@ The full requirements for each study gate are in
 the study's frozen protocol under `docs/experiments/`, before running,
 changing or reviewing a study. Every gate shares these conventions:
 
+- Autosave completed work units and support safe resume as required by the
+  **Autosave every experiment** engineering rule above. A study-specific gate
+  must state its checkpoint/resume command and interruption test. If replay
+  restarts from a durable archive instead of a validation checkpoint, state
+  that recovery boundary and confirm no generated evidence is lost.
 - Use a fresh output directory. Replay all persisted evidence before
   reporting, and write `completion.json` last.
 - Authenticate archived sources by hash. Never substitute regenerated
@@ -241,7 +265,7 @@ M1 sources come from the composed trajectory-refinement gate above
 | Survival audit | `python -m thermo_lab.survival_gradient_audit` → `survival-gradient-audit` | 21 fits, zero new fits/samples |
 | Fixture objective | `python -m thermo_lab.fixture_objective_study` → `fixture-objective-study` | six arms, zero samples |
 | M4H | `python -m thermo_lab.raised_cap_screen` → `raised-cap-path-kl-screen` | three arms; ~25 min, CI replays archive only |
-| M5a | `python -m thermo_lab.meta_ebm_cap_baseline` → `meta-ebm-cap-baseline` | ten targets, 180 chains, zero samples, full replay; recorded archive pending |
+| M5a | `python -m thermo_lab.meta_ebm_cap_baseline` → `meta-ebm-cap-baseline` | ten targets, 180 chains, zero samples, full replay; recorded exact-reference archive |
 | M4I | `python -m thermo_lab.kernel_capacity_screen` → `kernel-capacity-screen` | four arms; CI replays archive only |
 
 Prefix every command with `uv run`. The M4B sources are extracted from the
