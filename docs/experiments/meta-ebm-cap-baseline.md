@@ -150,22 +150,58 @@ These are reported for every target and cap, with no pass/fail:
 
 ## Execution and records
 
-Run with `uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline`
-and a fresh destination; `--workers` must not change the record. Work runs on
-CPU in NumPy/SciPy float64; JAX is not used. Library versions are recorded as
-runtime provenance, outside the request identity.
+Start a fresh run with
+`uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline --workers 4 --fit-workers 8`.
+If it stops, continue in that same directory by adding `--resume`. Resume checks
+the frozen request and implementation source hashes before reusing any saved
+work. `--workers` sets concurrency for dense mixing scans and chain evaluation;
+`--fit-workers` sets concurrency for independent site fits and defaults to
+`--workers`. These execution settings may change on resume and must not change
+the record. Work runs on CPU in NumPy/SciPy float64; JAX is not used. Each
+attempt's library versions and worker counts are recorded in runtime
+provenance, outside the request identity. Resume permits worker-count changes
+but requires the same Python, NumPy and SciPy versions as the checkpoint.
 
 The canonical request binds the seeds, readings, caps, compile budgets,
-tolerances and dtype. Outputs are one `study.json.gz` record (targets,
-parameters, all metrics above), `summary.md`, runtime provenance and
-`completion.json`. Dense matrices and δ̃ traces beyond t = 30 are not
-persisted.
+tolerances and dtype. During an unfinished run, `execution-checkpoint.json.gz`
+atomically saves each completed mixing target, batches of 24 fit jobs, batches
+of four chain evaluations, and each ideal check. The checkpoint accumulates
+elapsed generation time and per-attempt runtime details. `run-status.json`
+records the phase, most recent progress, checkpoint counts, and any caught
+error and traceback; `run.log` keeps flushed UTC progress and errors. Resource
+snapshots include cgroup memory and CPU counters and memory-event counts; on
+resume after an unexpected stop, compare the before/after OOM counters to see
+whether the cgroup recorded an OOM event. If the process ends without writing a
+terminal status, the next `--resume` records that the prior attempt ended
+unexpectedly and preserves its last known phase and progress.
+An exclusive per-output lock prevents simultaneous runs from interleaving
+checkpoint, provenance, or completion writes; the OS releases it when a process
+exits.
+If a complete generated archive already exists, `--resume` retries its full
+persisted replay instead of regenerating it. Checkpoints and logs are
+operational recovery data, not study evidence. The final replay is not
+checkpointed by validation unit: if it is interrupted, `--resume` restarts
+validation from the durable `study.json.gz` archive. It does not refit sites or
+regenerate the archive, so scientific results are preserved, though completed
+replay time is repeated. The run is complete only after the entire persisted
+archive passes replay and `completion.json` is written.
+To retry replay of an existing generated archive in a separate output
+directory, use `--replay-from SOURCE --output-dir DEST`; if that replay stops,
+repeat the command with `--resume` to retry from the saved archive. The named
+source archive must still match the archive saved in the destination.
 
-Following [CLAUDE.md](../../CLAUDE.md), CI runs a unit test that pins the
-request and replays the archived metrics from the stored parameters, without
-refitting. The Dobrushin and spectral scans cost about two minutes per target,
-so the ordinary unit job replays them for none and the `slow` job replays one
-target. The full local replay covers all ten. The full run stays a local gate.
+Final outputs are one `study.json.gz` record (targets, parameters, all metrics
+above), `summary.md`, runtime provenance and `completion.json`. Dense matrices
+and δ̃ traces beyond t = 30 are not persisted.
+
+Following [CLAUDE.md](../../CLAUDE.md), the ordinary unit job pins the archived
+request, result, completion and provenance digests, validates the fit ledger,
+and re-evaluates all 1,080 selected fit objectives from stored parameters. The
+`slow` job replays the
+archived metrics from stored parameters, without refitting, for one mixing
+target and its 18 chains. The Dobrushin and spectral scans cost about two
+minutes per target; the full local replay covers all ten. The full generation
+run stays a local gate.
 The expected cost is about one to two CPU-hours; the report records the
 measured time.
 
@@ -179,6 +215,62 @@ M5a does not claim:
 - optimality of either compile method.
 
 Hidden-spin and parameter counts are logical counts, not device operations.
+
+## Dated amendments
+
+### September 26, 2026 — separate fit concurrency and progress reporting
+
+An exploratory CPU profile on the available 8-CPU-equivalent, 8-GiB runner
+measured 90 representative fit jobs (one site per target and cap, with the
+production optimizer starts and map chunk size). The fit result hash was
+identical at each worker count. Wall time fell from 543 s at one worker to
+304 s at two and 129 s at eight; eight fit workers added about 358 MiB peak
+process-tree memory in this profile. A separate single-target dense mixing
+scan took 309 s and added about 1.19 GiB peak memory. The subsequent ten-target
+mixing phase took about 23.5 minutes at two workers and peaked near 4.55 GiB
+total cgroup memory, with no OOM event. The eight-worker fit phase started and
+remained CPU-saturated at about 2.5 GiB total memory, but the run stopped before
+fitting completed. The earlier release-gate recommendation was
+`--workers 2 --fit-workers 8`; the September 27 matrix probe below supports
+raising matrix concurrency to four. These settings change only scheduling and
+do not alter scientific choices or results. These are exploratory runtime
+observations, not a study result or hardware claim.
+Generation and replay now print UTC timestamped progress for each mixing target
+and at ten-percent intervals for site fits and chain evaluations. This is
+operational visibility only and does not change the scientific record.
+
+### September 27, 2026 — durable checkpointing and four-worker matrix profile
+
+A four-worker matrix probe completed targets A0, A1, B0 and B1 in 337.5 s,
+using 3.75 CPU-equivalents and peaking at 6.33 GiB total cgroup memory from a
+2.02 GiB baseline. A0's Dobrushin and SLEM values exactly matched the prior
+single-worker profile. This supports four simultaneous matrix workers on this
+8 GiB runner, with about 1.67 GiB headroom in the measured probe; it does not
+guarantee the same peak for every target set and remains exploratory runtime
+evidence.
+
+Generation now checkpoints completed matrix targets, fit batches, chain
+results, and ideal checks atomically. `--resume` verifies the full frozen
+request, including source hashes, before reusing a checkpoint. A durable status
+file and flushed run log capture phase progress and caught exceptions. A stop
+that cannot be caught by the process is marked as unexpected on the next
+resume, with its cause left unknown. Resumed generation still must pass full
+persisted replay before completion; checkpoints are not scientific evidence.
+The run log and status cover replay-only attempts as well. A completion marker
+written just before an interruption is revalidated and reconciled on resume.
+
+### September 27, 2026 — CI replay coverage
+
+The frozen text said the ordinary unit job would replay the archived metrics
+from stored parameters for every target, with only the Dobrushin and spectral
+scans left to the `slow` job. Chain evaluation needs a dense stationary solve
+per chain. The one-target `slow` test takes about 205 s with four workers,
+about two minutes of it mixing scans, so replaying all 180 chains would
+take tens of CPU-minutes and does not fit the unit job. The ordinary job instead replays every selected fit objective (under a
+second). The `slow` job replays one target's mixing scans and all 18 of its
+chains. The full ten-target replay remains the local gate and passed before
+`completion.json` was written. This changes test coverage only, not the
+scientific record.
 
 ## Later M5 stages
 

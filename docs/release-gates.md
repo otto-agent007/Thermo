@@ -392,3 +392,40 @@ before completion. Import M4H helpers rather than editing
 device operations; no hardware or Z1-connectivity claim follows. CI runs
 `tests/unit/test_kernel_capacity_screen.py` through the unit-test job,
 including the archived-evidence replay without refitting.
+
+## M5a: exact meta-EBM cap baseline
+
+Follow `docs/experiments/meta-ebm-cap-baseline.md`. Run the full CPU study with
+`uv run python -m thermo_lab.meta_ebm_cap_baseline --output-dir results/meta-ebm-cap-baseline --workers 4 --fit-workers 8`
+in a fresh directory. If interrupted, resume in that same directory with the
+same command plus `--resume`; the runner authenticates its checkpoint against
+the frozen request and implementation hashes. Require ten targets (both
+readings, five seeds), nine
+caps, both compile methods, all 180 chains, zero samples, passing integrity,
+and full persisted replay before completion. `--workers` limits the dense
+mixing and chain phases; `--fit-workers` only increases independent fitting
+concurrency. The run log and status record explain caught failures and the last
+known phase after an uncatchable stop. Checkpoints are recovery data, not
+evidence. Autosave recovery coverage is
+`uv run pytest tests/unit/test_meta_ebm_cap_baseline.py -k 'run_checkpoints_completed_work_and_resumes_without_repeating_it or resume_rejects_checkpoint_for_changed_request_before_work' -q`.
+If final replay is interrupted, it restarts from the durable generated archive;
+it never refits or loses generated results, but repeats replay computation.
+Preserve the frozen scientific choices; a negative descriptive outcome is
+valid evidence.
+
+The recorded archive and report are under
+`docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/`. The ordinary unit
+test `test_recorded_archive_pins_request_result_and_provenance` pins the
+request and archive metadata, and
+`test_recorded_archive_replays_every_fit_objective_without_refitting`
+re-evaluates all 1,080 selected fit objectives from stored parameters. The
+slow CI job runs
+`test_recorded_archive_replays_stored_parameters_without_refitting`, which
+replays the mixing scans and chain metrics for one target and its 18 chains
+without new fits; the full ten-target replay was completed locally. A
+recovered archive must retain its original generation provenance separately
+from new replay provenance. Never reconstruct missing provenance by guessing.
+
+The runner reads its own source hash from disk at start and again when it
+writes the record, and spawned workers re-import it per phase. Don't switch
+branches or edit the module in the checkout while a run is in progress.

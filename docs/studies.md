@@ -527,3 +527,20 @@ The raised-cap path-KL screen and the one-feature kernel-capacity screen were
 recorded after this guide was split out. See their protocols,
 [M4H](experiments/raised-cap-path-kl-screen.md) and
 [M4I](experiments/kernel-capacity-screen.md), and the roadmap for results.
+
+## M5a: exact meta-EBM cap baseline
+
+The [frozen M5a protocol](experiments/meta-ebm-cap-baseline.md) asks how a
+coupling/field cap changes stationary bias in compiled single-site Gibbs
+chains on exactly enumerable 12-spin targets. Both energy readings, five
+seeds, nine caps and two compilation methods are retained (180 chains).
+The runner uses NumPy/SciPy float64 on CPU; it does not use JAX sampling.
+
+PR #52 merged the protocol and implementation. The completed ten-target,
+180-chain study, full replay, summary and provenance are recorded in the
+[September 27 report](experiment-reports/2026-09-27-meta-ebm-cap-baseline/summary.md).
+The exploratory probe's earlier cap table must not be treated as recorded
+evidence or as a result of the corrected capped kernel family.
+Later M5 stages cover topology, finite thermalization, THRML cross-checks and
+execution costs; M5a does not establish those results. See the
+[release gate](release-gates.md#m5a-exact-meta-ebm-cap-baseline).

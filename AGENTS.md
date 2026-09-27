@@ -118,6 +118,11 @@ The full requirements for each study gate are in
 the study's frozen protocol under `docs/experiments/`, before running,
 changing or reviewing a study. Every gate shares these conventions:
 
+- A study expected to run longer than about 30 minutes must autosave
+  completed work units and resume safely, following the autosave contract in
+  [docs/experiment-runner.md](docs/experiment-runner.md#autosave-and-resume-contract).
+  Its gate states the resume command and interruption test. Short studies
+  don't need a checkpoint layer.
 - Use a fresh output directory. Replay all persisted evidence before
   reporting, and write `completion.json` last.
 - Authenticate archived sources by hash. Never substitute regenerated
@@ -153,6 +158,7 @@ M1 sources come from the composed trajectory-refinement gate above
 | Fixture objective | `python -m thermo_lab.fixture_objective_study` → `fixture-objective-study` | six arms, zero samples |
 | M4H | `python -m thermo_lab.raised_cap_screen` → `raised-cap-path-kl-screen` | three arms; ~25 min, CI replays archive only |
 | M4I | `python -m thermo_lab.kernel_capacity_screen` → `kernel-capacity-screen` | four arms; CI replays archive only |
+| M5a | `python -m thermo_lab.meta_ebm_cap_baseline` → `meta-ebm-cap-baseline` | ten targets, 180 chains, zero samples, full replay; ~60 min, CI replays archive only |
 
 Prefix every command with `uv run`. The M4B sources are extracted from the
 committed M4 archive as described in [docs/studies.md](docs/studies.md#m4b-matched-training-budget).
