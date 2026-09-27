@@ -102,6 +102,41 @@ Each model is revalidated at persistence. Aggregate run paths are relative.
 Multi-seed failures produce `partial` or `failed` aggregates; they never leave a
 misleading `complete` aggregate.
 
+## Autosave and resume contract
+
+This contract applies to runners whose full study is expected to take more
+than about 30 minutes. A short exact study keeps the default of one frozen
+protocol, one runner, one replay test and one report, and needs no
+checkpoint layer.
+
+A long-running runner must save progress as it works. Persist each
+completed independent data-generation unit (such as a seed, target, or batch)
+and the current phase in the run's output directory using atomic replacement.
+Pick a unit size that prevents an interruption from discarding substantial
+computation; split long units into smaller resumable chunks. Keep scientific
+records separate from operational recovery data.
+
+Use these conventional operational files where applicable:
+
+- `run-status.json`: current phase, attempt number, last completed work unit,
+  timestamps, and any caught error with traceback.
+- `run.log`: flushed UTC progress and error events.
+- `execution-checkpoint.json.gz`: versioned, atomically replaced study state
+  needed to continue after interruption.
+
+Resume must verify the canonical request and relevant source/implementation
+hashes before reusing a checkpoint, fail closed on a mismatch, and record each
+attempt's runtime settings. Long CPU/GPU runs should also record available
+resource limits, usage, and OOM counters. Add an interruption test that proves
+completed units survive restart and that changed requests cannot reuse them.
+Checkpoint validation units too when practical. Otherwise, explicitly name a
+verified persisted archive as the recovery boundary and ensure resume never
+repeats data generation. Replay the final persisted evidence before writing
+`completion.json`, write that marker last, and keep recovery data until replay
+succeeds. See the M5a gate and runner for a working reference; adapt the
+checkpoint payload to the study rather than sharing scientific state schemas
+across experiments.
+
 Aggregate schema version `1.1.0` persists `statistical_semantics` as one of
 `independent_seeded_replications` or `deterministic_identity`. Runtime
 validation selects and enforces that value from the checked experiment
