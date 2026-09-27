@@ -72,6 +72,43 @@ Tests cover real React filter/keyboard interaction in a DOM harness, real archiv
 
 Scientific regression gates remain defined in the repository's `AGENTS.md`; this dashboard does not alter those gates or dependency pins.
 
+## Research-cycle observations
+
+To include a worker status in the Research view, set `THERMO_CYCLE_ROOT` to
+the explicit job directory containing `status.json`, for example
+`THERMO_CYCLE_ROOT=/durable/cycles/m5a-first npm run dev`. The same setting
+applies to `npm run build` and `npm run export`. Without it, there is no cycle
+panel and no inferred active job. A configured missing or malformed file
+produces an unavailable notice.
+
+The adapter accepts only bounded schema-v1 status records and exports a
+sanitized observation with its timestamp. It omits raw worker messages, logs,
+and local paths. The panel shows the reported phase, source and evidence
+digests, attempts, elapsed time, heartbeat age at observation, and independent
+review state. Request-specific resource limits and scientific outcomes are
+not supplied by status v1; the panel does not infer either. Consult the
+approved request for the job's time and attempt limits.
+
+Active-phase heartbeats older than 120 seconds, missing, or ahead of the
+observation clock receive a stale warning. This does not establish worker
+liveness or authorize a duplicate run. Static exports retain the observation
+time and identify themselves as staged snapshots; refreshing one cannot read
+new worker state. The dashboard does not replay evidence, approve reviews,
+start jobs, or publish itself.
+
+An optional `reviews/<evidence-digest-hex>.json` under the same job directory
+supplies an independent review observation. Its job, source, request and
+evidence identities must match the current status. Records are capped at
+32 KiB; schema v1 requires a full evidence commit, review time, reviewer
+(160 characters), replay mode (`executed` or `inspected`), decision
+(`changes_requested` or `approved`), scope (2,048 characters), and at most
+20 findings (1,024 characters each). Unknown fields are rejected.
+The browser receives a sanitized reviewer label, time, evidence commit,
+replay mode and decision; scope and findings remain in the review file.
+A missing record means it is not available in this observation, while a
+malformed or mismatched record shows an unavailable notice. Review approval
+does not change the worker phase or establish owner acceptance.
+
 The **Proposals** view reads local, digest-checked harness records from
 `results/harness/`. Execution, verification, research outcome and owner review
 are separate; a research result is a bounded three-site exact trial. Draft

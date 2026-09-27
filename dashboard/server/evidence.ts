@@ -130,6 +130,7 @@ export async function loadEvidence(
     },
     science: { state: "unknown", label: "Unavailable", source: studySource },
     study: null,
+    cycle: null,
     recentStudies: await loadRecentStudies(repoRoot),
     activity: {
       availability: "unavailable",

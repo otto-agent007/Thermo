@@ -94,6 +94,43 @@ export type RecentStudy = {
   tables: ReportTable[];
   sources: Source[];
 };
+export type CyclePhase =
+  | "queued"
+  | "running"
+  | "verifying"
+  | "awaiting_review"
+  | "recorded"
+  | "blocked"
+  | "failed";
+export type ResearchCycle = {
+  availability: Availability;
+  observedAt: string;
+  heartbeatAgeSeconds: number | null;
+  notice: string | null;
+  independentReview: {
+    availability: "available" | "unavailable";
+    notice: string | null;
+    record: {
+      reviewer: string;
+      reviewedAt: string;
+      evidenceCommit: string;
+      replay: "executed" | "inspected";
+      decision: "changes_requested" | "approved";
+    } | null;
+  } | null;
+  status: {
+    jobId: string;
+    sourceSha: string;
+    requestDigest: string;
+    phase: CyclePhase;
+    attempts: number;
+    elapsedSeconds: number;
+    heartbeatAt: string | null;
+    evidenceDigest: string | null;
+    reviewStatus: "pending" | "changes_requested" | "approved";
+    message: string;
+  } | null;
+};
 export type ProjectSnapshot = {
   schemaVersion: 1;
   mode: "local" | "snapshot";
@@ -106,6 +143,7 @@ export type ProjectSnapshot = {
   science: Status;
   study: StudySummary | null;
   recentStudies: RecentStudy[];
+  cycle: ResearchCycle | null;
   activity: Activity;
   milestones: Milestone[];
   research: ResearchItem[];

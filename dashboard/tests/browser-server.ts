@@ -1,5 +1,5 @@
 // Isolated local records keep browser tests independent of developer drafts.
-import { mkdtemp, cp, mkdir, rm } from "node:fs/promises";
+import { mkdtemp, cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { createServer } from "vite";
@@ -16,6 +16,25 @@ for (const path of recentReportPaths) {
   await cp(resolve("..", path), join(root, path));
 }
 await proposalFixture(root);
+// Explicit synthetic status belongs only to this isolated browser-test server.
+process.env.THERMO_CYCLE_ROOT = join(root, "cycle");
+await mkdir(process.env.THERMO_CYCLE_ROOT);
+await writeFile(
+  join(process.env.THERMO_CYCLE_ROOT, "status.json"),
+  JSON.stringify({
+    schema_version: 1,
+    job_id: "m5a-browser-fixture",
+    source_sha: "a".repeat(40),
+    request_digest: `sha256:${"b".repeat(64)}`,
+    phase: "awaiting_review",
+    attempts: 1,
+    elapsed_seconds: 123.5,
+    heartbeat_at: new Date().toISOString(),
+    evidence_digest: `sha256:${"c".repeat(64)}`,
+    review_status: "pending",
+    message: "private token=SECRET must not leave the server",
+  }),
+);
 const server = await createServer({
   configFile: false,
   root: resolve("."),

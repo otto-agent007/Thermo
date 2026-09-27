@@ -1,0 +1,21 @@
+# Example only. Edit paths and complete docs/continuous-research.md before enabling.
+[Unit]
+Description=Thermo approved M5a research cycle
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Thermo
+ExecStart=%h/Thermo/.venv/bin/python -m thermo_lab.research_cycle.cli run --repo %h/Thermo --request %h/thermo-research-requests/m5a-first-cycle.json --state-root %h/thermo-research-state
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+UMask=0077
+KillMode=control-group
+TimeoutStartSec=infinity
+TimeoutStopSec=30
+Restart=no
+CPUQuota=200%
+
+[Install]
+WantedBy=default.target
