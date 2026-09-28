@@ -1,6 +1,7 @@
 """Source authentication, complete grid and durable M5b runner checks."""
 
 import gzip
+import hashlib
 import importlib.util
 import json
 from concurrent.futures import ThreadPoolExecutor
@@ -8,9 +9,26 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from scipy.special import expit
 
 from thermo_lab import meta_ebm_cap_baseline as m5a
 from thermo_lab.hashing import canonical_json, canonical_sha256
+
+ARCHIVES = sorted(
+    (Path(__file__).resolve().parents[2] / "docs/experiment-reports").glob(
+        "20??-??-??-meta-ebm-thermalization/study.json.gz"
+    )
+)
+
+
+def full_archive():
+    assert len(ARCHIVES) == 1, "expected exactly one completed M5b archive"
+    api = runner()
+    directory = ARCHIVES[0].parent
+    record, data = api._archive_snapshot(ARCHIVES[0], api.study_request("full"))
+    provenance = json.loads((directory / "provenance.json").read_text())
+    completion = json.loads((directory / "completion.json").read_text())
+    return api, record, data, provenance, completion
 
 
 def runner():
@@ -202,9 +220,13 @@ def test_completed_run_rejects_tampered_evidence_and_existing_directory(
         api.run_study(destination, workers=1, mode="benchmark", resume=True)
 
 
-def test_worker_limit_respects_memory_cpu_and_protocol(monkeypatch):
+def test_worker_limit_respects_memory_cpu_and_protocol(monkeypatch, tmp_path):
     api = runner()
     assert hasattr(api, "worker_limit"), "resource admission is missing"
+    monkeypatch.setattr(api.os, "sched_getaffinity", lambda pid: set(range(8)))
+    stat = tmp_path / "memory.stat"
+    stat.write_text("anon 123\ninactive_file 0\n")
+    monkeypatch.setattr(api, "_MEMORY_STAT_PATH", stat, raising=False)
     monkeypatch.setattr(
         m5a,
         "_resource_snapshot",
@@ -215,6 +237,18 @@ def test_worker_limit_respects_memory_cpu_and_protocol(monkeypatch):
         },
     )
     assert api.worker_limit() == 2
+    stat.write_text(f"anon 123\ninactive_file {4 * 1024**3}\n")
+    monkeypatch.setattr(
+        m5a,
+        "_resource_snapshot",
+        lambda: {
+            "memory_limit_bytes": 8 * 1024**3,
+            "memory_current_bytes": 7 * 1024**3,
+            "cpu_max": "max 100000",
+        },
+    )
+    assert api.worker_limit() == 2  # Reclaimable page cache admits two workers.
+    stat.write_text("inactive_file 0\n")
     monkeypatch.setattr(
         m5a,
         "_resource_snapshot",
@@ -224,7 +258,28 @@ def test_worker_limit_respects_memory_cpu_and_protocol(monkeypatch):
             "cpu_max": "max 100000",
         },
     )
-    assert api.worker_limit() == 0
+    assert api.worker_limit() == 1  # Preserve the one-worker minimum.
+
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text("MemTotal: 16777216 kB\nMemFree: 65536 kB\nMemAvailable: 5242880 kB\n")
+    monkeypatch.setattr(api, "_MEMINFO_PATH", meminfo, raising=False)
+    monkeypatch.setattr(
+        m5a,
+        "_resource_snapshot",
+        lambda: {"memory_limit_bytes": "max", "cpu_max": "max 100000"},
+    )
+    assert api.worker_limit() == 2  # MemFree alone would admit no worker.
+
+
+def test_excess_workers_are_clamped_and_the_reason_is_logged(tiny_model, monkeypatch, tmp_path):
+    api = tiny_model
+    install_tiny_pool(api, monkeypatch)
+    monkeypatch.setattr(api, "worker_limit", lambda: 1)
+    destination = tmp_path / "clamped"
+    api.run_study(destination, workers=3, mode="benchmark")
+    assert "requested 3 workers; admitted 1" in (destination / "run.log").read_text()
+    provenance = json.loads((destination / "provenance.json").read_text())
+    assert provenance["attempts"][-1]["runtime"]["workers"] == 1
 
 
 def test_publication_failure_is_logged_and_can_resume_without_computation(
@@ -250,6 +305,77 @@ def test_publication_failure_is_logged_and_can_resume_without_computation(
         pytest.fail("publication resume recomputed a completed unit")
 
     monkeypatch.setattr(api, "evaluate_unit", reject)
+    api.run_study(destination, workers=1, mode="benchmark", resume=True)
+
+
+def test_completion_precedes_success_exit_and_completed_provenance(
+    tiny_model, monkeypatch, tmp_path
+):
+    api = tiny_model
+    install_tiny_pool(api, monkeypatch)
+    destination = tmp_path / "publication-order"
+    original = api.atomic_write_text
+
+    def observe(path, content):
+        if path.name == "provenance.json" and '"status":"completed"' in content:
+            assert (destination / "completion.json").exists()
+        if path.name == "exit.json" and '"exit_code":0' in content:
+            assert (destination / "completion.json").exists()
+            provenance = json.loads((destination / "provenance.json").read_text())
+            assert provenance["attempts"][-1]["status"] == "completed"
+        original(path, content)
+
+    monkeypatch.setattr(api, "atomic_write_text", observe)
+    api.run_study(destination, workers=1, mode="benchmark")
+
+
+def test_stop_after_archive_check_before_completion_is_not_success(
+    tiny_model, monkeypatch, tmp_path
+):
+    api = tiny_model
+    install_tiny_pool(api, monkeypatch)
+    destination = tmp_path / "stopped-before-completion"
+    original = api.atomic_write_text
+
+    def interrupt(path, content):
+        if path.name == "completion.json":
+            raise KeyboardInterrupt("stopped at completion boundary")
+        original(path, content)
+
+    monkeypatch.setattr(api, "atomic_write_text", interrupt)
+    with pytest.raises(KeyboardInterrupt, match="completion boundary"):
+        api.run_study(destination, workers=1, mode="benchmark")
+    assert not (destination / "completion.json").exists()
+    assert json.loads((destination / "exit.json").read_text())["exit_code"] == 130
+    provenance = json.loads((destination / "provenance.json").read_text())
+    assert provenance["attempts"][-1]["status"] != "completed"
+    monkeypatch.setattr(api, "atomic_write_text", original)
+    api.run_study(destination, workers=1, mode="benchmark", resume=True)
+    assert (destination / "completion.json").exists()
+
+
+def test_persisted_replay_recomputes_independent_controls(tiny_model, monkeypatch, tmp_path):
+    api = tiny_model
+    install_tiny_pool(api, monkeypatch)
+    original = api.core.integrity_controls
+    calls = 0
+
+    def changed_control():
+        nonlocal calls
+        calls += 1
+        control = original()
+        if calls > 1:
+            return {**control, "joint_enumeration_error": control["joint_enumeration_error"] + 0.01}
+        return control
+
+    monkeypatch.setattr(api.core, "integrity_controls", changed_control)
+    destination = tmp_path / "controls-changed"
+    with pytest.raises(ValueError, match="controls"):
+        api.run_study(destination, workers=1, mode="benchmark")
+    state = api._load_gzip(destination / "execution-checkpoint.json.gz")
+    assert len(state["results"]) == len(state["replayed"]) == 3
+    assert not (destination / "completion.json").exists()
+    monkeypatch.setattr(api.core, "integrity_controls", original)
     api.run_study(destination, workers=1, mode="benchmark", resume=True)
 
 
@@ -318,26 +444,112 @@ def test_completed_resume_rejects_archive_replaced_between_reads(tiny_model, mon
         api.run_study(destination, workers=1, mode="benchmark", resume=True)
 
 
-def test_recorded_benchmark_replays_local_metrics_from_stored_parameters():
-    api = runner()
-    root = Path(__file__).parents[2] / "docs/research/2026-09-28-m5b-runtime"
-    record = api._load_gzip(root / "one-worker/study.json.gz")
-    api._validate_archive(record, api.study_request("benchmark"))
-    parallel = api._load_gzip(root / "three-workers/study.json.gz")
-    api._validate_archive(parallel, api.study_request("benchmark"))
-    m5a._close(record, parallel)
-    reference, finite, precision = [
-        record["results"][api.unit_key(job)] for job in api.unit_jobs("benchmark")
-    ]
-    structures = m5a.structures(m5a.make_target(0, "B"))
-    vectors = reference["parameters"]
-    original = api.parameters(api.load_source(), "B", 0, 1.0, "variational")
-    for stored, source in zip(vectors, original, strict=True):
-        np.testing.assert_array_equal(stored, source)
-    kernels = [api.core.inner_kernel(p, s) for p, s in zip(vectors, structures, strict=True)]
-    m5a._close(reference["mixing"], [api.core.mixing_summary(k) for k in kernels])
-    context = {"structures": structures, "vectors": vectors}
-    rates = [api.core.powered_rates(k, 4) for k in kernels]
-    m5a._close(finite["local"], api._local_errors(context, rates))
-    _, rounding = api.core.round_parameters(vectors, 1.0, 8)
-    m5a._close(precision["rounding"], rounding)
+@pytest.mark.skipif(not ARCHIVES, reason="the full M5b archive has not been published yet")
+def test_full_archive_authenticates_and_replays_local_quantities():
+    """Every stored cell gets an independent local replay, without dense chain solves."""
+    api, record, data, provenance, completion = full_archive()
+    request = api.study_request("full")
+    results = record["results"]
+    assert record["request"] == request
+    assert record["request_digest"] == canonical_sha256(request)
+    assert record["result_digest"] == canonical_sha256(
+        {key: record[key] for key in ("results", "controls", "summaries")}
+    )
+    assert completion == api._completion(record, provenance, data)
+    assert completion["archive_sha256"] == hashlib.sha256(data).hexdigest()
+    assert completion["reference_chains"] == 80
+    assert completion["new_cells"] == 720
+    assert completion["samples"] == 0
+    assert completion["replayed"] and completion["integrity"]
+    assert provenance["request_digest"] == record["request_digest"]
+    assert provenance["result_digest"] == record["result_digest"]
+    assert provenance["attempts"][-1]["status"] == "completed"
+    m5a._close(record["controls"], api.core.integrity_controls(), "independent controls")
+    source = api.load_source()
+    assert request["source"]["result_digest"] == source["result_digest"]
+
+    for reference in (r for r in results.values() if r["cell"]["arm"] == "reference"):
+        base = reference["cell"]
+        target = m5a.make_target(base["seed"], base["reading"])
+        structures = m5a.structures(target)
+        vectors = [np.asarray(p) for p in reference["parameters"]]
+        original = api.parameters(
+            source, base["reading"], base["seed"], base["cap"], base["method"]
+        )
+        for stored, expected in zip(vectors, original, strict=True):
+            np.testing.assert_array_equal(stored, expected)
+        kernels = [api.core.inner_kernel(p, s) for p, s in zip(vectors, structures, strict=True)]
+        m5a._close(
+            reference["mixing"],
+            [api.core.mixing_summary(kernel) for kernel in kernels],
+            "lambda summaries",
+        )
+        for arm, values in (("finite_k", api.K_VALUES), ("precision", api.BITS)):
+            for value in values:
+                cell = {**base, "arm": arm, "value": value}
+                result = results[api.unit_key(cell)]
+                assert result["cell"] == cell
+                if arm == "finite_k":
+                    rates = [api.core.powered_rates(kernel, value) for kernel in kernels]
+                    assert result["spin_redraws_per_outer_sweep"] == value * sum(
+                        len(s["triples"]) + 1 for s in structures
+                    )
+                else:
+                    rounded, errors = api.core.round_parameters(vectors, base["cap"], value)
+                    m5a._close(result["rounding"], errors, "rounding errors")
+                    rates = []
+                    for p, s, checks in zip(
+                        rounded, structures, result["marginal_integrity"], strict=True
+                    ):
+                        m5a._close(checks, api.core.inner_kernel(p, s)["checks"], "rounded checks")
+                        theta = m5a.kernel_logit(p, s, m5a.blanket_inputs(s))
+                        rates.append(np.column_stack((expit(2 * theta), expit(-2 * theta))))
+                sites = []
+                for s, p, rate in zip(structures, vectors, rates, strict=True):
+                    inputs = m5a.blanket_inputs(s)
+                    exact, compiled = m5a.exact_logit(s, inputs), m5a.kernel_logit(p, s, inputs)
+
+                    def error(theta, rate=rate):
+                        return float(
+                            max(
+                                np.max(np.abs(rate[:, 0] - expit(2 * theta))),
+                                np.max(np.abs(rate[:, 1] - expit(-2 * theta))),
+                            )
+                        )
+
+                    sites.append({"vs_target": error(exact), "vs_m5a": error(compiled)})
+                m5a._close(
+                    result["local"],
+                    {
+                        "sites": sites,
+                        "vs_target": max(site["vs_target"] for site in sites),
+                        "vs_m5a": max(site["vs_m5a"] for site in sites),
+                    },
+                    "local errors",
+                )
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not ARCHIVES, reason="the full M5b archive has not been published yet")
+def test_full_archive_replays_one_base_chain_metrics_without_refitting(monkeypatch):
+    api, record, _, _, _ = full_archive()
+    base = {"reading": "B", "seed": 0, "cap": 1.0, "method": "variational"}
+    reference = record["results"][api.unit_key({**base, "arm": "reference", "value": None})]
+    stored_vectors = [np.asarray(p, dtype=np.float64) for p in reference["parameters"]]
+    original_parameters = api.parameters
+
+    def from_archive(source, reading, seed, cap, method):
+        if (reading, seed, cap, method) == tuple(base.values()):
+            return stored_vectors
+        return original_parameters(source, reading, seed, cap, method)
+
+    monkeypatch.setattr(api, "parameters", from_archive)
+    monkeypatch.setattr(api, "_CONTEXT", None)
+    for job in api.unit_jobs("full"):
+        if any(job[key] != value for key, value in base.items()):
+            continue
+        replay, _ = api.evaluate_unit(job)
+        stored = record["results"][api.unit_key(job)]
+        m5a._close(stored["metrics"], replay["metrics"], api.unit_key(job))
+        if job["arm"] == "reference":
+            m5a._close(stored["large_k"], replay["large_k"], "large-K chain")

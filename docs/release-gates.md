@@ -460,9 +460,11 @@ chains, 720 new cells, zero samples, passing integrity and all units replayed.
 The measured planning estimate is roughly 2–3 hours for generation plus
 replay with three workers, or 5–6 hours with one, on the calibrated 8-CPU,
 8-GiB session. These are estimates from one representative base chain, not
-a full-grid timing guarantee. The runner caps concurrency at four, admits
-fewer workers when current CPU/memory availability requires it, and forces
-one BLAS thread per worker. Numerical-integrity failures retain completed
+a full-grid timing guarantee. The runner caps concurrency at four and clamps
+requests exceeding CPU/memory admission to the admitted count (minimum one),
+logging the reason. Admission subtracts reclaimable inactive page cache from
+cgroup usage, or uses MemAvailable when no cgroup limit exists. Every worker
+has one BLAS thread. Numerical-integrity failures retain completed
 work and stop; changing the numerical method requires a protocol amendment.
 
 The real recovery exercise sent SIGTERM after the first reference autosave,

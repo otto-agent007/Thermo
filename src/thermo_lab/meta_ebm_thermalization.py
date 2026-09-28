@@ -35,6 +35,8 @@ SOURCE = {
 }
 _CONTEXT = None
 _pool = m5a._pool
+_MEMORY_STAT_PATH = Path("/sys/fs/cgroup/memory.stat")
+_MEMINFO_PATH = Path("/proc/meminfo")
 
 
 def load_source():
@@ -293,6 +295,25 @@ def evaluate_unit(job):
     }
 
 
+def _inactive_file_bytes():
+    try:
+        for line in _MEMORY_STAT_PATH.read_text().splitlines():
+            key, value = line.split()
+            if key == "inactive_file":
+                return max(0, int(value))
+    except (OSError, ValueError):
+        pass
+    return 0
+
+
+def _mem_available_bytes():
+    for line in _MEMINFO_PATH.read_text().splitlines():
+        name, *values = line.split()
+        if name == "MemAvailable:" and len(values) == 2 and values[1] == "kB":
+            return int(values[0]) * 1024
+    raise ValueError("/proc/meminfo has no MemAvailable value")
+
+
 def worker_limit():
     """Conservative admission: 1.75 GiB per dense worker plus 512 MiB reserve."""
     snapshot = m5a._resource_snapshot()
@@ -302,10 +323,12 @@ def worker_limit():
         cpus = min(cpus, max(1, math.ceil(int(quota[0]) / int(quota[1]))))
     memory = snapshot.get("memory_limit_bytes")
     if isinstance(memory, int):
-        available = memory - snapshot.get("memory_current_bytes", 0) - 512 * 1024**2
+        current = snapshot.get("memory_current_bytes", 0)
+        reclaimable = min(current, _inactive_file_bytes())
+        available = memory - (current - reclaimable) - 512 * 1024**2
     else:
-        available = os.sysconf("SC_AVPHYS_PAGES") * os.sysconf("SC_PAGE_SIZE") - 512 * 1024**2
-    return max(0, min(4, cpus, int(available // (1792 * 1024**2))))
+        available = _mem_available_bytes() - 512 * 1024**2
+    return max(1, min(4, cpus, int(available // (1792 * 1024**2))))
 
 
 def _write_gzip(path, payload):
@@ -638,8 +661,10 @@ def _verify_completed(destination, state):
 
 def run_study(output_dir, *, workers=1, resume=False, mode="full"):
     """Generate, checkpoint, replay, and publish; an interrupted run is resumable."""
-    if type(workers) is not int or workers < 1 or workers > worker_limit():
-        raise ValueError(f"workers must be in 1..{worker_limit()} for available CPU/memory")
+    if type(workers) is not int or workers < 1:
+        raise ValueError("workers must be a positive integer")
+    requested_workers = workers
+    workers = min(requested_workers, worker_limit())
     request, runtime = study_request(mode), m5a._runtime(workers)
     load_source()
     destination = Path(output_dir)
@@ -652,7 +677,36 @@ def run_study(output_dir, *, workers=1, resume=False, mode="full"):
         if resume:
             state = _load_checkpoint(destination, request, runtime)
             if (destination / "completion.json").exists():
-                return _verify_completed(destination, state)
+                if state["phase"] == "publishing" and "publication_provenance" in state:
+                    pending, pending_bytes = _archive_snapshot(
+                        destination / "study.json.gz", request
+                    )
+                    if pending != _record(state) or json.loads(
+                        (destination / "completion.json").read_text()
+                    ) != _completion(pending, state["publication_provenance"], pending_bytes):
+                        raise ValueError("unfinished completion marker differs from checkpoint")
+                    (destination / "completion.json").unlink()
+                else:
+                    completed = _verify_completed(destination, state)
+                    exit_path = destination / "exit.json"
+                    if (
+                        not exit_path.exists()
+                        or json.loads(exit_path.read_text()).get("exit_code") != 0
+                    ):
+                        _log(
+                            destination, state, "verified completed publication", status="completed"
+                        )
+                        atomic_write_text(
+                            exit_path,
+                            canonical_json(
+                                {
+                                    "exit_code": 0,
+                                    "elapsed_seconds": state["attempts"][-1]["elapsed_seconds"],
+                                }
+                            )
+                            + "\n",
+                        )
+                    return completed
             for attempt in state["attempts"]:
                 if attempt["status"] == "running":
                     attempt.update(
@@ -681,6 +735,13 @@ def run_study(output_dir, *, workers=1, resume=False, mode="full"):
         )
         active_attempt = True
         _save(destination, state)
+        if requested_workers != workers:
+            _log(
+                destination,
+                state,
+                f"requested {requested_workers} workers; admitted {workers} "
+                "based on available CPU/memory (1.75 GiB per worker, 512 MiB reserve)",
+            )
         _log(destination, state, f"started with {workers} single-threaded CPU worker(s)")
 
         def terminated(signum, frame):
@@ -704,6 +765,8 @@ def run_study(output_dir, *, workers=1, resume=False, mode="full"):
         if persisted != _record(state):
             raise ValueError("persisted archive disagrees with checkpoint")
         _run_phase(destination, state, workers, replay=True)
+        if core.integrity_controls() != state["controls"]:
+            raise ValueError("independent integrity controls differ on persisted replay")
         if study_request(mode) != request:
             raise ValueError("implementation changed during replay")
         load_source()
@@ -712,53 +775,74 @@ def run_study(output_dir, *, workers=1, resume=False, mode="full"):
         final_record, final_bytes = _archive_snapshot(archive_path, request)
         if final_record != persisted or final_bytes != archive_bytes:
             raise ValueError("archive changed during replay")
-        state["phase"] = "completed"
-        state["attempts"][-1].update(
-            status="completed",
-            elapsed_seconds=time.monotonic() - started,
-            resources_end=m5a._resource_snapshot(),
-        )
-        _save(destination, state)
+        state["phase"] = "publishing"
+        completed_attempt = {
+            **state["attempts"][-1],
+            "status": "completed",
+            "elapsed_seconds": time.monotonic() - started,
+            "resources_end": m5a._resource_snapshot(),
+        }
         provenance = {
             "schema": "m5b.provenance.v1",
             "request_digest": persisted["request_digest"],
             "result_digest": persisted["result_digest"],
-            "attempts": state["attempts"],
+            "attempts": [*state["attempts"][:-1], completed_attempt],
             "units": state["timings"],
             "timing_scope": "CPU exact-reference wall seconds including host preparation; "
             "peak RSS is the worker lifetime high-water mark. No device claim.",
         }
+        state["publication_provenance"] = provenance
+        _save(destination, state)
         atomic_write_text(destination / "summary.md", render_report(persisted))
-        atomic_write_text(destination / "provenance.json", canonical_json(provenance) + "\n")
-        _log(
-            destination, state, "persisted replay passed; publishing completion", status="completed"
-        )
         atomic_write_text(
-            destination / "exit.json",
-            canonical_json({"exit_code": 0, "elapsed_seconds": time.monotonic() - started}) + "\n",
+            destination / "provenance.json",
+            canonical_json({**provenance, "attempts": state["attempts"]}) + "\n",
         )
+        _log(destination, state, "persisted replay passed; publishing completion")
         if archive_path.read_bytes() != archive_bytes:
             raise ValueError("archive changed during publication")
         atomic_write_text(
             destination / "completion.json",
             canonical_json(_completion(persisted, provenance, archive_bytes)) + "\n",
         )
+        atomic_write_text(destination / "provenance.json", canonical_json(provenance) + "\n")
+        state["attempts"][-1] = completed_attempt
+        state["phase"] = "completed"
+        state.pop("publication_provenance")
+        _save(destination, state)
+        _log(destination, state, "completion published", status="completed")
+        atomic_write_text(
+            destination / "exit.json",
+            canonical_json({"exit_code": 0, "elapsed_seconds": time.monotonic() - started}) + "\n",
+        )
         return persisted
     except BaseException as exc:
         if active_attempt:
+            marker = destination / "completion.json"
+            if marker.exists():
+                marker.unlink()
             interrupted = isinstance(exc, (KeyboardInterrupt, SystemExit))
             error = {
                 "type": type(exc).__name__,
                 "message": str(exc),
                 "traceback": traceback.format_exc(),
             }
+            state["phase"] = "failed"
             state["attempts"][-1].update(
                 status="interrupted" if interrupted else "failed",
                 error=error,
                 elapsed_seconds=time.monotonic() - started,
                 resources_end=m5a._resource_snapshot(),
             )
+            state.pop("publication_provenance", None)
             _save(destination, state)
+            provenance_path = destination / "provenance.json"
+            if provenance_path.exists():
+                old_provenance = json.loads(provenance_path.read_text())
+                atomic_write_text(
+                    provenance_path,
+                    canonical_json({**old_provenance, "attempts": state["attempts"]}) + "\n",
+                )
             _log(
                 destination,
                 state,
