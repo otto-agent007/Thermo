@@ -544,3 +544,18 @@ evidence or as a result of the corrected capped kernel family.
 Later M5 stages cover topology, finite thermalization, THRML cross-checks and
 execution costs; M5a does not establish those results. See the
 [release gate](release-gates.md#m5a-exact-meta-ebm-cap-baseline).
+
+## M5b: inner thermalization and precision sensitivity
+
+The [proposed protocol](experiments/meta-ebm-finite-thermalization.md) reuses
+the M5a parameters on all ten targets at caps 0.3, 1, 3 and 10. It limits
+inner hidden/output sweeps per conditional update, starting the output at
+its current visible value, and reports contraction factors alongside the
+finite-K error. A separate comparison rounds coefficients while retaining
+exact marginalization. Both use exact probabilities and zero samples.
+
+There are 80 shared baseline chains and 720 new cells. The runner and full
+study are pending. The [optimizer continuation](research/2026-09-28-m5b-freeze-probe.md)
+is a completed exploratory diagnostic, not M5b evidence. Implementation must
+follow the [M5b release gate](release-gates.md#m5b-inner-thermalization-and-precision-sensitivity)
+and preserve the source-bound M5a evaluator.

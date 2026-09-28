@@ -20,7 +20,11 @@ work pointed at the right problem.
   `docs/experiments/topology-aware-meta-ebm.md`. Its first stage, the M5a
   fully connected cap baseline, is recorded in
   `docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/`. Later stages
-  (topology, embedding, finite thermalization, execution costs) are open.
+  start with the proposed M5b protocol in
+  `docs/experiments/meta-ebm-finite-thermalization.md`: inner hidden/output
+  sweeps and a separate rounding comparison, retaining M5a parameters.
+  Implementation is pending; M5c topology, embedding and execution costs
+  remain open.
 - Charter tracks that haven't started yet (`PROJECT_CHARTER.md`): native THRML
   algorithms (Potts, associative memory, Max-Cut), and Torx Bayesian and
   state-space inference. When you're choosing what comes after M5, look here

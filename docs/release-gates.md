@@ -429,3 +429,23 @@ from new replay provenance. Never reconstruct missing provenance by guessing.
 The runner reads its own source hash from disk at start and again when it
 writes the record, and spawned workers re-import it per phase. Don't switch
 branches or edit the module in the checkout while a run is in progress.
+
+## M5b: inner thermalization and precision sensitivity
+
+The [protocol proposal](experiments/meta-ebm-finite-thermalization.md) is ready
+for review; there is no production runner or M5b completion record yet.
+Require the explicit inner update order, current-output initialization,
+K>=1, lambda diagnostics, independent local enumeration, compatible-joint
+control, adaptive large-K agreement and separate precision comparison.
+Require all 80 source chains and 720 new cells, zero samples, passing
+numerical integrity and full persisted replay before claiming completion.
+
+The implementation PR must document its actual run/resume commands, cell
+timing and memory estimate, and an interruption/resume test before execution.
+Checkpoint each completed cell and replay unit using the shared persistence
+helpers; reject changes to source, archive or request hashes on resume.
+Finite-K transitions depend on the incoming output, so do not reuse M5a's
+memoryless `sweep` implementation or edit its archived source to add support.
+Selected replay tests belong in the existing CI jobs; the full grid stays a
+local gate. The exploratory optimizer probe is not a completion gate and
+must never replace the original M5a parameters.
