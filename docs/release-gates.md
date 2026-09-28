@@ -434,7 +434,11 @@ branches or edit the module in the checkout while a run is in progress.
 
 The [approved protocol](experiments/meta-ebm-finite-thermalization.md) has a
 runner and [bounded runtime calibration](research/2026-09-28-m5b-runtime.md).
-There is no full M5b completion record yet.
+The [full completion record](experiment-reports/2026-09-28-meta-ebm-thermalization/completion.json)
+and [findings](experiment-reports/2026-09-28-meta-ebm-thermalization/findings.md)
+passed the gate: 80 references, 720 new cells, zero samples and all 800
+persisted units replayed. The first attempt stopped without a terminal marker
+after 688 generated units; resume retained them and completed the study.
 Require the explicit inner update order, current-output initialization,
 K>=1, lambda diagnostics, independent local enumeration, compatible-joint
 control, adaptive large-K agreement and separate precision comparison.

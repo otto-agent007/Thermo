@@ -1,8 +1,8 @@
 # M5b: inner thermalization and precision sensitivity
 
-*Status: protocol approved for implementation, September 28, 2026 UTC
-(September 27 owner discussion). The runner and bounded runtime calibration
-are implemented. The full 80-reference/720-cell study has not run.*
+*Status: frozen protocol approved September 28, 2026 UTC (September 27 owner
+discussion). The [full 80-reference/720-cell study](../experiment-reports/2026-09-28-meta-ebm-thermalization/findings.md)
+completed with persisted replay on September 28.*
 
 ## Question and scope
 

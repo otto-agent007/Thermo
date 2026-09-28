@@ -24,8 +24,10 @@ work pointed at the right problem.
   `docs/experiments/meta-ebm-finite-thermalization.md`: inner hidden/output
   sweeps and a separate rounding comparison, retaining M5a parameters.
   The runner is implemented with per-cell/replay autosave and bounded runtime
-  calibration in `docs/research/2026-09-28-m5b-runtime.md`; the full study has
-  not run. M5c topology, embedding and execution costs remain open.
+  calibration in `docs/research/2026-09-28-m5b-runtime.md`. The full study and
+  persisted replay are recorded in
+  `docs/experiment-reports/2026-09-28-meta-ebm-thermalization/`.
+  M5c topology, embedding and execution costs remain open.
 - Charter tracks that haven't started yet (`PROJECT_CHARTER.md`): native THRML
   algorithms (Potts, associative memory, Max-Cut), and Torx Bayesian and
   state-space inference. When you're choosing what comes after M5, look here

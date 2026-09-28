@@ -28,7 +28,10 @@ placeholder backends.
   ([analysis](docs/research/2026-09-23-cap-leakage-analysis.md)). Raising the
   cap and adding one kernel feature (M4H, M4I) brought exact survival to 89.6%,
   still short of 95%.
-- **M5 (next):** the [topology-aware meta-EBM](docs/experiments/topology-aware-meta-ebm.md).
+- **M5 (active):** the [topology-aware meta-EBM](docs/experiments/topology-aware-meta-ebm.md).
+  The [M5a cap baseline](docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/summary.md)
+  and [M5b thermalization/precision study](docs/experiment-reports/2026-09-28-meta-ebm-thermalization/findings.md)
+  are recorded exact CPU references; topology and hardware costs remain open.
 
 The [roadmap](docs/roadmap.md) has one row per milestone with links to every
 recorded report. The [study guide](docs/studies.md) describes each experiment,
