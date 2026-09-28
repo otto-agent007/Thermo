@@ -10,7 +10,7 @@ I/O model?
 ## Baselines
 
 The recorded [M5a cap baseline](meta-ebm-cap-baseline.md) precedes the
-[proposed M5b protocol](meta-ebm-finite-thermalization.md): finite inner
+[approved M5b protocol](meta-ebm-finite-thermalization.md): finite inner
 hidden/output sweeps and a separate precision sensitivity comparison.
 M5c then introduces published offsets on a synthetic lattice. Training or
 objective changes require a measured constraint and explicit owner approval.

@@ -432,16 +432,42 @@ branches or edit the module in the checkout while a run is in progress.
 
 ## M5b: inner thermalization and precision sensitivity
 
-The [protocol proposal](experiments/meta-ebm-finite-thermalization.md) is ready
-for review; there is no production runner or M5b completion record yet.
+The [approved protocol](experiments/meta-ebm-finite-thermalization.md) has a
+runner and [bounded runtime calibration](research/2026-09-28-m5b-runtime.md).
+There is no full M5b completion record yet.
 Require the explicit inner update order, current-output initialization,
 K>=1, lambda diagnostics, independent local enumeration, compatible-joint
 control, adaptive large-K agreement and separate precision comparison.
 Require all 80 source chains and 720 new cells, zero samples, passing
 numerical integrity and full persisted replay before claiming completion.
 
-The implementation PR must document its actual run/resume commands, cell
-timing and memory estimate, and an interruption/resume test before execution.
+Run the complete study from a clean, fixed checkout:
+
+```bash
+uv run python -m thermo_lab.meta_ebm_thermalization \
+  --output-dir results/meta-ebm-thermalization --workers 3
+uv run python -m thermo_lab.meta_ebm_thermalization \
+  --output-dir results/meta-ebm-thermalization --workers 3 --resume
+```
+
+Use `--benchmark` with a distinct output directory for the single B/0,
+variational, cap-1 source chain plus K=4 and 8-bit cells. Repeat the same
+flags with `--resume` after interruption. Its marker is
+`m5b_benchmark_complete`, which is never a production completion marker.
+The full grid requires `meta_ebm_thermalization_complete`, 80 reference
+chains, 720 new cells, zero samples, passing integrity and all units replayed.
+
+The measured planning estimate is roughly 2–3 hours for generation plus
+replay with three workers, or 5–6 hours with one, on the calibrated 8-CPU,
+8-GiB session. These are estimates from one representative base chain, not
+a full-grid timing guarantee. The runner caps concurrency at four, admits
+fewer workers when current CPU/memory availability requires it, and forces
+one BLAS thread per worker. Numerical-integrity failures retain completed
+work and stop; changing the numerical method requires a protocol amendment.
+
+The real recovery exercise sent SIGTERM after the first reference autosave,
+observed exit 130, resumed that directory and verified the saved reference
+was unchanged, with all generation and persisted replay completed afterward.
 Checkpoint each completed cell and replay unit using the shared persistence
 helpers; reject changes to source, archive or request hashes on resume.
 Finite-K transitions depend on the incoming output, so do not reuse M5a's

@@ -1,9 +1,8 @@
 # M5b: inner thermalization and precision sensitivity
 
-*Status: proposed protocol freeze, September 28, 2026 UTC (September 27 owner
-discussion). The owner approved inner-K dynamics and separate rounding
-comparisons. The explicit grids and checks below are the reviewable freeze;
-implementation and production execution follow protocol review.*
+*Status: protocol approved for implementation, September 28, 2026 UTC
+(September 27 owner discussion). The runner and bounded runtime calibration
+are implemented. The full 80-reference/720-cell study has not run.*
 
 ## Question and scope
 
@@ -30,7 +29,7 @@ Never edit `meta_ebm_cap_baseline.py` or `hashing.py` to implement M5b.
 
 ## Fixed grid
 
-| Choice | Frozen proposal |
+| Choice | Frozen choice |
 |---|---|
 | Targets | Both M5a readings, all five seeds; B primary, A a stronger-interaction stress case |
 | Methods | Constructive and variational, with the original M5a parameters |
@@ -238,6 +237,13 @@ Store a bounded gzip record, summary and provenance. Completion requires all
 720 new cells, the 80 source baselines, integrity checks and persisted replay.
 Do not launch the production grid until its actual command, resume command,
 runtime estimate and interruption test are documented in the release gate.
+
+The implemented entry point is `python -m thermo_lab.meta_ebm_thermalization`.
+The [release gate](../release-gates.md#m5b-inner-thermalization-and-precision-sensitivity)
+documents run, benchmark and resume commands. The
+[runtime calibration](../research/2026-09-28-m5b-runtime.md) records a real
+SIGTERM/restart exercise and estimates generation plus replay. Calibration
+is a bounded subset and cannot satisfy the full-study completion gate.
 
 ## After M5b
 

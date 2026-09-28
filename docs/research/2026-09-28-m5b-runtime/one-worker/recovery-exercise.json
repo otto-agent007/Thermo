@@ -1,0 +1,21 @@
+{
+  "first_exit_code": 130,
+  "resume_exit_code": 0,
+  "preserved_units": [
+    "B|0|1.0|variational|reference|None"
+  ],
+  "preserved_exactly": true,
+  "generated_units": 3,
+  "replayed_units": 3,
+  "command": [
+    "/workspace/scratch/454737e88b78/Thermo/.venv/bin/python",
+    "-u",
+    "-m",
+    "thermo_lab.meta_ebm_thermalization",
+    "--output-dir",
+    "results/m5b-benchmark-final",
+    "--benchmark",
+    "--workers",
+    "1"
+  ]
+}
