@@ -3,13 +3,15 @@
 September 28, 2026 (owner local date). **Exploration, not a recorded study or
 release gate.** This note checks graph feasibility before choosing a placement
 heuristic. It does not alter the M5a or M5b archive, fit, or frozen protocol.
-Updated September 29 (UTC) with the owner's approved chain/pruning comparison.
+Updated September 29 with the approved chain/pruning comparison, reading-B
+mixing controls, and the full outer-chain check.
 
 Reproduce from a checkout (CPU, NumPy float64):
 
 ```bash
 uv run python docs/research/m5c_degree_probe.py
 OPENBLAS_NUM_THREADS=1 uv run python docs/research/m5c_chain_probe.py
+OPENBLAS_NUM_THREADS=1 uv run python docs/research/m5c_outer_probe.py --workers 3
 ```
 
 The first script prints the degree/field counts and the 11 over-degree sites.
@@ -19,6 +21,10 @@ marks completion of equilibrium calculations before finite-K calculations for
 each arm. Both authenticate the compressed archive by SHA-256. These scripts
 are reproducible **exploration**, with `exact_reference` numerical semantics;
 they create no new study archive, runner, or gate.
+The chain probe now includes B variational caps 3 and 10 alongside the original
+three cohorts. The outer probe uses those same five arms and prints JSON lines:
+its declared scope, one result per completed arm/seed, then min/median/max
+summaries. Every seed and all t=0..30 target distances remain in its output.
 
 ## Dated topology source
 
@@ -210,18 +216,37 @@ equal K does **not** mean equal work.
 | A constructive cap 10 | 1 | 0.999908 | 0.999998 | 0.999906 | 0.999998 |
 | A constructive cap 10 | 32 | 0.999462 | 0.999995 | 0.999460 | 0.999995 |
 
-The cap-10 chain is nearly correct at equilibrium but retains a worst-case
-readout error near one after 32 sweeps. This demonstrates the accuracy/mixing
-tradeoff; it does not establish a useful mixing horizon. The JSON includes
-every listed K and also worst-start TV of the entire **reduced color-1 state**
-over all its starts (not full free-state TV). At K=32 those reduced-state
-maxima are 0.061154, 0.987646, and 0.999995.
+The reading-A cap-10 chain is nearly correct at equilibrium but retains a
+worst-case readout error near one after 32 sweeps. **Reading A's unchained
+baseline is already slow**, so these rows alone do not isolate the added chain
+penalty. The following reading-B variational controls do. Their equilibrium
+and K=32 columns all measure error against the original equilibrium conditional,
+maximized over the same 11 changed sites and all inputs (plus both incoming
+logical spins at finite K):
+
+| Reading B cap | Chain at equilibrium | Prune at equilibrium | Original at K=32 | Chain at K=32 | Prune at K=32 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | 0.166278 | 0.076341 | 0.043818 | 0.168743 | 0.076353 |
+| 3 | 0.00124835 | 0.0468893 | 0.00173794 | 0.580343 | 0.0468893 |
+| 10 | 1.03696e-9 | 0.0463721 | 0.00155408 | 0.999136 | 0.0463721 |
+
+At caps 3 and 10 the original B kernels mix well on this local diagnostic;
+chaining creates the slowdown. The output nodes flip sequentially under this
+schedule, crossing a temporarily broken-chain state. For an isolated zero-field
+pair, the flip probability per sweep is `sech(c)^2 / 2`, asymptotically
+`2 exp(-2c)`; inputs and hidden fields modify this barrier in the actual kernels.
+The probe tests `c=cap`, not every weaker strength or alternative split. Nor is
+pruning error mathematically cap-independent: it depends on the fitted vectors
+and removed edges, even though the two higher-cap B rows are similar.
+
+The JSON includes every listed K and also worst-start TV of the entire
+**reduced color-1 state** over all its starts (not full free-state TV). For the
+original three cohorts, those K=32 maxima remain 0.061154, 0.987646, and 0.999995.
 
 All 49 unchanged sites' finite results are also in the JSON. Every original
 site's finite-K maximum errors, including the 11 before repair, are checked
-against M5b's archived local metrics for all six positive K values. No outer
-4096-state transition or trajectory is recomputed in this exploration; none
-of these local worst-case quantities substitutes for M5b's outer metrics.
+against M5b's archived local metrics for all six positive K values. These local
+worst cases do not determine the outer-chain ranking; that check follows below.
 
 ## Work per 12-site outer sweep
 
@@ -240,6 +265,8 @@ one assignment per input copy per conditional update, in **seed order 0–4**:
 | B variational cap 1 | 184, 200, 204, 196, 204 | 184, 200, 204, 196, 204 | 183, 197, 201, 194, 199 |
 | A variational cap 3 | 184, 200, 204, 196, 204 | 184, 200, 204, 196, 204 | 182, 197, 201, 194, 201 |
 | A constructive cap 10 | 174, 182, 192, 178, 190 | 172, 175, 188, 173, 182 | 172, 179, 189, 175, 186 |
+| B variational cap 3 | 184, 200, 204, 196, 204 | 184, 200, 204, 196, 204 | 182, 197, 201, 193, 200 |
+| B variational cap 10 | 184, 199, 204, 196, 204 | 184, 199, 204, 196, 204 | 182, 196, 201, 193, 200 |
 
 Reset writes are another 72 per outer sweep for original/prune, or 74/75 for
 chain, assigning hidden spins and output nodes before thermalization. Logical
@@ -256,6 +283,90 @@ in this abstract comparison: no flashing/reconfiguration cost is estimated.
 These are algorithmic counts and lower bounds on copy requirements, not a
 calibrated execution model or evidence of chip feasibility.
 
+## Full 4096-state outer-chain check
+
+Before computing results, the bounded grid was fixed to the **five arms above,
+all five seeds, original/chain/prune, and K=4, K=32, or exact equilibrium**:
+225 comparisons. K=4 is a short budget where M5b's primary B arm already worked
+well; K=32 is M5b's finite-grid endpoint. This is a declared exploratory subset,
+not a replacement for M5b's frozen grid. K=0 is excluded here because the identity
+outer transition has no unique stationary law.
+
+`m5c_outer_probe.py` uses M5b's unchanged `core.sweep`, `stationary_law`, and
+`trajectory` helpers. Each site's two positive escape probabilities are expanded
+over the current visible state's blanket code. Sites update in order 0..11;
+the outer start is uniform over all 4096 states, and the horizon is 30 sweeps.
+Only the over-degree sites receive new rates. For the other 49, chain/prune
+reuse the original rate arrays. All 75 original comparisons are recomputed and
+checked against M5b's archived stationary bias and complete target-TV trajectory.
+
+The chain's two escape probabilities are separately summed, including rare
+transitions below machine epsilon; neither is formed as `1 - near_one`.
+Accumulated row-mass roundoff is checked before normalizing the two readout
+outcomes. There is no clipping, damping, or regularization of the stationary
+solve. With fresh auxiliary resets, the finite-K chained readout need not preserve
+its Boltzmann marginal. Thus its **finite-K outer stationary bias** and the
+**equilibrium-oracle outer bias** are distinct quantities, as are stationary bias
+and transient distance to the target at t=30.
+
+The table reports five-seed medians as **stationary TV bias / TV to target at
+t=30**. Medians are computed separately for each metric; paired comparisons
+below use matching seeds. The script also prints min/median/max for every row,
+the individual seeds, stationarity residuals, and TV to the method's own
+stationary law at t=30.
+
+| Arm | K | Original: bias / TV30 | Chain: bias / TV30 | Prune: bias / TV30 |
+| --- | ---: | ---: | ---: | ---: |
+| B variational cap 1 | 4 | 1.25208e-6 / 1.25200e-6 | 0.0503927 / 0.0503927 | 0.0173731 / 0.0173731 |
+| B variational cap 1 | 32 | 1.26406e-6 / 1.26406e-6 | 0.0200013 / 0.0200013 | 0.0181058 / 0.0181058 |
+| B variational cap 1 | ∞ | 1.26406e-6 / 1.26406e-6 | 0.0199645 / 0.0199645 | 0.0181058 / 0.0181058 |
+| B variational cap 3 | 4 | 3.49465e-7 / 3.49465e-7 | 0.0466927 / 0.0590152 | 0.0138609 / 0.0138609 |
+| B variational cap 3 | 32 | 3.52024e-7 / 3.52024e-7 | 0.00529787 / 0.00529630 | 0.0138823 / 0.0138823 |
+| B variational cap 3 | ∞ | 3.52024e-7 / 3.52024e-7 | 0.000511508 / 0.000511508 | 0.0138823 / 0.0138823 |
+| B variational cap 10 | 4 | 2.40249e-9 / 2.40280e-9 | 0.0470928 / 0.337397 | 0.0137304 / 0.0137304 |
+| B variational cap 10 | 32 | 2.40541e-9 / 2.40544e-9 | 0.00595937 / 0.337394 | 0.0137463 / 0.0137463 |
+| B variational cap 10 | ∞ | 2.40541e-9 / 2.40544e-9 | 2.45970e-9 / 2.45972e-9 | 0.0137463 / 0.0137463 |
+| A variational cap 3 | 4 | 1.21052e-5 / 0.201894 | 0.446184 / 0.411042 | 0.0348460 / 0.192770 |
+| A variational cap 3 | 32 | 1.34509e-5 / 0.0875622 | 0.100274 / 0.161222 | 0.0281745 / 0.0866665 |
+| A variational cap 3 | ∞ | 1.45417e-5 / 0.0770114 | 0.00559896 / 0.0828500 | 0.0244021 / 0.0779825 |
+| A constructive cap 10 | 4 | 1.23214e-5 / 0.301504 | 0.243542 / 0.495972 | 0.0627063 / 0.327981 |
+| A constructive cap 10 | 32 | 1.23214e-5 / 0.201761 | 0.0347268 / 0.493214 | 0.0551984 / 0.202474 |
+| A constructive cap 10 | ∞ | 1.23214e-5 / 0.0770910 | 1.23244e-5 / 0.0770910 | 0.0509148 / 0.0923994 |
+
+At K=4, original/prune cost **288 redraws per outer sweep**, while chain costs
+**296 or 300**. At K=32, these become **2304** versus **2368 or 2400**.
+Multiply by 30 for the finite-horizon redraw budget. Clamp/reset writes and
+readouts above are additional per-sweep terms; the JSON records them for every
+seed. Equilibrium is an oracle, with no finite redraw budget assigned. These
+are comparisons at specified K with explicit work, not exactly matched-work
+claims.
+
+The repaired reading-B K=32 seed ranges put the median results in context:
+
+| Cap | Chain bias range | Chain TV30 range | Prune bias range | Prune TV30 range |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 0.007523–0.045732 | 0.007523–0.045732 | 0.005558–0.049109 | 0.005558–0.049109 |
+| 3 | 0.002121–0.010228 | 0.002110–0.010245 | 0.003193–0.030633 | 0.003193–0.030633 |
+| 10 | 0.002837–0.011899 | 0.082664–0.493340 | 0.003159–0.030340 | 0.003159–0.030340 |
+
+Three conclusions survive the full-chain check:
+
+1. **Pruning loses measurable task quality at unchanged redraw count.** In the
+   primary B/cap-1 arm, K=4 target TV rises from 1.252e-6 to 0.01737 median;
+   at K=32 it is 0.01811. Its loss is much smaller than the local 0.07634 worst
+   case, but it is not removed by evaluating typical outer trajectories.
+   The higher-cap B pruning medians remain around 0.014. No acceptance threshold
+   was declared, so these are costs to judge, not failed accuracy gates.
+2. **Cap-10 chaining has an outer transient penalty.** In B at K=32, median
+   stationary bias is 0.00596 but TV30 is 0.33739, despite equilibrium-oracle
+   error near the original fit. It loses to pruning on TV30 in all five seeds.
+3. **Cap-3 chaining is not ruled out by its local worst case.** In B at K=32,
+   it beats pruning on TV30 in four of five seeds, with median 0.00530 versus
+   0.01388. At K=4 it loses in all five seeds. B/cap-1 chaining wins three of
+   five seeds at K=32 even though its median is worse than pruning's. Reading A
+   likewise shows why bias and transient error must be separate: pruning can
+   slightly lower TV30 while increasing stationary bias substantially.
+
 ## Verification and next step
 
 The probe checks the reduced transition against independent full-state Gibbs
@@ -263,16 +374,38 @@ enumeration on signed, unequal-coupling controls, including empty retained or
 moved groups and zero chain strength. Maximum control discrepancy was
 3.56e-15. It checks K=0 identity, transition normalization, stationary
 invariance, and agreement between independently computed stationary readout
-marginals for every chained input; the largest such residual was 2.68e-14.
+marginals for every chained input. The expanded five-arm check now also bounds
+accumulated mass error through K=32; its largest local residual was 9.84e-13,
+below the 2e-12 tolerance. A below-machine-epsilon escape control agrees with
+independent full enumeration to 7.11e-15 in log probability. All previously
+reported local metrics remain unchanged at displayed precision (maximum
+absolute difference 1.39e-13).
 A strong-chain *control only* recovers the original marginal; no reported arm
 uses an above-cap chain. Pruning asserts degree at most 16. Unchanged vectors
 are compared bitwise and original finite errors replay against the archive.
 
-The input model is settled: **clamped copies**. The chain is not automatically
-the degree repair to freeze: cap 1 has a substantial equilibrium floor under
-this split, and the high-cap chain mixes slowly. Carry the pruning comparison
-into the M5c design. Before claiming placement feasibility, declare a bounded
-synthetic patch using the offsets above and resolve actual placement, extra
-copy/routing costs, and a task-relevant accuracy/work criterion. Then freeze
-one M5c protocol. No hardware latency, energy, or production-valid embedding
-follows from this probe.
+All 225 outer comparisons completed. The largest discrepancy from the 75
+archived original baselines was 5.85e-15; the largest outer stationary residual
+was 4.28e-15 and row-sum error 7.78e-16. All five archive-bound implementation
+hashes were checked unchanged. The nine B/cap-1/seed-0 comparisons were evaluated
+once for runtime calibration and again in the full run, with bitwise-identical
+metric/work records. The complete exploration took **685.6 seconds (11.4 min)**
+on this session using three CPU workers and one BLAS thread each. This is
+evaluator wall time, not modeled device latency. `--first-only` reproduces that
+one-seed subset; it is explicitly labeled and does not substitute for the full
+five-arm output.
+
+The input model remains **clamped copies**. The measured degree limit and the
+full-chain pruning loss now justify proposing a **bounded degree-constrained
+refit**: start with just the 11 B/variational/cap-1 sites, freeze the pruning
+mask so output degree stays at most 16, keep the cap, hidden count, and M5a
+uniform-input KL objective, and retain the other 49 fits exactly. Compare the
+refit against original/prune/chain using the same outer metrics and budgets.
+Unchanged spin count does not guarantee unchanged mixing after refitting, so
+finite-K checks remain necessary. This is a recommendation requiring the M5
+protocol's owner approval for training changes; **no refit has been run**.
+
+Degree and parity still do not prove physical placement. A named synthetic
+patch, actual placement, and any extra copy/routing costs remain open before
+freezing an M5c placement protocol. No hardware latency, energy, or
+production-valid embedding follows from this probe.

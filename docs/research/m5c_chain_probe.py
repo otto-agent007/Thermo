@@ -18,6 +18,7 @@ from thermo_lab import meta_ebm_cap_baseline as m5a
 from thermo_lab import meta_ebm_thermalization_core as core
 
 KS = (0, 1, 2, 4, 8, 16, 32)
+PROBE_ARMS = (*ARMS, ("B", "variational", 3.0), ("B", "variational", 10.0))
 
 
 def spins(n):
@@ -63,7 +64,7 @@ def input_copies(p, s, moved=None):
     return int(color0.sum() + color1.sum())
 
 
-def pair_equilibrium(p, s, x, moved, coupling):
+def pair_probabilities(p, s, x, moved, coupling):
     """Sum independent hidden spins, leaving the four (y1,y2) configurations."""
     J, h, A, b, beta = m5a.unpack(p, s)
     pair = spins(2)
@@ -72,7 +73,12 @@ def pair_equilibrium(p, s, x, moved, coupling):
     z = field[:, None, :] + pair[None, :, attachment] * beta
     lw = (x @ J + h)[:, None] * pair[:, 0] + coupling * pair[:, 0] * pair[:, 1]
     lw += np.logaddexp(z, -z).sum(axis=2)
-    prob = np.exp(lw - logsumexp(lw, axis=1)[:, None])
+    return np.exp(lw - logsumexp(lw, axis=1)[:, None])
+
+
+def pair_equilibrium(p, s, x, moved, coupling):
+    pair = spins(2)
+    prob = pair_probabilities(p, s, x, moved, coupling)
     return prob[:, pair[:, 0] == 1].sum(axis=1), prob[:, pair[:, 0] != pair[:, 1]].sum(axis=1)
 
 
@@ -90,22 +96,25 @@ def reduced_chain(p, s, x, moved, coupling):
     block = spins(1 + int(moved.sum()))
     y, w = block[:, 0], block[:, 1:]
     retained = spins(int(kept.sum()))
-    # g[x, old y1 bit, new y2 bit] averages the y1 redraw over retained hidden.
-    g = np.empty((len(x), 2, 2))
+    # g[x, old y1 bit, new y2 bit, new y1 bit] averages over retained hidden.
+    # Sum both outcomes positively; 1-g_plus loses rare high-cap escapes.
+    g = np.empty((len(x), 2, 2, 2))
     for old_bit, old_y in enumerate((-1, 1)):
         f = field[:, kept] + old_y * beta[kept]
         ph = np.exp(f @ retained.T - np.logaddexp(f, -f).sum(axis=1)[:, None])
         for new_bit, new_y2 in enumerate((-1, 1)):
-            g[:, old_bit, new_bit] = (
-                ph * expit(2 * (drive[:, None] + new_y2 * coupling + retained @ beta[kept]))
-            ).sum(axis=1)
+            output_field = drive[:, None] + new_y2 * coupling + retained @ beta[kept]
+            for output_bit, new_y1 in enumerate((-1, 1)):
+                g[:, old_bit, new_bit, output_bit] = (ph * expit(2 * new_y1 * output_field)).sum(
+                    axis=1
+                )
     transition = np.zeros((len(x), len(block), len(block)))
     for bit, y2 in enumerate((-1, 1)):
         pa = expit(2 * y2 * (coupling * y + w @ beta[moved]))
         f = field[:, moved] + y2 * beta[moved]
         pw = np.exp(f @ w.T - np.logaddexp(f, -f).sum(axis=1)[:, None])
-        plus = g[:, (y == 1).astype(int), bit]
-        py = np.where(y[None, None, :] == 1, plus[:, :, None], 1 - plus[:, :, None])
+        y_bit = (y == 1).astype(int)
+        py = g[:, y_bit[:, None], bit, y_bit[None, :]]
         transition += pa[None, :, None] * py * pw[:, None, :]
     # Sum the A block analytically to obtain stationary mass on B.
     f = field[:, kept, None] + beta[kept, None] * y
@@ -176,7 +185,22 @@ def controls():
     worst = max(worst, float(np.max(np.abs(q - expit(2 * m5a.kernel_logit(p, s, x))))))
     if worst > 2e-12:
         raise ValueError(f"full-state control failed: {worst}")
-    return {"max_full_state_error": worst}
+    # The outer stationary solve must retain escapes below machine epsilon.
+    strong = p.copy()
+    strong[2] = 25.0
+    q = expit(2 * m5a.kernel_logit(strong, s, x))
+    _, _, rates = chained_finite(strong, s, moved, 10.0, q, q, include_rates=True)
+    log_error = 0.0
+    for i, row in enumerate(x):
+        states, full, _ = direct_chain(strong, s, row, moved, 10.0)
+        expected = full[3, states[:, 0] == -1].sum()
+        actual = rates[1][i, 1]
+        if not 0 < actual < np.finfo(float).eps:
+            raise ValueError("rare positive readout escape was lost")
+        log_error = max(log_error, abs(float(np.log(actual) - np.log(expected))))
+    if log_error > 1e-8:
+        raise ValueError("rare escape disagrees with independent full enumeration")
+    return {"max_full_state_error": worst, "rare_escape_log_error": log_error}
 
 
 def error_summary(prob, reference):
@@ -202,7 +226,7 @@ def standard_finite(p, s, compiled, target):
     return finite
 
 
-def chained_finite(p, s, moved, coupling, compiled, target):
+def chained_finite(p, s, moved, coupling, compiled, target, *, include_rates=False):
     x = m5a.blanket_inputs(s)
     pieces = {str(k): [] for k in KS}
     row_error = stationary_error = marginal_error = 0.0
@@ -224,18 +248,26 @@ def chained_finite(p, s, moved, coupling, compiled, target):
                 power = transition.copy()
             elif k > 1:
                 power = power @ power  # KS after 1 consists of successive powers of two
-            probability = power[:, :2] @ (block[:, 0] == 1)
+            plus = power[:, :2] @ (block[:, 0] == 1)
+            minus = power[:, :2] @ (block[:, 0] == -1)
+            mass = plus + minus
+            row_error = max(row_error, float(np.max(np.abs(mass - 1))))
+            # Remove only accumulated summation roundoff, retaining both tails.
+            probability = plus / mass
+            # Separate positive escape sums for the two incoming logical spins.
+            rates = np.column_stack((plus[:, 0] / mass[:, 0], minus[:, 1] / mass[:, 1]))
             # Retain the full reduced-state mixing diagnostic, over ALL B starts.
             block_tv = 0.5 * np.abs(power - stationary[:, None, :]).sum(axis=2).max(axis=1)
-            pieces[str(k)].append((probability, q, block_tv))
+            pieces[str(k)].append((probability, q, block_tv, rates))
     checks = {"row_sum": row_error, "stationarity": stationary_error, "marginal": marginal_error}
     if max(checks.values()) > 2e-12:
         raise ValueError(f"chained invariant failed: {checks}")
-    finite = {}
+    finite, rates_by_k = {}, {}
     for k, chunks in pieces.items():
         probability = np.concatenate([c[0] for c in chunks])
         q = np.concatenate([c[1] for c in chunks])
         block_tv = np.concatenate([c[2] for c in chunks])
+        rates_by_k[int(k)] = np.concatenate([c[3] for c in chunks])
         if k == "0" and not np.array_equal(probability, np.broadcast_to([0, 1], probability.shape)):
             raise ValueError("K=0 must be identity")
         finite[k] = {
@@ -244,6 +276,14 @@ def chained_finite(p, s, moved, coupling, compiled, target):
             "readout_mixing": error_summary(probability, q[:, None]),
             "worst_start_reduced_state_tv": float(block_tv.max()),
         }
+    if include_rates:
+        prob = pair_probabilities(p, s, x, moved, coupling)
+        pair = spins(2)
+        rates_by_k[None] = np.column_stack(
+            (prob[:, pair[:, 0] == 1].sum(axis=1), prob[:, pair[:, 0] == -1].sum(axis=1))
+        )
+        rates_by_k[None] /= rates_by_k[None].sum(axis=1)[:, None]
+        return finite, checks, rates_by_k
     return finite, checks
 
 
@@ -313,7 +353,7 @@ def main():
         "controls": checks,
         "arms": {},
     }
-    for arm in ARMS:
+    for arm in PROBE_ARMS:
         reading, _, cap = arm
         sites, work = [], []
         # Complete equilibrium comparisons for this arm before any finite K.
