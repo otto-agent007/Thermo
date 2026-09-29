@@ -396,14 +396,15 @@ one-seed subset; it is explicitly labeled and does not substitute for the full
 five-arm output.
 
 The input model remains **clamped copies**. The measured degree limit and the
-full-chain pruning loss now justify proposing a **bounded degree-constrained
-refit**: start with just the 11 B/variational/cap-1 sites, freeze the pruning
-mask so output degree stays at most 16, keep the cap, hidden count, and M5a
-uniform-input KL objective, and retain the other 49 fits exactly. Compare the
-refit against original/prune/chain using the same outer metrics and budgets.
-Unchanged spin count does not guarantee unchanged mixing after refitting, so
-finite-K checks remain necessary. This is a recommendation requiring the M5
-protocol's owner approval for training changes; **no refit has been run**.
+full-chain pruning loss motivated a **bounded degree-constrained refit** of
+just the 11 B/variational/cap-1 sites. Following owner approval, the
+[bounded refit exploration](2026-09-29-m5c-degree-refit-probe.md) fixes a
+**J-only mask**, retains all beta edges and the other 49 fits, and reuses the
+cap, hidden count and M5a objective. It preserves the historical pruning
+comparison here and adds an unfitted J-only control. The refit meets both
+predeclared K=4 accuracy bars, with median target TV30 6.67e-5 at unchanged
+redraw count. The linked note reports the finite-K mixing check and the seven
+selected endpoints that reached the fixed optimizer iteration limit.
 
 Degree and parity still do not prove physical placement. A named synthetic
 patch, actual placement, and any extra copy/routing costs remain open before

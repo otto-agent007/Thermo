@@ -56,6 +56,146 @@ baselines in this arm. JSON lines contain fixed scope, per-seed parameters
 and convergence diagnostics, exact comparisons, and aggregate outcomes.
 The selected parameters are exploratory output, not a new archived source.
 
+## Results (2026-09-29)
+
+The refit **passes both predeclared primary bars**. At K=4, five-seed median
+stationary bias is **6.67150e-5** and median target TV30 is **6.67150e-5**.
+Both are below 8.3e-3 and 5e-4; every individual seed is also below 5e-4.
+The original fits remain more accurate, but the degree repair is below the
+declared reference error budget. This does not certify combined rounding
+and topology error.
+
+J-only pruning without training has median target TV30 **0.0144047**, versus
+**0.0173731** for historical mixed-edge pruning. The mask change alone does
+not meet the useful bar. Refitting recovers the lost accuracy, beating both
+pruning controls and cap-1 chaining in all five seeds at every evaluated K.
+
+The following are separately computed five-seed medians, not paired ratios.
+
+| K | Method | Stationary target bias | Target TV30 |
+| ---: | --- | ---: | ---: |
+| 4 | Original | 1.25208e-06 | 1.252e-06 |
+| 4 | Chain, c=1 | 0.0503927 | 0.0503927 |
+| 4 | Historical J/beta prune | 0.0173731 | 0.0173731 |
+| 4 | J-only prune | 0.0144047 | 0.0144047 |
+| 4 | J-only refit | 6.6715e-05 | 6.6715e-05 |
+| 32 | Original | 1.26406e-06 | 1.26406e-06 |
+| 32 | Chain, c=1 | 0.0200013 | 0.0200013 |
+| 32 | Historical J/beta prune | 0.0181058 | 0.0181058 |
+| 32 | J-only prune | 0.0145182 | 0.0145182 |
+| 32 | J-only refit | 7.11867e-05 | 7.11867e-05 |
+| ∞ | Original | 1.26406e-06 | 1.26406e-06 |
+| ∞ | Chain, c=1 | 0.0199645 | 0.0199645 |
+| ∞ | Historical J/beta prune | 0.0181058 | 0.0181058 |
+| ∞ | J-only prune | 0.0145182 | 0.0145182 |
+| ∞ | J-only refit | 7.11867e-05 | 7.11867e-05 |
+
+The primary refit results by seed are:
+
+| Seed | Stationary target bias, K=4 | Target TV30, K=4 |
+| ---: | ---: | ---: |
+| 0 | 0.000127380632 | 0.000127380659 |
+| 1 | 6.67150454e-05 | 6.67150454e-05 |
+| 2 | 2.00185168e-05 | 2.00184295e-05 |
+| 3 | 7.19222092e-05 | 7.1922205e-05 |
+| 4 | 6.50188877e-05 | 6.50196296e-05 |
+
+The K=4 target-TV range is **2.00184e-5–1.27381e-4**. At K=32 it is
+**2.25315e-5–1.28926e-4**, and at equilibrium **2.25375e-5–1.28885e-4**.
+All three refit medians are below the stronger benchmark, although only
+K=4 determines the declared outcome.
+
+### Fit endpoints and convergence
+
+All **99 starts** ran with the declared bounds and options. **59** terminated
+with `CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH`; **40** reached
+`STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT`. Among the selected endpoints,
+**4** have successful termination and **7** reached the 5,000-iteration limit.
+These are bounded optimizer endpoints, with no global-optimum or full
+convergence claim. Selection follows M5a: minimum endpoint objective regardless
+of termination status. There was no extra optimization after inspecting
+outer results.
+
+Indices are zero-based. Start 0 is constructive, 1–7 are M5a random starts,
+and 8 is the masked archived warm start; no warm start was selected.
+All selected outputs have degree **16**, all masked J coefficients are exactly
+zero, and every retained beta is nonzero. Hidden counts are unchanged.
+
+| Seed/site | Masked input sites | Selected start | Iterations | Termination | Successful starts / 9 | Selected mean KL |
+| --- | --- | ---: | ---: | --- | ---: | ---: |
+| 0/1 | 6 | 6 | 5000 | Iteration limit | 7 | 1.50737e-07 |
+| 0/10 | 6 | 6 | 5000 | Iteration limit | 5 | 3.17674e-09 |
+| 1/8 | 11 | 6 | 2430 | Relative reduction | 7 | 6.86209e-14 |
+| 1/9 | 2, 5 | 1 | 5000 | Iteration limit | 1 | 3.9124e-08 |
+| 2/5 | 3, 6 | 7 | 5000 | Iteration limit | 5 | 2.42726e-09 |
+| 2/6 | 5, 10 | 1 | 5000 | Iteration limit | 6 | 8.72412e-09 |
+| 3/0 | 3 | 7 | 4122 | Relative reduction | 7 | 7.51837e-07 |
+| 3/7 | 8, 10 | 2 | 4834 | Relative reduction | 7 | 7.25654e-14 |
+| 4/5 | 8, 9 | 2 | 5000 | Iteration limit | 4 | 3.91532e-08 |
+| 4/8 | 5 | 0 | 1061 | Relative reduction | 9 | 8.5836e-14 |
+| 4/10 | 0, 4 | 0 | 5000 | Iteration limit | 1 | 1.99425e-08 |
+
+The reproducer emits each start's initial/final objective, iterations, function
+evaluations, success flag and termination text, plus each selected parameter
+vector. It also emits all per-seed metrics and aggregate min/median/max.
+
+### Mixing and work
+
+Refitting changes local mixing. Across the 11 changed kernels, the worst
+number of sweeps needed to put either initial output within TV 1e-3 of its
+own equilibrium rises from **77 to 80**; at tolerance 1e-6 it rises from
+**159 to 167**. Some sites slow more substantially (seed 0/site 10 goes from
+15 to 60 sweeps at 1e-3), while others speed up. The unchanged 49 kernels
+retain their archived dynamics. The finite-K outer results above directly
+check whether these changes matter at the selected budget.
+
+These are maxima over the changed kernels and all their inputs:
+
+| Method | Maximum lambda | K for TV ≤ 1e-3 | K for TV ≤ 1e-6 | Worst finite/equilibrium TV, K=4 | K=32 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Original | 0.918725 | 77 | 159 | 0.550468 | 0.043818 |
+| J-only prune | 0.917403 | 76 | 156 | 0.545646 | 0.0436375 |
+| J-only refit | 0.924006 | 80 | 167 | 0.543073 | 0.0462458 |
+
+The refit outer law is already close to its own stationary law after 30
+steps: median TV **1.41e-10**, maximum **6.57e-9**, at K=4. Low target error
+at K=4 therefore does not depend on an unobserved long outer transient.
+
+Original, historical prune, J-only prune and refit all retain **72K spin
+redraws per outer sweep**: **288 at K=4** and **2,304 at K=32** (8,640 and
+69,120 through t=30). Historical pruning retains its original accounting,
+including the three dead hidden spins, so earlier results are not rewritten.
+Chain uses 74K for seeds 0–3 and 75K for seed 4.
+
+For the refit, per-sweep clamp writes by seed are **182, 197, 200, 193, 199**,
+the same as the J-only pruning control, versus **184, 200, 204, 196, 204**
+originally. Free-spin reset writes remain **72**, with **12 readout bits**,
+per outer sweep. These are the existing clamped-copy/color counts, without
+placement or routing overhead. Equilibrium has no finite redraw budget.
+
+### Verification
+
+- Completed all **11 fits, 99 starts and 75 exact outer comparisons** in
+  **404.8 seconds (6.7 minutes)** with three CPU workers and one BLAS thread
+  each. This is evaluator wall time, not device latency.
+- Replayed all **15 original baselines** against M5b; maximum discrepancy
+  **5.31e-16**. All **45 original/prune/chain metric and work records**
+  reproduced the earlier full outer probe bitwise.
+- Checked all start vectors, selected objectives, masks, cap bounds, degree
+  counts and selection rules from the emitted output. The 49 unchanged
+  vectors are checked bitwise in the probe.
+- Independently enumerated local readout marginals for all 11 sites in
+  original/J-only-prune/refit form; maximum discrepancy **1.45e-15**.
+- Maximum outer stationary residual **3.08e-16**, row-sum error **5.56e-16**;
+  chain local/control invariants also passed.
+- All five M5b implementation hashes and the archive hash remain unchanged.
+- The 74 selected M5a/M5b unit tests passed (two slow tests excluded);
+  repository-wide Ruff formatting/lint and whitespace checks passed.
+
+The successful bounded refit supports taking J-only degree constraints into
+the placement exploration. No wider refit, cap sweep, optimizer extension, or
+new training study is needed to answer this probe's question.
+
 ## Boundary
 
 This refit only addresses output degree. A named synthetic lattice patch,
