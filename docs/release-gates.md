@@ -429,3 +429,55 @@ from new replay provenance. Never reconstruct missing provenance by guessing.
 The runner reads its own source hash from disk at start and again when it
 writes the record, and spawned workers re-import it per phase. Don't switch
 branches or edit the module in the checkout while a run is in progress.
+
+## M5b: inner thermalization and precision sensitivity
+
+The [approved protocol](experiments/meta-ebm-finite-thermalization.md) has a
+runner and [bounded runtime calibration](research/2026-09-28-m5b-runtime.md).
+The [full completion record](experiment-reports/2026-09-28-meta-ebm-thermalization/completion.json)
+and [findings](experiment-reports/2026-09-28-meta-ebm-thermalization/findings.md)
+passed the gate: 80 references, 720 new cells, zero samples and all 800
+persisted units replayed. The first attempt stopped without a terminal marker
+after 688 generated units; resume retained them and completed the study.
+Require the explicit inner update order, current-output initialization,
+K>=1, lambda diagnostics, independent local enumeration, compatible-joint
+control, adaptive large-K agreement and separate precision comparison.
+Require all 80 source chains and 720 new cells, zero samples, passing
+numerical integrity and full persisted replay before claiming completion.
+
+Run the complete study from a clean, fixed checkout:
+
+```bash
+uv run python -m thermo_lab.meta_ebm_thermalization \
+  --output-dir results/meta-ebm-thermalization --workers 3
+uv run python -m thermo_lab.meta_ebm_thermalization \
+  --output-dir results/meta-ebm-thermalization --workers 3 --resume
+```
+
+Use `--benchmark` with a distinct output directory for the single B/0,
+variational, cap-1 source chain plus K=4 and 8-bit cells. Repeat the same
+flags with `--resume` after interruption. Its marker is
+`m5b_benchmark_complete`, which is never a production completion marker.
+The full grid requires `meta_ebm_thermalization_complete`, 80 reference
+chains, 720 new cells, zero samples, passing integrity and all units replayed.
+
+The measured planning estimate is roughly 2–3 hours for generation plus
+replay with three workers, or 5–6 hours with one, on the calibrated 8-CPU,
+8-GiB session. These are estimates from one representative base chain, not
+a full-grid timing guarantee. The runner caps concurrency at four and clamps
+requests exceeding CPU/memory admission to the admitted count (minimum one),
+logging the reason. Admission subtracts reclaimable inactive page cache from
+cgroup usage, or uses MemAvailable when no cgroup limit exists. Every worker
+has one BLAS thread. Numerical-integrity failures retain completed
+work and stop; changing the numerical method requires a protocol amendment.
+
+The real recovery exercise sent SIGTERM after the first reference autosave,
+observed exit 130, resumed that directory and verified the saved reference
+was unchanged, with all generation and persisted replay completed afterward.
+Checkpoint each completed cell and replay unit using the shared persistence
+helpers; reject changes to source, archive or request hashes on resume.
+Finite-K transitions depend on the incoming output, so do not reuse M5a's
+memoryless `sweep` implementation or edit its archived source to add support.
+Selected replay tests belong in the existing CI jobs; the full grid stays a
+local gate. The exploratory optimizer probe is not a completion gate and
+must never replace the original M5a parameters.
