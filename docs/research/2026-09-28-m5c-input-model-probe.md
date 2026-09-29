@@ -80,10 +80,12 @@ This is **not** a claim about Z1's actual `h_max`.
   value preserves the ideal conditional but adds nodes and clamp traffic.
   In 11 of 60 site kernels per arm, the output has degree 17 or 18; two
   coupled output nodes have enough aggregate degree arithmetically, but a
-  short physical placement is unproven. Chain strength, initialization and
-  readout (including ties if using a two-node vote) must be fixed before
-  measuring accuracy or mixing. A chain coupling also consumes the declared
-  coupling cap; an uncapped chain would change the comparison.
+  short physical placement is unproven. Chain strength, initialization,
+  update order and readout (including ties if using a two-node vote) must be
+  fixed before measuring accuracy or mixing. A chain coupling also consumes
+  the declared coupling cap; an uncapped chain would change the comparison.
+  Splitting the output changes the Gibbs schedule, so M5b's hidden-first,
+  output-second K cannot be reused as though it counted the same updates.
 - **Live shared visible spins:** The measured degree reaches 71 for the
   variational arms and 34 for the constructive arm. This also changes the
   per-kernel clamped-input semantics, so it is not the default M5c model.
