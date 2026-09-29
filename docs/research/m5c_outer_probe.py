@@ -148,12 +148,12 @@ def evaluate_base(job):
     }
 
 
-def summaries(bases):
+def summaries(bases, methods=("original", "chain", "prune")):
     rows = []
     for name in sorted({base["arm"] for base in bases}):
         matching = [base for base in bases if base["arm"] == name]
         for k in OUTER_KS:
-            for method in ("original", "chain", "prune"):
+            for method in methods:
                 cells = [
                     next(row for row in base["rows"] if row["method"] == method and row["k"] == k)
                     for base in matching
