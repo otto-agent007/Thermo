@@ -2,6 +2,7 @@
 
 Exploration, exact_reference; no new objective, archive, study runner, or gate.
 Run: OPENBLAS_NUM_THREADS=1 uv run python docs/research/m5c_refit_probe.py --workers 3
+Budget sensitivity: add --maxiter 20000 (maxfun scales as 10 x maxiter, as in M5a).
 JSON lines: fixed scope, each completed seed, then descriptive summaries.
 """
 
@@ -30,6 +31,7 @@ METHODS = ("original", "chain", "prune", "j_prune", "refit")
 PRIMARY_K = 4
 USEFUL = 8.3e-3
 SMALL_COST = 5e-4
+DEFAULT_MAXITER = m5a.OPTIMIZER["maxiter"]
 
 
 def j_mask(p, s):
@@ -41,13 +43,14 @@ def j_mask(p, s):
     return [i for _, i in candidates[:count]]
 
 
-def fit_masked(p, s, seed, mask):
+def fit_masked(p, s, seed, mask, maxiter):
     x = m5a.blanket_inputs(s)
     logit = m5a.exact_logit(s, x)
     starts = m5a._starts(s, ARM[2], ARM[0], seed, s["site"])
     starts.append(p.copy())
     assert len(starts) == 9
     bounds = [(0.0, 0.0) if i in mask else (-1.0, 1.0) for i in range(len(p))]
+    options = optimizer_options(maxiter)
     attempts, endpoints = [], []
     for start in starts:
         start[mask] = 0.0
@@ -58,7 +61,7 @@ def fit_masked(p, s, seed, mask):
             jac=True,
             method="L-BFGS-B",
             bounds=bounds,
-            options=m5a.OPTIMIZER,
+            options=options,
         )
         endpoint = np.clip(np.asarray(result.x, dtype=np.float64), -1.0, 1.0)
         assert np.isfinite(endpoint).all() and np.all(endpoint[mask] == 0.0)
@@ -75,6 +78,12 @@ def fit_masked(p, s, seed, mask):
         endpoints.append(endpoint)
     selected = min(range(len(attempts)), key=lambda i: (attempts[i]["objective"], i))
     return endpoints[selected], {"selected": selected, "attempts": attempts}
+
+
+def optimizer_options(maxiter):
+    """M5a's options, with only the iteration and evaluation limits scaled."""
+    assert m5a.OPTIMIZER["maxfun"] == 10 * m5a.OPTIMIZER["maxiter"]
+    return {**m5a.OPTIMIZER, "maxiter": maxiter, "maxfun": 10 * maxiter}
 
 
 def local_diagnostics(p, s):
@@ -100,7 +109,7 @@ def local_diagnostics(p, s):
     }
 
 
-def evaluate_refit(job):
+def evaluate_refit(job, maxiter=DEFAULT_MAXITER):
     started = time.monotonic()
     _, ref, _ = job
     seed = ref["cell"]["seed"]
@@ -118,7 +127,7 @@ def evaluate_refit(job):
         pruned[mask] = 0.0
         # A mask affects only J, leaving every other archived coordinate identical.
         assert np.array_equal(pruned[len(s["blanket"]) :], p[len(s["blanket"]) :])
-        fitted, attempts = fit_masked(p, s, seed, mask)
+        fitted, attempts = fit_masked(p, s, seed, mask, maxiter)
         vectors["refit"][site] = fitted
         diagnostics = {
             method: local_diagnostics(q, s)
@@ -188,6 +197,7 @@ def evaluate_refit(job):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, choices=(1, 2, 3), default=1)
+    parser.add_argument("--maxiter", type=int, default=DEFAULT_MAXITER)
     args = parser.parse_args()
     record = load_archive()
     for name, expected in record["request"]["implementation_sha256"].items():
@@ -224,6 +234,7 @@ def main():
                 "outer_states": m5a.STATES,
                 "start": "uniform",
                 "horizon": 30,
+                "optimizer": optimizer_options(args.maxiter),
                 "controls": controls(),
             }
         ),
@@ -234,7 +245,9 @@ def main():
     with ProcessPoolExecutor(
         max_workers=args.workers, mp_context=multiprocessing.get_context("spawn")
     ) as pool:
-        for future in as_completed([pool.submit(evaluate_refit, job) for job in jobs]):
+        for future in as_completed(
+            [pool.submit(evaluate_refit, job, args.maxiter) for job in jobs]
+        ):
             base = future.result()
             bases.append(base)
             print(json.dumps({"base": base}, allow_nan=False), flush=True)

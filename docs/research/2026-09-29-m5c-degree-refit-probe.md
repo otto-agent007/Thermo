@@ -48,6 +48,8 @@ error.
 
 ```bash
 OPENBLAS_NUM_THREADS=1 uv run python docs/research/m5c_refit_probe.py --workers 3 > /tmp/m5c-refit.jsonl
+# budget sensitivity (see below); maxfun scales as 10 x maxiter, as in M5a
+OPENBLAS_NUM_THREADS=1 uv run python docs/research/m5c_refit_probe.py --workers 3 --maxiter 20000 > /tmp/m5c-refit-20k.jsonl
 ```
 
 The script authenticates the M5b archive and all five pinned implementation
@@ -193,14 +195,74 @@ placement or routing overhead. Equilibrium has no finite redraw budget.
   repository-wide Ruff formatting/lint and whitespace checks passed.
 
 The successful bounded refit supports taking J-only degree constraints into
-the placement exploration. No wider refit, cap sweep, optimizer extension, or
-new training study is needed to answer this probe's question.
+the placement exploration. No wider refit, cap sweep, or new training study
+is needed to answer this probe's question. The iteration budget is revisited
+below because most selected fits stopped at the limit.
+
+## Budget sensitivity (2026-09-30)
+
+This check was run **after** the primary result above; it does not replace
+the declared K=4 outcome. The owner approved raising the refit budget for the
+frozen M5c protocol on the basis of this check.
+
+Seven of the 11 selected endpoints above stopped at M5a's 5,000-iteration
+limit, against 12 of 1,080 selected fits in M5a itself. The masked problem
+converges more slowly, so the budget was checked directly. Both budgets were
+run on one machine with identical scope, starts, bounds and selection. Only
+`maxiter` and `maxfun` (kept at 10 x `maxiter`, as in M5a) changed.
+
+| Refit budget | Successful attempts / 99 | Selected successful / 11 | K=4 median bias | K=4 median TV30 | K=4 seed range (TV30) |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 5,000 | 46 | 3 | 6.5366e-5 | 6.5366e-5 | 4.09e-5–1.45e-4 |
+| 20,000 | 96 | 10 | 3.47332e-5 | 3.47328e-5 | 3.46e-6–7.19e-5 |
+
+The 5,000-iteration row is this machine's rerun of the primary run. It passes
+the same bars, but 8 of its 11 selected starts and its per-seed errors differ
+from the 2026-09-29 run above. At 20,000, K=32 and equilibrium medians are
+**4.52e-5**, and every seed stays below 5e-4 at every K.
+
+| Seed/site | Selected start | Iterations | Termination | Successful starts / 9 | Selected mean KL |
+| --- | ---: | ---: | --- | ---: | ---: |
+| 0/1 | 3 | 6907 | Relative reduction | 9 | 3.41267e-13 |
+| 0/10 | 8 | 9216 | Relative reduction | 9 | 1.8959e-08 |
+| 1/8 | 6 | 3133 | Relative reduction | 9 | 4.23156e-14 |
+| 1/9 | 8 | 20000 | Iteration limit | 6 | 1.2826e-08 |
+| 2/5 | 5 | 17218 | Relative reduction | 9 | 9.68085e-12 |
+| 2/6 | 7 | 7484 | Relative reduction | 9 | 1.07282e-09 |
+| 3/0 | 7 | 7313 | Relative reduction | 9 | 7.51833e-07 |
+| 3/7 | 5 | 9181 | Relative reduction | 9 | 5.58685e-14 |
+| 4/5 | 3 | 7938 | Relative reduction | 9 | 6.09721e-14 |
+| 4/8 | 8 | 377 | Relative reduction | 9 | 3.29947e-13 |
+| 4/10 | 0 | 7032 | Relative reduction | 9 | 1.97868e-08 |
+
+- Most selected fits need **6,900–9,200 iterations**. At 5,000 they are cut
+  off mid-descent. The masked archived warm start is now selected at three
+  sites.
+- The error floor is set by the mask, not the budget. Seed 3 stays at
+  **7.19e-5** because site 3/0 converges to the same objective, **7.52e-7**,
+  at both budgets. Lowering it would need a different mask or more hidden
+  spins, which is outside this probe's scope.
+- Site 1/9 still reaches 20,000 iterations with objective 1.28e-8. It does
+  not set the floor and no further budget is spent on it.
+- Mixing is essentially unchanged. The worst K for TV ≤ 1e-3 is **79** and
+  for TV ≤ 1e-6 is **165**, against 77 and 159 originally. Redraw, clamp,
+  reset and readout counts do not depend on the budget.
+- Summed per-seed fit time rose from about 635 to 1,129 seconds, with both
+  runs sharing the machine. This is evaluator time, not device latency.
+
+Converged endpoints are expected to depend less on the machine than truncated
+ones, but this was not checked on a second machine.
+
+**Decision:** the frozen M5c protocol uses **`maxiter` 20,000 and `maxfun`
+200,000** for the degree-repair refit and keeps M5a's selection rule, which
+reports but does not require convergence. M5a's archived fits and their
+5,000-iteration budget are unchanged.
 
 ## Boundary
 
 This refit only addresses output degree. A named synthetic lattice patch,
 actual placement, and extra copy/routing costs remain necessary before
 freezing M5c. If this approach is adopted, the frozen M5c protocol must
-regenerate the fits as recorded evidence; it must not promote these
-exploratory endpoints. No hardware latency, energy, or physical-placement
-claim follows.
+regenerate the fits as recorded evidence at the budget above; it must not
+promote these exploratory endpoints. No hardware latency, energy, or
+physical-placement claim follows.
