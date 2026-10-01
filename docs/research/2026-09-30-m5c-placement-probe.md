@@ -131,6 +131,18 @@ and 10–11 inputs, and each incumbent is **2 copies** above its dual bound
 289 and 302, so the per-seed totals above are within 0–4 copies of optimal.
 Median solve time was 11 s; the total was 1,734 s.
 
+### Solver-limit check (2026-09-30)
+
+After the run above, the six time-limited kernels (seed/site 1/9, 2/5, 2/6,
+3/7, 4/5 and 4/10) were re-solved in parallel at a 900 s limit. **All six
+were proven optimal in 182–200 s**, with exactly the copy counts of the
+120 s incumbents, and their placed conditionals again matched to 1.9e-15.
+The per-seed copy totals in the table (272, 299, 306, 291 and 306) are
+therefore exact minima under the fixed placement model, and every kernel's
+count is proven optimal. The 120 s limit fell short only on the lower
+bound. This check used a scratch driver around `place_kernel`; the M5c
+protocol draft sets the limit to 600 s.
+
 ## Reading the result
 
 Placement is not the obstacle: once degree is repaired, the published rule

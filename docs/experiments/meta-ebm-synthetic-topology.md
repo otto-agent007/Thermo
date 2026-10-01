@@ -98,7 +98,9 @@ Placement depends only on each kernel's nonzero pattern, read from the
   adjacent copy carries the coefficient; every other lattice coupler is zero.
   Copies are shared only within a kernel.
 - **Objective:** minimize copies with SciPy `milp` (HiGHS) on the unbounded
-  lattice, `y` at the origin, time limit **120 s** per kernel. Assert that
+  lattice, `y` at the origin, time limit **600 s** per kernel. In the
+  exploration all 60 kernels were proven optimal within 200 s at a longer
+  limit, so 600 s leaves about 3× margin. Assert that
   all hidden rows share one input support, so only the set of hidden offsets
   matters. Record status, incumbent, dual bound and gap. A time-limited
   incumbent is a valid placement with a solver-reported bound, not a proven
@@ -162,10 +164,11 @@ workflow or preflight layer.
 ## Runtime
 
 From the explorations on this 8-CPU host: refits about 10 minutes with three
-workers, placements about 30 minutes serial (six kernels reach the time
-limit), outer chains and replay a few minutes. Run refits and placements on
-three workers, one BLAS thread each. The expected total is **under 30
-minutes**, so no autosave layer is planned. Measure one seed before the full
+workers; placements about 36 minutes of solver time in total, 19 of them
+in the six hardest kernels at 180–200 s each; outer chains and replay
+a few minutes. Run refits on three workers and placements on up to six,
+one BLAS thread each; the placement problems are small in memory. The
+expected total is **under 30 minutes**, so no autosave layer is planned. Measure one seed before the full
 run; if the estimate exceeds 30 minutes, amend the gate to add the standard
 autosave and resume contract before launching.
 
@@ -185,10 +188,12 @@ gate section is added with the runner.
    structure and would likely cost similarly; placing it is an amendment.
 2. **Methods:** original, J-only prune and refit. The historical mixed prune
    and the capped chain stay in the exploration record.
-3. **Solver limit:** 120 s per kernel. Six kernels hit it in exploration,
-   each 2 copies above its bound. A longer limit would lengthen the run.
+3. **Solver limit: 600 s per kernel** (raised from 120 s on September 30).
+   At 120 s six kernels stopped 2 copies above their bound. Re-solved at a
+   900 s limit, all six were proven optimal in 182–200 s with the same
+   copy counts, so the bound was the weak part, not the layouts.
 4. **No autosave**, conditional on the one-seed timing staying under the
-   30-minute threshold.
+   30-minute threshold with placements on six workers.
 
 ## After M5c
 
