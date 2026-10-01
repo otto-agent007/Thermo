@@ -566,3 +566,27 @@ can damage the high-cap exact-marginal chains. The
 is a completed exploratory diagnostic, not M5b evidence. Execution must
 follow the [M5b release gate](release-gates.md#m5b-inner-thermalization-and-precision-sensitivity)
 and preserve the source-bound M5a evaluator.
+
+## M5c: degree repair and placement on a synthetic offset lattice
+
+The [frozen protocol](experiments/meta-ebm-synthetic-topology.md) compiles
+the primary M5 arm (reading B, variational, cap 1) onto the published
+16-offset connection rule, on an explicitly synthetic open square lattice.
+Eleven of its 60 kernels exceed degree 16. They are repaired by masking
+their smallest `J` edges and refitting with the M5a objective; the other 49
+are unchanged. The original, unfitted J-only prune and refit are compared
+on the exact outer chain at K = 4, 32 and the exact limit. Every kernel is
+then placed with clamped input copies by an exact minimum-copy integer
+program and checked by enumerating the placed site-level model. Each seed's
+12 kernels are packed onto one resident patch.
+
+Inputs come from the authenticated M5b archive; exact probabilities, zero
+samples. Copy, p-bit, clamp-write and area counts are algorithmic counts,
+not device costs. The explorations behind the protocol are in
+`docs/research/2026-09-2{8,9}-m5c-*.md` and
+`docs/research/2026-09-30-m5c-placement-probe.md`. Execution follows the
+[M5c release gate](release-gates.md#m5c-degree-repair-and-placement-on-a-synthetic-offset-lattice).
+The [recorded study](experiment-reports/2026-09-30-meta-ebm-topology/findings.md)
+completed with full replay: the refit reaches median bias 3.47e-5 at K = 4,
+and all 60 kernels place exactly at 272–306 copies per seed against a parity
+bound of 182–200.

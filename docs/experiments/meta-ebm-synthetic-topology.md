@@ -1,7 +1,8 @@
 # M5c: degree repair and placement on a synthetic offset lattice
 
 *Status: **frozen protocol**, approved by the owner on September 30, 2026.
-Changes require a dated amendment. It records the choices settled by the M5c
+The [recorded study](../experiment-reports/2026-09-30-meta-ebm-topology/findings.md)
+completed with full replay the same day. Changes require a dated amendment. It records the choices settled by the M5c
 explorations: the
 [input model and repair probe](../research/2026-09-28-m5c-input-model-probe.md),
 the [bounded degree refit](../research/2026-09-29-m5c-degree-refit-probe.md)

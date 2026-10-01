@@ -1,5 +1,6 @@
 """M5c lattice rule, degree repair, placement verification and packing checks."""
 
+import gzip
 import json
 from pathlib import Path
 
@@ -138,3 +139,60 @@ def test_packing_is_disjoint_inside_and_deterministic(small_placement):
     assert all(0 <= x < record["side"] and 0 <= y < record["side"] for x, y in sites)
     with pytest.raises(ValueError, match="outside"):
         m5c.verify_layout(placed[0], p, s, side=1)
+
+
+RECORD = (
+    Path(__file__).resolve().parents[2] / "docs/experiment-reports/2026-09-30-meta-ebm-topology"
+)
+
+
+@pytest.fixture(scope="module")
+def recorded():
+    data = (RECORD / "study.json.gz").read_bytes()
+    record = json.loads(gzip.decompress(data))
+    m5c.validate_record(record, m5c.study_request("full"))
+    return record, data
+
+
+def test_recorded_archive_authenticates_and_matches_completion(recorded):
+    record, data = recorded
+    provenance = json.loads((RECORD / "provenance.json").read_text())
+    completion = json.loads((RECORD / "completion.json").read_text())
+    assert completion == m5c.completion(record, provenance, data)
+    assert completion["status"] == "meta_ebm_topology_complete"
+    assert (completion["refits"], completion["placements"], completion["patches"]) == (11, 60, 5)
+    assert completion["new_outer_cells"] == 30 and completion["original_replays"] == 15
+    assert record["integrity"]["unchanged_vectors"] == 49
+    assert record["summaries"]["placements_optimal"] == 60
+    assert m5c.summaries(record) == record["summaries"]
+
+
+def test_recorded_refits_placements_and_patches_replay_without_solving(recorded):
+    record, _ = recorded
+    source = m5c.load_source()
+    refs = m5c.references(source)
+    for seed in m5c.SEEDS:
+        vectors, structures = m5c._vectors(refs, record["refits"], seed)
+        for site, (p, s) in enumerate(zip(vectors["refit"], structures, strict=True)):
+            key = f"{seed}|{site}"
+            if key in record["refits"]:
+                stored = record["refits"][key]
+                checks = m5c.refit_checks(np.asarray(refs[seed]["parameters"][site]), p, s)
+                assert checks["objective"] == stored["objective"]
+            stored = record["placements"][key]
+            rebuilt = m5c.verify_layout(stored["layout"], p, s)
+            assert {k: stored[k] for k in ("copies", "physical_pbits")} == {
+                k: rebuilt[k] for k in ("copies", "physical_pbits")
+            }
+        layouts = [record["placements"][f"{seed}|{site}"]["layout"] for site in range(12)]
+        rebuilt = m5c.patch_record(layouts, vectors["refit"], structures)
+        assert rebuilt["side"] == record["patches"][str(seed)]["side"]
+        assert rebuilt["placements"] == record["patches"][str(seed)]["placements"]
+
+
+@pytest.mark.slow
+def test_recorded_seed_zero_replays_outer_metrics_without_refitting(recorded):
+    record, _ = recorded
+    messages = []
+    m5c.replay(record, m5c.load_source(), 1, messages.append, seeds=[0])
+    assert any("replay outer" in message for message in messages)
