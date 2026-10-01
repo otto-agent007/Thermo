@@ -12,7 +12,9 @@ I/O model?
 The recorded [M5a cap baseline](meta-ebm-cap-baseline.md) precedes the
 [approved M5b protocol](meta-ebm-finite-thermalization.md): finite inner
 hidden/output sweeps and a separate precision sensitivity comparison.
-M5c then introduces published offsets on a synthetic lattice. Training or
+M5c then introduces published offsets on a synthetic lattice; its
+[frozen protocol](meta-ebm-synthetic-topology.md) was approved and
+[recorded](../experiment-reports/2026-09-30-meta-ebm-topology/findings.md) on September 30. Training or
 objective changes require a measured constraint and explicit owner approval.
 
 - exact enumeration of all 4,096 target states;

@@ -160,6 +160,7 @@ M1 sources come from the composed trajectory-refinement gate above
 | M4I | `python -m thermo_lab.kernel_capacity_screen` → `kernel-capacity-screen` | four arms; CI replays archive only |
 | M5a | `python -m thermo_lab.meta_ebm_cap_baseline` → `meta-ebm-cap-baseline` | ten targets, 180 chains, zero samples, full replay; ~60 min, CI replays archive only |
 | M5b | `python -m thermo_lab.meta_ebm_thermalization` → `meta-ebm-thermalization` | `meta_ebm_thermalization_complete`; 80 source chains, 720 new cells, zero samples, full replay; [run/resume gate](docs/release-gates.md#m5b-inner-thermalization-and-precision-sensitivity) |
+| M5c | `python -m thermo_lab.meta_ebm_topology` → `meta-ebm-topology` | `meta_ebm_topology_complete`; 11 refits, 60 placements, 30 new outer cells, zero samples and topology violations, full replay; ~18 min, CI replays archive only; [gate](docs/release-gates.md#m5c-degree-repair-and-placement-on-a-synthetic-offset-lattice) |
 
 Prefix every command with `uv run`. The M4B sources are extracted from the
 committed M4 archive as described in [docs/studies.md](docs/studies.md#m4b-matched-training-budget).

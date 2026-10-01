@@ -481,3 +481,36 @@ memoryless `sweep` implementation or edit its archived source to add support.
 Selected replay tests belong in the existing CI jobs; the full grid stays a
 local gate. The exploratory optimizer probe is not a completion gate and
 must never replace the original M5a parameters.
+
+## M5c: degree repair and placement on a synthetic offset lattice
+
+The [frozen protocol](experiments/meta-ebm-synthetic-topology.md) covers the
+primary arm only (reading B, variational, cap 1). Require the authenticated
+M5b archive and its five pinned implementations, all 15 original chains
+replayed against M5b, 11 J-only refits at `maxiter` 20,000, 30 new outer
+cells (J-only prune and refit at K = 4, 32 and the limit), 60 placements
+verified by site-level enumeration at the origin and in the packed patch,
+five patches, zero topology violations, zero samples and full persisted
+replay.
+
+Run the study from a clean, fixed checkout into a fresh directory:
+
+```bash
+uv run python -m thermo_lab.meta_ebm_topology \
+  --output-dir results/meta-ebm-topology --workers 3 --placement-workers 6
+```
+
+`completion.json` must show `meta_ebm_topology_complete`, 15 original
+replays, 11 refits, 30 new outer cells, 60 placements, 5 patches, zero samples
+and zero topology violations. `--benchmark` runs seed 0 only and publishes
+`m5c_benchmark_complete`, which never satisfies this gate.
+
+The seed-0 benchmark took 266 s (218 s generation, 48 s replay) on the 8-CPU
+host. The [recorded full study](experiment-reports/2026-09-30-meta-ebm-topology/findings.md)
+took 17.5 minutes (909 s generation, 141 s replay) and passed this gate. It is
+below the 30-minute threshold and has no autosave layer; an interrupted run
+starts again in a new directory. Replay recomputes every outer metric and checks
+every stored layout exactly. It never refits and never re-solves a placement,
+because time-limited solves can differ between machines. Never edit the five
+M5b-pinned sources; M5c behavior lives in `meta_ebm_topology.py`. CI replays
+a bounded subset of the committed archive; the full run stays a local gate.

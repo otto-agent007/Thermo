@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-09-28)
+## Where the project stands (updated 2026-09-30)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -27,7 +27,10 @@ work pointed at the right problem.
   calibration in `docs/research/2026-09-28-m5b-runtime.md`. The full study and
   persisted replay are recorded in
   `docs/experiment-reports/2026-09-28-meta-ebm-thermalization/`.
-  M5c topology, embedding and execution costs remain open.
+  M5c (`docs/experiments/meta-ebm-synthetic-topology.md`) is recorded in
+  `docs/experiment-reports/2026-09-30-meta-ebm-topology/`: a J-only degree
+  refit plus exact placement on a synthetic offset lattice, at about 1.5×
+  the parity-bound input copies. Complete execution costs remain open.
 - Charter tracks that haven't started yet (`PROJECT_CHARTER.md`): native THRML
   algorithms (Potts, associative memory, Max-Cut), and Torx Bayesian and
   state-space inference. When you're choosing what comes after M5, look here
