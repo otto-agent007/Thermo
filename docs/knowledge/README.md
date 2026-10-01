@@ -53,7 +53,7 @@ A card may give different statuses to different claims, for example a
 | [posteriors](sources/normal-posteriors.md) | Library | `code_released`; PyTorch, reference only |
 | [First sparks of thermodynamic recursive intelligence](sources/extropic-thermo-rsi.md) | Blog post | `asserted`; weights, tasks and scoring unreleased |
 | [hinton-problems](sources/cybertronai-hinton-problems.md) | Task catalog | `code_released`; Unlicense |
-| [A framework for stochastic differentiable programming](sources/extropic-torx-paper.md) | Paper | `asserted`; the Torx paper, abstract only so far |
+| [A framework for stochastic differentiable programming](sources/extropic-torx-paper.md) | Paper | `asserted`; the Torx paper; its API names differ from the releases |
 | [Z1T: sparse transformer-like models](sources/extropic-z1t.md) | Blog post | `asserted`; energy figures are projections |
 
 ## Adding or updating a card

@@ -118,7 +118,7 @@ stationary vector equals the enumerated Boltzmann law. The reference is
 | Initialization | Declared p₀ | Initial state passed to `sample_states` | Disagreement concentrated at K = 1 |
 | Block order | {0, 2, 4} then {1, 3} | Order of the free blocks in the program | Small-K disagreement with this order's reference |
 | Clamping | Spin 0 fixed and removed from T | Clamped block with a fixed value | Clamped marginal not exactly ±1, or a wrong conditional |
-| What counts as a sweep | One update of every free block | `n_warmup` and `steps_per_sample` semantics in 0.1.4 | THRML at K matches p₀Tᴷ⁻¹ or p₀Tᴷ⁺¹ instead |
+| What counts as a sweep | One update of every free block from its exact Gibbs conditional | `n_warmup` and `steps_per_sample` semantics in 0.1.4 | THRML at K matches p₀Tᴷ⁻¹ or p₀Tᴷ⁺¹ instead. Composing per-edge two-site kernels is not a sweep: it has the wrong stationary law ([Torx paper](sources/extropic-torx-paper.md), C6) |
 
 **Arms.**
 - Budgets K ∈ {1, 2, 3, 4, 8, 16, 30}. K = 30 ties back to the existing
