@@ -57,8 +57,8 @@ extra variable.
 - Its energy figures are a hardware model. Under the
   [evidence policy](../../evidence-policy.md), anything Thermo derives from
   them is `calibrated_projection` and must carry the assumptions in C3.
-- Z1's fixed degree-16 coupling graph is a concrete target for M5c's open
-  topology and embedding costs.
+- Z1's fixed degree-16 coupling graph is a real hardware graph to compare with
+  M5c's synthetic offset lattice. M5c's complete execution costs remain open.
 - The training recipe and weights are public, so the scaling claim (C2) is
   checkable in software, unlike the energy claims.
 

@@ -1,8 +1,9 @@
 # Experiment backlog
 
 *Draft, September 29, 2026; E0 added October 1, 2026. Candidate experiments
-drawn from the [source cards](sources/). None is scheduled or frozen. M5c is
-next on the roadmap, and CLAUDE.md names the charter's unstarted tracks (native THRML
+drawn from the [source cards](sources/). None is scheduled or frozen. M5a, M5b
+and M5c are recorded, with complete execution costs still open, and CLAUDE.md
+names the charter's unstarted tracks (native THRML
 Potts, associative memory and Max-Cut; Torx Bayesian and state-space
 inference) as the first place to look after M5. This backlog doesn't reorder
 that.*
@@ -58,7 +59,7 @@ through THRML.
 
 E0 is not one of the charter's native-THRML algorithm tracks (Potts,
 associative memory, Max-Cut), and it doesn't wait for them. It is the check
-those tracks, and any THRML execution of M5 in M5c, should be able to cite.
+those tracks, and any later THRML execution of M5's kernels, should be able to cite.
 Like E3, it can run beside M5 without touching M5 sources.
 
 **E3** fits beside M5 without new infrastructure. It reads archived M5a/M5b
