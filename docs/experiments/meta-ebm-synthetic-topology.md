@@ -1,8 +1,8 @@
 # M5c: degree repair and placement on a synthetic offset lattice
 
-*Status: **draft protocol for owner review**, September 30, 2026. Nothing
-here is frozen until the owner approves it. It records the choices settled by
-the M5c explorations: the
+*Status: **frozen protocol**, approved by the owner on September 30, 2026.
+Changes require a dated amendment. It records the choices settled by the M5c
+explorations: the
 [input model and repair probe](../research/2026-09-28-m5c-input-model-probe.md),
 the [bounded degree refit](../research/2026-09-29-m5c-degree-refit-probe.md)
 and the [synthetic-patch placement probe](../research/2026-09-30-m5c-placement-probe.md).
@@ -182,7 +182,10 @@ The entry point will be `python -m thermo_lab.meta_ebm_topology`, output
 `results/meta-ebm-topology`, marker `meta_ebm_topology_complete`. The release
 gate section is added with the runner.
 
-## Decisions for review
+## Approved decisions
+
+The owner approved these four choices on September 30, 2026.
+
 
 1. **Primary arm only.** Reading A variational cap 3 shares the dense
    structure and would likely cost similarly; placing it is an amendment.
