@@ -590,3 +590,92 @@ The [recorded study](experiment-reports/2026-09-30-meta-ebm-topology/findings.md
 completed with full replay: the refit reaches median bias 3.47e-5 at K = 4,
 and all 60 kernels place exactly at 272–306 copies per seed against a parity
 bound of 182–200.
+
+## Exploratory native algorithms and cold-target inference
+
+The [October 1 pilot archive](experiment-reports/2026-10-01-exploratory-pilots/summary.md)
+preserves small Max-Cut, random-restart greedy, saved-chain mixing and exact
+posterior denoising experiments. No optimization advantage was established;
+good optimization outputs could coexist with poor probability estimates.
+
+The [fixed-budget sampling protocol](experiments/fixed-budget-sampling.md)
+compares one long cold Gibbs chain, five independent cold chains and five
+tempered replicas on fresh 12/16-spin weighted graphs. Total spin redraws,
+including burn-in and all replicas, are matched; exchanges are counted
+separately. The [recorded exploratory result](experiment-reports/2026-10-01-fixed-budget-sampling/findings.md)
+passed its twofold accuracy signal on both field variants, with all 108 cells
+replayed. This CPU JAX comparison is not a hardware or equal-runtime result.
+It follows the [exploratory replay gate](release-gates.md#exploratory-fixed-budget-sampling).
+
+The [October 2 time-to-accuracy follow-up](experiment-reports/2026-10-02-sampling-time-to-accuracy/findings.md)
+adds execution costs, fresh graph seeds, symmetry-aware baselines and six
+denoising posteriors. All 330 cells and 66 decisions replayed. Tempering reaches
+the fixed mean-TV/edge-MAE threshold on all six biased graphs, but independent
+Gibbs is faster on all six denoising cases. On zero-field graphs, analytic global
+flips qualify five targets versus tempering's four. A separately labeled
+post-hoc combination of flips with the saved tempering draws qualifies all six
+without new sampling; its runtime is not measured. The
+[protocol](experiments/sampling-time-to-accuracy.md) and
+[gate](release-gates.md#exploratory-sampling-time-to-accuracy-and-posterior-transfer)
+keep warm batch times distinct from compilation, initialization and hardware cost.
+
+The [fresh-seed symmetry-plus-tempering comparison](experiment-reports/2026-10-02-symmetry-tempering/findings.md)
+completed all 120 cells and 24 decisions on graph seeds 300/301/302. The combined
+arm qualifies on 6/6 zero-field targets, both symmetry-aware ordinary baselines
+on 5/6, and unaugmented tempering on 2/6. It is 4.05–12.33x faster than the best
+qualifying ordinary baseline on four targets, with one close comparison and one
+censored baseline. This supports the combination on the tested graph family;
+it does not extend the earlier denoising result. The
+[protocol](experiments/symmetry-tempering.md) and
+[gate](release-gates.md#exploratory-fresh-seed-symmetry-plus-tempering)
+preserve all previous sources and keep every negative result visible.
+
+## Changing evidence and causal restart policy
+
+The [frozen protocol](experiments/changing-evidence.md) crosses retained versus
+restarted state with Gibbs versus tempering on 12-spin sensor-map surrogates.
+Four schedules, two field directions, two coupling strengths and three budgets
+are paired across independent development and held-out seeds. Every query has
+an exact reference; prior sampler states are not additional observations.
+Predictors are fitted only on development data before held-out execution, and
+the frozen restart policy uses the same sampling work as fixed baselines.
+
+The [recorded study](experiment-reports/2026-10-02-changing-evidence/findings.md)
+completed and replayed 416 cells and 83,200 query estimates. Retention helps
+initialization but increases matched-input loop discrepancy in a strong-coupling
+round trip. State-aware failure AUC improves to 0.810/0.920 for Gibbs/tempering,
+but the restart intervention establishes no reliable improvement over retention.
+Cached exact enumeration is faster on all 224 held-out sampled pipelines at this
+small size. A separate post-hoc, zero-sample calculation shows weak-regime error
+is close to the empirical-marginal error expected from independent exact draws.
+
+The [gate](release-gates.md#changing-evidence-and-causal-restart-policy) requires
+source/trace authentication, causal continuity/reset checks, predictor refitting
+from development data and full replay before completion. Next policy work should
+predict intervention benefit and use new held-out streams. Current results do
+not establish physical-hardware savings or generalize beyond the stated families.
+
+## Conditional estimates on identical trajectories
+
+The [frozen follow-up](experiments/conditional-estimation.md) compares empirical
+counts with conditional-probability averages on identical retained Gibbs and
+tempering trajectories. Sixteen fresh seeds cover the same changing-evidence
+model families at T=4,16,64. Marginals, edge products and alarm-event estimates
+use their respective conditional expectations; no independence approximation
+or fitted policy is added. Timing includes the extra estimator work.
+
+The [recorded comparison](experiment-reports/2026-10-02-conditional-estimation/findings.md)
+replays all 96 trajectory cells, 192 estimator cells and 76,800 query estimates.
+At T=16, marginal MAE falls 26.1% for Gibbs and 29.9% for tempering, with median
+paired CPU overhead of 26.3%/7.4%. Weak-coupling errors fall 56–64%, but the
+difficult strong-checkerboard cases improve only 4–5%. At weak coupling,
+conditional estimates at T=16 outperform empirical estimates at T=64 with
+about one-third of the measured execution time. Gibbs alarm-decision regret
+worsens slightly despite lower average probability error; utility remains a
+separate criterion.
+
+The [gate](release-gates.md#conditional-estimates-on-identical-trajectories)
+requires exact formula checks, paired trajectory/repeat equality, authenticated
+artifacts and full replay. Conditional estimates are a stronger inference
+baseline for this family, not a remedy for biased neighboring states or proof
+of hardware or large-model advantage. Further mechanism tests need fresh seeds.

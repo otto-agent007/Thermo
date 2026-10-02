@@ -1,0 +1,22 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 26873928,
+  "members": {
+    "completion.json": "a7ae53e17592b6e34936b05bc6763e27642fc938914c89b0a0ac8019a344eafd",
+    "development.json": "8a45d06f82baeebdda8f625005d91746eb19aac47342a9a3938defef23872ac1",
+    "policy.json": "334e2a8e3b91d3809360f24fbf11ab021c971a40b1c18758928d8322f5d774bb",
+    "request.json": "a201d79c6327a978c65a85ecdf5f3a1c8b01c0388b4f558443e57425a9ce3e71",
+    "results.json": "fbcaa5ae93954ac86fcaaafd75352d96cea29046903307f406caf4686343b710",
+    "source/docs/experiments/changing-evidence.md": "2245aa2b5dc7e23945d0d6badf3d2d91dc7c32eaf902cf73784a6d85f61f1e1d",
+    "source/docs/experiments/fixed-budget-sampling.md": "4ea8c82f18a47bf01474d4841d70b9f5ba046da8622ad1773c6812f829bf3523",
+    "source/src/thermo_lab/changing_evidence.py": "a6fd0008aadf869786d1abc81c4e5cb2bcbc74cb2744463481d2d67362f14db9",
+    "source/src/thermo_lab/fixed_budget_sampling.py": "3827a94979078f75fb4aeabbf7984e746c663080e09e93d5cd13482f60dcf5c1",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/provenance.py": "9853e3db26da3c48961a9306802c277ff39db935d9547e28b411070bf60ac129",
+    "source/src/thermo_lab/records.py": "cee464810ea30fa82ea358e129ce3a6fbf34e3368b6b6db61f8d9bcfaa9208d0",
+    "source/uv.lock": "dec4fb672391770fe6d5b2d5f39fa6e21879d0103f318a98ef704a230c7b6956",
+    "traces.npz": "4354aefea76e8ba4d413cda0605321e5ff7ac778d7345789873dca576f322857"
+  },
+  "sha256": "c2a4fe8ecf9ea3ed8e0eca2bed2816212a88f8a636e83c9edaecdd5a8b50e0c4"
+}

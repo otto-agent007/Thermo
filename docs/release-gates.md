@@ -514,3 +514,156 @@ every stored layout exactly. It never refits and never re-solves a placement,
 because time-limited solves can differ between machines. Never edit the five
 M5b-pinned sources; M5c behavior lives in `meta_ebm_topology.py`. CI replays
 a bounded subset of the committed archive; the full run stays a local gate.
+
+## Exploratory fixed-budget sampling
+
+Read the [frozen protocol](experiments/fixed-budget-sampling.md). This is a
+bounded exploratory comparison, separate from the M4/M5 milestone gates.
+Use CPU and a fresh output directory:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu \
+  uv run --frozen python -m thermo_lab.fixed_budget_sampling \
+  --output-dir results/fixed-budget-sampling-new
+uv run --frozen pytest tests/unit/test_fixed_budget_sampling.py
+```
+
+The runner writes the frozen request before sampling, validates exact and
+empirical fixtures, runs all 12 targets × three methods × three budgets, then
+replays persisted evidence before writing `completion.json` last. Completion
+must show `status=exploratory_fixed_budget_complete` and `cells_replayed=108`.
+Scientific success is not an integrity gate. The 23-second recorded generation
+is below the autosave threshold; interruption requires a new output directory.
+
+For archive replay, extract the [report's](experiment-reports/2026-10-01-fixed-budget-sampling/findings.md)
+`evidence.tar.gz` into a fresh directory and run the same module with `--replay`
+and `--output-dir` pointing to the extracted `fixed-budget-sampling/` directory.
+The unit test checks archive/member hashes and replays all 108 archived cells
+without resampling in a subprocess with single-thread BLAS and JAX x64 disabled,
+matching the recorded runtime. Strict bitwise replay is sensitive to numerical
+reduction order; see the report's portability note. Replay authenticates the request, evaluator sources and
+packed traces and reconstructs every exact reference, initialization, fixture
+check, accuracy metric, work count and exchange rate. Historical trajectories
+and timings are not regenerated. Preserve the hash-bound runner and helpers.
+
+## Exploratory sampling time to accuracy and posterior transfer
+
+Follow the [frozen protocol](experiments/sampling-time-to-accuracy.md). Use a
+fresh output directory and keep other tests/studies idle during timing:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.sampling_time_to_accuracy \
+  --output-dir results/sampling-time-new
+uv run --frozen pytest tests/unit/test_sampling_time_to_accuracy.py
+```
+
+The full grid has 18 targets, five budgets and 330 cells: three sampling arms
+everywhere, with two analytic global-flip estimators on six zero-field graphs.
+Completion requires `status=exploratory_sampling_time_complete`,
+`cells_replayed=330`, and `decisions_replayed=66`. Qualification failures are
+scientific results, not integrity failures. Count all replica redraws and
+exchange work, and include exchanges, host transfer and estimation in measured
+warm batch time. Keep compilation and initialization separate. This short
+exploratory run has no checkpoint layer; restart interrupted generation in a
+fresh directory.
+
+Replay with `--replay` and the extracted evidence directory checks source,
+request and trace hashes; exact/empirical fixtures; initialization; all exact
+references, estimates, errors, work counts and exchange rates; timing medians;
+and sustained threshold decisions. It does not recreate wall-clock times or
+rerun generation-only prefix/repeat checks. Float-derived values use the fixed
+absolute tolerance 2e-12, while hashes, identities, counts and decision outcomes
+remain exact. The unchanged October 1 sampler is imported, not edited.
+
+## Exploratory fresh-seed symmetry plus tempering
+
+Follow the [frozen protocol](experiments/symmetry-tempering.md), keeping other
+tests and studies idle during measurement:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.symmetry_tempering \
+  --output-dir results/symmetry-tempering-new
+uv run --frozen pytest tests/unit/test_symmetry_tempering.py
+```
+
+Six fresh zero-field graphs, four arms, five budgets and 16 independent trials
+produce 120 cells and 24 decisions. Completion requires
+`status=exploratory_symmetry_tempering_complete`, `cells_replayed=120` and
+`decisions_replayed=24`. Both tempering arms pay all five replicas' redraws and
+exchange attempts and retain only cold samples. Qualification failures remain
+scientific results. Warm timing includes the analytic estimator; compilation
+and initialization are separate. No hardware claim follows.
+
+Replay with `--replay` on the extracted directory authenticates sources,
+request and traces, then recomputes references, estimates, work, exchange rates,
+timing medians and all sustained-threshold decisions. It does not reproduce
+historical timings or rerun generation-only prefix/repeat checks. Use the
+inherited fixed numeric tolerance 2e-12 and exact hashes/discrete values.
+Generation is short and has no checkpoint layer; restart an interrupted run
+in a fresh directory. Preserve all earlier hash-bound sources unchanged.
+
+## Changing evidence and causal restart policy
+
+Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,
+CPU, single-thread BLAS and JAX x64 disabled:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.changing_evidence \
+  --output-dir results/changing-evidence-new
+uv run --frozen pytest tests/unit/test_changing_evidence.py
+```
+
+Complete production evidence requires `status=changing_evidence_complete`,
+`cells_replayed=416` and `query_estimates_replayed=83200`. Development and
+held-out streams are disjoint; fit the predictor and persist its coefficients
+before held-out generation. Test the frozen policy at the same sampling budget
+as its fixed baselines. Negative predictive or policy results are scientific
+outcomes, not integrity failures. Count initialization and monitoring overhead
+in the warm query pipeline, and report compilation/model setup separately.
+
+Replay with `--replay` authenticates all artifacts and sources, reconstructs
+exact references and all per-query estimates/errors/decisions/work counts,
+checks state continuity or seeded reset initialization, refits predictors on
+the saved development data, and checks held-out predictions. Timing medians
+are reconstructed from raw observations; historical timing is not reproduced.
+All prior evaluators remain unchanged. The one-condition eight-stream runtime
+calibration took 10.03 seconds for 26 cells plus 0.59 seconds for replay,
+well below the 30-minute checkpoint requirement after scaling to 16 conditions.
+The short production study has no restart layer; interrupted generation uses
+a fresh directory. Neither generation nor verification has a wall-clock cutoff.
+
+## Conditional estimates on identical trajectories
+
+Use the [frozen protocol](experiments/conditional-estimation.md), a fresh output
+directory, CPU and single-thread BLAS. Keep other studies/tests idle while
+measuring timings:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.conditional_estimation \
+  --output-dir results/conditional-estimation-new
+uv run --frozen pytest tests/unit/test_conditional_estimation.py
+```
+
+Completion requires `status=conditional_estimation_complete`,
+`trajectory_cells_replayed=96`, `estimator_cells_replayed=192` and
+`query_estimates_replayed=76800`. Sixteen independent seeds pair both estimators
+on identical trajectories; every timed repeat must be bitwise identical to its
+warm-up. Compare errors and estimator-inclusive CPU costs, with no outcome
+threshold gating completion. Separate synthetic decision utility from average
+probability error and physical-hardware evidence.
+
+Replay with `--replay` authenticates sources and traces, checks grid identities,
+initialization/continuity, and reconstructs references, both estimators,
+metrics, work counts and timing medians. It does not regenerate historical
+trajectories or timings. Exact enumeration and zero-coupling tests independently
+check the conditional-expectation formulas; archive replay is part of the unit
+gate. All earlier and newly archived evaluators remain immutable.
+
+A six-cell, sixteen-stream calibration took 7.85 seconds plus 0.34 seconds
+replay. Production took 75.90 seconds plus 6.02 seconds replay, below the
+30-minute checkpoint threshold. Restart interrupted generation in a fresh
+directory. Neither generation nor verification has a wall-clock cutoff.
