@@ -169,3 +169,9 @@ M1 sources come from the composed trajectory-refinement gate above
 
 Prefix every command with `uv run`. The M4B sources are extracted from the
 committed M4 archive as described in [docs/studies.md](docs/studies.md#m4b-matched-training-budget).
+
+For the five native sampling studies, the
+[portable adapter](docs/research/sampling-portability.md) handles unavailable
+cgroup metadata without editing frozen evaluators. Its fixed-budget numerical
+replay writes a separate `portable-completion.json`; the alternative gate is
+specified in [release gates](docs/release-gates.md#exploratory-fixed-budget-sampling).

@@ -73,8 +73,9 @@ def test_predictor_handles_separable_and_constant_labels():
         np.testing.assert_array_equal(study.predict(constant, x), value)
 
 
-def test_small_study_replays_and_rejects_modified_derived_error(tmp_path):
+def test_small_study_replays_and_rejects_modified_derived_error(tmp_path, missing_cgroup_limits):
     from thermo_lab import changing_evidence as study
+    from thermo_lab.sampling_portability import run_study
 
     request = study.make_request()
     request.update(
@@ -86,7 +87,7 @@ def test_small_study_replays_and_rejects_modified_derived_error(tmp_path):
         timing_repeats=1,
     )
     out = tmp_path / "study"
-    study.run_study(out, request)
+    run_study("changing_evidence", out, request)
     complete = study.replay(out)
     assert complete["cells_replayed"] == 10
     assert complete["query_estimates_replayed"] == 500

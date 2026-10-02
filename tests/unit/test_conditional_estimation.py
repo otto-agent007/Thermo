@@ -84,15 +84,16 @@ def test_tempering_estimator_ignores_hot_replicas_and_burnin():
         np.testing.assert_array_equal(changed[name], original[name])
 
 
-def test_small_paired_study_replays_and_rejects_changed_metrics(tmp_path):
+def test_small_paired_study_replays_and_rejects_changed_metrics(tmp_path, missing_cgroup_limits):
     from thermo_lab import conditional_estimation as study
+    from thermo_lab.sampling_portability import run_study
 
     request = study.make_request()
     request.update(
         seeds=[94, 95], conditions=[request["conditions"][0]], budgets=[4], timing_repeats=1
     )
     out = tmp_path / "paired"
-    study.run_study(out, request)
+    run_study("conditional_estimation", out, request)
     complete = study.replay(out)
     assert complete["trajectory_cells_replayed"] == 2
     assert complete["estimator_cells_replayed"] == 4

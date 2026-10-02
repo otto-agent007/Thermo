@@ -78,8 +78,11 @@ def test_protocol_uses_fresh_zero_field_cubic_graphs_and_fixed_controls():
         ]
 
 
-def test_small_run_replays_both_tempering_arms_and_rejects_changed_work(tmp_path):
+def test_small_run_replays_both_tempering_arms_and_rejects_changed_work(
+    tmp_path, missing_cgroup_limits
+):
     from thermo_lab import symmetry_tempering as study
+    from thermo_lab.sampling_portability import run_study
 
     request = study.make_request()
     request["targets"] = [prior.graph_targets()[0]]
@@ -87,14 +90,14 @@ def test_small_run_replays_both_tempering_arms_and_rejects_changed_work(tmp_path
     request["trials"] = 4
     request["timing_repeats"] = 2
     output = tmp_path / "study"
-    study.run_study(output, request)
+    run_study("symmetry_tempering", output, request)
     assert not (output / "completion.json").exists()
     complete = study.replay(output)
     assert complete["status"] == "exploratory_symmetry_tempering_complete"
     assert complete["cells_replayed"] == 8
     assert complete["decisions_replayed"] == 4
     with pytest.raises(FileExistsError):
-        study.run_study(output, request)
+        run_study("symmetry_tempering", output, request)
     result = json.loads((output / "results.json").read_text())
     bad = copy.deepcopy(result)
     next(c for c in bad["cells"] if c["method"] == "tempering-flip")["swap_attempts_per_trial"] = 0

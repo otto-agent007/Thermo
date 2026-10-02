@@ -92,8 +92,9 @@ def test_replay_tolerates_roundoff_but_rejects_changed_values():
         check_equal({"count": 2}, {"count": 3})
 
 
-def test_small_run_replays_and_detects_modified_timing_summary(tmp_path):
-    from thermo_lab.sampling_time_to_accuracy import make_request, replay, run_study
+def test_small_run_replays_and_detects_modified_timing_summary(tmp_path, missing_cgroup_limits):
+    from thermo_lab.sampling_portability import run_study
+    from thermo_lab.sampling_time_to_accuracy import make_request, replay
 
     request = make_request()
     request["targets"] = request["targets"][:1]
@@ -101,11 +102,11 @@ def test_small_run_replays_and_detects_modified_timing_summary(tmp_path):
     request["trials"] = 4
     request["timing_repeats"] = 2
     output = tmp_path / "study"
-    run_study(output, request)
+    run_study("sampling_time_to_accuracy", output, request)
     assert not (output / "completion.json").exists()
     assert replay(output)["cells_replayed"] == 10
     with pytest.raises(FileExistsError):
-        run_study(output, request)
+        run_study("sampling_time_to_accuracy", output, request)
     result = json.loads((output / "results.json").read_text())
     bad = copy.deepcopy(result)
     bad["cells"][0]["pipeline_median_seconds"] += 0.1

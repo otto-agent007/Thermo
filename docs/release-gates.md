@@ -517,6 +517,17 @@ a bounded subset of the committed archive; the full run stays a local gate.
 
 ## Exploratory fixed-budget sampling
 
+**Portable entry point for the five sampling studies below:** see
+[sampling portability](research/sampling-portability.md). Use
+`python -m thermo_lab.sampling_portability <original_module_name>` to run on
+hosts without readable cgroup metadata. New requests authenticate the adapter.
+The fixed-budget numerical replay has a separate gate:
+`portable-completion.json` must show
+`status=fixed_budget_sampling_portable_replay_complete`, `cells_replayed=108`,
+`float_atol=2e-12`, `float_rtol=0`, and `max_abs_difference <= float_atol`.
+It preserves the original bitwise completion. The four later replay gates and
+their declared tolerances are unchanged.
+
 Read the [frozen protocol](experiments/fixed-budget-sampling.md). This is a
 bounded exploratory comparison, separate from the M4/M5 milestone gates.
 Use CPU and a fresh output directory:

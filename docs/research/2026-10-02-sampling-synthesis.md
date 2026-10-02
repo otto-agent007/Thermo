@@ -184,3 +184,14 @@ original pilot replay commands also passed from fresh archive extractions.
 Independent review resolved both accounting disclosures and found no remaining
 blockers. No archived scientific evidence or hash-bound evaluator was changed
 to make these checks pass.
+
+The first GitHub CI run subsequently exposed two host assumptions: missing
+cgroup metadata files and CPU-dependent floating-point last bits in the first
+archive's bitwise replay. The [portability follow-up](sampling-portability.md)
+adds an authenticated execution adapter and a separately labeled numerical
+replay. The Haswell probe differs by at most 1.11e-16, with a 2e-12 audit
+tolerance. It retains exact integrity/discrete checks and preserves every
+original evaluator, archive and historical completion record. Regression
+tests cover unavailable metadata and corrupted evidence.
+All 47 targeted tests and all 1,600 tests in the previously failing CI group
+pass locally with the fix. Build, lint, formatting and source-hash checks pass.

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import platform
 import subprocess
 import sys
 import tarfile
@@ -39,26 +40,34 @@ def test_empirical_cold_distributions_match_enumeration():
     assert max(checks["empirical_tv"].values()) < 0.04
 
 
-def test_saved_evidence_replays_and_tampering_fails(tmp_path):
-    from thermo_lab.fixed_budget_sampling import make_request, replay, run_study
+def test_saved_evidence_replays_and_tampering_fails(tmp_path, missing_cgroup_limits):
+    from thermo_lab import fixed_budget_sampling as study
+    from thermo_lab.fixed_budget_sampling import make_request, replay
+    from thermo_lab.sampling_portability import SOURCE, run_study
 
     requested = make_request()
     requested["targets"] = requested["targets"][:1]
     requested["trials"] = 4
     requested["budgets_replica_sweeps"] = [4, 16]
     out = tmp_path / "run"
-    run_study(out, requested)
+    run_study("fixed_budget_sampling", out, requested)
+    assert SOURCE not in requested["sources"]
+    assert study.run_study.__globals__["Path"] is Path
+    saved_request = json.loads((out / "request.json").read_text())
+    assert saved_request["sources"][SOURCE] == study.sha(out / "source" / SOURCE)
     assert not (out / "completion.json").exists()
     completion = replay(out)
     assert completion["cells_replayed"] == 6
     result = json.loads((out / "results.json").read_text())
+    assert result["provenance"]["cpu_quota"] == "unavailable"
+    assert result["provenance"]["memory_limit_bytes"] == "unavailable"
     for row in result["cells"]:
         assert row["spin_updates_per_trial"] == 5 * row["budget"] * 12
         assert row["swap_attempts_per_trial"] == (
             2 * row["budget"] if row["method"] == "tempering" else 0
         )
     with pytest.raises(FileExistsError):
-        run_study(out, requested)
+        run_study("fixed_budget_sampling", out, requested)
     path = out / "traces.npz"
     path.write_bytes(path.read_bytes() + b"corruption")
     with pytest.raises(ValueError, match="trace hash"):
@@ -91,13 +100,20 @@ def test_archived_fresh_seed_evidence_replays(tmp_path):
     output = tmp_path / "fixed-budget-sampling"
     for name, digest in manifest["members"].items():
         assert hashlib.sha256((output / name).read_bytes()).hexdigest() == digest
-    # Replay is bitwise: isolate the declared BLAS/JAX settings before import.
-    # Changing BLAS reduction order changes exact-reference last bits (~1e-14).
-    subprocess.run(
+    original_completion = (output / "completion.json").read_bytes()
+    # Exercise another x86 BLAS kernel: thread count alone does not guarantee
+    # bitwise reference values across CPUs. Portable replay states its tolerance.
+    features = np._core._multiarray_umath.__cpu_features__
+    haswell_supported = platform.machine() == "x86_64" and all(
+        features.get(name, False) for name in ("AVX2", "FMA3")
+    )
+    cpu_environment = {"OPENBLAS_CORETYPE": "Haswell"} if haswell_supported else {}
+    completed = subprocess.run(
         [
             sys.executable,
             "-m",
-            "thermo_lab.fixed_budget_sampling",
+            "thermo_lab.sampling_portability",
+            "fixed_budget_sampling",
             "--output-dir",
             str(output),
             "--replay",
@@ -108,12 +124,17 @@ def test_archived_fresh_seed_evidence_replays(tmp_path):
             "OMP_NUM_THREADS": "1",
             "JAX_PLATFORMS": "cpu",
             "JAX_ENABLE_X64": "false",
+            **cpu_environment,
         },
-        check=True,
         capture_output=True,
         text=True,
     )
-    completion = json.loads((output / "completion.json").read_text())
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert (output / "completion.json").read_bytes() == original_completion
+    completion = json.loads((output / "portable-completion.json").read_text())
+    assert completion["comparison"] == "numerical_not_bitwise"
+    assert completion["float_atol"] == 2e-12
+    assert completion["max_abs_difference"] <= 2e-12
     assert completion["request_digest"] == (
         "sha256:7fe6b11624be109e5382f2892fee95c525e57e1f5b7b15437bef4200b89b383d"
     )

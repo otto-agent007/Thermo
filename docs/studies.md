@@ -632,6 +632,11 @@ preserve all previous sources and keep every negative result visible.
 
 ## Changing evidence and causal restart policy
 
+The five native sampling studies also have a
+[portable execution and replay entry point](research/sampling-portability.md)
+for hosts outside the original cloud environment. Frozen evaluators and
+archived results remain unchanged.
+
 The [frozen protocol](experiments/changing-evidence.md) crosses retained versus
 restarted state with Gibbs versus tempering on 12-spin sensor-map surrogates.
 Four schedules, two field directions, two coupling strengths and three budgets
