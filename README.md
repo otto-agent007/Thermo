@@ -67,6 +67,7 @@ committed deliberately under `docs/experiment-reports/`.
 - [Study guide](docs/studies.md) and frozen protocols in [docs/experiments/](docs/experiments/)
 - [Experiment reports](docs/experiment-reports/) and [research notes](docs/research/)
 - [CI/CD runbook](docs/ci-cd.md) and [improvement harness](docs/improvement-harness.md)
+- [Execution environments](docs/environments.md): local and Codex cloud limits, which gates fit where
 - [August 2026 release intake](docs/release-intelligence/extropic-2026-08.md)
 - [Research dashboard](dashboard/README.md)
 
