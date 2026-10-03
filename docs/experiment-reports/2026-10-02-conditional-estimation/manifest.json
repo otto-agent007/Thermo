@@ -1,0 +1,22 @@
+{
+  "archive": "evidence.tar.gz",
+  "sha256": "895aecab34333321df69c10274f8a33dd3079514b23e3052eed800d96c9e8492",
+  "bytes": 22748250,
+  "members": {
+    "completion.json": "d1bdeeeb8adf63321d5f120d2f29e29cf720c916634e0bbcf34eadc2b916ca37",
+    "request.json": "a655fd6f7b85a7365da76f7e531e653cbe40c37ad204fc6a3e4b83f7bcd217ec",
+    "results.json": "90ef12db76a2d82adffe55a2f5724fcbcdb5983ded1df34ee3931d81622d0dc1",
+    "source/docs/experiments/changing-evidence.md": "2245aa2b5dc7e23945d0d6badf3d2d91dc7c32eaf902cf73784a6d85f61f1e1d",
+    "source/docs/experiments/conditional-estimation.md": "8749bf90c525a8c7a12e15c2a4f0606e7bfa8474eb726d533a8a73edf50a5b0f",
+    "source/docs/experiments/fixed-budget-sampling.md": "4ea8c82f18a47bf01474d4841d70b9f5ba046da8622ad1773c6812f829bf3523",
+    "source/src/thermo_lab/changing_evidence.py": "a6fd0008aadf869786d1abc81c4e5cb2bcbc74cb2744463481d2d67362f14db9",
+    "source/src/thermo_lab/conditional_estimation.py": "90a017c8a2607aa6d76baef3bf05e8f0909dbe794d53a948255ae94855ff6237",
+    "source/src/thermo_lab/fixed_budget_sampling.py": "3827a94979078f75fb4aeabbf7984e746c663080e09e93d5cd13482f60dcf5c1",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/provenance.py": "9853e3db26da3c48961a9306802c277ff39db935d9547e28b411070bf60ac129",
+    "source/src/thermo_lab/records.py": "cee464810ea30fa82ea358e129ce3a6fbf34e3368b6b6db61f8d9bcfaa9208d0",
+    "source/uv.lock": "dec4fb672391770fe6d5b2d5f39fa6e21879d0103f318a98ef704a230c7b6956",
+    "traces.npz": "059d9a21b60e8a2d4d0af141bb53d91f1edcc52e91eedb69e62faaf22eda6aa4"
+  }
+}
