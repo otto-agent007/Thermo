@@ -11,6 +11,7 @@ import {
   studySource,
 } from "./catalog.ts";
 import { readBounded } from "./files.ts";
+import { loadKnowledgeResearch } from "./knowledge.ts";
 import { loadRecentStudies } from "./recent.ts";
 import type {
   CellDetail,
@@ -372,6 +373,8 @@ export async function loadEvidence(
       sources: snapshot.recentStudies[0].sources.slice(0, 1),
     },
   );
+  const knowledge = await loadKnowledgeResearch(repoRoot);
+  snapshot.issues.push(...knowledge.issues);
   snapshot.research = [
     ...snapshot.recentStudies
       .filter((s) => s.availability === "available")
@@ -383,6 +386,7 @@ export async function loadEvidence(
         scope: study.scope,
         sources: study.sources,
       })),
+    ...knowledge.items,
     ...research,
   ];
   return { snapshot, details };
