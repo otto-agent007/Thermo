@@ -373,8 +373,10 @@ export async function loadEvidence(
       sources: snapshot.recentStudies[0].sources.slice(0, 1),
     },
   );
+  // Knowledge files are optional reading material, not evidence. Their absence
+  // is not an integrity issue, so it does not join snapshot.issues (which the
+  // UI renders as alerts); the loader's own issue list stays testable.
   const knowledge = await loadKnowledgeResearch(repoRoot);
-  snapshot.issues.push(...knowledge.issues);
   snapshot.research = [
     ...snapshot.recentStudies
       .filter((s) => s.availability === "available")
