@@ -4,7 +4,7 @@ import { readBounded } from "./files.ts";
 // Research items read from the knowledge base in docs/knowledge/ instead of a
 // hand-written list. Lessons become "finding" items and the ranked backlog
 // becomes "proposal" items. Text is copied verbatim; nothing here is evidence
-// and nothing is reclassified. A missing or malformed file yields no items
+// and nothing is reclassified. A missing or unreadable file yields no items
 // and one issue string, never an exception, so the dashboard still renders.
 export const lessonsPath = "docs/knowledge/lessons.md";
 export const backlogPath = "docs/knowledge/experiment-backlog.md";
