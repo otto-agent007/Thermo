@@ -1,0 +1,71 @@
+{
+  "inference-pilot-2026-10-01.tar.gz": {
+    "bytes": 1649524,
+    "members": {
+      "inference-pilot/README.md": "086c9717033a09dacf1fa23d45082eddddae485c23bbaec2feef21c384ea1e35",
+      "inference-pilot/analysis-completion.json": "35d64639bf9680db876548c08b2008c593162cdc200956b213899f89434dcd64",
+      "inference-pilot/analysis-report.md": "17613358b95c1913d5213491e16e35b8d80e70f3ad5993054ff2872c25df832c",
+      "inference-pilot/analysis.json": "64a07d2d3d40d0d59a3abc14bbd7afc128c84e1a08018fe0a526e631930aff6b",
+      "inference-pilot/analysis.log": "d2e3c5a537b9e079bc519abadf2b34622b0d411a625fe8adbe885e93b318f0d4",
+      "inference-pilot/analyze.py": "5c66f573053d44fa0d6aae649936a678da23b7466e24550867f5af12dc2e34f3",
+      "inference-pilot/denoise-completion.json": "5eef93fcce815a42a0c98a920f099381e317feeeb85a0e85701484a857256adc",
+      "inference-pilot/denoise-replay.log": "d5c2ad206cad3007e75b27f5c669ae96247f7e4e8a555afca1ad87d8403ef297",
+      "inference-pilot/denoise-report.md": "2e8ffc80ac68708ccfb5406f89cadd8785bb145d413659670f037a77083b97f5",
+      "inference-pilot/denoise-request.json": "e95083e68c526b1031cb2903163a18997922fae48d2afc779152f9608ad12bc2",
+      "inference-pilot/denoise-results.json": "735788f2c93a133f7c8074e23c9388e0d50ceb21e216ee8220722706955c2f55",
+      "inference-pilot/denoise-traces.npz": "38252c1bed701e01bb3c71eadb035ad55a552c0b5a9eeccd1b57737ee87e2748",
+      "inference-pilot/denoise.log": "5e5ba196c275ec7f2f2a915e4e6f982b6d697079db4d9ee5110baefe917667e5",
+      "inference-pilot/denoise.py": "90b5d0934a8747038a1ddfef569deedccb90c59a2e08caff92dd5f56dd3ccbba",
+      "inference-pilot/denoising.pdf": "1466fe575493577e01c7f9fa35b84134877530a73808b60c9dd0b1b02faa22ee",
+      "inference-pilot/denoising.png": "c8221862d564af49722deab0f9b397d4f3c19702c3528d7d11ee9c644943e691",
+      "inference-pilot/plot_results.py": "c1caffb9f9e79998356b68487ee9ba328994d3b2a0a9d61ccf28ace6e91a110c",
+      "inference-pilot/posterior-accuracy.pdf": "935d9c132c79a93c03ca73bf8879fdcc11f693b70cad12e9940bed7e3bf609bf",
+      "inference-pilot/posterior-accuracy.png": "913b40f87ec32a673a81566f0437b1072650ef352e8a660f72cde91e96692123",
+      "inference-pilot/saved-chain-mixing.pdf": "84ce73e30e937e8f65d92f398069bc08a3f73ad3df2c1cc5c4d363c20f051531",
+      "inference-pilot/saved-chain-mixing.png": "aa273f443d359b14c52602eabcc64a0ec53678c30b9257c794c3bf1987df9c26",
+      "inference-pilot/source/completion.json": "1952f50caad96f1aa0cc7cd1804c6053ddee44c72f8324a25d229815434e1843",
+      "inference-pilot/source/pilot.py": "86f9470ec4426e5205f2a9745fb2fb862fa03b8dedecbe857c85515416385045",
+      "inference-pilot/source/report.md": "236c2e3c5ae5fb310d48b6bb0863b7697b3197d0b06f19bd6789a64db6571698",
+      "inference-pilot/source/request.json": "d99dcd2d580211849f0b32a182162560ccf19a22826307f15208ef2c79f555fc",
+      "inference-pilot/source/results.json": "ccb4b38e595c1ba9ee8fec6ad67f217aa3ce3deb30b44c881b9d0f2c2edad980",
+      "inference-pilot/source/traces.npz": "0687a02177a12eb3d354c880ba7bd0bd901d6ffde80136f22280f3668a9feff3"
+    },
+    "sha256": "63eacb19d5054cbea97bc2ea879980dc2110bed497620b54ce0ace1473508820"
+  },
+  "maxcut-cpu-pilot-2026-10-01.tar.gz": {
+    "bytes": 147505,
+    "members": {
+      "maxcut-cpu-pilot/README.md": "5320dacb3b657202250b0e92fc9a17b0bb2597640062eb795009a261a7e96de1",
+      "maxcut-cpu-pilot/completion.json": "1952f50caad96f1aa0cc7cd1804c6053ddee44c72f8324a25d229815434e1843",
+      "maxcut-cpu-pilot/pilot.py": "86f9470ec4426e5205f2a9745fb2fb862fa03b8dedecbe857c85515416385045",
+      "maxcut-cpu-pilot/replay.log": "81e2940086c23028b511927f8b619d365ca5125e320a3c0f7703189d77062698",
+      "maxcut-cpu-pilot/report.md": "236c2e3c5ae5fb310d48b6bb0863b7697b3197d0b06f19bd6789a64db6571698",
+      "maxcut-cpu-pilot/request.json": "d99dcd2d580211849f0b32a182162560ccf19a22826307f15208ef2c79f555fc",
+      "maxcut-cpu-pilot/results.json": "ccb4b38e595c1ba9ee8fec6ad67f217aa3ce3deb30b44c881b9d0f2c2edad980",
+      "maxcut-cpu-pilot/run.log": "de4b2aef13b9860c00f16501f6c51e809dc9904a88ec47b1ce0ef7410cb28b60",
+      "maxcut-cpu-pilot/traces.npz": "0687a02177a12eb3d354c880ba7bd0bd901d6ffde80136f22280f3668a9feff3"
+    },
+    "sha256": "8c8e8c31d4dc820461d2ee01d439ce11ebb4e16f11f9a66ae13e3532b035ce30"
+  },
+  "maxcut-restart-greedy-2026-10-01.tar.gz": {
+    "bytes": 188645,
+    "members": {
+      "maxcut-restart-greedy/README.md": "57c23910c21ec7dbf24e86d01f866ec0d127eb7ae84c6d4b418b0a3280ca35aa",
+      "maxcut-restart-greedy/compare.py": "822dd353f9de06c5553ecf8902c2393c2956b4c2b0a48ed0e2c5218619f4791d",
+      "maxcut-restart-greedy/completion.json": "bcc40b8f0d2604d299513abceba59c57acad364c2f04ce74e4f8faaa5b098424",
+      "maxcut-restart-greedy/replay.log": "9d339b0eb6b1de846f04e11b6569c931d10a5eeba64d1146cde3956deecac007",
+      "maxcut-restart-greedy/report.md": "b566d823dc5d861d2bc2174020d9e521a3135c2136592ada8af712fdff408c4e",
+      "maxcut-restart-greedy/request.json": "f8274250b642dd4e827c2126cd2f12e6a74f8db38a3b8f151997b455b674e00c",
+      "maxcut-restart-greedy/results.json": "4876e8bdb81f2d53b04d2cc20649279cb8127b404a135a96d202142b0de866c1",
+      "maxcut-restart-greedy/run.log": "14c6f14a0aeaa923cc2211275e1a706ae426b99fbfac0506fe7b4c2f76049e03",
+      "maxcut-restart-greedy/source/completion.json": "1952f50caad96f1aa0cc7cd1804c6053ddee44c72f8324a25d229815434e1843",
+      "maxcut-restart-greedy/source/pilot.py": "86f9470ec4426e5205f2a9745fb2fb862fa03b8dedecbe857c85515416385045",
+      "maxcut-restart-greedy/source/report.md": "236c2e3c5ae5fb310d48b6bb0863b7697b3197d0b06f19bd6789a64db6571698",
+      "maxcut-restart-greedy/source/request.json": "d99dcd2d580211849f0b32a182162560ccf19a22826307f15208ef2c79f555fc",
+      "maxcut-restart-greedy/source/results.json": "ccb4b38e595c1ba9ee8fec6ad67f217aa3ce3deb30b44c881b9d0f2c2edad980",
+      "maxcut-restart-greedy/source/traces.npz": "0687a02177a12eb3d354c880ba7bd0bd901d6ffde80136f22280f3668a9feff3",
+      "maxcut-restart-greedy/traces.npz": "cf977bb98853749d89d9aff8462ce3840aabc57fbc18d394d717b40152e4672b"
+    },
+    "sha256": "1c8b0dea0c7e8f764c1f668ba30482508957c9270236f821b29102d05114dc41"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 2235152,
+  "members": {
+    "completion.json": "cfcb9db4709b0103e24b00ba6abfb43431fb4e9b4485e44964fdbd3cf6095a98",
+    "request.json": "5eb027d82172cb362198511ff175a4e7f36a2ebd0337eaf4e55883cb4f778686",
+    "results.json": "2812872d097041a325d232d4e3579210c110e0fa55652cbe9890f34a0b81f357",
+    "source/docs/experiments/fixed-budget-sampling.md": "4ea8c82f18a47bf01474d4841d70b9f5ba046da8622ad1773c6812f829bf3523",
+    "source/src/thermo_lab/fixed_budget_sampling.py": "3827a94979078f75fb4aeabbf7984e746c663080e09e93d5cd13482f60dcf5c1",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/uv.lock": "dec4fb672391770fe6d5b2d5f39fa6e21879d0103f318a98ef704a230c7b6956",
+    "traces.npz": "1ae6c05df606201afc1d86a8ed2e84b0cb65027bd11f43375ca2f6414354926b"
+  },
+  "sha256": "1b1e2c26f3f939b3197cd6e212f33a5574e31b5787f3b4a0fe7f812fd2d1f8ff"
+}
