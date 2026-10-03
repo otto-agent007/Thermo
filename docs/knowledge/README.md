@@ -114,3 +114,8 @@ versions and repository commits with what each card records.
 Promoting a backlog item into a study follows the usual path: a dated research
 note, a frozen protocol under `docs/experiments/`, then a roadmap row. The
 backlog is not a schedule.
+
+The [October sampling synthesis](../research/2026-10-02-sampling-synthesis.md)
+connects the newly recorded native-inference experiments to this public-source
+context. It keeps reproduced CPU findings separate from source-card hardware
+claims and updates which research questions remain open.

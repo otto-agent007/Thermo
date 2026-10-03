@@ -16,7 +16,7 @@ GPU is `software_simulation`, never a Z1 hardware measurement. Unreleased or
 inaccessible systems are documented in the roadmap rather than represented by
 placeholder backends.
 
-## Status (September 25, 2026)
+## Status (October 2, 2026)
 
 - **M1–M4** built and audited a compiled 25-site, 500-operation PAsymSwap
   program: population-objective audit, finite-sweep transfer, exact
@@ -28,14 +28,28 @@ placeholder backends.
   ([analysis](docs/research/2026-09-23-cap-leakage-analysis.md)). Raising the
   cap and adding one kernel feature (M4H, M4I) brought exact survival to 89.6%,
   still short of 95%.
-- **M5 (active):** the [topology-aware meta-EBM](docs/experiments/topology-aware-meta-ebm.md).
+- **M5:** the [topology-aware meta-EBM](docs/experiments/topology-aware-meta-ebm.md).
   The [M5a cap baseline](docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/summary.md)
   and [M5b thermalization/precision study](docs/experiment-reports/2026-09-28-meta-ebm-thermalization/findings.md)
-  are recorded exact CPU references; topology and hardware costs remain open.
+  and [M5c synthetic-topology study](docs/experiment-reports/2026-09-30-meta-ebm-topology/findings.md)
+  are recorded exact CPU references; complete hardware costs remain open.
+- **Native sampling:** [time-to-accuracy experiments](docs/experiment-reports/2026-10-02-sampling-time-to-accuracy/findings.md)
+  favor different methods for different targets. [Symmetry plus tempering](docs/experiment-reports/2026-10-02-symmetry-tempering/findings.md)
+  transfers to six fresh zero-field graphs; ordinary Gibbs remains the working
+  reference for the small denoising posteriors.
+- **Changing evidence:** [the recorded study](docs/experiment-reports/2026-10-02-changing-evidence/findings.md)
+  finds useful state retention and measurable history dependence. Failure
+  prediction improves, but the tested restart policy does not reliably improve
+  on retention. Exact enumeration wins the measured timings at this small size.
+  The [conditional-estimation follow-up](docs/experiment-reports/2026-10-02-conditional-estimation/findings.md)
+  reduces marginal error on identical states, especially at weak coupling;
+  strong-coupling errors and decision-utility tradeoffs remain.
 
 The [roadmap](docs/roadmap.md) has one row per milestone with links to every
 recorded report. The [study guide](docs/studies.md) describes each experiment,
 its command and its limitations.
+The [October sampling synthesis](docs/research/2026-10-02-sampling-synthesis.md)
+connects all six new reports, review corrections and the next research questions.
 
 ## Quick start
 
