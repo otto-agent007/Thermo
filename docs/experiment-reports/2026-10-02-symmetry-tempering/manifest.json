@@ -1,0 +1,20 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 4015230,
+  "members": {
+    "completion.json": "0c79e95bd4d6f1069109fbf710dc3cd7775ad1695cafc416d0e614580822c130",
+    "request.json": "4b494597456021104af6f262eb04f6f76b9557395e647e8f69a934dcdee14fce",
+    "results.json": "ac10e72ebfbb366846c35c0ab5e28dbbedc994b3a90a01f1370278b5f22cd438",
+    "source/docs/experiments/fixed-budget-sampling.md": "4ea8c82f18a47bf01474d4841d70b9f5ba046da8622ad1773c6812f829bf3523",
+    "source/docs/experiments/sampling-time-to-accuracy.md": "3188ec12615133da579eadbd8d668adf73b55bf69683d02e47f8d8e145956393",
+    "source/docs/experiments/symmetry-tempering.md": "9edc66d6bf4e55559f64caad2797bf638aedd7a0956c70cc7d98e3d23f055574",
+    "source/src/thermo_lab/fixed_budget_sampling.py": "3827a94979078f75fb4aeabbf7984e746c663080e09e93d5cd13482f60dcf5c1",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/sampling_time_to_accuracy.py": "dba99d676492c0c2d4906bf0e97a05fc7caa93c03eeba29a4a93a8ab8e5deebf",
+    "source/src/thermo_lab/symmetry_tempering.py": "7759aa7ec329b2e258cbb1ac25007130c5ebbc28fac1cf6a2043c6f7ec8cec88",
+    "source/uv.lock": "dec4fb672391770fe6d5b2d5f39fa6e21879d0103f318a98ef704a230c7b6956",
+    "traces.npz": "f96466c61b91d0502a64e00925d522626ce3aa115d9959631fb77792b08523e4"
+  },
+  "sha256": "312be05e399f49e93f8499a4bc42e1be34eb9247946ba924efdc260c01926cae"
+}
