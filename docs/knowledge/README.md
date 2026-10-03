@@ -20,6 +20,7 @@ not have to rediscover which is which.
 | [`sources/`](sources/) | One card per source (paper, library, blog post or task catalog): a checked TOML header with the source's version and claims, then prose on method, relevance to Thermo and cautions. |
 | [`concepts.md`](concepts.md) | Shared vocabulary, each term tied to where Thermo uses it. |
 | [`experiment-backlog.md`](experiment-backlog.md) | Open questions and ranked candidate experiments, with three draft protocol sketches (E0, E1, E2). |
+| [`lessons.md`](lessons.md) | Dated lessons from Thermo's own recorded studies and reviews, each with its evidence class as the source states it and a link to the report or note. |
 
 ## Claim status
 
