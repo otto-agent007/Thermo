@@ -127,9 +127,16 @@ test("failed refresh preserves previous view with an explicit notice", async ({
   await expect(
     page.getByText("Joint quality unmet", { exact: true }),
   ).toBeVisible();
+  const missingLessons = page
+    .getByRole("alert")
+    .filter({ hasText: "docs/knowledge/lessons.md: not present" });
+  if (!staticBuild) await expect(missingLessons).toBeVisible();
   await page.route("**/data/project.json", (route) => route.abort());
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Showing previous data");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Showing previous data" }),
+  ).toBeVisible();
+  if (!staticBuild) await expect(missingLessons).toBeVisible();
   await expect(
     page.getByText("Joint quality unmet", { exact: true }),
   ).toBeVisible();
@@ -208,9 +215,9 @@ test("proposal refresh failure retains prior records with a notice", async ({
   ).toBeVisible();
   await page.route("**/data/proposals.json", (route) => route.abort());
   await page.getByRole("button", { name: "Refresh proposals" }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "Showing previous proposals",
-  );
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Showing previous proposals" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Improve dashboard readability" }),
   ).toBeVisible();
@@ -245,4 +252,37 @@ test("published snapshot excludes local proposal drafts", async ({ page }) => {
   await expect(
     page.getByText("Local drafts are excluded from this static snapshot."),
   ).toBeVisible();
+});
+
+test("published knowledge lessons and backlog retain their source scope", async ({
+  page,
+}) => {
+  test.skip(
+    !staticBuild,
+    "static snapshot includes the repository knowledge files",
+  );
+  await page.goto("/#research");
+  const lesson = page.getByRole("article").filter({
+    has: page.getByRole("heading", { name: "M5a (2026-09-27)", exact: true }),
+  });
+  await expect(lesson).toContainText("do not reproduce its large-cap bias");
+  await expect(lesson).toContainText("exact_reference, zero samples");
+  await expect(
+    lesson.getByRole("link", { name: "M5a summary" }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/otto-agent007/Thermo/blob/main/docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/summary.md",
+  );
+  const backlog = page.getByRole("article").filter({
+    has: page.getByRole("heading", { name: /^E0: / }),
+  });
+  await expect(backlog).toContainText(
+    "Not scheduled, not frozen, not evidence",
+  );
+  await expect(
+    backlog.getByRole("link", { name: "Experiment backlog" }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/otto-agent007/Thermo/blob/main/docs/knowledge/experiment-backlog.md",
+  );
 });
