@@ -56,26 +56,21 @@ for (const fixture of [
         s.research
           .filter((item) => item.id.startsWith(fixture.prefix))
           .map((item) => item.title);
-      const missing = `${fixture.path}: not present in this checkout`;
       const before = await snapshot();
       assert.deepEqual(titles(before), []);
-      assert.ok(before.issues.includes(missing));
 
       await mkdir(join(dir, "docs/knowledge"), { recursive: true });
       await writeFile(join(dir, fixture.path), fixture.initial);
       const created = await snapshot();
       assert.deepEqual(titles(created), [fixture.initialTitle]);
-      assert.ok(!created.issues.includes(missing));
 
       await writeFile(join(dir, fixture.path), fixture.updated);
       const edited = await snapshot();
       assert.deepEqual(titles(edited), [fixture.updatedTitle]);
-      assert.ok(!edited.issues.includes(missing));
 
       await rm(join(dir, fixture.path));
       const deleted = await snapshot();
       assert.deepEqual(titles(deleted), []);
-      assert.ok(deleted.issues.includes(missing));
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

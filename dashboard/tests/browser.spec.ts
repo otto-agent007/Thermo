@@ -123,20 +123,26 @@ test("recent evidence appears first and the study selector preserves all arms", 
 test("failed refresh preserves previous view with an explicit notice", async ({
   page,
 }) => {
+  const sourceNotice = "Source report unavailable in this test fixture";
+  await page.route("**/data/project.json", async (route) => {
+    const response = await route.fetch();
+    const snapshot = await response.json();
+    snapshot.issues.push(sourceNotice);
+    await route.fulfill({ response, json: snapshot });
+  });
   await page.goto("/");
   await expect(
     page.getByText("Joint quality unmet", { exact: true }),
   ).toBeVisible();
-  const missingLessons = page
-    .getByRole("alert")
-    .filter({ hasText: "docs/knowledge/lessons.md: not present" });
-  if (!staticBuild) await expect(missingLessons).toBeVisible();
+  const sourceAlert = page.getByRole("alert").filter({ hasText: sourceNotice });
+  await expect(sourceAlert).toBeVisible();
+  await page.unroute("**/data/project.json");
   await page.route("**/data/project.json", (route) => route.abort());
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Showing previous data" }),
   ).toBeVisible();
-  if (!staticBuild) await expect(missingLessons).toBeVisible();
+  await expect(sourceAlert).toBeVisible();
   await expect(
     page.getByText("Joint quality unmet", { exact: true }),
   ).toBeVisible();
