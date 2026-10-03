@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-09-30)
+## Where the project stands (updated 2026-10-02)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -31,10 +31,43 @@ work pointed at the right problem.
   `docs/experiment-reports/2026-09-30-meta-ebm-topology/`: a J-only degree
   refit plus exact placement on a synthetic offset lattice, at about 1.5×
   the parity-bound input copies. Complete execution costs remain open.
-- Charter tracks that haven't started yet (`PROJECT_CHARTER.md`): native THRML
-  algorithms (Potts, associative memory, Max-Cut), and Torx Bayesian and
-  state-space inference. When you're choosing what comes after M5, look here
-  first rather than extending M4.
+- Native algorithm/inference exploration has started: the October 1
+  Max-Cut, restart-greedy and denoising pilots are preserved under
+  `docs/experiment-reports/2026-10-01-exploratory-pilots/`. The fresh-seed
+  fixed-budget sampling comparison is under
+  `docs/experiment-reports/2026-10-01-fixed-budget-sampling/`: tempering improved
+  probability accuracy per total redraw. The October 2 follow-up under
+  `docs/experiment-reports/2026-10-02-sampling-time-to-accuracy/` measures warm
+  execution costs and changes the recommendation: use symmetry when available,
+  independent Gibbs for the tested denoising posteriors, and tempering for
+  difficult biased graphs. A post-hoc symmetry-plus-tempering estimator passes
+  all six zero-field cases. Its fresh-seed timing is now recorded under
+  `docs/experiment-reports/2026-10-02-symmetry-tempering/`: the combination
+  qualifies 6/6, symmetry-aware ordinary baselines 5/6, and unaugmented
+  tempering 2/6. Against the best qualifying ordinary baseline it is
+  4.05–12.33x faster on four targets, close on one, and alone qualifies on one.
+  All 120 cells and 24 decisions replayed. The changing-evidence follow-up in
+  `docs/experiment-reports/2026-10-02-changing-evidence/` completed 416 cells
+  and 83,200 query estimates with full replay. Retention saves initialization
+  work but can add history dependence. State-aware failure prediction improves
+  held-out ranking, but its equal-work restart policy does not establish an
+  improvement over retaining state. Exact enumeration wins the measured CPU
+  timings at 12 spins. A post-hoc iid reference identifies substantial finite-
+  sample estimation noise. Future policy work should predict intervention
+  benefit and use fresh held-out streams; do not tune against the current test
+  seeds. These study runners and the original sampler are hash-bound.
+  The fresh-seed conditional-estimation follow-up in
+  `docs/experiment-reports/2026-10-02-conditional-estimation/` replays 96 shared
+  trajectory cells / 192 estimator cells. At T=16, conditional averaging lowers
+  marginal error by 26.1% (Gibbs) and 29.9% (tempering), with median paired CPU
+  overhead 26.3%/7.4%. Weak-regime gains are 56–64%; strong-checkerboard gains
+  only 4–5%. Gibbs alarm-decision regret worsens despite better probability
+  error. Use conditional estimates as an inference baseline, retain separate
+  utility checks, and test any new mechanism on fresh seeds. This evaluator
+  and protocol are also hash-bound.
+  Other charter directions (`PROJECT_CHARTER.md`),
+  including Potts, associative memory and Torx state-space inference, remain
+  open. Prefer these tracks to extending M4.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
@@ -85,7 +118,11 @@ as given. To avoid a repeat:
   description to `docs/studies.md`, its gate requirements to
   `docs/release-gates.md` with one index row in AGENTS.md, and its result to a
   report under `docs/experiment-reports/` linked from the roadmap.
-- Run on CPU only. The owner declined GPU work on the local GTX 1050 Ti.
+- CPU remains the default for gates and the THERMES scheduler. The owner
+  approved local GTX 1050 Ti experiments and tests on October 3, 2026 under
+  the compatibility, provenance and validation conditions in
+  [docs/environments.md](docs/environments.md#gpu-use). Keep exact enumerators
+  and archived replays on CPU; GPU software remains simulation evidence.
 
 ## Commands
 

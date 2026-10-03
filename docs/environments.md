@@ -1,7 +1,7 @@
 # Execution environments
 
-*Draft, October 2, 2026 (local and in-session cloud figures measured October 1;
-published cloud figures checked October 2). Where Thermo work runs, what each place can hold,
+*Draft, October 3, 2026 (local and in-session cloud figures measured October 1;
+published cloud figures checked October 3). Where Thermo work runs, what each place can hold,
 and which gates fit where. Figures here are operational observations, not
 evidence; a runner records the limits it actually saw in its own
 `run-status.json` (see the autosave contract in
@@ -23,35 +23,39 @@ study that runs longer than a few minutes.
 | --- | --- | --- |
 | CPU | Intel i7-7700K, 4 cores / 8 threads, no cgroup CPU limit | Quota of 4 cores' CPU time; 5 logical CPUs visible |
 | Memory | 31 GiB, 2 GiB swap | 16 GiB published for the plan; the October 1 instance reported 32 GiB; no swap |
-| GPU | GTX 1050 Ti (4 GiB); **not used**, owner declined GPU work | None |
-| Storage | Repo on `/mnt/2TBHDD` (about 1.6 TB free); root disk about 13 GB free | About 32 GiB workspace, 29 GiB free; `/tmp` and `/dev/shm` about 17 GiB each and counted against RAM |
+| GPU | GTX 1050 Ti (4 GiB, Pascal, compute capability 6.1), driver 580.178.04, CUDA 12.6 toolkit at `/usr/local/cuda-12.6`; **approved for use** on October 3, 2026 (see [GPU use](#gpu-use)); the locked JAX 0.10.2 is CPU-only until a CUDA plugin is pinned | None |
+| Storage | Repo on `/mnt/2TBHDD` (about 1.6 TB free); root disk about 13 GB free | October 1 instance: about 32 GiB workspace, 29 GiB free; `/tmp` and `/dev/shm` about 17 GiB each and RAM-backed; check mounts in each session |
 | Open files / stack | 1,048,576 / 16 MiB | 16,384 per process / 8 MiB per thread |
 | Network | Open | Restricted; package-manager destinations allowed, other downloads may be blocked (a Chromium download was) |
-| Persistence | Everything persists | Processes end with the agent's turn; the workspace survives between turns (see the checkpoint rule) |
+| Persistence | Local files persist | Saved task VM state is recoverable for up to seven days by default; do not depend on background processes surviving a reply (see the checkpoint rule) |
 | Time limits | None | No per-turn maximum is published; observed single-turn cutoff: **not yet measured** (fill in after the probe below, with the date) |
 | Sandboxing | `bwrap` 0.9 installed; `thermo-harness` runs | Commands already run in a nested sandbox; `thermo-harness` needs approved execution outside it |
 | Toolchain | Python 3.11 via `uv`, Node 26, Codex CLI, Hermes Agent | `uv sync --frozen` on setup; Node only if the dashboard is in scope |
 
 ## Rules that follow
 
-- **Thread settings.** Always set `JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1
+- **Thread settings.** For CPU gates set `JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1
   OMP_NUM_THREADS=1` and give the runner its parallelism through its worker
-  flags. On the cloud box keep the **sum** of concurrent processes at four,
-  including secondary flags such as M5a's `--fit-workers` and M5c's
-  `--placement-workers`; the gate commands were sized for an 8-CPU session.
+  flags. On the cloud box keep simultaneously active workers at four or
+  fewer. Consult each runner: secondary flags such as M5a's `--fit-workers`
+  and M5c's `--placement-workers` can govern separate phases and need not
+  be added together. The gate commands were sized for an 8-CPU session.
   The cloud commands are spelled out in the fit table. On the local box,
   three to four workers leave headroom for the owner.
 - **Memory.** Budget for the published 16 GiB on the cloud box, not the
   32 GiB one instance happened to report, and there is no swap to absorb a
   spike. M5b peaked at 0.89 GiB per worker and 4.56 GiB for the session; the
-  M5a gate's eight fit workers peaked at 6.33 GiB. Both fit in 16 GiB. Keep
-  temporary arrays out of `/tmp` on the cloud box; they count as RAM.
-- **Checkpoints.** This is the one authoritative statement of the cloud
-  lifecycle: processes end when the agent's turn ends; the workspace is kept
-  (container cache 12 h, saved VM state 7 days) and resumes on the next
-  message. So on the cloud box write every output directory under the
-  workspace (`results/` in the repo), never `/tmp`, and treat every study as
-  interruptible. Only **M5a and M5b** have an autosave layer and a `--resume`
+  M5a four-worker dense matrix probe peaked at 6.33 GiB total cgroup memory
+  (see its [dated protocol amendment](experiments/meta-ebm-cap-baseline.md#september-27-2026--durable-checkpointing-and-four-worker-matrix-profile)).
+  Those measured peaks fit in 16 GiB; they do not bound every target set.
+  Keep temporary arrays out of `/tmp` when its mount is RAM-backed.
+- **Checkpoints.** Use durable files rather than assuming a background
+  process survives a reply. The docs describe saved task VM recovery for up
+  to seven days; legacy setup-container caching for up to 12 hours is a
+  separate mechanism, not a process-lifetime guarantee. Write every output
+  directory under the workspace (`results/` in the repo), never `/tmp`, and
+  treat every study as interruptible. Of these studies, only **M5a and M5b**
+  have an autosave layer and a `--resume`
   flag. M5c, M4H and M4I do not: an interrupted run starts over in a fresh
   directory, and M4H's evaluator is hash-bound, so autosave cannot be added
   to it. Any new study over about 30 minutes must follow the autosave
@@ -59,9 +63,47 @@ study that runs longer than a few minutes.
 - **Evidence leaves by PR.** The cloud box has no path to the local
   dashboard. Archives come back as gzipped files in a PR; keep them bounded
   per CLAUDE.md, and ask the owner before anything over a few megabytes.
-- **Browser checks stay local.** Playwright needs a Chromium download the
-  cloud network blocks. Dashboard unit tests, typecheck and export can run
-  anywhere; `npm run test:browser` runs on the local box or in GitHub CI.
+- **Browser checks need a configured browser.** The October 1 cloud session
+  blocked the Chromium download. Prefer the local box or GitHub CI for
+  `npm run test:browser`; a cloud session can run the CLI tests if Chromium
+  and its system dependencies are installed and downloads are permitted.
+  Dashboard unit tests, typecheck and export do not need a browser.
+
+## GPU use
+
+On October 3, 2026 the owner approved using the local GTX 1050 Ti for JAX
+experiments and tests under the conditions below. CPU remains the default
+for gates, consistent with CLAUDE.md. The scheduler (THERMES) keeps running
+its gates on CPU until the
+owner says otherwise.
+
+- **Evidence class does not change.** A GPU Torx or THRML result is
+  `software_simulation`, or `exact_reference` when the algorithm is exact,
+  exactly as on CPU (AGENTS.md rule 2). A GPU is not hardware evidence.
+- **Nothing is enabled yet.** The lock pins `jax`/`jaxlib` 0.10.2 CPU
+  wheels. Using the GPU needs a pinned `jax[cuda12]` plugin matching that
+  version, a `uv lock` update, and a contract test that the CPU and GPU
+  paths agree on the checked configs before any GPU run is recorded. The
+  card is Pascal (compute capability 6.1); confirm that the chosen CUDA
+  plugin and its transitive CUDA/cuDNN dependencies support Pascal before
+  pinning. An allowed dependency version range alone does not establish
+  compatibility.
+- **Record the device.** Any run that touches the GPU records the device,
+  driver, jaxlib build and `JAX_PLATFORMS` as runtime provenance, never in
+  the hashed input, and states the default matmul precision; float32 on
+  this card is not float64, and an `exact_reference` result must stay
+  float64 or declare its tolerance.
+- **Memory.** 4 GiB total, shared with the desktop. Set
+  `XLA_PYTHON_CLIENT_PREALLOCATE=false` so a JAX process does not reserve
+  the whole card, and keep exact enumerators (which are NumPy/SciPy) on CPU.
+- **Archives are untouched.** Recorded M1–M5 archives were produced on CPU
+  and replay on CPU. A GPU rerun of a recorded study is a new study with a
+  new output directory, not a replacement.
+- **Cloud box has no GPU.** Anything GPU-specific is local only.
+
+Open questions for the owner discussion: which studies or tests move to the
+GPU first, any change to the CPU default for gates, and whether a
+GPU-only result may be the sole record of a study.
 
 ## Which gates fit where
 
@@ -76,38 +118,43 @@ expect roughly 1.5–2× on multi-worker studies there.
 | Archive replays (M4H, M4I, M5a, M5b, M5c replay-only tests) | Minutes | Yes | Yes |
 | Knowledge-base checks (`thermo_lab.knowledge_base`, `--upstream`) | Seconds; `--upstream` needs arXiv, PyPI and GitHub | Yes | Structure only unless network allows |
 | M4H raised-cap screen | About 25 min on 8 CPUs | Yes | Risky: no autosave, 40–50 min projected, hash-bound; replay the archive instead |
-| M5c topology | 17.5 min on 8 CPUs | Yes | Single turn only, no autosave; expect 30–40 min with `--workers 2 --placement-workers 2`; placement solves can differ between machines |
+| M5c topology | 17.5 min on 8 CPUs | Yes, subject to one-seed timing | Replay the archive by default. A reduced-worker estimate of 30–40 min exceeds the frozen protocol's no-autosave condition: calibrate below 30 min or amend the gate to add autosave before launching. Placement solves can differ between machines |
 | M5a cap baseline | About 60 min on 8 CPUs | Yes | As `--resume` turns: `--workers 2 --fit-workers 4`, same directory each turn |
 | M5b thermalization | 2–3 h with three workers on 8 CPUs | Yes, overnight | As `--resume` turns with `--workers 3`, once the single-turn cutoff below is measured and each turn is sized under it |
 | `thermo-harness` candidates | Minutes to 30 min | Yes | No (nested sandbox) |
-| Dashboard browser tests, snapshot publication | Minutes | Yes | No |
+| Dashboard browser tests | Minutes | Yes | Only with Chromium and system dependencies available; download access depends on configuration |
+| Snapshot publication | Minutes | Yes | Export can run here; publication needs the intended destination and owner approval |
 
 ## What OpenAI publishes about the cloud box
 
-Checked October 2, 2026 against the Codex docs (developers.openai.com now
+Checked October 3, 2026 against the Codex docs (developers.openai.com now
 redirects to learn.chatgpt.com) and the public issue tracker.
 
 - **VM size by plan:** Plus gets 2 vCPUs, 8 GiB memory and 8 GiB disk; Pro,
   Business, Enterprise and Edu get 4 vCPUs, 16 GiB and 32 GiB. The instance
-  measured on October 1 reported 32 GiB of memory, so the published memory
-  figure is a floor, not a promise. Plan on 16 GiB.
-- **Container cache:** state is cached for up to 12 hours after the setup
+  measured on October 1 reported 32 GiB of memory; that observation does not
+  change the published default. Plan on 16 GiB for the four-vCPU plans and
+  check the live limits.
+- **Legacy setup-container cache:** state is cached for up to 12 hours after the setup
   script completes, and invalidated when the setup script, maintenance
   script, environment variables or secrets change.
 - **Saved state:** a task's VM state is recoverable for up to seven days
   after its last turn, so a follow-up message resumes the workspace instead
   of rebuilding it.
-- **Setup script:** times out at 10 minutes (raised from 5). `uv sync
-  --frozen` fits; a dashboard `npm ci` plus Playwright does not, and the
-  browser download is blocked anyway.
-- **Network:** blocked during the agent phase by default except package
-  managers and GitHub hosts; setup scripts have internet; unrestricted access
-  is a per-environment switch.
+- **Setup timing:** the linked legacy timeout thread discusses a change
+  from five to ten minutes. It is not a guarantee for every current setup
+  path. Measure `uv sync --frozen`, `npm ci` and browser installation in the
+  intended environment rather than assuming they fit a fixed budget.
+- **Network:** the current docs describe configurable internet access,
+  including a package-manager preset and additional allowed domains; legacy
+  docs describe agent-phase internet being off by default. Check the actual
+  configuration and all download hosts before installing dependencies.
 - **Not published:** any maximum turn duration or idle timeout. OpenAI's
   launch guidance was that most tasks take one to thirty minutes. Issue
-  reports from May to September 2026 describe containers ending as soon as a
-  reply is sent, long tasks ending after a progress update, and the agent
-  reporting that no background process is running on the next turn.
+  reports describe interruption or lost background processes on particular
+  execution paths. Some concern the Windows desktop app rather than cloud
+  VMs. They motivate conservative checkpoints, not a universal rule that all
+  processes end at every reply.
 
 Sources: [cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environments),
 [legacy cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environment),
@@ -118,18 +165,19 @@ Sources: [cloud environments](https://learn.chatgpt.com/docs/environments/cloud-
 
 ## What that means for studies
 
-- **One turn is the unit of execution.** A study must finish, or reach a
-  durable checkpoint, before the agent replies (see the checkpoint rule).
+- **Checkpoint before yielding.** Plan for a study to finish, or reach a
+  durable checkpoint, before the agent replies (see the checkpoint rule);
+  process survival across replies has not been established for each runtime.
 - **Chunk by turn, resume by message.** For M5a and M5b: start the gate
   command, let it autosave, and send the same command plus `--resume` as the
   next message, in the same output directory. Size each turn under the
   observed single-turn cutoff once the probe below has produced one.
-- **Results must land in the workspace or a PR.** Anything written to `/tmp`
-  or left in a process is lost. Archives come back gzipped and bounded.
+- **Results must land in the workspace or a PR.** Do not rely on `/tmp` or
+  in-memory state for recovery. Archives come back gzipped and bounded.
 
 ## The one probe still worth running
 
-The maximum length of a single turn is the only limit left unmeasured. Give
+The maximum length of a single turn remains unmeasured. Give
 a fresh cloud task this prompt and read the last printed heartbeat when it
 ends:
 

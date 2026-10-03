@@ -1,12 +1,25 @@
 # Experiment backlog
 
-*Draft, September 29, 2026; E0 added October 1, 2026. Candidate experiments
-drawn from the [source cards](sources/). None is scheduled or frozen. M5a, M5b
-and M5c are recorded, with complete execution costs still open, and CLAUDE.md
-names the charter's unstarted tracks (native THRML
-Potts, associative memory and Max-Cut; Torx Bayesian and state-space
-inference) as the first place to look after M5. This backlog doesn't reorder
-that.*
+*Draft, September 29, 2026; E0 added October 1; native-experiment status updated
+October 2. Candidates below come from the [source cards](sources/) and remain
+unscheduled/unfrozen. M5a, M5b and M5c are recorded, with complete execution
+costs still open. Native Max-Cut, denoising and JAX sampling experiments are now
+recorded; Potts, associative memory and Torx Bayesian/state-space inference
+remain open charter directions. This backlog does not replace that work.*
+
+## Recorded native-inference findings, October 2
+
+The [sampling synthesis](../research/2026-10-02-sampling-synthesis.md) connects
+six reports: optimization pilots, fixed-budget sampling, time to accuracy,
+symmetry plus tempering, changing evidence and conditional estimation. They
+support target-specific sampler choices and substantial weak-regime gains from
+conditional estimates, while leaving strong-coupling mixing and decision
+utility unresolved. Grouped spin updates with the improved estimator are the
+next proposed native mechanism test, not a completed or frozen study.
+
+E0 remains open. The JAX samplers have their own exact fixtures, but those do
+not establish THRML's finite-K behavior on the checked five-spin chain or M5
+kernels. Native sampling progress is not evidence that E0's contract passed.
 
 ## Scope decision for the owner
 
@@ -90,11 +103,12 @@ the exact distribution p₀Tᴷ from Thermo's own sweep matrix? Do both converge
 to the enumerated equilibrium? The question is about matched conventions, not
 sampler speed.
 
-**Scope.** Thermo has no sampler of its own for this chain: `thrml_local.py`
-calls THRML, and `finite_sweep_sampling.py` draws from precomputed exact laws.
-So E0 checks THRML against Thermo's exact sweep matrix. It is not a comparison
-of two independent samplers, and that comparison stays open (Sun's review,
-October 1, 2026).
+**Scope.** For this checked chain, `thrml_local.py` calls THRML and
+`finite_sweep_sampling.py` draws from precomputed exact laws. E0 as drafted
+checks THRML against Thermo's exact sweep matrix. The later native experiments
+add an independent JAX single-site sampler, but do not match its schedule and
+initialization to this two-block THRML contract. That independent comparison
+remains open (the issue raised in Sun's October 1 review).
 
 **Model.** The checked five-spin chain in
 `configs/experiments/thrml-ising-chain.toml`, with its biases, weights,

@@ -5,7 +5,7 @@ id = "extropic-torx"
 title = "Torx"
 kind = "library"
 status = "pinned_dependency"
-last_checked = 2026-10-01
+last_checked = 2026-10-03
 
 [source]
 url = "https://github.com/extropic-ai/torx"
@@ -41,8 +41,16 @@ Milestone 1 cross-layer benchmark.
 ## Cautions
 
 - 0.0.1 is an early release. Preserve its behavior in tests before upgrading.
-- 0.0.2 was released on PyPI on September 30, 2026. Thermo still pins 0.0.1.
-  Run `tests/upstream_regressions/test_torx_001_contracts.py` against 0.0.2
-  before any upgrade.
+- 0.0.2 was released on PyPI and tagged on GitHub on September 30, 2026
+  (tag `v0.0.2`, commit `6b74450`). Thermo still pins 0.0.1. The release
+  notes list one code change, "Misc. Fixes" (torx PR #22: signature,
+  fixes, PR builds), and three documentation changes (PRs #28, #29, #32);
+  6 commits, 22 files. Checked October 3, 2026: the pinned contract test
+  `tests/upstream_regressions/test_torx_001_contracts.py` passes against
+  0.0.2 in an isolated environment (PSWAP two-gate float32 state-vector
+  density, atol 1e-7). That test covers one circuit; it is not a full
+  behavioral audit. A pin bump still needs the owner's decision and a
+  `uv lock` update, and the Torx base gates in AGENTS.md rerun on the new
+  version before it is recorded.
 - The Extropic simulator API and Thermalizers lowering are not public
   dependencies. Don't add placeholder integrations for them (AGENTS.md rule 7).
