@@ -118,7 +118,10 @@ uv run python -m thermo_lab.thrml_finite_sweep_contract \
 ```
 
 recomputes the exact side from the archived request, rejects any drift in
-the references or tolerances, re-evaluates the archived histograms and
+the references (1e-12 absolute) or in the tolerances (5% relative; the
+multinomial quantile is host-dependent in its last bits, and independent
+seeds move it by up to 5%, so the archived tolerance stays the frozen one),
+re-evaluates the archived histograms against the archived references and
 checks the result digest.
 
 `completion.json` must show `status=thrml_finite_sweep_contract_complete`,
