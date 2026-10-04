@@ -684,3 +684,23 @@ requires exact formula checks, paired trajectory/repeat equality, authenticated
 artifacts and full replay. Conditional estimates are a stronger inference
 baseline for this family, not a remedy for biased neighboring states or proof
 of hardware or large-model advantage. Further mechanism tests need fresh seeds.
+
+## THRML finite-sweep contract (E0 / A1)
+
+The [frozen protocol](experiments/thrml-finite-sweep-contract.md) asks whether
+THRML 0.1.4's state after exactly K ordered block-Gibbs sweeps matches p0 T^K,
+with T the exact 32x32 one-sweep kernel of the checked five-spin chain. It
+tests 64 cells: two block orders, three initial laws (all minus, uniform,
+`hinton_init` modelled as independent sigmoid(beta b_i) sites from the 0.1.4
+source), eight budgets K in {0,...,30}, and spin 0 clamped to each value.
+Each convention (energy sign, temperature, encoding, initialization, order,
+clamping, sweep count) has a named negative control that had to separate on
+the exact side before sampling.
+
+The [recorded study](experiment-reports/2026-10-03-thrml-finite-sweep-contract/findings.md)
+passes all 64 cells at the predeclared 0.999 multinomial tolerance with
+400,000 chains per cell, rejects 41 of 48 wrong references (the seven others
+are inside sampling noise on the exact side), and places all 18 decisive
+off-by-one cells closest to p0 T^K. Exact references are `exact_reference`;
+THRML cells are `software_simulation`; nothing is hardware evidence. The
+[gate](release-gates.md#thrml-finite-sweep-contract-e0--a1) is archive replay.
