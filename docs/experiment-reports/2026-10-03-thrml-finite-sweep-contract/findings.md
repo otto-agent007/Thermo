@@ -15,7 +15,9 @@ kernel powers). THRML cells are `software_simulation` (THRML 0.1.4, CPU,
 float32). Nothing here is hardware evidence; sweep counts are not device
 operations. The [frozen protocol](../../experiments/thrml-finite-sweep-contract.md)
 lists every fixed choice. One run took 76 s on one CPU core, including
-compilation; the archive replays byte-for-byte.
+compilation. Replaying the archive reproduces the request digest, result
+digest, archive SHA-256 and every count in `completion.json`; only
+`provenance_digest` differs, because a replay records its own provenance.
 
 ## What each convention check found
 
