@@ -34,7 +34,7 @@ reports = [
 [[claims]]
 id = "C2"
 status = "reproduced"
-text = "The d = 12 three-body meta-EBM demonstration: its method and qualitative claims, under four recorded open choices. The instance behind the figure is unpublished."
+text = "The d = 12 three-body meta-EBM demonstration: its method and qualitative claims, reproduced under reading B of the energy prefactors (owner decision, 2026-10-03; reading A is the literal appendix formula and is not pursued) and three further recorded open choices. The instance behind the figure is unpublished."
 reports = [
   "../../research/2026-09-26-meta-ebm-target-reading.md",
   "../../experiment-reports/2026-09-27-meta-ebm-cap-baseline/summary.md",
