@@ -118,7 +118,11 @@ as given. To avoid a repeat:
   description to `docs/studies.md`, its gate requirements to
   `docs/release-gates.md` with one index row in AGENTS.md, and its result to a
   report under `docs/experiment-reports/` linked from the roadmap.
-- Run on CPU only. The owner declined GPU work on the local GTX 1050 Ti.
+- CPU remains the default for gates and the THERMES scheduler. The owner
+  approved local GTX 1050 Ti experiments and tests on October 3, 2026 under
+  the compatibility, provenance and validation conditions in
+  [docs/environments.md](docs/environments.md#gpu-use). Keep exact enumerators
+  and archived replays on CPU; GPU software remains simulation evidence.
 
 ## Commands
 
