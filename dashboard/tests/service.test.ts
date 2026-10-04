@@ -13,10 +13,69 @@ import { tmpdir } from "node:os";
 import { observeActivity } from "../server/activity";
 import { getPayload } from "../server/service";
 import { exportSnapshot } from "../server/export";
+import type { ProjectSnapshot } from "../shared/model";
 const root = resolve("..");
 import { parseEvidence } from "../server/evidence";
 import { archive } from "../server/catalog";
 const checkpoint = "results/m4g-task-quality-study/checkpoints";
+for (const fixture of [
+  {
+    path: "docs/knowledge/lessons.md",
+    prefix: "lesson-",
+    initial: `| Date | Study | Lesson | Evidence class | Source |
+| --- | --- | --- | --- | --- |
+| 2026-10-03 | Cache study | Initial lesson. | review | [Report](../report.md) |`,
+    updated: `| Date | Study | Lesson | Evidence class | Source |
+| --- | --- | --- | --- | --- |
+| 2026-10-03 | Updated cache study | Revised lesson with source limitations. | review | [Report](../report.md) |`,
+    initialTitle: "Cache study (2026-10-03)",
+    updatedTitle: "Updated cache study (2026-10-03)",
+  },
+  {
+    path: "docs/knowledge/experiment-backlog.md",
+    prefix: "backlog-",
+    initial: `| # | Experiment | Source | Exact anchor | Cost | Fit |
+| --- | --- | --- | --- | --- | --- |
+| E0 | Initial contract | [Source](sources/example.md) | Enumeration | Minutes | Dependency |`,
+    updated: `| # | Experiment | Source | Exact anchor | Cost | Fit |
+| --- | --- | --- | --- | --- | --- |
+| E0 | Revised finite-sweep contract | [Source](sources/example.md) | Enumeration | Minutes | Dependency |`,
+    initialTitle: "E0: Initial contract",
+    updatedTitle: "E0: Revised finite-sweep contract",
+  },
+]) {
+  test(`project refresh reflects creation, edits and deletion of ${fixture.path}`, async () => {
+    const dir = await mkdtemp(join(tmpdir(), "thermo-knowledge-cache-"));
+    try {
+      const snapshot = async () => {
+        const payload = await getPayload(dir, "/data/project.json");
+        assert.equal(payload.status, 200);
+        return payload.body as ProjectSnapshot;
+      };
+      const titles = (s: ProjectSnapshot) =>
+        s.research
+          .filter((item) => item.id.startsWith(fixture.prefix))
+          .map((item) => item.title);
+      const before = await snapshot();
+      assert.deepEqual(titles(before), []);
+
+      await mkdir(join(dir, "docs/knowledge"), { recursive: true });
+      await writeFile(join(dir, fixture.path), fixture.initial);
+      const created = await snapshot();
+      assert.deepEqual(titles(created), [fixture.initialTitle]);
+
+      await writeFile(join(dir, fixture.path), fixture.updated);
+      const edited = await snapshot();
+      assert.deepEqual(titles(edited), [fixture.updatedTitle]);
+
+      await rm(join(dir, fixture.path));
+      const deleted = await snapshot();
+      assert.deepEqual(titles(deleted), []);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+}
 test("activity observes persisted checkpoints without claiming a live process", async () => {
   const dir = await mkdtemp(join(tmpdir(), "thermo-activity-"));
   try {
