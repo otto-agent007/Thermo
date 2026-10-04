@@ -6,6 +6,7 @@ import { observeActivity } from "./activity.ts";
 import { archive } from "./catalog.ts";
 import pins from "./archive-pins.json" with { type: "json" };
 import { recentReportPaths } from "./recent.ts";
+import { backlogPath, lessonsPath } from "./knowledge.ts";
 const cache = new Map<
   string,
   { key: string; pending: ReturnType<typeof loadEvidence> }
@@ -16,6 +17,8 @@ export async function getEvidence(root: string) {
       [
         ...Object.keys(pins).map((name) => `${archive}/${name}`),
         ...recentReportPaths,
+        lessonsPath,
+        backlogPath,
       ].map(async (name) => {
         try {
           const s = await stat(join(root, name));
