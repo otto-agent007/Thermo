@@ -149,3 +149,37 @@ def test_replay_rejects_a_tampered_histogram(tmp_path: Path) -> None:
     tampered.write_bytes(gzip.compress(json.dumps(record).encode()))
     with pytest.raises(ValueError, match="result digest"):
         study.replay_archive(tampered, tmp_path / "out")
+
+
+def test_replay_tolerates_last_bit_tolerance_drift_but_not_more(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A host may recompute the multinomial tolerance slightly differently; the archive wins."""
+    archive = REPORT / "study.json.gz"
+    if not archive.exists():
+        pytest.skip("archive not recorded yet")
+    record = json.loads(gzip.decompress(archive.read_bytes()))
+    original = study.tolerance
+
+    def drifted(factor: float):
+        return lambda *args, **kwargs: original(*args, **kwargs) * factor
+
+    monkeypatch.setattr(study, "tolerance", drifted(1 + study.TOLERANCE_REPLAY_RTOL / 2))
+    replayed = study.replay_archive(archive, tmp_path / "a")
+    assert replayed["result_digest"] == record["result_digest"]
+
+    monkeypatch.setattr(study, "tolerance", drifted(1 + 2 * study.TOLERANCE_REPLAY_RTOL))
+    with pytest.raises(ValueError, match="tolerance drifted for"):
+        study.replay_archive(archive, tmp_path / "b")
+
+
+def test_replay_rejects_a_shifted_exact_reference(tmp_path: Path) -> None:
+    archive = REPORT / "study.json.gz"
+    if not archive.exists():
+        pytest.skip("archive not recorded yet")
+    record = json.loads(gzip.decompress(archive.read_bytes()))
+    record["references"]["cells"]["free/forward/uniform/K1"]["distribution"][0] += 1e-9
+    shifted = tmp_path / "shifted.json.gz"
+    shifted.write_bytes(gzip.compress(json.dumps(record).encode()))
+    with pytest.raises(ValueError, match="exact reference drifted"):
+        study.replay_archive(shifted, tmp_path / "c")
