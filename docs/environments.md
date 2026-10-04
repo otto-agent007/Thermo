@@ -23,7 +23,7 @@ study that runs longer than a few minutes.
 | --- | --- | --- |
 | CPU | Intel i7-7700K, 4 cores / 8 threads, no cgroup CPU limit | Quota of 4 cores' CPU time; 5 logical CPUs visible |
 | Memory | 31 GiB, 2 GiB swap | 16 GiB published for the plan; the October 1 instance reported 32 GiB; no swap |
-| GPU | GTX 1050 Ti (4 GiB); **not used**, owner declined GPU work | None |
+| GPU | GTX 1050 Ti (4 GiB, Pascal, compute capability 6.1), driver 580.178.04, CUDA 12.6 toolkit at `/usr/local/cuda-12.6`; **approved for use** on October 3, 2026 (see [GPU use](#gpu-use)); the locked JAX 0.10.2 is CPU-only until a CUDA plugin is pinned | None |
 | Storage | Repo on `/mnt/2TBHDD` (about 1.6 TB free); root disk about 13 GB free | October 1 instance: about 32 GiB workspace, 29 GiB free; `/tmp` and `/dev/shm` about 17 GiB each and RAM-backed; check mounts in each session |
 | Open files / stack | 1,048,576 / 16 MiB | 16,384 per process / 8 MiB per thread |
 | Network | Open | Restricted; package-manager destinations allowed, other downloads may be blocked (a Chromium download was) |
@@ -68,6 +68,42 @@ study that runs longer than a few minutes.
   `npm run test:browser`; a cloud session can run the CLI tests if Chromium
   and its system dependencies are installed and downloads are permitted.
   Dashboard unit tests, typecheck and export do not need a browser.
+
+## GPU use
+
+On October 3, 2026 the owner approved using the local GTX 1050 Ti for JAX
+experiments and tests under the conditions below. CPU remains the default
+for gates, consistent with CLAUDE.md. The scheduler (THERMES) keeps running
+its gates on CPU until the
+owner says otherwise.
+
+- **Evidence class does not change.** A GPU Torx or THRML result is
+  `software_simulation`, or `exact_reference` when the algorithm is exact,
+  exactly as on CPU (AGENTS.md rule 2). A GPU is not hardware evidence.
+- **Nothing is enabled yet.** The lock pins `jax`/`jaxlib` 0.10.2 CPU
+  wheels. Using the GPU needs a pinned `jax[cuda12]` plugin matching that
+  version, a `uv lock` update, and a contract test that the CPU and GPU
+  paths agree on the checked configs before any GPU run is recorded. The
+  card is Pascal (compute capability 6.1); confirm that the chosen CUDA
+  plugin and its transitive CUDA/cuDNN dependencies support Pascal before
+  pinning. An allowed dependency version range alone does not establish
+  compatibility.
+- **Record the device.** Any run that touches the GPU records the device,
+  driver, jaxlib build and `JAX_PLATFORMS` as runtime provenance, never in
+  the hashed input, and states the default matmul precision; float32 on
+  this card is not float64, and an `exact_reference` result must stay
+  float64 or declare its tolerance.
+- **Memory.** 4 GiB total, shared with the desktop. Set
+  `XLA_PYTHON_CLIENT_PREALLOCATE=false` so a JAX process does not reserve
+  the whole card, and keep exact enumerators (which are NumPy/SciPy) on CPU.
+- **Archives are untouched.** Recorded M1–M5 archives were produced on CPU
+  and replay on CPU. A GPU rerun of a recorded study is a new study with a
+  new output directory, not a replacement.
+- **Cloud box has no GPU.** Anything GPU-specific is local only.
+
+Open questions for the owner discussion: which studies or tests move to the
+GPU first, any change to the CPU default for gates, and whether a
+GPU-only result may be the sole record of a study.
 
 ## Which gates fit where
 
