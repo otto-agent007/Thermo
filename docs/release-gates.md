@@ -698,3 +698,27 @@ separate on the exact side. A failed cell is a scientific result, not an
 integrity failure. The run took 76 s including compilation, so there is no
 autosave or resume layer; restart in a fresh directory. CI replays the
 committed archive (`--replay`) through the unit test; it does not resample.
+
+## THRML execution of an M5a kernel's inner sweep (E0 stage B)
+
+Use the [frozen protocol](experiments/thrml-m5a-kernel-inner-sweep.md), CPU
+only, a fresh output directory:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.thrml_m5a_kernel_inner_sweep \
+  --output-dir results/thrml-m5a-kernel-inner-sweep-new
+uv run pytest tests/unit/test_thrml_m5a_kernel_inner_sweep.py
+```
+
+Completion requires `status=thrml_m5a_kernel_inner_sweep_complete`, `cells=6`,
+`inputs_per_cell=1024`, `chains_per_input=65536`, `controls_gate_passed=true`
+and `replayed=true`. The runner authenticates the M5b archive through the
+hash-bound `meta_ebm_topology.load_source` and stops before any THRML call if a
+negative control does not separate on the exact side. A failed cell is a
+scientific result about THRML's execution of this kernel, not an integrity
+failure. The run takes about 15 minutes on one CPU core, so there is no
+autosave or resume layer; restart in a fresh directory. CI replays the
+committed archive through the unit test with `--light` (archived tolerances
+reused, about 20 s); the full `--replay` redraws the tolerances and takes
+about 2.5 minutes. Neither resamples.

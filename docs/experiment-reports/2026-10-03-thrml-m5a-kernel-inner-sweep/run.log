@@ -1,0 +1,10 @@
+2026-10-04T02:39:18Z E0B authenticating M5b archive; exact references and controls
+2026-10-04T02:41:16Z E0B controls separate (24 checks) after 118.5s; sampling 6 cells
+2026-10-04T02:41:50Z E0B y0-/K1 compile 0.58s run 29.22s
+2026-10-04T02:42:47Z E0B y0-/K2 compile 0.58s run 54.14s
+2026-10-04T02:44:33Z E0B y0-/K4 compile 0.72s run 101.71s
+2026-10-04T02:45:06Z E0B y0+/K1 compile 0.58s run 28.90s
+2026-10-04T02:46:03Z E0B y0+/K2 compile 0.65s run 54.06s
+2026-10-04T02:47:51Z E0B y0+/K4 compile 0.74s run 103.23s
+2026-10-04T02:47:59Z E0B archive written; replaying
+2026-10-04T02:49:52Z E0B completion published after 634.2s

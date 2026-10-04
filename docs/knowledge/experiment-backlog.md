@@ -282,5 +282,8 @@ comparison with the Extropic denoising-hardware projection beyond method.
 E0 is recorded in the [THRML finite-sweep contract](../experiment-reports/2026-10-03-thrml-finite-sweep-contract/findings.md):
 64 of 64 finite-K cells match p0 T^K, every convention control separates, and
 `hinton_init` is confirmed as the sigmoid(beta b_i) product law. The item is
-closed. Stage B (one M5a site through THRML) stays open pending the reading
-choice.
+closed. Stage B (one M5a site through THRML) is recorded in the
+[stage B findings](../experiment-reports/2026-10-03-thrml-m5a-kernel-inner-sweep/findings.md):
+under reading B, the standing choice, THRML reproduces the archived inner-K
+law of the M5c primary-arm kernel at K in {1, 2, 4} in 6 of 6 cells, with 24
+of 24 wrong references rejected. Stage B is closed.
