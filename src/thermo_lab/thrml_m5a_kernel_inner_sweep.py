@@ -74,6 +74,7 @@ SWEEPS = (1, 2, 4)
 INCOMING = (-1, 1)
 CONTROLS = ("off_by_one", "output_first", "negated_inputs", "marginal_limit")
 ORDERS = ("hidden_first", "output_first")
+EXACT_ATOL = 1e-12
 
 
 def study_request(chains: int = 65_536) -> dict:
@@ -260,6 +261,8 @@ def exact_references(request: dict, *, tolerances: dict | None = None) -> dict:
     ):
         laws[name], residual = _joint_laws(vector, structure, inputs, order, sign, horizon)
         if name != "negated_inputs":
+            if residual > EXACT_ATOL:
+                raise ValueError(f"Boltzmann law is not invariant under the {name} kernel")
             stationary[name] = residual
     y_plus = joint_states(nh)[:, nh] > 0
     chains, spec = request["chains_per_input"], request["tolerance"]
@@ -399,6 +402,8 @@ def run_cell(request: dict, cell: dict, loaded: dict) -> dict:
 
     inputs = m5a.blanket_inputs(structure)
     n, batch = request["chains_per_input"], request["inputs_per_batch"]
+    if len(inputs) % batch:
+        raise ValueError("inputs_per_batch must divide the input count; one shape is compiled")
     root = jax.random.fold_in(jax.random.key(request["jax_root_seed"]), cell["index"])
     fn = jax.jit(jax.vmap(one_chain))
     histograms = np.zeros((len(inputs), 1 << (nh + 1)), dtype=np.int64)
@@ -509,37 +514,105 @@ def assemble(request: dict, references: dict, histograms: dict, timings: dict) -
     return record
 
 
-def replay(record: dict, request: dict, *, light: bool = False) -> dict:
-    """Recompute the exact side and re-evaluate the archived histograms.
+TOLERANCE_REPLAY_COUNTS = 2
+"""Replay slack for a redrawn tolerance, in counts out of N chains.
 
-    ``light=True`` reuses the archived tolerances instead of redrawing them from
-    the predeclared NumPy seed (seconds instead of minutes); the full replay
-    redraws and checks them. Everything else (archive authentication, exact laws,
-    control separations, evaluation, result digest) is recomputed either way.
+The per-input laws are not archived, and recomputing them goes through BLAS,
+whose kernel choice depends on the CPU, so their last bits move from host to
+host. Draws from a law that differs in its last bits almost always give the
+same counts; the slack covers a count that moves in a draw, which shifts a
+deviation by 1/N. The archived tolerance stays the frozen one.
+"""
+
+EVALUATION_REPLAY_ATOL = 1e-9
+"""Absolute slack for recomputed evaluation floats (last-bit host drift in the laws)."""
+
+
+def _is_number(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _match(new, old, path: str, atol: float) -> None:
+    """Compare nested records: floats within ``atol``, everything else exactly."""
+    if isinstance(old, dict) and isinstance(new, dict):
+        if set(new) != set(old):
+            raise ValueError(f"{path} keys drifted")
+        for key in old:
+            _match(new[key], old[key], f"{path}.{key}", atol)
+    elif isinstance(old, list) and isinstance(new, list):
+        if len(new) != len(old):
+            raise ValueError(f"{path} length drifted")
+        for i, (a, b) in enumerate(zip(new, old, strict=True)):
+            _match(a, b, f"{path}[{i}]", atol)
+    elif _is_number(old) and _is_number(new) and (isinstance(old, float) or isinstance(new, float)):
+        if abs(new - old) > atol:
+            raise ValueError(f"{path} drifted: recomputed {new!r}, archived {old!r}")
+    elif type(new) is not type(old) or new != old:
+        raise ValueError(f"{path} drifted: recomputed {new!r}, archived {old!r}")
+
+
+def replay(record: dict, request: dict, *, light: bool = False) -> dict:
+    """Authenticate the archive, recompute the exact side and re-evaluate the histograms.
+
+    The result digest authenticates the archived histograms and evaluation. The
+    exact side is recomputed with the archived (frozen) tolerances, every
+    archived exact value is checked against it, and the evaluation recomputed
+    from the archived histograms must match the archived one (floats within
+    ``EVALUATION_REPLAY_ATOL``, verdicts exactly). Tolerances are redrawn and
+    checked within ``TOLERANCE_REPLAY_COUNTS`` / N: the output tolerance always,
+    the joint tolerance only in a full replay, because its draws take minutes.
     """
     if record["request"] != request or record["request_digest"] != canonical_sha256(request):
         raise ValueError("archived request does not match this code's request")
-    stored_tolerances = {
+    archived_digest = canonical_sha256(
+        {"histograms": record["histograms"], "evaluation": record["evaluation"]}
+    )
+    if archived_digest != record["result_digest"]:
+        raise ValueError("archived histograms and evaluation do not match the result digest")
+    archived = record["references"]
+    frozen = {
         cell_id: {k: ref[k] for k in ("tolerance_output", "tolerance_joint")}
-        for cell_id, ref in record["references"]["cells"].items()
+        for cell_id, ref in archived["cells"].items()
     }
-    references = exact_references(request, tolerances=stored_tolerances if light else None)
-    if references["structure"] != record["references"]["structure"]:
+    references = exact_references(request, tolerances=frozen)
+    if references["structure"] != archived["structure"]:
         raise ValueError("kernel structure or parameter hash drifted")
-    for cell_id, ref in references["cells"].items():
-        stored = record["references"]["cells"][cell_id]
-        for key in ("tolerance_output", "tolerance_joint"):
-            if ref[key] != stored[key]:
-                raise ValueError(f"{key} drifted for {cell_id}")
-    for new, old in zip(references["controls"], record["references"]["controls"], strict=True):
-        if abs(new["exact_separation"] - old["exact_separation"]) > 1e-12:
-            raise ValueError(f"control separation drifted for {old['control']} {old['cell']}")
+    for key in ("inner_checks", "joint_stationary_residual"):
+        _match(references[key], archived[key], key, EXACT_ATOL)
+    _match(references["mixing"], archived["mixing"], "mixing", EVALUATION_REPLAY_ATOL)
+    chains, spec = request["chains_per_input"], request["tolerance"]
+    slack = TOLERANCE_REPLAY_COUNTS / chains
+    for cell in cells(request):
+        cell_id = cell["id"]
+        ref, stored = references["cells"][cell_id], archived["cells"][cell_id]
+        _match(
+            ref["joint_vs_archived_output"],
+            stored["joint_vs_archived_output"],
+            f"{cell_id} joint_vs_archived_output",
+            EXACT_ATOL,
+        )
+        redrawn = {
+            "tolerance_output": _output_tolerance(
+                np.array(ref["output_law"]), chains, spec, cell["index"]
+            )
+        }
+        if not light:
+            redrawn["tolerance_joint"] = _joint_tolerance(
+                np.array(ref["joint_law"]), chains, spec, cell["index"]
+            )
+        for key, value in redrawn.items():
+            if abs(value - stored[key]) > slack:
+                raise ValueError(
+                    f"{key} drifted for {cell_id}: redrawn {value!r}, archived {stored[key]!r}"
+                )
+    if len(references["controls"]) != len(archived["controls"]):
+        raise ValueError("control list drifted")
+    for new, old in zip(references["controls"], archived["controls"], strict=True):
+        _match(new, old, f"control {old['control']} at {old['cell']}", EXACT_ATOL)
     if controls_gate(references) != record["controls_gate"]:
         raise ValueError("controls gate drifted")
     evaluation = evaluate(request, references, record["histograms"])
-    digest = canonical_sha256({"histograms": record["histograms"], "evaluation": evaluation})
-    if digest != record["result_digest"]:
-        raise ValueError("result digest does not replay")
+    _match(evaluation, record["evaluation"], "evaluation", EVALUATION_REPLAY_ATOL)
     return references
 
 
@@ -678,11 +751,7 @@ def run_study(output_dir: str | Path, *, chains: int = 65_536) -> dict:
         "schema": "thrml_m5a_kernel_inner_sweep.provenance.v1",
         "request_digest": persisted["request_digest"],
         "result_digest": persisted["result_digest"],
-        "runtime": json.loads(
-            canonical_json(
-                runtime.model_dump() if hasattr(runtime, "model_dump") else runtime.__dict__
-            )
-        ),
+        "runtime": json.loads(canonical_json(runtime.model_dump())),
         "total_seconds": time.monotonic() - started,
         "timing_scope": "CPU wall seconds, compile and steady state split per cell",
     }
@@ -705,7 +774,7 @@ def replay_archive(archive: str | Path, output_dir: str | Path, *, light: bool =
     destination.mkdir(parents=True, exist_ok=False)
     provenance = {
         "schema": "thrml_m5a_kernel_inner_sweep.provenance.v1",
-        "mode": "replay_light_tolerances_from_archive" if light else "replay_only",
+        "mode": "replay_light_joint_tolerances_from_archive" if light else "replay_only",
         "request_digest": record["request_digest"],
         "result_digest": record["result_digest"],
     }
@@ -725,7 +794,7 @@ def main() -> None:
     parser.add_argument(
         "--light",
         action="store_true",
-        help="with --replay: reuse archived tolerances instead of redrawing them",
+        help="with --replay: redraw only the output tolerances, not the joint ones",
     )
     args = parser.parse_args()
     if args.replay:

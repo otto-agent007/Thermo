@@ -119,11 +119,18 @@ uv run python -m thermo_lab.thrml_m5a_kernel_inner_sweep \
   --output-dir results/thrml-m5a-kernel-inner-sweep-replay
 ```
 
-Replay authenticates the M5b archive, recomputes the exact laws, tolerances
-and control separations from the archived request, rejects any drift, and
-re-evaluates the archived histograms against the result digest. `--light`
-reuses the archived tolerances instead of redrawing them (about 20 s instead
-of 2.5 min); the unit test uses it, the gate uses the full replay.
+Replay authenticates the archived histograms and evaluation by the result
+digest and the M5b archive by its loader. It recomputes the exact laws and
+control separations from the archived request with the archived (frozen)
+tolerances, rejects drift above 1e-12 in any archived exact value, and
+re-evaluates the archived histograms: the recomputed evaluation must match
+the archived one with floats within 1e-9 and every verdict exact. Recomputing
+the per-input laws goes through BLAS, so their last bits differ by host,
+and the comparison is numeric rather than a re-hash. Each tolerance is
+redrawn and must agree with the archived one to within 2/N, two counts.
+`--light` redraws only the output tolerances and skips the joint draws (about
+25 s instead of 2.75 min); the unit test uses it, the gate uses the full
+replay.
 
 `completion.json` must show `status=thrml_m5a_kernel_inner_sweep_complete`,
 `cells=6`, `inputs_per_cell=1024`, `chains_per_input=65536`,

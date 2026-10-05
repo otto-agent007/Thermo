@@ -24,5 +24,5 @@ What stays open. One site, one seed, one arm; 59 compiled kernels were not
 run. Execution costs are not measured here and no number in this study is a
 device operation. The tolerance rule was the most expensive step: 118 s of
 exact-side multinomial draws against 29 to 103 s per THRML cell. Replay has a
-`--light` path that reuses the archived tolerances; the gate still runs the
+`--light` path that redraws only the output tolerances; the gate still runs the
 full redraw.
