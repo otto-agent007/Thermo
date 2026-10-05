@@ -704,3 +704,24 @@ are inside sampling noise on the exact side), and places all 18 decisive
 off-by-one cells closest to p0 T^K. Exact references are `exact_reference`;
 THRML cells are `software_simulation`; nothing is hardware evidence. The
 [gate](release-gates.md#thrml-finite-sweep-contract-e0--a1) is archive replay.
+
+## THRML execution of an M5a kernel's inner sweep (E0 stage B)
+
+The [frozen protocol](experiments/thrml-m5a-kernel-inner-sweep.md) asks whether
+THRML 0.1.4, executing one compiled M5a site kernel (the M5c primary arm:
+reading B, variational, cap 1, seed 0, site 1; 10 clamped inputs, 7 hidden
+spins, one output) for exactly K inner sweeps, reproduces the archived M5b
+inner-K law at every one of the 1,024 blanket inputs. It tests six cells, K in
+{1, 2, 4} from each incoming output value, with 65,536 independent chains per
+input, on two statistics: the output rate against the hash-bound
+`powered_rates` law, and the 256-state (hidden, output) joint against a
+study-local enumeration of the same two block kernels. Four negative controls
+(off-by-one K, output-first order, negated inputs, the K -> infinity marginal)
+had to separate on the exact side before sampling.
+
+The [recorded study](experiment-reports/2026-10-03-thrml-m5a-kernel-inner-sweep/findings.md)
+states the outcome per cell. Exact references are `exact_reference`; THRML
+cells are `software_simulation`; nothing is hardware evidence and inner sweeps
+are not device operations. The
+[gate](release-gates.md#thrml-execution-of-an-m5a-kernels-inner-sweep-e0-stage-b)
+is archive replay.
