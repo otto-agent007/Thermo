@@ -181,5 +181,41 @@ def test_replay_rejects_a_shifted_exact_reference(tmp_path: Path) -> None:
     record["references"]["cells"]["free/forward/uniform/K1"]["distribution"][0] += 1e-9
     shifted = tmp_path / "shifted.json.gz"
     shifted.write_bytes(gzip.compress(json.dumps(record).encode()))
-    with pytest.raises(ValueError, match="exact reference drifted"):
+    with pytest.raises(ValueError, match="exact reference for free/forward/uniform/K1 drifted"):
         study.replay_archive(shifted, tmp_path / "c")
+
+
+def _tamper(record: dict, target: str) -> None:
+    if target == "control law":
+        record["references"]["controls"][0]["wrong_distribution"][0] += 1e-9
+    elif target == "control flag":
+        control = record["references"]["controls"][0]
+        control["separates"] = not control["separates"]
+    elif target == "encoding":
+        record["references"]["encoding_check"]["sigmoid_2beta_h"][0] += 1e-9
+    elif target == "gate":
+        record["controls_gate"]["passed"] = not record["controls_gate"]["passed"]
+    elif target == "stationary":
+        record["references"]["cells"]["clamped+/forward/hinton/K1"]["stationary"][0] += 1e-9
+
+
+@pytest.mark.parametrize(
+    ("target", "message"),
+    [
+        ("control law", "control flipped_j at .* law drifted"),
+        ("control flag", "separation flag drifted"),
+        ("encoding", "encoding check sigmoid_2beta_h drifted"),
+        ("gate", "controls gate drifted"),
+        ("stationary", "stationary law for clamped"),
+    ],
+)
+def test_replay_checks_every_archived_exact_value(
+    tmp_path: Path, target: str, message: str
+) -> None:
+    archive = REPORT / "study.json.gz"
+    if not archive.exists():
+        pytest.skip("archive not recorded yet")
+    record = json.loads(gzip.decompress(archive.read_bytes()))
+    _tamper(record, target)
+    with pytest.raises(ValueError, match=message):
+        study.replay(record, study.study_request(record["request"]["chains_per_cell"]))

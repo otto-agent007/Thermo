@@ -119,12 +119,3 @@ The [October sampling synthesis](../research/2026-10-02-sampling-synthesis.md)
 connects the newly recorded native-inference experiments to this public-source
 context. It keeps reproduced CPU findings separate from source-card hardware
 claims and updates which research questions remain open.
-
-## Lessons
-
-- 2026-10-03, E0: a kernel contract needs the controls sized on the exact
-  side before sampling. At N = 40,000 the K = 2 order and off-by-one controls
-  sat inside tolerance; the five-spin chain mixes in two to three sweeps, so
-  only K <= 2 cells and a far-from-stationary init carry finite-K power.
-  Report the exact separation beside every unrejected control so a model
-  property is not read as a sampler failure.
