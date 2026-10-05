@@ -17,8 +17,8 @@ Design.
 - Initial distributions: all spins -1 (point mass), uniform, and THRML's own
   ``hinton_init`` (independent sites with P(s_i=+1) = sigmoid(beta b_i)).
 - Sweep counts K in {0,1,2,3,4,8,16,30}; K=0 checks the initializer alone.
-- A clamped arm pins node 2 to +1 through THRML's ``clamped_blocks``; the exact
-  reference is the same kernel restricted to the 16 consistent states.
+- Two clamped arms pin node 0 to +1 and to -1 through THRML's ``clamped_blocks``;
+  the exact reference is the same kernel restricted to the 16 consistent states.
 - Every cell runs N independent chains (one JAX key each, folded in from one
   root), records the 32-bin histogram of final states and the total variation
   distance to p0 T^K.
@@ -492,40 +492,84 @@ def assemble(request: dict, references: dict, histograms: dict, timings: dict) -
     return record
 
 
-TOLERANCE_REPLAY_RTOL = 0.05
+TOLERANCE_REPLAY_RTOL = 1e-3
 """Replay slack for the Monte Carlo tolerance (0.999 quantile of 4000 draws).
 
-The exact distributions are deterministic to 1e-12 across machines. The
-tolerance is not: NumPy's multinomial generator with a fixed seed can differ in
-the last bits between CPUs, which moved the quantile on the CI host while two
-local machines agreed. Independent seeds move this quantile by up to 5%, which
-bounds any last-bit drift. The archived tolerance is the frozen one; a replay
-recomputes it only as a drift check against this relative slack and evaluates
-with the archived references, so the result digest does not depend on the host.
+The exact distributions agree across hosts only to the last bits, because the
+kernel powers go through BLAS, whose kernel choice depends on the CPU. Replay
+therefore checks the recomputed laws against the archived ones at 1e-12 and then
+redraws each tolerance from the archived law, so the multinomial draws see the
+same input bits as the original run. The remaining slack covers a libm
+difference that moves a single count in a single draw: the TV of a draw moves in
+steps of 1/N = 2.5e-6, about 5e-4 of these tolerances. The archived tolerance is
+the frozen one, and evaluation uses the archived references, so the result
+digest does not depend on the host.
 """
+
+EXACT_REPLAY_ATOL = 1e-12
+
+
+def _check_close(new, old, what: str) -> None:
+    if not np.allclose(new, old, atol=EXACT_REPLAY_ATOL, rtol=0):
+        raise ValueError(f"{what} drifted")
 
 
 def replay(record: dict, request: dict) -> None:
+    """Recompute every exact-side value the evaluation reads and check it.
+
+    Cell laws, neighbours, stationary laws, controls, the encoding check and the
+    controls gate are compared with the archive; the histograms are then
+    re-evaluated against the archived references and the result digest checked.
+    """
     if record["request"] != request or record["request_digest"] != canonical_sha256(request):
         raise ValueError("archived request does not match this code's request")
     references = exact_references(request)
     archived = record["references"]
-    for cell_id, ref in references["cells"].items():
-        stored = archived["cells"][cell_id]
-        if not np.allclose(ref["distribution"], stored["distribution"], atol=1e-12, rtol=0):
-            raise ValueError(f"exact reference drifted for {cell_id}")
+    if set(references["cells"]) != set(archived["cells"]):
+        raise ValueError("archived cells do not match this code's cells")
+    spec = request["tolerance"]
+    for cell in cells(request):
+        cell_id = cell["id"]
+        ref, stored = references["cells"][cell_id], archived["cells"][cell_id]
+        _check_close(ref["distribution"], stored["distribution"], f"exact reference for {cell_id}")
+        if set(ref["off_by_one"]) != set(stored["off_by_one"]):
+            raise ValueError(f"off-by-one references drifted for {cell_id}")
         for name, dist in ref["off_by_one"].items():
-            if not np.allclose(dist, stored["off_by_one"][name], atol=1e-12, rtol=0):
-                raise ValueError(f"off-by-one reference {name} drifted for {cell_id}")
-        if not np.isclose(
-            ref["tolerance"], stored["tolerance"], rtol=TOLERANCE_REPLAY_RTOL, atol=0
-        ):
+            _check_close(
+                dist, stored["off_by_one"][name], f"off-by-one reference {name} for {cell_id}"
+            )
+        _check_close(ref["stationary"], stored["stationary"], f"stationary law for {cell_id}")
+        _check_close(
+            ref["tv_to_stationary"], stored["tv_to_stationary"], f"TV to stationary for {cell_id}"
+        )
+        redrawn = tolerance(
+            np.array(stored["distribution"]), request["chains_per_cell"], spec, cell["index"]
+        )
+        if not np.isclose(redrawn, stored["tolerance"], rtol=TOLERANCE_REPLAY_RTOL, atol=0):
             raise ValueError(
-                f"tolerance drifted for {cell_id}: recomputed {ref['tolerance']!r}, "
+                f"tolerance drifted for {cell_id}: redrawn {redrawn!r}, "
                 f"archived {stored['tolerance']!r}, slack rtol={TOLERANCE_REPLAY_RTOL}"
             )
-    if not np.allclose(references["stationary"], archived["stationary"], atol=1e-12, rtol=0):
-        raise ValueError("stationary law drifted")
+    _check_close(references["stationary"], archived["stationary"], "stationary law")
+    if len(references["controls"]) != len(archived["controls"]):
+        raise ValueError("control list drifted")
+    for new, old in zip(references["controls"], archived["controls"], strict=True):
+        label = f"control {old['control']} at {old['cell']}"
+        if (new["control"], new["cell"]) != (old["control"], old["cell"]):
+            raise ValueError(f"{label} drifted")
+        _check_close(new["wrong_distribution"], old["wrong_distribution"], f"{label} law")
+        _check_close(new["exact_separation"], old["exact_separation"], f"{label} separation")
+        if old["tolerance"] != archived["cells"][old["cell"]]["tolerance"]:
+            raise ValueError(f"{label} tolerance is not its cell's archived tolerance")
+        if old["separates"] != (old["exact_separation"] > old["tolerance"]):
+            raise ValueError(f"{label} separation flag drifted")
+    new_enc, old_enc = references["encoding_check"], archived["encoding_check"]
+    if new_enc["cell"] != old_enc["cell"]:
+        raise ValueError("encoding check drifted")
+    for key in ("sigmoid_beta_h", "sigmoid_2beta_h", "exact_separation"):
+        _check_close(new_enc[key], old_enc[key], f"encoding check {key}")
+    if controls_gate(archived, request) != record["controls_gate"]:
+        raise ValueError("controls gate drifted")
     evaluation = evaluate(request, archived, record["histograms"])
     digest = canonical_sha256({"histograms": record["histograms"], "evaluation": evaluation})
     if digest != record["result_digest"]:
@@ -666,11 +710,7 @@ def run_study(output_dir: str | Path, *, chains: int = 400_000) -> dict:
         "schema": "thrml_finite_sweep_contract.provenance.v1",
         "request_digest": persisted["request_digest"],
         "result_digest": persisted["result_digest"],
-        "runtime": json.loads(
-            canonical_json(
-                runtime.model_dump() if hasattr(runtime, "model_dump") else runtime.__dict__
-            )
-        ),
+        "runtime": json.loads(canonical_json(runtime.model_dump())),
         "total_seconds": time.monotonic() - started,
         "timing_scope": "CPU wall seconds, compile and steady state split per cell",
     }
