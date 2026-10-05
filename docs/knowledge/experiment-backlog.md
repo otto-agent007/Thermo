@@ -276,3 +276,11 @@ energy, power or latency follows from it.
 
 **Not claimed.** Image-scale generation, hardware efficiency, or any
 comparison with the Extropic denoising-hardware projection beyond method.
+
+## E0 recorded, October 3
+
+E0 is recorded in the [THRML finite-sweep contract](../experiment-reports/2026-10-03-thrml-finite-sweep-contract/findings.md):
+64 of 64 finite-K cells match p0 T^K, every convention control separates, and
+`hinton_init` is confirmed as the sigmoid(beta b_i) product law. The item is
+closed. Stage B (one M5a site through THRML) stays open pending the reading
+choice.

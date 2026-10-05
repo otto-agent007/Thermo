@@ -678,3 +678,23 @@ A six-cell, sixteen-stream calibration took 7.85 seconds plus 0.34 seconds
 replay. Production took 75.90 seconds plus 6.02 seconds replay, below the
 30-minute checkpoint threshold. Restart interrupted generation in a fresh
 directory. Neither generation nor verification has a wall-clock cutoff.
+
+## THRML finite-sweep contract (E0 / A1)
+
+Use the [frozen protocol](experiments/thrml-finite-sweep-contract.md), CPU
+only, a fresh output directory:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.thrml_finite_sweep_contract \
+  --output-dir results/thrml-finite-sweep-contract-new
+uv run pytest tests/unit/test_thrml_finite_sweep_contract.py
+```
+
+Completion requires `status=thrml_finite_sweep_contract_complete`, `cells=64`,
+`chains_per_cell=400000`, `controls_gate_passed=true` and `replayed=true`. The
+runner stops before any THRML call if a gated negative control does not
+separate on the exact side. A failed cell is a scientific result, not an
+integrity failure. The run took 76 s including compilation, so there is no
+autosave or resume layer; restart in a fresh directory. CI replays the
+committed archive (`--replay`) through the unit test; it does not resample.
