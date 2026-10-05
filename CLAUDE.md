@@ -31,6 +31,10 @@ work pointed at the right problem.
   `docs/experiment-reports/2026-09-30-meta-ebm-topology/`: a J-only degree
   refit plus exact placement on a synthetic offset lattice, at about 1.5×
   the parity-bound input copies. Complete execution costs remain open.
+  **Reading B** of the meta-EBM energy prefactors is the standing choice for
+  all M5-derived work (owner decision 2026-10-03, recorded in
+  `docs/knowledge/lessons.md`); don't run reading A arms unless the question
+  is about the literal appendix formula.
 - Native algorithm/inference exploration has started: the October 1
   Max-Cut, restart-greedy and denoising pilots are preserved under
   `docs/experiment-reports/2026-10-01-exploratory-pilots/`. The fresh-seed

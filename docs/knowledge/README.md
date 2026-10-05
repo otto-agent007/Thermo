@@ -42,7 +42,7 @@ A card may give different statuses to different claims, for example a
 
 | Card | Kind | Status in Thermo |
 | --- | --- | --- |
-| [Thermalizing Stochastic Programs](sources/extropic-thermalizers.md) | Paper | `reproduced` for methods (M1–M5), under recorded ambiguities |
+| [Thermalizing Stochastic Programs](sources/extropic-thermalizers.md) | Paper | `reproduced` for methods (M1–M5) under reading B (decided 2026-10-03), with recorded ambiguities |
 | [THRML](sources/extropic-thrml.md) | Library | `pinned_dependency` (0.1.4) |
 | [Torx](sources/extropic-torx.md) | Library | `pinned_dependency` (0.0.1; 0.0.2 released 2026-09-30) |
 | [Probabilistic hardware for diffusion-like models](sources/extropic-dtm-hardware.md) | Paper | `asserted` |
