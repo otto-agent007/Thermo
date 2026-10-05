@@ -114,12 +114,29 @@ def test_tolerance_shrinks_with_chains() -> None:
     )
 
 
-def test_archived_report_replays(tmp_path: Path) -> None:
+@pytest.fixture(scope="module")
+def replayed(tmp_path_factory: pytest.TempPathFactory) -> dict:
+    """One light replay of the committed archive, shared by the replay tests."""
     archive = REPORT / "study.json.gz"
     if not archive.exists():
         pytest.skip("archive not recorded yet")
-    record = study.replay_archive(archive, tmp_path / "replay", light=True)
-    completion = json.loads((tmp_path / "replay" / "completion.json").read_text())
+    out = tmp_path_factory.mktemp("replay") / "replay"
+    captured = {}
+    replay = study.replay
+
+    def keep_references(*args, **kwargs) -> dict:
+        captured["references"] = replay(*args, **kwargs)
+        return captured["references"]
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(study, "replay", keep_references)
+        record = study.replay_archive(archive, out, light=True)
+    completion = json.loads((out / "completion.json").read_text())
+    return {"record": record, "completion": completion, "references": captured["references"]}
+
+
+def test_archived_report_replays(replayed: dict) -> None:
+    record, completion = replayed["record"], replayed["completion"]
     published = json.loads((REPORT / "completion.json").read_text())
     assert completion["status"] == "thrml_m5a_kernel_inner_sweep_complete"
     assert completion["cells"] == 6
@@ -143,6 +160,38 @@ def test_replay_rejects_a_tampered_histogram(tmp_path: Path) -> None:
     tampered.write_bytes(gzip.compress(json.dumps(record).encode()))
     with pytest.raises(ValueError, match="result digest"):
         study.replay_archive(tampered, tmp_path / "out", light=True)
+
+
+def test_resigned_tampering_fails_the_recomputed_evaluation(replayed: dict) -> None:
+    """A histogram edit with a rewritten digest still fails against the exact laws."""
+    record = replayed["record"]
+    request = record["request"]
+    references = replayed["references"]
+    histograms = json.loads(json.dumps(record["histograms"]))
+    histograms["y0-/K1"][0][0] += 50
+    histograms["y0-/K1"][0][1] -= 50
+    with pytest.raises(ValueError, match="evaluation"):
+        study._match(
+            study.evaluate(request, references, histograms),
+            record["evaluation"],
+            "evaluation",
+            study.EVALUATION_REPLAY_ATOL,
+        )
+
+
+def test_match_allows_float_drift_but_not_verdict_drift() -> None:
+    old = {"tv": 0.01, "pass": True, "closest": "K", "count": 3, "rates": [0.5, 1]}
+    study._match(
+        {"tv": 0.01 + 1e-12, "pass": True, "closest": "K", "count": 3, "rates": [0.5, 1.0]},
+        old,
+        "r",
+        1e-9,
+    )
+    for key, value in (("tv", 0.011), ("pass", False), ("closest", "K+1"), ("count", 4)):
+        with pytest.raises(ValueError, match=f"r.{key} drifted"):
+            study._match({**old, key: value}, old, "r", 1e-9)
+    with pytest.raises(ValueError, match="keys drifted"):
+        study._match({"tv": 0.01}, old, "r", 1e-9)
 
 
 @pytest.mark.slow
