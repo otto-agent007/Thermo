@@ -296,3 +296,12 @@ The categorical counterpart of E0 (dependency check A3) is recorded in the
 p0 T^K, both categorical factor classes agree, clamping works, a q = 2
 encoding of E0's chain matches E0's exact kernel, and 112 of 112 wrong
 references are rejected. The Potts charter track can build on it.
+
+## Potts stage B recorded, October 6
+
+The [stage B findings](../experiment-reports/2026-10-06-potts-symmetry-tempering/findings.md)
+test whether the October symmetry-plus-tempering result transfers to a new
+model family. It does when ordinary chains trap (beta 16) and does not when
+they mix (beta 8), where retaining every replica matters more. Candidate
+follow-ups: a trapping detector chosen on held-out seeds, reweighting hot
+replicas, and larger or field-bearing Potts targets.

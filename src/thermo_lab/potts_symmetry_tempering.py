@@ -688,16 +688,48 @@ def replay(record: dict, request: dict) -> None:
                     if sum(row) != entry["retained"]:
                         raise ValueError(f"joint counts do not sum for {tid}/{sampler}/T{budget}")
     evaluation = evaluate(request, record["references"], record["noise_floors"], record["results"])
+    _match(evaluation, record["evaluation"], "evaluation")
     digest = canonical_sha256(
-        {"preflight": record["preflight"], "results": record["results"], "evaluation": evaluation}
+        {
+            "preflight": record["preflight"],
+            "results": record["results"],
+            "evaluation": record["evaluation"],
+        }
     )
     if digest != record["result_digest"]:
         raise ValueError("result digest does not replay")
     summary = timing_summary(
-        request, _with_timings(record["results"], record["timings"]), evaluation
+        request, _with_timings(record["results"], record["timings"]), record["evaluation"]
     )
-    if canonical_json(summary) != canonical_json(record["timing_summary"]):
-        raise ValueError("timing summary does not replay")
+    try:
+        _match(summary, record["timing_summary"], "timing summary")
+    except ValueError as error:
+        raise ValueError(f"timing summary does not replay: {error}") from error
+
+
+def _match(new, old, path: str) -> None:
+    """Recomputed values against archived ones: floats to 1e-12, everything else exactly.
+
+    The joint estimates pass through BLAS, whose kernel depends on the CPU, so the
+    recomputation can differ from the archive in the last bits. The digest is
+    therefore taken over the archived evaluation, and the recomputation is
+    checked numerically; a discrete decision that differs still fails.
+    """
+    if isinstance(old, dict):
+        if not isinstance(new, dict) or set(new) != set(old):
+            raise ValueError(f"{path} keys drifted")
+        for key in old:
+            _match(new[key], old[key], f"{path}/{key}")
+    elif isinstance(old, list):
+        if not isinstance(new, list) or len(new) != len(old):
+            raise ValueError(f"{path} length drifted")
+        for i, (a, b) in enumerate(zip(new, old, strict=True)):
+            _match(a, b, f"{path}[{i}]")
+    elif isinstance(old, float) and not isinstance(old, bool):
+        if not isinstance(new, (int, float)) or not np.isclose(new, old, rtol=1e-12, atol=1e-12):
+            raise ValueError(f"{path} drifted: {new!r} against archived {old!r}")
+    elif new != old:
+        raise ValueError(f"{path} drifted: {new!r} against archived {old!r}")
 
 
 def _fmt_budget(b) -> str:
