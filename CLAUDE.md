@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-02)
+## Where the project stands (updated 2026-10-06)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -72,6 +72,18 @@ work pointed at the right problem.
   Other charter directions (`PROJECT_CHARTER.md`),
   including Potts, associative memory and Torx state-space inference, remain
   open. Prefer these tracks to extending M4.
+- **E0 (THRML finite-sweep contract)** is complete in two stages. Stage A
+  (`docs/experiment-reports/2026-10-03-thrml-finite-sweep-contract/`) shows
+  THRML 0.1.4's block-Gibbs sweep matches the exact p0 T^K law on a five-spin
+  chain in 64/64 cells. Stage B
+  (`docs/experiment-reports/2026-10-03-thrml-m5a-kernel-inner-sweep/`) runs one
+  compiled M5a kernel (reading B, variational, cap 1, seed 0, site 1) and
+  matches the archived M5b inner-K law in 6/6 cells, so M5b's finite-K
+  matrices describe what THRML executes for that site. THRML's `hinton_init`
+  draws sigmoid(β b), a heuristic; model it as such. The other 59 kernels, a
+  GPU float32 arm (A2) and execution costs remain open. Both are CPU software
+  evidence against exact references; CI replays the archives without
+  resampling.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
