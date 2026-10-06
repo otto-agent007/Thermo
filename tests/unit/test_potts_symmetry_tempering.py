@@ -176,18 +176,27 @@ def _tamper(record: dict, target: str) -> None:
         record["timings"][tid]["long"]["T64"]["warm_seconds"][0] *= 100.0
     elif target == "request":
         record["request"]["threshold"] = 0.06
+    elif target == "evaluation":
+        record["evaluation"]["cells"][f"{tid}/long+sym/T64"]["joint_tv_mean"] += 1e-6
+    elif target == "decision":
+        record["evaluation"]["decisions"][tid]["outcome"] = "equal_budget"
+    elif target == "digest":
+        record["result_digest"] = "sha256:" + "0" * 64
 
 
 @pytest.mark.parametrize(
     ("target", "message"),
     [
-        ("counts", "result digest does not replay"),
+        ("counts", "evaluation/cells/.* drifted"),
         ("sum", "joint counts do not sum"),
         ("reference", "exact joint for .* drifted"),
         ("floor", "noise floor plain drifted"),
         ("prefix", "prefix check failed"),
         ("timing", "timing summary does not replay"),
         ("request", "archived request does not match"),
+        ("evaluation", "joint_tv_mean drifted"),
+        ("decision", "outcome drifted"),
+        ("digest", "result digest does not replay"),
     ],
 )
 def test_replay_rejects_tampering(archived: dict, target: str, message: str) -> None:
@@ -195,6 +204,18 @@ def test_replay_rejects_tampering(archived: dict, target: str, message: str) -> 
     _tamper(record, target)
     with pytest.raises(ValueError, match=message):
         study.replay(record, study.study_request())
+
+
+def test_replay_tolerates_last_bit_drift_in_recomputed_floats(archived: dict) -> None:
+    """Another CPU's BLAS may move the recomputed estimates in their last bits."""
+    record = copy.deepcopy(archived)
+    tid = record["request"]["targets"][0]["id"]
+    record["evaluation"]["cells"][f"{tid}/long+sym/T64"]["joint_tv_mean"] *= 1 + 1e-14
+    with pytest.raises(ValueError, match="result digest does not replay"):
+        study.replay(record, study.study_request())  # the digest pins the archived values
+    study._match(
+        copy.deepcopy(record["evaluation"]), archived["evaluation"], "evaluation"
+    )  # but the numeric comparison accepts the drift
 
 
 def test_budget_ratios_are_powers_of_four(archived: dict) -> None:
