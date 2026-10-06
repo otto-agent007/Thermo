@@ -1,7 +1,7 @@
 # Potts stage C: a reference-free trapping detector chooses the sampler
 
-**Status: draft, 2026-10-06, awaiting the owner's go-ahead to freeze.** No
-study cell has run. The exploratory probe
+**Status: frozen 2026-10-06 on the owner's go-ahead, before any study cell
+ran.** The exploratory probe
 (`docs/research/potts_trapping_probe.py`, graph seeds 910 to 915, which this
 study does not reuse) compared five pilot signals on 18 targets; its output is
 exploration, not evidence. The decision rule below is fixed from theory, not
@@ -27,7 +27,9 @@ pilot's cost is counted.
    **spread ratio**: the mean pairwise TV between the five chains'
    symmetrized joint histograms of sites 0 to 3, divided by the mean TV
    between the first and second halves of each chain's symmetrized
-   histogram.
+   histogram. The denominator is floored at 1e-12, so chains frozen in
+   different label classes give a very large ratio (switch) and chains
+   frozen in the same class give 0 (no switch).
 3. If the ratio exceeds **1**, switch: continue with five-replica tempering,
    started from the five pilot chains' final states, for T - P sweeps.
    Estimate from the cold replica after the first quarter of that
@@ -91,7 +93,9 @@ hindsight, which no deployable rule can match).
   run, so the runner computes them once and records that identity.
 - A switched trial's continuation is re-executed once per target for a fixed
   trial and must reproduce its histograms exactly.
-- Budgets are prefixes of one run per arm per trial, as in stage B.
+- Budgets are prefixes of one run per arm per trial. For every target, the
+  independent and tempering samplers are re-executed at T = 1024 and must
+  reproduce the prefix histograms of the T = 16384 runs exactly.
 - The archive keeps per-trial counts, signals and decisions only, no
   trajectories. Replay recomputes exact references, errors, qualification,
   regret and detection metrics from the counts, compares them with the
