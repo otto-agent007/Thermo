@@ -84,6 +84,14 @@ work pointed at the right problem.
   GPU float32 arm (A2) and execution costs remain open. Both are CPU software
   evidence against exact references; CI replays the archives without
   resampling.
+- **The Potts track** (charter track A) has started. Stage A
+  (`docs/experiment-reports/2026-10-06-thrml-potts-contract/`) shows THRML's
+  categorical Gibbs sampler matches the exact p0 T^K law of a three-label,
+  three-colour Potts patch in 84/84 cells, including both categorical factor
+  classes, clamping and a q = 2 encoding of E0's chain. THRML's categorical
+  conditional is softmax(beta * local field), with no factor of 2, unlike
+  its spin sampler. Stage B, a native Potts study on fresh targets, is next
+  and needs its own protocol.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
