@@ -725,3 +725,26 @@ cells are `software_simulation`; nothing is hardware evidence and inner sweeps
 are not device operations. The
 [gate](release-gates.md#thrml-execution-of-an-m5a-kernels-inner-sweep-e0-stage-b)
 is archive replay.
+
+## THRML categorical finite-sweep contract (Potts stage A / A3)
+
+The [frozen protocol](experiments/thrml-potts-finite-sweep-contract.md) asks
+whether THRML 0.1.4's `CategoricalGibbsConditional`, after exactly K ordered
+block sweeps, matches p0 T^K for a three-label Potts model on a six-site patch
+that needs three colours (729 states, asymmetric pair tables from a fixed
+seed). It tests 84 cells: both categorical factor classes, both block orders,
+all-zero and uniform initial laws, K in {0, 1, 2, 3, 4, 8, 16}, a clamped arm
+with site 1 fixed to label 2, and a q = 2 bridge that writes E0's five-spin
+chain as categorical nodes and compares it with E0's exact spin kernel. Ten
+named controls (energy sign, softmax scale, table orientation, label
+encoding, block order, off-by-one K, clamp value, and the bridge's scale,
+label mapping and off-by-one) had to separate on the exact side before
+sampling.
+
+The [recorded study](experiment-reports/2026-10-06-thrml-potts-contract/findings.md)
+passes all 84 cells at the 0.999 multinomial tolerance with 400,000 chains per
+cell, rejects 112 of 112 wrong references, and places all 44 decisive
+off-by-one cells closest to p0 T^K. Exact references are `exact_reference`;
+THRML cells are `software_simulation`; nothing is hardware evidence. The
+[gate](release-gates.md#thrml-categorical-finite-sweep-contract-potts-stage-a--a3)
+is archive replay.
