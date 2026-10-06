@@ -1,0 +1,41 @@
+2026-10-06T17:48:24Z Potts-B preflight
+2026-10-06T17:48:27Z Potts-B preflight passed; exact references and noise floors
+2026-10-06T17:48:28Z Potts-B exact side 1.0s
+2026-10-06T17:49:04Z Potts-B n12-g400-b8/long 35.4s prefix_ok=True
+2026-10-06T17:49:24Z Potts-B n12-g400-b8/independent 19.9s prefix_ok=True
+2026-10-06T17:49:43Z Potts-B n12-g400-b8/tempering 19.8s prefix_ok=True
+2026-10-06T17:50:14Z Potts-B n12-g400-b16/long 30.5s prefix_ok=True
+2026-10-06T17:50:32Z Potts-B n12-g400-b16/independent 18.3s prefix_ok=True
+2026-10-06T17:50:51Z Potts-B n12-g400-b16/tempering 19.1s prefix_ok=True
+2026-10-06T17:51:17Z Potts-B n12-g401-b8/long 26.3s prefix_ok=True
+2026-10-06T17:51:31Z Potts-B n12-g401-b8/independent 13.4s prefix_ok=True
+2026-10-06T17:51:46Z Potts-B n12-g401-b8/tempering 14.9s prefix_ok=True
+2026-10-06T17:52:13Z Potts-B n12-g401-b16/long 26.9s prefix_ok=True
+2026-10-06T17:52:31Z Potts-B n12-g401-b16/independent 18.0s prefix_ok=True
+2026-10-06T17:52:46Z Potts-B n12-g401-b16/tempering 15.5s prefix_ok=True
+2026-10-06T17:53:16Z Potts-B n12-g402-b8/long 30.1s prefix_ok=True
+2026-10-06T17:53:35Z Potts-B n12-g402-b8/independent 18.4s prefix_ok=True
+2026-10-06T17:53:55Z Potts-B n12-g402-b8/tempering 20.5s prefix_ok=True
+2026-10-06T17:54:28Z Potts-B n12-g402-b16/long 32.3s prefix_ok=True
+2026-10-06T17:54:46Z Potts-B n12-g402-b16/independent 18.3s prefix_ok=True
+2026-10-06T17:55:06Z Potts-B n12-g402-b16/tempering 19.7s prefix_ok=True
+2026-10-06T17:55:35Z Potts-B n12-g403-b8/long 29.8s prefix_ok=True
+2026-10-06T17:55:54Z Potts-B n12-g403-b8/independent 18.3s prefix_ok=True
+2026-10-06T17:56:13Z Potts-B n12-g403-b8/tempering 19.7s prefix_ok=True
+2026-10-06T17:56:43Z Potts-B n12-g403-b16/long 29.9s prefix_ok=True
+2026-10-06T17:57:01Z Potts-B n12-g403-b16/independent 18.1s prefix_ok=True
+2026-10-06T17:57:21Z Potts-B n12-g403-b16/tempering 19.9s prefix_ok=True
+2026-10-06T17:57:54Z Potts-B n12-g404-b8/long 32.5s prefix_ok=True
+2026-10-06T17:58:13Z Potts-B n12-g404-b8/independent 19.4s prefix_ok=True
+2026-10-06T17:58:34Z Potts-B n12-g404-b8/tempering 20.8s prefix_ok=True
+2026-10-06T17:59:06Z Potts-B n12-g404-b16/long 32.2s prefix_ok=True
+2026-10-06T17:59:25Z Potts-B n12-g404-b16/independent 19.3s prefix_ok=True
+2026-10-06T17:59:46Z Potts-B n12-g404-b16/tempering 20.9s prefix_ok=True
+2026-10-06T18:00:17Z Potts-B n12-g405-b8/long 30.2s prefix_ok=True
+2026-10-06T18:00:34Z Potts-B n12-g405-b8/independent 17.5s prefix_ok=True
+2026-10-06T18:00:53Z Potts-B n12-g405-b8/tempering 18.9s prefix_ok=True
+2026-10-06T18:01:23Z Potts-B n12-g405-b16/long 30.4s prefix_ok=True
+2026-10-06T18:01:41Z Potts-B n12-g405-b16/independent 17.6s prefix_ok=True
+2026-10-06T18:02:00Z Potts-B n12-g405-b16/tempering 18.9s prefix_ok=True
+2026-10-06T18:02:00Z Potts-B archive written; replaying
+2026-10-06T18:02:02Z Potts-B completion published after 817.1s

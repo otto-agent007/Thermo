@@ -90,8 +90,13 @@ work pointed at the right problem.
   three-colour Potts patch in 84/84 cells, including both categorical factor
   classes, clamping and a q = 2 encoding of E0's chain. THRML's categorical
   conditional is softmax(beta * local field), with no factor of 2, unlike
-  its spin sampler. Stage B, a native Potts study on fresh targets, is next
-  and needs its own protocol.
+  its spin sampler. Stage B
+  (`docs/experiment-reports/2026-10-06-potts-symmetry-tempering/`) finds the
+  Ising symmetry-plus-tempering result carries over to cold (beta 16)
+  antiferromagnetic Potts targets, 6/6 against 5/6 and 4-16x smaller budget
+  on three, but not to beta 8, where symmetry-aware ordinary Gibbs wins 4/6
+  because tempering keeps only its cold replica. A useful next question is
+  how to detect trapping before choosing a sampler.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
