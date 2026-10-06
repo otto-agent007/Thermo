@@ -1,7 +1,7 @@
 # Potts stage B: label symmetry and tempering on fresh antiferromagnetic Potts targets
 
-**Status: draft, 2026-10-06, awaiting the owner's go-ahead to freeze.** No
-study cell has run. The exploratory probe
+**Status: frozen 2026-10-06 on the owner's go-ahead, before any study cell
+ran.** The exploratory probe
 (`docs/research/potts_tempering_probe.py`, graph seeds 900 and 901, which this
 study does not reuse) checked that tempering runs natively in THRML and
 located a cold temperature where these targets stop being easy. Its output is
@@ -76,6 +76,10 @@ says whether it could cap or trivialize the accuracy metric.
 - The replica layout round-trips labels exactly, and one sweep of a
   five-replica program at five different betas reproduces, for each replica,
   the stage A exact one-sweep law at that beta on a 729-state fixture.
+- These run inside the runner before production as a recorded preflight:
+  the replica-layout check is exact, and the one-sweep check uses 100,000
+  chains with the stage A 0.999 multinomial tolerance on the stage A graph
+  with delta couplings. Production does not start unless both pass.
 - The exchange step's acceptance probability matches the closed form on a
   table of hand-computed cases, including the sign convention.
 - The symmetry estimator leaves an S3-invariant law unchanged and maps any
@@ -96,8 +100,9 @@ estimator cells, 12 primary decisions, `prefix_checks_passed=true` and
 failure.
 
 **Expected cost.** The probe ran 16 trials of every sampler at T = 1024 in
-about 1 s each, compilation included, so the full grid with timing repeats
-should take minutes on CPU, under the 30-minute autosave threshold. Restart in
+about 1 s each, compilation included. With the timing repeats the full
+grid should take about 15 minutes on CPU, under the 30-minute autosave
+threshold, so there is no autosave layer. Restart in
 a fresh directory. CI replays the archive through the unit test and does not
 resample.
 
