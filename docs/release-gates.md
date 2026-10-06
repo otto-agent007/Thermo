@@ -746,3 +746,29 @@ autosave or resume layer; restart in a fresh directory. CI replays the
 committed archive (`--replay`, about 15 s) through the unit test; it compares
 numerically, so it passes on any CPU's BLAS, and it does not resample. The
 slow-marked tests sample four cells at small N.
+
+## Potts stage B: label symmetry and tempering
+
+Use the [frozen protocol](experiments/potts-symmetry-tempering.md), CPU only, a
+fresh output directory, and no other CPU-heavy work while it runs (it records
+warm timings):
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.potts_symmetry_tempering \
+  --output-dir results/potts-symmetry-tempering-new
+uv run pytest tests/unit/test_potts_symmetry_tempering.py
+```
+
+Completion requires `status=potts_symmetry_tempering_complete`, `targets=12`,
+`sampler_cells=180`, `estimator_cells=360`, `primary_decisions=12`,
+`preflight_passed=true`, `prefix_checks_passed=true` and `replayed=true`. The
+runner stops before production if the preflight (replica layout and the
+per-replica one-sweep law against the stage A kernel) fails. Mixed or negative
+decisions are scientific results, not integrity failures. The run takes about
+15 minutes, under the autosave threshold, so there is no resume layer; restart
+in a fresh directory. Sampling is deterministic: a re-run reproduces the
+result digest, though not the timings. CI replays the committed archive (about
+10 s) through the unit test and does not resample. Replay compares the
+recomputed evaluation with the archived one numerically (1e-12) and checks the
+digest of the archived values, so it passes on any CPU's BLAS.

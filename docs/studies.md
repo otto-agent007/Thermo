@@ -748,3 +748,27 @@ off-by-one cells closest to p0 T^K. Exact references are `exact_reference`;
 THRML cells are `software_simulation`; nothing is hardware evidence. The
 [gate](release-gates.md#thrml-categorical-finite-sweep-contract-potts-stage-a--a3)
 is archive replay.
+
+## Potts stage B: label symmetry and tempering
+
+The [frozen protocol](experiments/potts-symmetry-tempering.md) asks whether
+the October Ising result, that tempering plus an analytic symmetry estimator
+beats the strongest symmetry-aware ordinary Gibbs baselines, carries over to
+zero-field antiferromagnetic three-state Potts targets, where the symmetry is
+all six label permutations. Six fresh 12-site weighted cubic graphs (seeds
+400 to 405) run at beta 8 and beta 16 with three THRML samplers (one long
+chain, five independent chains, five-replica tempering as one program over
+disjoint replica copies), each scored plain and symmetrized, at
+T in {64, ..., 16384} with 16 trials. T = 16384 was added because the cold
+replica's independent-sample noise floor would otherwise cap unsymmetrized
+tempering at the 0.05 threshold.
+
+The [recorded study](experiment-reports/2026-10-06-potts-symmetry-tempering/findings.md)
+finds that the combination transfers at beta 16 (6/6 qualifying against 5/6;
+4x to 16x smaller budget on three targets, sole qualifier on a fourth) but
+not at beta 8, where symmetry-aware ordinary Gibbs reaches the threshold at a
+4x smaller budget on four of six targets because tempering retains only its
+cold replica. Sampling is `software_simulation`; enumeration is
+`exact_reference`. The
+[gate](release-gates.md#potts-stage-b-label-symmetry-and-tempering) is archive
+replay.
