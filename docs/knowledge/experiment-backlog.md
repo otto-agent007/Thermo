@@ -287,3 +287,12 @@ closed. Stage B (one M5a site through THRML) is recorded in the
 under reading B, the standing choice, THRML reproduces the archived inner-K
 law of the M5c primary-arm kernel at K in {1, 2, 4} in 6 of 6 cells, with 24
 of 24 wrong references rejected. Stage B is closed.
+
+## Potts stage A recorded, October 6
+
+The categorical counterpart of E0 (dependency check A3) is recorded in the
+[THRML categorical contract](../experiment-reports/2026-10-06-thrml-potts-contract/findings.md):
+84 of 84 finite-K cells on a three-label, three-colour Potts patch match
+p0 T^K, both categorical factor classes agree, clamping works, a q = 2
+encoding of E0's chain matches E0's exact kernel, and 112 of 112 wrong
+references are rejected. The Potts charter track can build on it.
