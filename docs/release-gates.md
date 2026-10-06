@@ -724,3 +724,25 @@ reused, output tolerances redrawn, about 25 s); the full `--replay` also
 redraws the joint tolerances and takes about 2.75 minutes. Both compare the
 recomputed evaluation with the archived one numerically, so they pass on any
 CPU's BLAS. Neither resamples.
+
+## THRML categorical finite-sweep contract (Potts stage A / A3)
+
+Use the [frozen protocol](experiments/thrml-potts-finite-sweep-contract.md), CPU
+only, a fresh output directory:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.thrml_potts_contract \
+  --output-dir results/thrml-potts-contract-new
+uv run pytest tests/unit/test_thrml_potts_contract.py
+```
+
+Completion requires `status=thrml_potts_contract_complete`, `cells=84`,
+`chains_per_cell=400000`, `controls_gate_passed=true` and `replayed=true`. The
+runner stops before any THRML call if a gated negative control does not
+separate on the exact side. A failed cell is a scientific result, not an
+integrity failure. The run takes about 3 minutes on CPU, so there is no
+autosave or resume layer; restart in a fresh directory. CI replays the
+committed archive (`--replay`, about 15 s) through the unit test; it compares
+numerically, so it passes on any CPU's BLAS, and it does not resample. The
+slow-marked tests sample four cells at small N.
