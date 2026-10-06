@@ -1,7 +1,7 @@
 # THRML categorical finite-sweep contract on a three-state Potts patch (Potts stage A / A3)
 
-**Status: draft, 2026-10-06, awaiting the owner's go-ahead to freeze.** No
-study cell has run. The exploratory probe
+**Status: frozen 2026-10-06 on the owner's go-ahead, before any study cell
+ran.** The owner asked for the q = 2 bridge arm at freeze. The exploratory probe
 (`docs/research/potts_contract_probe.py`) sampled THRML on the same graph with
 different parameters (seed 0) to check that the contract is testable; its
 output is exploration, not evidence. The frozen study draws fresh parameters
@@ -60,11 +60,23 @@ Every value below goes into the hashed request.
 - **Initial distributions.** All labels 0 (point mass, the most sensitive to
   an off-by-one) and uniform over the 729 states, drawn per chain from its
   init key.
+- **Initial distributions.** These are drawn by Thermo code, not a THRML
+  initializer, so the K = 0 cells check only the harness.
 - **Clamped arm.** Site 1 (degree 4) clamped to label 2 through
-  `clamped_blocks`, free blocks {0, 5}, {3}, {2, 4}, all-zero init on the free
-  sites. The reference is the same kernel restricted to the 243 consistent
-  states; its stationary law is the conditional Boltzmann law. Clamping to a
-  non-zero label makes a clamp read as 0 detectable.
+  `clamped_blocks`, free blocks {0, 5}, {3}, {2, 4}, forward order, all-zero
+  init on the free sites. The reference is the sweep kernel with those blocks
+  on all 729 states; started inside the 243 states with site 1 = 2 it never
+  leaves them, and its stationary law is the conditional Boltzmann law. Mass
+  outside those states counts against the cell. Clamping to a non-zero label
+  makes a clamp read as 0 detectable.
+- **Bridge arm (q = 2).** E0's five-spin chain (biases, couplings and
+  beta = 0.8 of `configs/experiments/thrml-ising-chain.toml`) written as a
+  two-label categorical model: label 1 is spin +1 and label 0 is spin -1,
+  fields h_i[c] = b_i s(c), tables W_e[c_a, c_b] = J_e s(c_a) s(c_b). Blocks
+  {0, 2, 4} then {1, 3}, all labels 0 (E0's `all_minus`). The reference is
+  E0's own exact spin kernel, imported from
+  `thermo_lab.thrml_finite_sweep_contract`, so the categorical path is tied
+  to the same p0 T^K that THRML's spin path matched in E0.
 - **Sweep counts.** K in {0, 1, 2, 3, 4, 8, 16}, run as
   `SamplingSchedule(n_warmup=K, n_samples=1, steps_per_sample=1)`.
 - **Chains.** N = 400,000 independent chains per cell. One recorded sample
@@ -72,9 +84,9 @@ Every value below goes into the hashed request.
   own JAX key, split into an init key and a sampling key, folded in from one
   root seed (20261006) and the cell index.
 - **Statistic.** Total variation between the empirical histogram (729 bins,
-  or 243 clamped) and p0 T^K, with the largest per-site marginal error
+  32 for the bridge) and p0 T^K, with the largest per-site marginal error
   reported beside it.
-- **Tolerance.** Per cell, the 0.999 quantile of the TV that a
+- **Tolerance.** Per exact law, the 0.999 quantile of the TV that a
   multinomial(N, p0 T^K) sample itself shows, from 4,000 exact-side draws with
   a fixed NumPy seed.
 - **Off-by-one diagnostic.** For every K >= 1 cell, the TV to p0 T^(K-1) and
@@ -83,7 +95,9 @@ Every value below goes into the hashed request.
   exact side.
 
 **Cells:** 2 constructions x 2 orders x 2 inits x 7 budgets free, plus
-2 constructions x 7 budgets clamped, 70 cells in total.
+2 constructions x 7 budgets clamped, plus 2 constructions x 7 budgets bridge,
+84 cells in total. Cells that differ only in construction share one exact law
+and one tolerance.
 
 **What could cap the metric.** With these parameters the chain is close to
 stationary by K = 8, so K >= 8 cells lose the power to separate K from K +- 1.
@@ -108,15 +122,20 @@ tolerance.
 | Label encoding | `label_shift`: every table read with labels shifted c -> c+1 mod 3 | 0.813 / 0.813 |
 | Block order | `reversed_order`: the other order's kernel | 0.348 / 0.100 |
 | What counts as a sweep | `off_by_one`: p0 T^(K+1) | 0.229 / 0.043 |
-| Clamping | `clamp_as_zero`: site 1 read as label 0 (clamped arm) | 0.382 / 0.482 |
+| Clamping | `clamp_as_zero`: free sites evolve as if site 1 were label 0 (clamped arm) | 0.382 / 0.482 |
+
+The bridge arm has three controls of its own: `doubled_beta` (E0's kernel at
+2 beta), `label_swap` (label 0 read as spin +1, so every state globally
+flipped) and `off_by_one`. Their separations are computed at the start of the
+run and gated like the rest.
 
 Tolerances at those cells are 0.011 / 0.012 (clamped arm 0.008 / 0.009). From the uniform init every
 control also separates at K = 1 and 2 (smallest: `off_by_one` at K = 2,
 0.038 against 0.012).
 
-**Gate before sampling.** Every control at K in {1, 2}, all-zero init,
-forward order, generic construction, and `clamp_as_zero` at K in {1, 2} in
-the clamped arm, must separate from the right reference by more than the cell
+**Gate before sampling.** Every control at K in {1, 2} from the all-zero
+init (both orders), `clamp_as_zero` at K in {1, 2}, and the three bridge
+controls at K in {1, 2} must separate from the right reference by more than the cell
 tolerance on the exact side. If any does not, the runner stops before any
 THRML call. Controls from the uniform init are reported but not gated.
 
@@ -132,7 +151,7 @@ and checks the result digest. It compares numerically, so it passes on any
 CPU's BLAS, as the E0 replays do.
 
 `completion.json` must show `status=thrml_potts_contract_complete`,
-`cells=70`, `chains_per_cell=400000`, `controls_gate_passed=true`,
+`cells=84`, `chains_per_cell=400000`, `controls_gate_passed=true`,
 `replayed=true`, and the counts of cells passed, controls rejected and
 off-by-one-decisive cells. A failed cell is a scientific result about THRML's
 categorical kernel or Thermo's reading of it, not an integrity failure.
@@ -146,5 +165,5 @@ does not resample.
 ## Not claimed
 
 Sampler speed, any Z1 or TSU hardware behaviour, agreement on models larger
-than the one tested, more than three colours, q > 3, or mixed
-spin-categorical factors.
+than the one tested, more than three colours, q > 3, mixed
+spin-categorical factors, or THRML initializers (none is used).
