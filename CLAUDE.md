@@ -95,8 +95,13 @@ work pointed at the right problem.
   Ising symmetry-plus-tempering result carries over to cold (beta 16)
   antiferromagnetic Potts targets, 6/6 against 5/6 and 4-16x smaller budget
   on three, but not to beta 8, where symmetry-aware ordinary Gibbs wins 4/6
-  because tempering keeps only its cold replica. A useful next question is
-  how to detect trapping before choosing a sampler.
+  because tempering keeps only its cold replica. Stage C
+  (`docs/experiment-reports/2026-10-06-potts-trapping-policy/`) is negative:
+  a pilot-based switching policy detects trapping (AUC 0.81) but has regret
+  8 against 3 for always-tempering, so default to tempering plus symmetry at
+  budgets of 1024 and above. It is the second adaptive policy (after the
+  changing-evidence restart policy) that fails to beat a simple baseline;
+  don't design a third without the owner.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process

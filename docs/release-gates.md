@@ -772,3 +772,24 @@ result digest, though not the timings. CI replays the committed archive (about
 10 s) through the unit test and does not resample. Replay compares the
 recomputed evaluation with the archived one numerically (1e-12) and checks the
 digest of the archived values, so it passes on any CPU's BLAS.
+
+## Potts stage C: reference-free trapping policy
+
+Use the [frozen protocol](experiments/potts-trapping-policy.md), CPU only and a
+fresh output directory:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.potts_trapping_policy \
+  --output-dir results/potts-trapping-policy-new
+uv run pytest tests/unit/test_potts_trapping_policy.py
+```
+
+Completion requires `status=potts_trapping_policy_complete`, `targets=36`,
+`policy_trials=576`, `prefix_checks_passed=true`,
+`continuation_check_passed=true` and `replayed=true`. `policy_succeeds` is the
+scientific verdict and does not gate. The run takes about 10 minutes with no
+resume layer; restart in a fresh directory. Replay compares the recomputed
+evaluation numerically and checks the digest of the archived values, so it
+passes on any CPU's BLAS. CI replays the committed archive through the unit
+test and does not resample.
