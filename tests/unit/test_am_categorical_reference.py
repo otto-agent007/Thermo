@@ -76,6 +76,25 @@ def test_archived_report_replays(tmp_path: Path, archived: dict) -> None:
         assert completion[key] == published[key]
 
 
+@pytest.fixture
+def archived_exact(monkeypatch: pytest.MonkeyPatch, archived: dict) -> None:
+    """Serve exact recall from the archive so tamper tests skip the recompute."""
+    request = archived["request"]
+    by_id = {c["id"]: c for c in study.configs(request)}
+    cell_by_id = {c["id"]: c for c in study.cells(request)}
+    exact = {}
+    for table in ("dev", "held"):
+        for uid, value in archived[table].items():
+            cfg, cell, seed = stage_a.parse_unit(uid, by_id, cell_by_id)
+            key = (cfg["beta"], cell["cue"], stage_a.patterns(seed, cell["p"]).tobytes())
+            exact[key] = value["exact"]
+    monkeypatch.setattr(
+        stage_a,
+        "exact_recall",
+        lambda arm, beta, frac, xi, t, cue: exact[(beta, cue, xi.tobytes())][t],
+    )
+
+
 @pytest.mark.parametrize(
     ("target", "message"),
     [
@@ -85,10 +104,13 @@ def test_archived_report_replays(tmp_path: Path, archived: dict) -> None:
         ("prefix", "prefix"),
     ],
 )
-def test_replay_rejects_tampering(archived: dict, target: str, message: str) -> None:
+def test_replay_rejects_tampering(
+    archived: dict, archived_exact: None, target: str, message: str
+) -> None:
     record = copy.deepcopy(archived)
-    uid = next(iter(record["held"]))
     if target == "counts":
+        cfg_id = record["evaluation"]["chosen"]["P8/c12/K256"]
+        uid = f"held/{cfg_id}/P8/c12/s7100"
         record["held"][uid]["sampled"]["correct"][-1][0] += 1
     elif target == "verdict":
         key = next(iter(record["evaluation"]["comparisons"]))
