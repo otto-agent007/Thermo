@@ -19,7 +19,7 @@ REPORT = (
     Path(__file__).resolve().parents[2]
     / "docs"
     / "experiment-reports"
-    / "2026-10-06-am-binary-emulation"
+    / "2026-10-07-am-binary-emulation"
 )
 ARCHIVE = REPORT / "study.json.gz"
 
@@ -194,6 +194,34 @@ def _tamper(record: dict, target: str) -> None:
         record["prefix_ok"] = False
 
 
+@pytest.fixture
+def archived_exact(monkeypatch: pytest.MonkeyPatch, archived: dict) -> None:
+    """Serve exact recall and range from the archive so tamper tests skip the recompute."""
+    request = archived["request"]
+    by_id = {c["id"]: c for c in study.configs(request)}
+    cell_by_id = {c["id"]: c for c in study.cells(request)}
+    exact, ranges = {}, {}
+    for table in ("dev", "held_exact"):
+        for uid, value in archived[table].items():
+            cfg, cell, seed = study.parse_unit(uid, by_id, cell_by_id)
+            key = (
+                cfg["arm"],
+                cfg["beta"],
+                cfg["frac"],
+                cell["cue"],
+                study.patterns(seed, cell["p"]).tobytes(),
+            )
+            exact[key], ranges[key[:3] + key[4:]] = value["exact"], value["range"]
+    monkeypatch.setattr(
+        study,
+        "exact_recall",
+        lambda arm, beta, frac, xi, t, cue: exact[(arm, beta, frac, cue, xi.tobytes())][t],
+    )
+    monkeypatch.setattr(
+        study, "dynamic_range", lambda arm, beta, frac, xi: ranges[(arm, beta, frac, xi.tobytes())]
+    )
+
+
 @pytest.mark.parametrize(
     ("target", "message"),
     [
@@ -203,7 +231,9 @@ def _tamper(record: dict, target: str) -> None:
         ("prefix", "prefix check"),
     ],
 )
-def test_replay_rejects_tampering(archived: dict, target: str, message: str) -> None:
+def test_replay_rejects_tampering(
+    archived: dict, archived_exact: None, target: str, message: str
+) -> None:
     record = copy.deepcopy(archived)
     _tamper(record, target)
     with pytest.raises(ValueError, match=message):

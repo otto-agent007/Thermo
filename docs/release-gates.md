@@ -793,3 +793,26 @@ resume layer; restart in a fresh directory. Replay compares the recomputed
 evaluation numerically and checks the digest of the archived values, so it
 passes on any CPU's BLAS. CI replays the committed archive through the unit
 test and does not resample.
+
+## Associative memory stage A: binary emulation of a categorical hidden unit
+
+Use the [frozen protocol](experiments/am-binary-emulation.md), CPU only:
+
+```bash
+JAX_PLATFORMS=cpu uv run python -m thermo_lab.am_binary_emulation \
+  --output-dir results/am-binary-emulation-new
+uv run python -m thermo_lab.am_binary_emulation \
+  --replay docs/experiment-reports/2026-10-07-am-binary-emulation/study.json.gz \
+  --full --output-dir results/am-binary-emulation-replay
+uv run pytest tests/unit/test_am_binary_emulation.py
+```
+
+Completion requires `status=am_binary_emulation_complete`, `cells=6`,
+`dev_units=936`, `held_exact_units=2808`, `preflight_passed=true`,
+`prefix_checks_passed=true` and `replayed=true`. The run takes about 2.25 hours,
+so the runner saves every work unit under `units/` and resumes in the same
+directory. It refuses to reuse units if the request or the runner source
+changed. The slow-marked interruption test covers this. Verdicts are
+scientific results and do not gate. CI replays the archive through the unit
+test, recomputing the 12-bit-cue exact references (about 2.5 minutes); the
+`--full` replay recomputes all of them and is a local gate (about 45 minutes).
