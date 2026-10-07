@@ -7,7 +7,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "extro-torx==0.0.1",
+    "extro-torx==0.0.2",
     "pydantic>=2.11,<3",
     "scipy>=1.17,<2",
     "thrml==0.1.4",
