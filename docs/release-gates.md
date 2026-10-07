@@ -816,3 +816,24 @@ changed. The slow-marked interruption test covers this. Verdicts are
 scientific results and do not gate. CI replays the archive through the unit
 test, recomputing the 12-bit-cue exact references (about 2.5 minutes); the
 `--full` replay recomputes all of them and is a local gate (about 45 minutes).
+
+## Associative memory stage A2: label-first categorical reference
+
+Use the [frozen amendment](experiments/am-categorical-reference.md), CPU only:
+
+```bash
+JAX_PLATFORMS=cpu uv run python -m thermo_lab.am_categorical_reference \
+  --output-dir results/am-categorical-reference-new
+uv run python -m thermo_lab.am_categorical_reference \
+  --replay docs/experiment-reports/2026-10-07-am-categorical-reference/study.json.gz \
+  --output-dir results/am-categorical-reference-replay
+uv run pytest tests/unit/test_am_categorical_reference.py
+```
+
+Completion requires `status=am_categorical_reference_complete`, `dev_units=72`,
+`held_units=144`, `preflight_passed=true`, `prefix_check_passed=true`,
+`equilibrium_matches_stage_a=true`, `stage_a_archive_verified=true` and
+`replayed=true`. The run takes about 4 minutes, so it has no autosave layer.
+The stage A archive must match the SHA-256 in its `completion.json`. CI replays
+the archive through the unit test, recomputing every exact reference (about 75
+seconds). Verdicts are scientific results and do not gate.

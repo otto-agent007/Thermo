@@ -816,3 +816,17 @@ reference's update order. Sampling is `software_simulation`; enumeration is
 `exact_reference`. The
 [gate](release-gates.md#associative-memory-stage-a-binary-emulation-of-a-categorical-hidden-unit)
 covers run, resume and replay.
+
+## Associative memory stage A2: label-first categorical reference
+
+The [frozen amendment](experiments/am-categorical-reference.md) reruns only stage
+A's sampled categorical reference. The label is updated before the visible bits,
+from the same per-chain start states. The binary arms come from the stage A
+archive, authenticated by SHA-256.
+[Findings](experiment-reports/2026-10-07-am-categorical-reference/findings.md):
+label-first helps only at 4 to 16 sweeps. The reference is slow because block
+Gibbs barely mixes at the cold β (16) its equilibrium needs, so within a budget
+it settles for β = 4 or 8. The bias design still exceeds it in 16 of 24
+cell–budget pairs and never falls short. A cue-informed start is open. The
+[gate](release-gates.md#associative-memory-stage-a2-label-first-categorical-reference)
+covers run and replay.
