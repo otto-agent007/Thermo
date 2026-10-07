@@ -1,7 +1,12 @@
-"""Public behavioral contracts required from Torx 0.0.1."""
+"""Public behavioral contracts Thermo requires from Torx.
 
+Written against 0.0.1 and kept for the pinned 0.0.2, which added injectable samplers.
+"""
+
+import jax
 import jax.numpy as jnp
 import numpy as np
+import torx
 from torx import psc
 
 
@@ -38,3 +43,28 @@ def test_pswap_compiles_and_executes_one_ordered_float32_layer() -> None:
     expected[basis_indices[1]] = 0.125
     expected[basis_indices[2]] = 0.125
     np.testing.assert_allclose(np.asarray(density), expected, rtol=0.0, atol=1e-7)
+
+
+def test_default_sampler_draws_are_jax_random_draws() -> None:
+    """0.0.2 made the distribution provider injectable; omitting it must keep jax.random."""
+    gates = [psc.PSWAP([0, 1]), psc.PSWAP([1, 2])]
+    thetas = [jnp.asarray([0.3], dtype=jnp.float32), jnp.asarray([-0.7], dtype=jnp.float32)]
+    simulator = psc.BranchingSimulator(num_samples=256)
+    compiled = simulator.build_circuit(psc.DiscretePCircuit(gates, reps=1), thetas)
+    start = jnp.asarray([1, 0, 0])
+    default = simulator.sample(compiled, start, jax.random.key(4))
+    explicit = simulator.sample(compiled, start, jax.random.key(4), sampler=torx.JaxPRNGSampler())
+    np.testing.assert_array_equal(np.asarray(default), np.asarray(explicit))
+
+    key = jax.random.key(11)
+    sampler = torx.JaxPRNGSampler()
+    logits = jnp.log(jnp.asarray([0.2, 0.3, 0.5], dtype=jnp.float32))
+    np.testing.assert_array_equal(
+        np.asarray(sampler.categorical(key, logits, shape=(64,))),
+        np.asarray(jax.random.categorical(key, logits, shape=(64,))),
+    )
+    p = jnp.full((64,), 0.3, dtype=jnp.float32)
+    np.testing.assert_array_equal(
+        np.asarray(sampler.bernoulli(key, p)),
+        np.asarray(jax.random.bernoulli(key, p).astype(jnp.int32)),
+    )

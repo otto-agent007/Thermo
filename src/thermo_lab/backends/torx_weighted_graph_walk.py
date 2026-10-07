@@ -73,8 +73,8 @@ class TorxWeightedGraphWalkBackend:
         model = WeightedGraphModelConfig.model_validate(requested_model)
         run = WeightedGraphRunConfig.model_validate(requested_run)
         validate_weighted_graph_request(model, run, spec.seed)
-        if torx.__version__ != "0.0.1":
-            raise RuntimeError(f"Expected Torx 0.0.1, found {torx.__version__}")
+        if torx.__version__ != "0.0.2":
+            raise RuntimeError(f"Expected Torx 0.0.2, found {torx.__version__}")
         if canonical_sha256(model.model_dump(mode="json")) != spec.model_hash:
             raise ValueError("Validated weighted graph model differs from the hashed request")
         if canonical_sha256(run.model_dump(mode="json")) != canonical_sha256(requested_run):
@@ -237,7 +237,7 @@ class TorxWeightedGraphWalkBackend:
             ),
         )
         exact_method = (
-            "Torx 0.0.1 float32 StateVectorSimulator deterministic PSWAP trajectories, "
+            "Torx 0.0.2 float32 StateVectorSimulator deterministic PSWAP trajectories, "
             "independently compared with NumPy float64 Euler and eigendecomposition references"
         )
         maximum_leakage = max(item.max_one_particle_leakage for item in variant_results)
