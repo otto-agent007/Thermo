@@ -17,6 +17,13 @@ exactly once their penalty is large enough. In practice both fall short:
 - **Domain-wall** needs a range of only about 16, but it does not mix: held-out
   recall at 256 sweeps is 0.58 to 0.76, and its chains keep 2.6 to 41 domain walls.
 
+> **Correction, 2026-10-07.** The [stage A2 rerun](../2026-10-07-am-categorical-reference/findings.md)
+> updated the reference's label first, from the same start states. It changed
+> recall by at most 0.04 from 16 sweeps on. The reference is slow because it
+> barely mixes at the cold β its equilibrium needs, not because of update
+> order. The bias design still exceeds it in 16 of 24 cell–budget pairs and
+> never falls short. The update-order explanation below is superseded.
+
 **The primary comparison against the sampled categorical reference is
 confounded, and its verdicts should not be read as written.** The reference
 updates its visible bits first, from a uniformly random label. The visible bits
@@ -107,9 +114,8 @@ development data only, are in the archive.
 On a probe pattern set (P = 8, 12-bit cue, β = 16), the study's update order
 puts 54% of chains on the target label after one sweep and 87% after 256, for
 recall 0.94. Updating the label first instead puts 91% on the target after one
-sweep and gives recall 0.96 immediately. The slow reference therefore comes
-from the protocol's update order combined with its random-label start, not from
-categorical memories as such. The binary arms start with every hidden unit off,
+sweep and gives recall 0.96 immediately. (Superseded: across the held-out
+sets, label-first helps only at 4 to 16 sweeps; see the correction above.) The binary arms start with every hidden unit off,
 which avoids the lock-in. A fair finite-budget reference needs a
 label-first order or a cue-informed start. That is a small follow-up, not
 something to infer from this run.
@@ -123,7 +129,8 @@ something to infer from this run.
   expensive in range and in sequential steps. Domain-wall's exactness does not
   translate into mixing under Gibbs sampling from a random chain.
 - **Not settled:** whether any binary design matches a native categorical unit
-  within a sweep budget, because the reference is confounded. Behaviour beyond
+  within a sweep budget. The sampled reference barely mixes at the cold β its
+  equilibrium needs, whatever its update order (stage A2). Behaviour beyond
   N = 24, correlated patterns, quantized couplings, real hardware ranges, and
   any speed or energy claim are also open.
 

@@ -107,10 +107,15 @@ work pointed at the right problem.
   binary units, ordinary binary hidden units with a negative bias stand in for
   a dense memory's categorical hidden unit: within 0.01 of its equilibrium recall
   at coupling range 14 to 26. One-hot inhibition is range-hungry, and
-  domain-wall chains don't mix. Its finite-budget comparison with the sampled
-  categorical reference is confounded (visible-first updates from a random
-  label); check a reference arm's own dynamics before trusting a comparison
-  with it. Source cards for the area are in `docs/knowledge/sources/`.
+  domain-wall chains don't mix. Stage A2
+  (`docs/experiment-reports/2026-10-07-am-categorical-reference/`) reran the
+  sampled categorical reference label-first: it helps only at 4 to 16 sweeps.
+  The reference barely mixes at the cold β (16) its equilibrium needs, and the
+  bias design still beats it within budgets (16 of 24 pairs, never short).
+  Check a reference arm's own dynamics before trusting a comparison with it,
+  and test a proposed cause on study-scale data before writing it up. A
+  cue-informed start is the open variant; it waits for the owner. Source cards
+  for the area are in `docs/knowledge/sources/`.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process

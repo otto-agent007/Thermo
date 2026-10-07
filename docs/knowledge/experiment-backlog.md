@@ -322,3 +322,8 @@ memory's categorical unit. Open follow-ups: a label-first (or cue-informed)
 categorical reference for a fair finite-budget comparison; the bias design at
 larger N with a sampled reference; and quantized couplings once a hardware
 range is known.
+
+Update, same day: [stage A2](../experiment-reports/2026-10-07-am-categorical-reference/findings.md)
+ran the label-first reference. It helps only at 4 to 16 sweeps, and the bias
+design still leads. A cue-informed start would be the third reference variant;
+it waits for the owner's decision.
