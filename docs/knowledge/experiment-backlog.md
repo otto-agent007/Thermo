@@ -305,3 +305,11 @@ model family. It does when ordinary chains trap (beta 16) and does not when
 they mix (beta 8), where retaining every replica matters more. Candidate
 follow-ups: a trapping detector chosen on held-out seeds, reweighting hot
 replicas, and larger or field-bearing Potts targets.
+
+## Potts stage C recorded, October 6
+
+The [stage C findings](../experiment-reports/2026-10-06-potts-trapping-policy/findings.md)
+are negative. A pilot-based trapping detector is informative (AUC 0.81), but
+switching on it does not beat always using tempering plus symmetry at budgets
+of 1024 and above. Two adaptive-policy studies have now failed to beat a
+simple baseline, so further policy work waits for an owner decision.

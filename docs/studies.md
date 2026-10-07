@@ -772,3 +772,23 @@ cold replica. Sampling is `software_simulation`; enumeration is
 `exact_reference`. The
 [gate](release-gates.md#potts-stage-b-label-symmetry-and-tempering) is archive
 replay.
+
+## Potts stage C: reference-free trapping policy
+
+The [frozen protocol](experiments/potts-trapping-policy.md) tests a fixed
+policy that turns stage B's rule into something deployable. It runs five
+independent cold chains for a 256-sweep pilot, computes a label-invariant
+spread ratio (between-chain against within-chain disagreement of the
+symmetrized joint), and switches to tempering when the ratio exceeds 1, a
+threshold fixed from theory. It is tested once on 36 fresh targets (graph
+seeds 600 to 611 at beta 8, 12 and 16) against always-independent,
+always-tempering and a hindsight oracle, with the pilot charged to the policy.
+
+The [recorded study](experiment-reports/2026-10-06-potts-trapping-policy/findings.md)
+is negative: the policy's budget regret is 8 against 24 for always-independent
+and 3 for always-tempering, so it fails its success test. The detector
+separates failing trials with AUC 0.81. The policy still loses, because missed
+traps and the pilot's cost outweigh what is left to gain at budgets of 1024
+and above. Sampling is `software_simulation`; enumeration is `exact_reference`.
+The [gate](release-gates.md#potts-stage-c-reference-free-trapping-policy) is
+archive replay.

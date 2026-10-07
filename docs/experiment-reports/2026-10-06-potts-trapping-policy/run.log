@@ -1,0 +1,39 @@
+2026-10-06T20:14:34Z Potts-C exact references
+2026-10-06T20:14:55Z Potts-C n12-g600-b8 19.3s switched 1/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:15:12Z Potts-C n12-g600-b12 17.8s switched 10/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:15:30Z Potts-C n12-g600-b16 17.9s switched 10/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:15:43Z Potts-C n12-g601-b8 13.1s switched 2/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:15:56Z Potts-C n12-g601-b12 13.0s switched 13/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:16:10Z Potts-C n12-g601-b16 13.0s switched 16/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:16:26Z Potts-C n12-g602-b8 16.9s switched 1/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:16:43Z Potts-C n12-g602-b12 16.9s switched 2/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:17:00Z Potts-C n12-g602-b16 17.0s switched 7/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:17:16Z Potts-C n12-g603-b8 15.8s switched 7/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:17:32Z Potts-C n12-g603-b12 15.8s switched 10/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:17:48Z Potts-C n12-g603-b16 16.1s switched 15/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:18:04Z Potts-C n12-g604-b8 15.9s switched 10/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:18:20Z Potts-C n12-g604-b12 15.8s switched 15/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:18:36Z Potts-C n12-g604-b16 15.9s switched 16/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:18:53Z Potts-C n12-g605-b8 17.0s switched 2/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:19:10Z Potts-C n12-g605-b12 17.1s switched 7/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:19:27Z Potts-C n12-g605-b16 16.8s switched 14/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:19:42Z Potts-C n12-g606-b8 15.9s switched 4/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:19:58Z Potts-C n12-g606-b12 15.7s switched 7/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:20:14Z Potts-C n12-g606-b16 15.7s switched 16/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:20:30Z Potts-C n12-g607-b8 15.9s switched 6/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:20:46Z Potts-C n12-g607-b12 15.8s switched 10/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:21:02Z Potts-C n12-g607-b16 16.0s switched 8/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:21:19Z Potts-C n12-g608-b8 17.1s switched 1/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:21:36Z Potts-C n12-g608-b12 17.0s switched 2/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:21:53Z Potts-C n12-g608-b16 16.9s switched 8/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:22:11Z Potts-C n12-g609-b8 18.0s switched 5/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:22:29Z Potts-C n12-g609-b12 17.9s switched 11/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:22:47Z Potts-C n12-g609-b16 18.1s switched 15/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:23:04Z Potts-C n12-g610-b8 17.0s switched 0/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:23:21Z Potts-C n12-g610-b12 17.0s switched 2/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:23:38Z Potts-C n12-g610-b16 16.9s switched 11/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:23:54Z Potts-C n12-g611-b8 16.8s switched 2/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:24:11Z Potts-C n12-g611-b12 16.7s switched 6/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:24:28Z Potts-C n12-g611-b16 16.8s switched 15/16 prefix_ok=True continuation_ok=True
+2026-10-06T20:24:29Z Potts-C archive written; replaying
+2026-10-06T20:24:31Z Potts-C completion published after 596.6s
