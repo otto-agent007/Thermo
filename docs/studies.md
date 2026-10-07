@@ -792,3 +792,27 @@ traps and the pilot's cost outweigh what is left to gain at budgets of 1024
 and above. Sampling is `software_simulation`; enumeration is `exact_reference`.
 The [gate](release-gates.md#potts-stage-c-reference-free-trapping-policy) is
 archive replay.
+
+## Associative memory stage A: binary emulation of a categorical hidden unit
+
+The [frozen protocol](experiments/am-binary-emulation.md) asks how much of a
+dense associative memory's recall pairwise binary units can recover when they
+stand in for its categorical hidden unit. The candidates are one-hot inhibition,
+a domain-wall chain and negative-bias binary units, against the categorical
+reference and Hebbian Hopfield. The task stores up to 128 patterns in 24 spins
+and recalls them from 12- or 8-bit cues, at equilibrium (exact) and within K
+THRML sweeps. Parameters are chosen on development pattern sets and compared on
+held-out sets, and a range-sensitivity curve stands in for a hardware coupling
+cap.
+
+The [recorded study](experiment-reports/2026-10-07-am-binary-emulation/findings.md)
+finds that binary hidden units with a negative bias and no inhibition come
+within 0.01 of the categorical memory's equilibrium recall at a coupling range
+of 14 to 26, and are the strongest binary design within budgets in most cells.
+One-hot needs a coupling range above 128 and P + 1 sequential blocks per sweep.
+Domain-wall is exact at equilibrium but does not mix. The finite-budget
+comparison with the sampled categorical reference is confounded by that
+reference's update order. Sampling is `software_simulation`; enumeration is
+`exact_reference`. The
+[gate](release-gates.md#associative-memory-stage-a-binary-emulation-of-a-categorical-hidden-unit)
+covers run, resume and replay.

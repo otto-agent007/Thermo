@@ -313,3 +313,12 @@ are negative. A pilot-based trapping detector is informative (AUC 0.81), but
 switching on it does not beat always using tempering plus symmetry at budgets
 of 1024 and above. Two adaptive-policy studies have now failed to beat a
 simple baseline, so further policy work waits for an owner decision.
+
+## Associative memory A recorded, October 7
+
+The [binary-emulation findings](../experiment-reports/2026-10-07-am-binary-emulation/findings.md)
+support negative-bias binary hidden units as the pairwise stand-in for a dense
+memory's categorical unit. Open follow-ups: a label-first (or cue-informed)
+categorical reference for a fair finite-budget comparison; the bias design at
+larger N with a sampled reference; and quantized couplings once a hardware
+range is known.
