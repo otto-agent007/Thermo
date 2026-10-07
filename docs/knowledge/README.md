@@ -60,6 +60,9 @@ A card may give different statuses to different claims, for example a
 | [On a model of associative memory with huge storage capacity](sources/demircigil-huge-capacity.md) | Paper | `asserted`; exponential capacity for F(x) = e^x |
 | [Large Associative Memory Problem in Neurobiology and Machine Learning](sources/krotov-hopfield-large-memory.md) | Paper | `asserted`; dense memory from two-body synapses plus hidden neurons |
 | [On the equivalence of Hopfield Networks and Boltzmann Machines](sources/barra-hopfield-boltzmann.md) | Paper | `asserted`; Gaussian-hidden RBM equals Hebbian Hopfield |
+| [Domain wall encoding of discrete variables for quantum annealing and QAOA](sources/chancellor-domain-wall.md) | Paper | `asserted`; pairwise categorical encoding in P − 1 spins |
+| [On the role of non-linear latent features in bipartite generative neural networks](sources/bonnaire-latent-features.md) | Paper | `asserted`; binary hidden units cut RBM memory capacity |
+| [Thermodynamic significance of QUBO encoding on quantum annealers](sources/doucet-qubo-encoding.md) | Paper | `asserted`; one-hot penalty strength trade-off |
 
 ## Adding or updating a card
 
