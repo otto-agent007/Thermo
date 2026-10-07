@@ -1,7 +1,7 @@
 # Associative memory stage A: can pairwise binary hidden units stand in for a categorical one?
 
-**Status: draft, 2026-10-06, awaiting the owner's go-ahead to freeze.** No
-study cell has run. Two exploratory probes shaped it:
+**Status: frozen 2026-10-06 on the owner's go-ahead, before any study cell
+ran.** The owner chose a cap-agnostic range curve over a nominal coupling cap. Two exploratory probes shaped it:
 [`associative_memory_probe.py`](../research/associative_memory_probe.py) and
 [`am_emulation_probe.py`](../research/am_emulation_probe.py) (pattern seeds
 9000+ and 9700+, which this study does not reuse). Their output is exploration,
@@ -63,7 +63,7 @@ categorical node with mixed spin–categorical factors for the reference.
 | Sweep budgets | K ∈ {4, 16, 64, 256} | An arm that has not mixed by 256 sweeps is reported as not reached, not as failing at equilibrium. The probe showed `onehot` at large λ and `domainwall` stuck far below their equilibrium. |
 | Start state | missing bits uniform, `onehot` and `bias` hidden all off, `domainwall` chain uniform, categorical label uniform | `onehot` is sensitive to the start: whichever unit switches on first can lock in. Starting with every unit off is the natural hardware reset. Other starts are not tested. |
 | Penalty grids | up to 1.6 a_max | The probe matched categorical equilibrium recall at about 1.6 a_max. |
-| Coupling range | not capped | Hardware bounds the coupling range, and a large λ or J compresses the Hebbian couplings ([Doucet et al.](../knowledge/sources/doucet-qubo-encoding.md)). The study reports each chosen configuration's coupling dynamic range and does not impose a cap; a capped follow-up needs a real hardware range. |
+| Coupling range | not capped; a range-sensitivity curve instead | Hardware bounds the coupling range, and a large λ or J compresses the Hebbian couplings ([Doucet et al.](../knowledge/sources/doucet-qubo-encoding.md)). A single nominal cap would only re-read the β and penalty grid at an arbitrary number (the M4 lesson), so the study reports recall as a function of the allowed range instead. |
 
 ## Development and held-out split
 
@@ -91,9 +91,23 @@ over the 12 held-out sets.
   over smallest nonzero |coupling|) of the chosen configuration, Gibbs blocks
   per sweep and total single-unit updates per sweep. Sweep counts are not
   device operations.
+- **Range-sensitivity curve:** a configuration's dynamic range D is the
+  largest magnitude among all its two-body couplings and single-unit fields,
+  divided by its smallest nonzero two-body coupling magnitude. D is taken in
+  the ±1 spin form THRML samples, with h = (s + 1)/2 for {0, 1} hidden units,
+  and averaged over the pattern sets of a cell. The categorical reference has
+  D = 1 because its multi-state unit is native. For R ∈ {2, 4, 8, 16, 32, 64,
+  128, ∞}, the **equilibrium curve** chooses, per arm and cell, the
+  configuration with the best development exact recall among those with
+  D ≤ R, and reports its held-out exact recall. The **finite-budget curve**
+  does the same with development sampled recall at each K and is labelled
+  development-only (descriptive), because held-out sampling covers only the
+  configurations selected without a range limit. When a real hardware range
+  is published, the answer is read off these curves.
 - **Diagnostics:** for `onehot`, the fraction of samples with exactly one
-  hidden unit on and the number of label switches per chain; for `domainwall`,
-  the number of domain walls.
+  hidden unit on, and label switches per chain (the number of sweeps whose
+  label differs from the previous sweep's, where the label is the active
+  unit's index or "invalid"); for `domainwall`, the number of domain walls.
 
 ## Integrity
 
@@ -117,10 +131,14 @@ preflight passed, all development and held-out cells present, prefix checks
 passed and `replayed=true`. Whether an emulation matches is a scientific
 result, not an integrity failure.
 
-**Expected cost.** Calibrated before freezing. Development sampling covers about
-60 configurations × 6 cells. If the full run exceeds 30 minutes, the runner
-autosaves per (arm, configuration, cell) and resumes, per the experiment-runner
-contract.
+**Expected cost.** Development sampling covers 39 configurations × 6 cells ×
+4 pattern sets, and held-out sampling the selected configurations × 12 sets,
+likely over 30 minutes. The runner therefore saves each work unit (one arm,
+configuration, cell and pattern set) atomically and resumes, per the
+[autosave contract](../experiment-runner.md#autosave-and-resume-contract). It
+verifies the request digest and runner source hash before reusing a unit, and an
+interruption test covers resume. Runtime is calibrated on probe-only seeds
+before the full run.
 
 ## Not claimed
 
