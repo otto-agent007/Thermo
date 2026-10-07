@@ -56,6 +56,10 @@ A card may give different statuses to different claims, for example a
 | [hinton-problems](sources/cybertronai-hinton-problems.md) | Task catalog | `code_released`; Unlicense |
 | [A framework for stochastic differentiable programming](sources/extropic-torx-paper.md) | Paper | `asserted`; the Torx paper; its API names differ from the releases |
 | [Z1T: sparse transformer-like models](sources/extropic-z1t.md) | Blog post | `asserted`; energy figures are projections |
+| [Dense Associative Memory for Pattern Recognition](sources/krotov-hopfield-dense-memory.md) | Paper | `asserted`; capacity ~N^(n-1) for polynomial energies |
+| [On a model of associative memory with huge storage capacity](sources/demircigil-huge-capacity.md) | Paper | `asserted`; exponential capacity for F(x) = e^x |
+| [Large Associative Memory Problem in Neurobiology and Machine Learning](sources/krotov-hopfield-large-memory.md) | Paper | `asserted`; dense memory from two-body synapses plus hidden neurons |
+| [On the equivalence of Hopfield Networks and Boltzmann Machines](sources/barra-hopfield-boltzmann.md) | Paper | `asserted`; Gaussian-hidden RBM equals Hebbian Hopfield |
 
 ## Adding or updating a card
 
