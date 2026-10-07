@@ -102,6 +102,15 @@ work pointed at the right problem.
   budgets of 1024 and above. It is the second adaptive policy (after the
   changing-evidence restart policy) that fails to beat a simple baseline;
   don't design a third without the owner.
+- **Associative memory** (charter track A) has its first study
+  (`docs/experiment-reports/2026-10-07-am-binary-emulation/`). On pairwise
+  binary units, ordinary binary hidden units with a negative bias stand in for
+  a dense memory's categorical hidden unit: within 0.01 of its equilibrium recall
+  at coupling range 14 to 26. One-hot inhibition is range-hungry, and
+  domain-wall chains don't mix. Its finite-budget comparison with the sampled
+  categorical reference is confounded (visible-first updates from a random
+  label); check a reference arm's own dynamics before trusting a comparison
+  with it. Source cards for the area are in `docs/knowledge/sources/`.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
