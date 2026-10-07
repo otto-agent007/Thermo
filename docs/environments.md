@@ -121,7 +121,7 @@ expect roughly 1.5–2× on multi-worker studies there.
 | M5c topology | 17.5 min on 8 CPUs | Yes, subject to one-seed timing | Replay the archive by default. A reduced-worker estimate of 30–40 min exceeds the frozen protocol's no-autosave condition: calibrate below 30 min or amend the gate to add autosave before launching. Placement solves can differ between machines |
 | M5a cap baseline | About 60 min on 8 CPUs | Yes | As `--resume` turns: `--workers 2 --fit-workers 4`, same directory each turn |
 | M5b thermalization | 2–3 h with three workers on 8 CPUs | Yes, overnight | As `--resume` turns with `--workers 3`, once the single-turn cutoff below is measured and each turn is sized under it |
-| `thermo-harness` candidates | Minutes to 30 min | Yes | No (nested sandbox) |
+| `thermo-harness` candidates (parked) | Minutes to 30 min | Yes | No (nested sandbox) |
 | Dashboard browser tests | Minutes | Yes | Only with Chromium and system dependencies available; download access depends on configuration |
 | Snapshot publication | Minutes | Yes | Export can run here; publication needs the intended destination and owner approval |
 

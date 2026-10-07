@@ -1,5 +1,13 @@
 # Local improvement harness
 
+> **Parked, 2026-10-07.** The harness was built September 23–26 and has never
+> been run. Its research track can only tune the three-site fixture from the
+> closed conservation line, so it cannot improve current work. The code, tests
+> and dashboard view stay as they are, and CI installs bubblewrap only in the
+> two test jobs that cover them. It is not the project's self-improvement plan;
+> that is the research autonomy loop noted in the [roadmap](roadmap.md). Don't
+> extend the harness, and don't delete it without the owner's decision.
+
 `thermo-harness` evaluates bounded draft patches for owner review. It does not
 adopt changes, commit candidates, push, merge, publish, or release research.
 Start from a clean committed checkout with Python dependencies installed using
