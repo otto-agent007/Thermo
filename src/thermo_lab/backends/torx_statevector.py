@@ -45,8 +45,8 @@ class TorxStateVectorBackend:
         return self.execute(spec).record
 
     def execute(self, spec: ExperimentSpec) -> ExecutionResult:
-        if torx.__version__ != "0.0.1":
-            raise RuntimeError(f"Expected Torx 0.0.1, found {torx.__version__}")
+        if torx.__version__ != "0.0.2":
+            raise RuntimeError(f"Expected Torx 0.0.2, found {torx.__version__}")
 
         requested_model = to_json_value(spec.model_parameters)
         requested_run = to_json_value(spec.run_parameters)
@@ -121,7 +121,7 @@ class TorxStateVectorBackend:
                 f"Torx exact distribution error {max_abs_error} exceeded {tolerance}"
             )
 
-        exact_method = "Torx 0.0.1 StateVectorSimulator with fixed float32 gate parameters"
+        exact_method = "Torx 0.0.2 StateVectorSimulator with fixed float32 gate parameters"
         metrics = {
             "final_distribution": MetricObservation(
                 value=density_np,

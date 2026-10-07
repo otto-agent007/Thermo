@@ -13,8 +13,8 @@ def test_pinned_packages_import_in_one_process() -> None:
     import torx
 
     assert thrml.__version__ == "0.1.4"
-    assert torx.__version__ == "0.0.1"
-    assert importlib.metadata.version("extro-torx") == "0.0.1"
+    assert torx.__version__ == "0.0.2"
+    assert importlib.metadata.version("extro-torx") == "0.0.2"
     assert jax.default_backend() == "cpu"
 
 

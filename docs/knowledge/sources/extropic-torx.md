@@ -5,12 +5,12 @@ id = "extropic-torx"
 title = "Torx"
 kind = "library"
 status = "pinned_dependency"
-last_checked = 2026-10-03
+last_checked = 2026-10-07
 
 [source]
 url = "https://github.com/extropic-ai/torx"
-version = "0.0.1"
-released = 2026-08-04
+version = "0.0.2"
+released = 2026-09-30
 runtime = "JAX (requires jax, equinox, jaxtyping, ihoop)"
 authors = "Extropic"
 license = "Apache"
@@ -18,7 +18,7 @@ pypi = "extro-torx"
 
 [dependency]
 package = "extro-torx"
-version = "0.0.1"
+version = "0.0.2"
 
 [[claims]]
 id = "C1"
@@ -37,6 +37,14 @@ simulation (see the charter's stack diagram).
 
 The two-gate and weighted-graph-walk experiments, and the Torx side of the
 Milestone 1 cross-layer benchmark.
+
+Pinned at 0.0.2 since 2026-10-07 (0.0.1 before). 0.0.2 adds injectable
+samplers (`torx.AbstractSampler`, default `JaxPRNGSampler`), takes discrete
+dimensions from each gate, rejects adding circuits with `reps > 1`, and
+computes generator-gate probabilities with `jax.nn.sigmoid`. Under 0.0.1 and
+0.0.2, the two-gate (seeds 0–2), weighted-graph-walk and smoke runs gave
+identical records apart from timings, and the upstream contract tests pass,
+including a new one that pins the default sampler to `jax.random` draws.
 
 ## Cautions
 

@@ -44,7 +44,7 @@ A card may give different statuses to different claims, for example a
 | --- | --- | --- |
 | [Thermalizing Stochastic Programs](sources/extropic-thermalizers.md) | Paper | `reproduced` for methods (M1–M5) under reading B (decided 2026-10-03), with recorded ambiguities |
 | [THRML](sources/extropic-thrml.md) | Library | `pinned_dependency` (0.1.4) |
-| [Torx](sources/extropic-torx.md) | Library | `pinned_dependency` (0.0.1; 0.0.2 released 2026-09-30) |
+| [Torx](sources/extropic-torx.md) | Library | `pinned_dependency` (0.0.2, bumped 2026-10-07) |
 | [Probabilistic hardware for diffusion-like models](sources/extropic-dtm-hardware.md) | Paper | `asserted` |
 | [Training thermodynamic computers by gradient descent](sources/whitelam-gradient-descent.md) | Paper + code | `asserted`; code has no license |
 | [Generative thermodynamic computing](sources/whitelam-generative.md) | Paper | `asserted` |
