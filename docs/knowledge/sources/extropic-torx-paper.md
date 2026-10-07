@@ -26,7 +26,7 @@ text = "Parametrized Stochastic Circuits (PSCs) are ordered layers of local stoc
 [[claims]]
 id = "C2"
 status = "pinned_dependency"
-text = "torx's StateVectorSimulator propagates a circuit's full 2^n probability vector, exact up to floating-point error. Thermo's torx_statevector and weighted-graph-walk backends use it in the pinned 0.0.1."
+text = "torx's StateVectorSimulator propagates a circuit's full 2^n probability vector, exact up to floating-point error. Thermo's torx_statevector and weighted-graph-walk backends use it in the pinned 0.0.2 (0.0.1 until 2026-10-07)."
 
 [[claims]]
 id = "C10"
@@ -82,7 +82,7 @@ paper compiles PSCs onto Z1.
 
 ## Relevance to Thermo
 
-- **Already in use.** Thermo pins torx 0.0.1, and its `torx_statevector`
+- **Already in use.** Thermo pins torx 0.0.2, and its `torx_statevector`
   backend is the StateVectorSimulator of C2. The weighted-graph-walk baseline
   reimplements C5's fixture and gate order from the v1 text
   (`configs/experiments/torx-weighted-graph-walk.toml`, `docs/studies.md`). No
@@ -111,4 +111,4 @@ paper compiles PSCs onto Z1.
   don't all match the releases (C10). Checked against the 0.0.1 and 0.0.2
   wheels on 2026-10-01: both have StateVectorSimulator, AffineGaussianSimulator
   and BranchingSimulator, and neither has a hardware backend. Check behavior
-  against the pinned 0.0.1 before relying on any API detail.
+  against the pinned 0.0.2 before relying on any API detail.
