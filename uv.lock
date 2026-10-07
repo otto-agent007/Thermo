@@ -37,7 +37,7 @@ wheels = [
 
 [[package]]
 name = "extro-torx"
-version = "0.0.1"
+version = "0.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "equinox" },
@@ -45,9 +45,9 @@ dependencies = [
     { name = "jax" },
     { name = "jaxtyping" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/a4/b61c701f152a42fac14d1988363875f6d76094c3d1672b36c69d52bf1645/extro_torx-0.0.1.tar.gz", hash = "sha256:c7bbeb0c39e5c7f9a241b9d3f68c224b8dddbc29674ffc15c78d21d05eb0149a", size = 71651, upload-time = "2026-08-04T17:20:27.044Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c1/aa/112a19956d52b4ac1e2a896d61b0a6d4b60f1241576d7aeb5098ff83a71e/extro_torx-0.0.2.tar.gz", hash = "sha256:14f9685ffb367e986d2b4757593c3ebe3adb6aefc6ac44820f0d4ae0cc294854", size = 72937, upload-time = "2026-09-30T22:59:57.807Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/19/72299cd52431a0562161c33420f126383d43669dcab7ca761f9c1b11d063/extro_torx-0.0.1-py3-none-any.whl", hash = "sha256:e51d6efe0a8bc62fb4b2b417d5e4ac8190e3fb22c9d14d9342c207afdc64a23c", size = 64581, upload-time = "2026-08-04T17:20:25.688Z" },
+    { url = "https://files.pythonhosted.org/packages/29/3f/c5908460c99a6e761ca4a8d3d397dfc2ae938d369640dd082b939a5914c0/extro_torx-0.0.2-py3-none-any.whl", hash = "sha256:728417448b95e9708ba9160948889be7c27b4a5db296678093ab5bee9edbc693", size = 66021, upload-time = "2026-09-30T22:59:56.514Z" },
 ]
 
 [[package]]
@@ -329,7 +329,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "extro-torx", specifier = "==0.0.1" },
+    { name = "extro-torx", specifier = "==0.0.2" },
     { name = "pydantic", specifier = ">=2.11,<3" },
     { name = "scipy", specifier = ">=1.17,<2" },
     { name = "thrml", specifier = "==0.1.4" },
