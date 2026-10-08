@@ -142,10 +142,19 @@ work pointed at the right problem.
   beta 4 are out of reach for every arm at 256 spins and above (pre-registered;
   a temperature and budget statement, not a sampler one). The archived
   five-replica ladder's exchange acceptance collapses with size (0.38 to 0.018
-  on the cold pair); do not reuse it above 64 spins without an N-scaled ladder,
-  which waits for the owner. With the thin ladder, k = 4 cost two of three
-  1024-spin seeds a budget step, so the k = 4 default is for n <= 16 until
-  re-tested with a scaled ladder.
+  on the cold pair); do not reuse it above 64 spins without an N-scaled ladder.
+  With the thin ladder, k = 4 cost two of three 1024-spin seeds a budget step,
+  so the k = 4 default is for n <= 16 until re-tested with a scaled ladder.
+  The October 8 probe (`docs/research/2026-10-08-ladder-probe.md`,
+  exploration only) found that a ladder needs 25 to 33 replicas at 1024 spins
+  to recover acceptance, that where it works (ferro) the thin ladder already
+  qualified, and that where qualification is missing (mixed, beta 4) a working
+  ladder cuts the error by 40 percent and then plateaus; at 100k sweeps the
+  nine-replica arm reaches 0.077 and nothing qualifies, while a 100k-sweep
+  anneal matches the exact energy per spin within 0.6 percent. Treat the
+  scaled-ladder study as closed by that probe unless the owner wants it
+  recorded, and treat frustrated grids at beta 4 as an optimization target
+  (energy per spin, annealing arms) rather than a sampling target.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
