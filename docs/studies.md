@@ -630,6 +630,34 @@ it does not extend the earlier denoising result. The
 [gate](release-gates.md#exploratory-fresh-seed-symmetry-plus-tempering)
 preserve all previous sources and keep every negative result visible.
 
+## Exchange cost projection
+
+The [frozen protocol](experiments/exchange-cost-projection.md) prices replica
+exchange in the sealed Z1 Appendix-B cost model, where an accepted swap is a
+full SRAM write of both replicas (153.6 pJ per p-bit against 7.09 fJ per Gibbs
+update). Stage A re-prices the archived October 2 symmetry-plus-tempering
+evidence without drawing a sample. Stage B samples the same six graphs with
+fresh seeds at exchange intervals 1, 4, 16, 64 and 256 sweeps, under the
+published convention and a hypothetical zero-write per-replica temperature
+control.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run python -m thermo_lab.exchange_cost_projection \
+  --output-dir results/exchange-cost-projection
+```
+
+The [recorded study](experiment-reports/2026-10-07-exchange-cost-projection/findings.md)
+finds that tempering never wins on projected energy at any tested interval:
+exchanging every sweep costs 475x to 7,459x the cheapest qualifying ordinary
+baseline, k = 4 keeps the same qualifying budgets on 5/6 targets at 117x to
+1,886x, and larger intervals lose the sweep-time advantage. Tempering keeps a
+4x to 16x advantage in elapsed sweeps on four targets and is the only
+qualifying arm on one. The zero-write temperature control brings k = 4 to 3x
+to 12x on those four targets. Energy and time are calibrated projections over
+CPU software traces; the model excludes host latency. The
+[gate](release-gates.md#exchange-cost-projection) replays both stages.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a

@@ -615,6 +615,37 @@ inherited fixed numeric tolerance 2e-12 and exact hashes/discrete values.
 Generation is short and has no checkpoint layer; restart an interrupted run
 in a fresh directory. Preserve all earlier hash-bound sources unchanged.
 
+## Exchange cost projection
+
+Follow the [frozen protocol](experiments/exchange-cost-projection.md), CPU only:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.exchange_cost_projection \
+  --output-dir results/exchange-cost-projection-new
+uv run --frozen pytest tests/unit/test_exchange_cost_projection.py
+```
+
+Stage A authenticates the October 2 symmetry-tempering archive by its manifest
+and prices all 120 cells and 24 decisions from the archived exchange flags; the
+archived qualification decisions must be reproduced exactly. Stage B runs
+seven arms (two ordinary, five exchange intervals) on six graphs, five budgets
+and 16 fresh trials: 210 cells and 42 decisions. Completion requires
+`status=exchange_cost_projection_complete`, `archived_cells_priced=120`,
+`archived_decisions_priced=24`, `cells_replayed=210` and
+`decisions_replayed=42`. The study-local sampler must match the archived
+sampler bit for bit at interval 1, which the unit tests pin. Generation takes
+about three minutes and has no checkpoint layer; restart an interrupted run in
+a fresh directory. CI replays the committed archive through the unit test.
+
+Replay with `--replay` on the extracted directory authenticates sources,
+request, traces and the stage A archive, then recomputes references,
+estimates, operation counts, projected energies under both conventions, sweep
+times, decisions, ratios and the frontier with the inherited fixed tolerance
+2e-12. Traces are software simulation, references exact, and every energy or
+time figure a calibrated projection with the profile's listed exclusions; none
+supports a hardware claim. Verdicts do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,
