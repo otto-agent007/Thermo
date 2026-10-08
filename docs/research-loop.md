@@ -22,6 +22,7 @@ daemon (compare the rejected PR #57).
 | Gatekeeper | `loop-tick.py` in the THERMES Hermes profile, run every 5 minutes by a no-agent cron job. It reads owner commands from Discord by exact match, reconciles kanban cards and PRs, and creates the next card. | none |
 | Proposer and executor | The `thermes` profile, working `LOOP P-NNNN` kanban cards in git worktrees | Opus 5.5 |
 | Reviewer | The `thermes-review` profile in the kanban review lane, comment-only | Fable 5.1, high effort |
+| CI fixer | The `thermes-ci` profile, given a card only when CI fails (see below) | Haiku 5.5 |
 | Owner channel | #thermes on Discord | none |
 
 The gatekeeper, the card templates and the guard live in the THERMES profile
@@ -63,6 +64,28 @@ other THERMES scheduled scripts, not in this repository.
    the only acceptance.
 
 The next proposal is drafted while a finished study waits for the owner.
+
+## CI failures
+
+The gatekeeper reads CI itself on every tick, at no model cost: the checks of
+each loop PR that has no worker on its branch, and the latest `Thermo CI` run
+on main. It pulls the failing test ids from the job log. A failure at a new
+commit gets a `thermes-ci` card, which reads the log and either:
+
+- fixes a failure the PR itself caused, touching only the PR's own files and
+  never its protocol, a hash-bound source or an archive, and pushes;
+- reruns the failed jobs once if nothing in the code is involved; or
+- reports that the failure is main's and does not touch the PR. For a failure
+  on main it opens a `ci:` PR with label `loop-ci` only for a mechanical fix,
+  and otherwise posts a diagnosis.
+
+A failure diagnosed as main's is remembered for 48 hours, so the same failing
+test on later commits does not start another card. Each PR gets at most three
+fixer cards. A run does not start while a fixer holds its branch. The
+gatekeeper checks a pushed fix touched only the PR's files, and flags a fix
+PR that edits a hash-bound file. Main failures, diagnoses and flagged fixes
+mention the owner; routine fixes do not. Results posts include the PR's CI
+state.
 
 ## Owner commands in #thermes
 
