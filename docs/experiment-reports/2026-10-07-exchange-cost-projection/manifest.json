@@ -1,0 +1,23 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 1382482,
+  "members": {
+    "completion.json": "551bc3cea90ae3759ba26e001e9b7a827f44cc0f25de0f5a61035d7cd971e4a8",
+    "request.json": "00ffebe1eb2511b584ec8d40da3bba7353f26beb95fb02e60dfe85dde2b9e7ba",
+    "results.json": "6b5931590b19ecb992bdebcccf86a9cafd24b12228ac1e21d1446dad55199d25",
+    "source/docs/experiments/exchange-cost-projection.md": "6bd0cbae3b8be91d15663c452b33b07e1fc1f88c99b71bb18d0b58359e8360df",
+    "source/docs/experiments/fixed-budget-sampling.md": "4ea8c82f18a47bf01474d4841d70b9f5ba046da8622ad1773c6812f829bf3523",
+    "source/docs/experiments/sampling-time-to-accuracy.md": "3188ec12615133da579eadbd8d668adf73b55bf69683d02e47f8d8e145956393",
+    "source/docs/experiments/symmetry-tempering.md": "9edc66d6bf4e55559f64caad2797bf638aedd7a0956c70cc7d98e3d23f055574",
+    "source/src/thermo_lab/exchange_cost_projection.py": "e76dd62491989e44919f6dcd65af86af7fcd6689920e2e9129b5da7d2a26bd06",
+    "source/src/thermo_lab/fixed_budget_sampling.py": "3827a94979078f75fb4aeabbf7984e746c663080e09e93d5cd13482f60dcf5c1",
+    "source/src/thermo_lab/hardware/z1.py": "cbce2258e6c741fe7a02bbe974150fb50300c93440bf3e992fa8593775b4e677",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/sampling_time_to_accuracy.py": "dba99d676492c0c2d4906bf0e97a05fc7caa93c03eeba29a4a93a8ab8e5deebf",
+    "source/src/thermo_lab/symmetry_tempering.py": "7759aa7ec329b2e258cbb1ac25007130c5ebbc28fac1cf6a2043c6f7ec8cec88",
+    "source/uv.lock": "32dc495c101ed08e1db423109702000506c9de9783c0a815e912cb951cc294c9",
+    "traces.npz": "c80d5139c509cbae0582666e5180d1beebfcbb4f3e7d1527310d582232f8bac2"
+  },
+  "sha256": "f22dee21781b69752c964936800d69a2837607100f2fefdc8241d3a385aac274"
+}
