@@ -687,6 +687,27 @@ ferro), so an N-scaled ladder is the open follow-up. The
 [gate](release-gates.md#planar-ising-scaling) replays the exact references,
 kernel checks, estimates, pricing and decisions from the persisted window sums.
 
+## Planar annealing
+
+The [frozen protocol](experiments/planar-annealing.md) asks the optimization
+question the October 8 probe raised: at equal elapsed sweeps on frustrated
+planar grids of 64, 256 and 576 spins, how close to the exact ground-state
+energy do annealing to beta 8 and 16, four parallel restarts, a cold chain and
+the nine-replica tempering ladder get, and what does each cost in the Z1
+model? References are exact transfer matrices (max-plus for the ground state,
+a one-sweep derivative for the thermal energy), since Kac-Ward is
+ill-conditioned at beta 8 and above.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run python -m thermo_lab.planar_annealing \
+  --output-dir results/planar-annealing
+```
+
+RESULT_PLACEHOLDER The
+[gate](release-gates.md#planar-annealing) replays references, gaps, pricing
+and decisions from the persisted per-trial energies.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a

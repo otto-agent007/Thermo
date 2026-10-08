@@ -711,6 +711,40 @@ status and budget and every best-arm summary. It writes
 `decisions_unchanged_by_recomputed_references=true` and the per-target
 reference deviations. The archived `completion.json` is left as it was.
 
+## Planar annealing
+
+Follow the [frozen protocol](experiments/planar-annealing.md), CPU only:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_annealing \
+  --output-dir results/planar-annealing-new          # add --resume after an interruption
+uv run --frozen pytest tests/unit/test_planar_annealing.py
+```
+
+Nine mixed-sign grids (L = 8, 16, 24 x seeds 400 to 402), six arms, five
+budgets and 16 trials produce 270 cells and 54 decisions. Before sampling,
+the max-plus and log-sum-exp transfer matrices must match brute force on
+2 x 2 to 4 x 4 grids (ground state to 1e-12, ln Z to 1e-9, thermal energy to
+1e-9) and the scaling study's transfer matrix at beta = 4 on L <= 16 to a
+relative 1e-12, and the two-colour kernel's stationarity check must pass.
+Completion requires `status=planar_annealing_complete`, `targets=9`,
+`cells_replayed=270`, `decisions_replayed=54`, `reference_checks_passed=true`
+and `fixture_stationarity_passed=true`, with `references_recomputed=9` for a
+full replay or `references_recomputed=6` and
+`references_verified_by_digest=3` with `--light`. The run takes about 2.5
+hours and autosaves one unit per target under `partial/`; resume with
+`--resume` in the same directory and the saved request. CI replays the
+committed archive with `--light` through the unit test (about a minute).
+
+Replay authenticates sources, request and exchange flags, recomputes the
+references for L <= 16 (and L = 24 unless `--light`), then every gap,
+fraction, pricing, decision and summary from the persisted per-trial
+energies with tolerance 2e-12 relative. It does not regenerate sweeps.
+Sweeps are software simulation, references exact, and every energy or time
+figure a calibrated projection; none supports a hardware claim. Verdicts,
+including a negative on every arm, do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,
