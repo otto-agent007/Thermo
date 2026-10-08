@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-07)
+## Where the project stands (updated 2026-10-08)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -155,6 +155,23 @@ work pointed at the right problem.
   scaled-ladder study as closed by that probe unless the owner wants it
   recorded, and treat frustrated grids at beta 4 as an optimization target
   (energy per spin, annealing arms) rather than a sampling target.
+- **Planar annealing**
+  (`docs/experiment-reports/2026-10-08-planar-annealing/`) is that
+  optimization study: mixed-sign open grids of 64, 256 and 576 spins against
+  exact transfer-matrix ground states (`planar_annealing.ground_state_energy`,
+  max-plus over 2^L window states, L <= 24; `thermal_energy` gives the exact
+  q(beta) at any beta where Kac-Ward is ill-conditioned). Four parallel
+  annealed restarts are the best arm at every size and budget and qualify at
+  1e-3 per spin on all 64-spin targets, but the advantage shrinks from 4x to
+  23x at 64 spins to 1.3x to 2.2x at 256 and 576, where no arm gets within
+  1e-3 of the ground state within 65,536 sweeps (pre-registered negative).
+  Annealing to beta 8 or 16 makes no difference: the gap is trapping during
+  the ramp. The nine-replica ladder at cold beta 4 reports its own thermal
+  offset, not a search result. At equal p-bit updates the restarts win only
+  at 64 spins or at the largest budget, so say which accounting (elapsed
+  sweeps or updates) a restart claim uses. Open follow-ups wait for the
+  owner: schedule shape, a planar matching solver for L = 32, an N-scaled
+  cold ladder. None of them is an adaptive policy.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or

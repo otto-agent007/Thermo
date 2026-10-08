@@ -704,7 +704,16 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false 
   --output-dir results/planar-annealing
 ```
 
-RESULT_PLACEHOLDER The
+The [October 8 findings](experiment-reports/2026-10-08-planar-annealing/findings.md):
+four parallel restarts are the best arm at every size and budget, qualifying
+at 1e-3 on all three 64-spin targets (mean gap 2.3e-4 at 65,536 sweeps,
+4x to 23x better than one anneal), but the advantage falls to 1.4x to 2.2x
+at 256 spins and 1.3x to 1.7x at 576, where no arm gets within 1e-3 (best
+mean gaps 3.3e-3 and 4.4e-3, pre-registered negative). The endpoint
+(beta 8 or 16) does not matter, so the gap is trapping in the ramp. The
+nine-replica ladder at cold beta 4 reports its own thermal offset and costs
+6,900x to 72,000x the projected energy. At equal p-bit updates the restarts
+win only at 64 spins or at the largest budget. The
 [gate](release-gates.md#planar-annealing) replays references, gaps, pricing
 and decisions from the persisted per-trial energies.
 
