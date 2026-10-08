@@ -114,15 +114,8 @@ def coupling_arrays(target):
     return horizontal, vertical
 
 
-def kac_ward(size, interactions):
-    """ln Z and <s_i s_j> per edge for the zero-field Ising model on an open grid.
-
-    ``interactions[e] = beta * J_e`` in ``grid_edges`` order. Kac-Ward for a
-    planar graph: Z = 2^N prod_e cosh(K_e) sqrt(det(I - Lambda)) with Lambda
-    indexed by directed edges, Lambda[d, d'] = exp(i*turn/2) tanh(K_{e(d')})
-    when head(d) = tail(d') and d' is not the reverse of d. Edge correlations
-    are d ln Z / dK_e, which scales the two columns of Lambda belonging to e.
-    """
+def kac_ward_matrix(size, interactions):
+    """Kac-Ward matrix I - Lambda over directed edges, and tanh of the interactions."""
     edges = grid_edges(size)
     count, m = size * size, len(edges)
     position = np.array([(i % size, i // size) for i in range(count)], dtype=float)
@@ -132,35 +125,50 @@ def kac_ward(size, interactions):
     weight = np.concatenate([x, x])
     delta = position[head] - position[tail]
     angle = np.arctan2(delta[:, 1], delta[:, 0])
-    by_tail: dict[int, list[int]] = {}
-    for d in range(2 * m):
-        by_tail.setdefault(int(tail[d]), []).append(d)
-    rows, cols, values = [], [], []
-    for d in range(2 * m):
-        for d2 in by_tail.get(int(head[d]), []):
-            if (d2 + m) % (2 * m) == d:
-                continue
-            turn = (angle[d2] - angle[d] + np.pi) % (2 * np.pi) - np.pi
-            rows.append(d)
-            cols.append(d2)
-            values.append(np.exp(1j * turn / 2) * weight[d2])
+    follows = head[:, None] == tail[None, :]
+    reverse = (np.arange(2 * m)[:, None] + m) % (2 * m) == np.arange(2 * m)[None, :]
+    rows, cols = np.nonzero(follows & ~reverse)
+    turn = (angle[cols] - angle[rows] + np.pi) % (2 * np.pi) - np.pi
     lam = np.zeros((2 * m, 2 * m), dtype=complex)
-    lam[rows, cols] = values
-    matrix = np.eye(2 * m) - lam
+    lam[rows, cols] = np.exp(1j * turn / 2) * weight[cols]
+    return np.eye(2 * m) - lam, lam, x
+
+
+def kac_ward_log_z(size, interactions):
+    """ln Z alone; one determinant, no inverse."""
+    matrix, _, _ = kac_ward_matrix(size, interactions)
     sign, logdet = np.linalg.slogdet(matrix)
     # The determinant is positive real for a planar graph; the LU phase carries
     # rounding of order 1e-9 at 4k x 4k, so the check is loose and the real part is used.
     if abs(sign - 1.0) > 1e-6:
         raise ValueError("Kac-Ward determinant is not positive real")
-    log_z = count * np.log(2) + float(np.sum(np.log(np.cosh(interactions)))) + 0.5 * logdet.real
-    inverse = np.linalg.inv(matrix)
-    # tr(M^{-1} dLambda/dK_e) over the two columns of edge e.
-    column_terms = np.einsum("cr,rc->c", inverse, lam).real
+    return float(
+        size * size * np.log(2) + np.sum(np.log(np.cosh(interactions))) + 0.5 * logdet.real
+    )
+
+
+def kac_ward(size, interactions):
+    """ln Z and <s_i s_j> per edge for the zero-field Ising model on an open grid.
+
+    ``interactions[e] = beta * J_e`` in ``grid_edges`` order. Kac-Ward for a
+    planar graph: Z = 2^N prod_e cosh(K_e) sqrt(det(I - Lambda)) with Lambda
+    indexed by directed edges, Lambda[d, d'] = exp(i*turn/2) tanh(K_{e(d')})
+    when head(d) = tail(d') and d' is not the reverse of d. Edge correlations
+    are d ln Z / dK_e, which scales the two columns of Lambda belonging to e,
+    so they need the inverse's diagonal: tr(M^-1 dLambda) = ((M^-1)_cc - 1)
+    summed over the two columns. The inverse is ill-conditioned at low
+    temperature on frustrated graphs; ``reference`` measures its error against
+    finite differences of ln Z, which needs no inverse.
+    """
+    matrix, _, x = kac_ward_matrix(size, interactions)
+    log_z = kac_ward_log_z(size, interactions)
+    m = len(x)
+    diagonal = np.diag(np.linalg.inv(matrix)).real - 1.0
     factor = (1 - x**2) / x
-    correlation = x - 0.5 * factor * (column_terms[:m] + column_terms[m:])
-    if np.any(np.abs(correlation) > 1 + 1e-9):
+    correlation = x - 0.5 * factor * (diagonal[:m] + diagonal[m:])
+    if np.any(np.abs(correlation) > 1 + 1e-6):
         raise ValueError("edge correlation outside [-1, 1]")
-    return float(log_z), np.clip(correlation, -1, 1)
+    return log_z, np.clip(correlation, -1, 1)
 
 
 def brute_force(size, interactions):
@@ -204,12 +212,27 @@ def transfer_matrix_log_z(size, interactions):
 def reference(target):
     interactions = COLD_BETA * np.asarray(target["couplings"], dtype=float)
     log_z, correlation = kac_ward(target["size"], interactions)
+    # Precision of the inverse-based correlations, measured on the two edges with the
+    # weakest correlation (the hardest) by central differences of ln Z, h = 1e-4:
+    # truncation about 1e-8, roundoff about 1e-9, no inverse involved.
+    checked = np.argsort(np.abs(correlation))[:2]
+    worst = 0.0
+    for e in checked:
+        plus, minus = interactions.copy(), interactions.copy()
+        plus[e] += 1e-4
+        minus[e] -= 1e-4
+        difference = kac_ward_log_z(target["size"], plus) - kac_ward_log_z(target["size"], minus)
+        worst = max(worst, abs(difference / 2e-4 - correlation[e]))
+    if worst > 1e-4:
+        raise ValueError("Kac-Ward edge correlations lost precision")
     result = {
         "evidence_class": "exact_reference",
-        "method": "kac_ward_pfaffian_determinant",
+        "method": "kac_ward_determinant",
         "log_z": log_z,
         "edge": correlation.tolist(),
         "q_per_spin": float(np.asarray(target["couplings"]) @ correlation / target["n"]),
+        "finite_difference_checked_edges": [int(e) for e in checked],
+        "finite_difference_max_abs_error": worst,
     }
     if target["size"] <= 16:
         result["transfer_matrix_log_z"] = transfer_matrix_log_z(target["size"], interactions)

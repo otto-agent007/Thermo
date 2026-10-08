@@ -658,6 +658,35 @@ to 12x on those four targets. Energy and time are calibrated projections over
 CPU software traces; the model excludes host latency. The
 [gate](release-gates.md#exchange-cost-projection) replays both stages.
 
+## Planar Ising scaling
+
+The [frozen protocol](experiments/planar-ising-scaling.md) takes the sampling
+allocation question past exact enumeration: open L x L grids at L = 8, 16 and
+32 (64 to 1024 spins), zero field, ferro and mixed-sign couplings at the
+archived cold beta = 4, with an exact Kac-Ward reference for ln Z and every
+edge correlation, checked against brute force and an independent transfer
+matrix before any sampling. Six arms run at equal elapsed sweeps with the
+two-colour block-Gibbs kernel: one long chain, five independent cold chains,
+the archived five-replica ladder and a denser nine-replica ladder, each
+exchanging every 1 or 4 sweeps. Every cell is priced in the Z1 model.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run python -m thermo_lab.planar_ising_scaling \
+  --output-dir results/planar-ising-scaling
+```
+
+The [recorded study](experiment-reports/2026-10-07-planar-ising-scaling/findings.md)
+finds that past 64 spins only tempering qualifies: on ferro grids the
+ordinary arms qualify at L = 8 and never at L = 16 or 32 within 4096 sweeps,
+while every tempering arm qualifies at 64, 256 and 1024 sweeps respectively.
+On mixed-sign grids only tempering qualifies at L = 8 and nothing qualifies
+at L = 16 or 32, a pre-registered negative at beta = 4. The archived
+ladder's exchange acceptance collapses with size (cold pair 0.38 to 0.018 on
+ferro), so an N-scaled ladder is the open follow-up. The
+[gate](release-gates.md#planar-ising-scaling) replays the exact references,
+kernel checks, estimates, pricing and decisions from the persisted window sums.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a

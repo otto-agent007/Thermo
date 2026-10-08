@@ -41,6 +41,7 @@ def test_kac_ward_matches_transfer_matrix_at_study_sizes():
         assert "transfer_matrix_log_z" in exact
         assert exact["transfer_matrix_log_z"] == pytest.approx(exact["log_z"], rel=1e-10)
         assert np.all(np.abs(exact["edge"]) <= 1)
+        assert exact["finite_difference_max_abs_error"] < 1e-5
 
 
 def test_targets_cover_three_sizes_two_variants_three_seeds():
@@ -179,7 +180,13 @@ def test_archived_planar_ising_evidence_replays(tmp_path):
             "--replay",
         ],
         check=True,
-        env={**os.environ, "JAX_PLATFORMS": "cpu", "JAX_ENABLE_X64": "false"},
+        env={
+            **os.environ,
+            "JAX_PLATFORMS": "cpu",
+            "JAX_ENABLE_X64": "false",
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+        },
         capture_output=True,
         text=True,
     )

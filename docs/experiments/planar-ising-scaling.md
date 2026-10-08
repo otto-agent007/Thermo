@@ -56,8 +56,15 @@ correlation (as the derivative of ln Z with respect to that edge's coupling)
 from one complex matrix of size 2E. Before any sampling, the reference must
 match brute-force enumeration to 1e-9 on 2 x 2, 3 x 3 and 4 x 4 grids of both
 variants, and ln Z must match an independent transfer-matrix computation at
-L = 8 and L = 16 to a relative 1e-8. The 32 x 32 reference takes about ten
-seconds. These references are `exact_reference`.
+L = 8 and L = 16 to a relative 1e-8. The correlations need the inverse's
+diagonal, which is ill-conditioned at beta = 4 on frustrated grids, so every
+reference also measures its two weakest correlations against central
+differences of ln Z (no inverse) and records the largest error; it must be
+below 1e-4 (it is about 1e-9 on ferro grids and 1e-5 on mixed grids at
+L = 32, three orders below the threshold). The 32 x 32 reference takes about
+40 seconds. These references are `exact_reference` with that recorded
+precision. Replay is bitwise under the gate's single-thread BLAS settings;
+other thread counts change the ill-conditioned inverse at the 1e-5 level.
 
 ## Kernel checks
 
