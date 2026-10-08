@@ -163,6 +163,9 @@ as given. To avoid a repeat:
   `conservation_diagnostic.py` or `raised_cap_screen.py`. Archived studies pin
   their SHA-256, so an edit breaks archive validation. Put new behavior in
   study-local code and add a bitwise-equality test against the old evaluator.
+  Shared modules can be pinned too: the changing-evidence and
+  conditional-estimation archives pin `provenance.py` and `records.py`, so
+  upstream release pins live in `release_pins.py`.
 - **CI stays fast.** Don't add a GitHub workflow per study: the `unit-rest`
   job already runs `pytest tests/unit -m "not slow"`. A short exact study
   (about a minute) can join the `fixture-study` matrix in
