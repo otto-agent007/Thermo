@@ -8,7 +8,12 @@ Replay: `uv run python -m thermo_lab.planar_ising_scaling --output-dir <extracte
 two-colour block Gibbs). References are `exact_reference`: the Kac-Ward
 determinant for the planar zero-field Ising model, checked against brute
 force on 2 x 2 to 4 x 4 grids (max error 7e-15 in ln Z, 2e-14 per edge) and
-against an independent transfer matrix at L = 8 and 16 (relative 1e-10).
+against an independent transfer matrix at L = 8 and 16 (relative 1e-10). The
+edge correlations need the inverse of a 2E x 2E matrix that is ill-conditioned
+at beta = 4 on frustrated grids, so every reference measures its two weakest
+correlations against central differences of ln Z: the recorded error is at
+most 2.4e-9 on ferro grids, 6.3e-7 on mixed grids at L = 16 and 1.3e-5 on
+mixed grids at L = 32, three to seven orders below the 0.05 threshold.
 Energies and sweep times are `calibrated_projection` from the sealed
 `Z1HardwareProfile`, which excludes host latency and energy. Nothing ran on
 hardware.
@@ -179,13 +184,15 @@ swaps makes a broken ladder look economical.
 
 Replay: `status=planar_ising_scaling_complete`, `targets=18`,
 `cells_replayed=540`, `decisions_replayed=108`, `references_recomputed=18`,
-all three checks passed. Replay recomputes every Kac-Ward reference (about
-two minutes, dominated by the six 32 x 32 grids), the brute-force and
-transfer-matrix cross-checks, the kernel stationarity check and the
-empirical 4 x 4 check, then every estimate from the exact int16 window sums.
-It does not regenerate sweeps. Generation took 1,133 s on two CPU cores.
-The evidence archive is 5.9 MB (window sums 5.6 MB uncompressed in the npz,
-which is itself deflated); this is the largest sampling archive in the
-repository and the owner should confirm it is acceptable. Provenance records
-`git_dirty=true` from uncommitted documentation edits in the working tree;
-every study source is pinned by hash and copied into the archive.
+all three checks passed. Replay recomputes every Kac-Ward reference with its
+finite-difference check (about four minutes, dominated by the six 32 x 32
+grids), the brute-force and transfer-matrix cross-checks, the kernel
+stationarity check and the empirical 4 x 4 check, then every estimate from
+the exact int16 window sums. It does not regenerate sweeps. Replay is
+bitwise under the gate's single-thread BLAS settings; other thread counts
+move the ill-conditioned inverse at the 1e-5 level and the 2e-12 comparison
+then fails, which is why the gate and the unit test pin the threads.
+Generation took 1,293 s on two CPU cores from a clean tree
+(`git_dirty=false`). The evidence archive is 6.3 MB, dominated by the window
+sums (5.8 MB as a deflated npz); this is the largest sampling archive in the
+repository and the owner should confirm it is acceptable.
