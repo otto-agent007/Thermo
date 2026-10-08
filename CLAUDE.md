@@ -116,6 +116,21 @@ work pointed at the right problem.
   and test a proposed cause on study-scale data before writing it up. A
   cue-informed start is the open variant; it waits for the owner. Source cards
   for the area are in `docs/knowledge/sources/`.
+- **Exchange cost projection**
+  (`docs/experiment-reports/2026-10-07-exchange-cost-projection/`) prices
+  replica exchange in the sealed Z1 Appendix-B model, where an accepted swap is
+  a full SRAM write of both replicas (about 21,665 Gibbs updates per p-bit).
+  Tempering plus symmetry never wins on projected energy at any tested
+  exchange interval (475x to 7,459x the cheapest ordinary baseline when
+  exchanging every sweep; 117x to 1,886x at every 4 sweeps, which keeps the
+  same qualifying budgets on 5/6 targets; intervals of 16 and above lose the
+  sweep-time advantage). It keeps a 4x to 16x elapsed-sweep advantage on four
+  targets and is the only qualifying arm on one. The recorded "default to
+  tempering" recommendations are sweep-budget recommendations; say which
+  resource a target is bound by before repeating them. New tempering arms
+  should default to an exchange every 4 sweeps. A zero-write per-replica
+  temperature control is the hardware feature that would reconcile the two
+  views. The cost model excludes host latency, so sweep time is a lower bound.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
