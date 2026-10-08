@@ -646,6 +646,43 @@ times, decisions, ratios and the frontier with the inherited fixed tolerance
 time figure a calibrated projection with the profile's listed exclusions; none
 supports a hardware claim. Verdicts do not gate.
 
+## Planar Ising scaling
+
+Follow the [frozen protocol](experiments/planar-ising-scaling.md), CPU only:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_ising_scaling \
+  --output-dir results/planar-ising-scaling-new
+uv run --frozen pytest tests/unit/test_planar_ising_scaling.py
+```
+
+Eighteen targets (three sizes, two coupling variants, three seeds), six arms,
+five budgets and 16 trials produce 540 cells and 108 decisions. Before
+sampling, the Kac-Ward reference must match brute force on 2 x 2 to 4 x 4
+grids to 1e-9 and the transfer matrix at L = 8 and 16 to a relative 1e-8, the
+two-colour sweep must be exactly stationary on a 2 x 3 grid, and the compiled
+tempering sampler must come within 0.01 mean edge error of brute force on a
+4 x 4 mixed grid. Every reference records its finite-difference precision
+check (below 1e-4; about 1e-5 on mixed grids at L = 32). Run and replay under
+the single-thread BLAS settings shown; the ill-conditioned inverse differs at
+the 1e-5 level under other thread counts and replay then fails its 2e-12
+comparison. Completion requires `status=planar_ising_scaling_complete`,
+`targets=18`, `cells_replayed=540`, `decisions_replayed=108`,
+`references_recomputed=18`, `reference_checks_passed=true`,
+`fixture_stationarity_passed=true` and `empirical_check_passed=true`.
+Generation takes about 25 minutes and has no checkpoint layer; restart an
+interrupted run in a fresh directory. CI replays the committed archive through
+the unit test (about five minutes, dominated by the 32 x 32 references).
+
+Replay with `--replay` authenticates sources, request, window sums and flags,
+recomputes every exact reference and check, then recomputes estimates from
+the exact integer sums, errors, pricing, decisions and summaries with
+tolerance 2e-12 relative. It does not regenerate sweeps. Sweeps are software
+simulation, references exact, and every energy or time figure a calibrated
+projection; none supports a hardware claim. Verdicts, including pre-registered
+negatives, do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,

@@ -1,0 +1,18 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 6273235,
+  "members": {
+    "completion.json": "e940e8f05960a34b252f02e7f69ed1cd19bb72b4a8fa6e4399680ed0b69f2d23",
+    "request.json": "6c390e385a56aec89e28866102e4f40a81f0a99fe2673d3602c899d824407b4c",
+    "results.json": "2f3e94333c28c8f13e0d46103339a36d39b19dab406f6d52f2a84ae1259c8692",
+    "source/docs/experiments/planar-ising-scaling.md": "e0a585925c097e78585711596d6c7b1b20e598078678de3e7c043da924698425",
+    "source/src/thermo_lab/exchange_cost_projection.py": "e76dd62491989e44919f6dcd65af86af7fcd6689920e2e9129b5da7d2a26bd06",
+    "source/src/thermo_lab/hardware/z1.py": "cbce2258e6c741fe7a02bbe974150fb50300c93440bf3e992fa8593775b4e677",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/planar_ising_scaling.py": "cec2cd61df6f8e6477c2716916ecdb3e00c3176d341b4364f3e696b3e6ad0b6e",
+    "source/uv.lock": "32dc495c101ed08e1db423109702000506c9de9783c0a815e912cb951cc294c9",
+    "window-sums.npz": "8fe3a7bdf12789f8180822b5a509d7ab3475b9434875d97bd93ab0cecb163611"
+  },
+  "sha256": "eecd356a4e57fc2531e98423e452c822f0b74b67d6b273507c5045af159eeb33"
+}

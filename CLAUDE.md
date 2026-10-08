@@ -131,6 +131,21 @@ work pointed at the right problem.
   should default to an exchange every 4 sweeps. A zero-write per-replica
   temperature control is the hardware feature that would reconcile the two
   views. The cost model excludes host latency, so sweep time is a lower bound.
+- **Planar Ising scaling**
+  (`docs/experiment-reports/2026-10-07-planar-ising-scaling/`) is the first
+  sampling study outside exact enumeration: open grids of 64, 256 and 1024
+  spins with an exact Kac-Ward reference (`planar_ising_scaling.kac_ward`,
+  valid for any planar zero-field graph; reuse it before writing another
+  enumerator). Past 64 spins only tempering qualifies: five cold chains and a
+  long chain never reach the threshold at 256 or 1024 spins within 4096
+  sweeps, every tempering arm does at 256 to 1024 sweeps. Mixed-sign grids at
+  beta 4 are out of reach for every arm at 256 spins and above (pre-registered;
+  a temperature and budget statement, not a sampler one). The archived
+  five-replica ladder's exchange acceptance collapses with size (0.38 to 0.018
+  on the cold pair); do not reuse it above 64 spins without an N-scaled ladder,
+  which waits for the owner. With the thin ladder, k = 4 cost two of three
+  1024-spin seeds a budget step, so the k = 4 default is for n <= 16 until
+  re-tested with a scaled ladder.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
