@@ -27,10 +27,10 @@ _PINNED_RELEASES: dict[str, PinnedRelease] = {
         wheel_sha256="6e2f38cecb562589d230ca063b5fcb5d2a6533201e37bb70c1f2dac4a63a0858",
     ),
     "extro-torx": PinnedRelease(
-        version="0.0.2",
+        version="0.0.1",
         source_repository="https://github.com/extropic-ai/torx",
-        source_commit="6b74450e6dc080a1e73e95fb60c568102a6623cb",
-        wheel_sha256="728417448b95e9708ba9160948889be7c27b4a5db296678093ab5bee9edbc693",
+        source_commit="769d2f90abdfda14798fceb521143f4b99d370da",
+        wheel_sha256="e51d6efe0a8bc62fb4b2b417d5e4ac8190e3fb22c9d14d9342c207afdc64a23c",
     ),
 }
 
