@@ -54,8 +54,8 @@ connects all six new reports, review corrections and the next research questions
 ## Quick start
 
 Python 3.11 and [uv](https://docs.astral.sh/uv/) are the supported baseline.
-Everything runs on CPU without credentials or network access. The
-improvement-harness tests also need Linux with bubblewrap
+Everything runs on CPU without credentials or network access. The tests
+for the parked improvement harness also need Linux with bubblewrap
 (`sudo apt-get install bubblewrap`), which sandboxes candidate code.
 
 ```bash
@@ -80,7 +80,7 @@ committed deliberately under `docs/experiment-reports/`.
 - [Evidence policy](docs/evidence-policy.md) and [Z1 hardware model](docs/z1-hardware-model.md)
 - [Study guide](docs/studies.md) and frozen protocols in [docs/experiments/](docs/experiments/)
 - [Experiment reports](docs/experiment-reports/) and [research notes](docs/research/)
-- [CI/CD runbook](docs/ci-cd.md) and [improvement harness](docs/improvement-harness.md)
+- [CI/CD runbook](docs/ci-cd.md) and the parked [improvement harness](docs/improvement-harness.md)
 - [Execution environments](docs/environments.md): local and Codex cloud limits, which gates fit where
 - [August 2026 release intake](docs/release-intelligence/extropic-2026-08.md)
 - [Research dashboard](dashboard/README.md)

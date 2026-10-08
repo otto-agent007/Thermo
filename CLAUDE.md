@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-06)
+## Where the project stands (updated 2026-10-07)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -116,6 +116,16 @@ work pointed at the right problem.
   and test a proposed cause on study-scale data before writing it up. A
   cue-informed start is the open variant; it waits for the owner. Source cards
   for the area are in `docs/knowledge/sources/`.
+- **The improvement harness is parked** (2026-10-07,
+  `docs/improvement-harness.md`). It has never been run, and its research track
+  only tunes a fixture from the closed conservation line. Don't extend it or
+  treat it as the self-improvement plan. The owner wants real research autonomy
+  later: a scheduled loop that reads the lessons register and backlog, drafts
+  the next frozen protocol, waits for owner approval, then runs, replays and
+  writes up findings and lessons, never accepting its own results. Build it
+  from existing pieces (Hermes cron and kanban, autosave runners, dashboard),
+  not a new daemon like the rejected PR #57, and start it only when the owner
+  asks (roadmap row "Research autonomy loop").
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
