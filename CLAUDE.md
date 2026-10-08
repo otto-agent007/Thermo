@@ -158,13 +158,13 @@ work pointed at the right problem.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
-  treat it as the self-improvement plan. The owner wants real research autonomy
-  later: a scheduled loop that reads the lessons register and backlog, drafts
-  the next frozen protocol, waits for owner approval, then runs, replays and
-  writes up findings and lessons, never accepting its own results. Build it
-  from existing pieces (Hermes cron and kanban, autosave runners, dashboard),
-  not a new daemon like the rejected PR #57, and start it only when the owner
-  asks (roadmap row "Research autonomy loop").
+  treat it as the self-improvement plan.
+- **The research loop** (`docs/research-loop.md`, started 2026-10-08) is the
+  self-improvement plan. THERMES takes the top open row of the owner-curated
+  `docs/research-queue.md`, probes it, drafts a protocol PR and waits for the
+  owner's `approve` on Discord before running; the owner's merge accepts
+  results. Add or reorder queue rows only when the owner asks, and don't start
+  work on a row the loop has claimed (its branch is `research/<row>`).
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
