@@ -1,0 +1,2638 @@
+{
+  "label": "exploration, not evidence",
+  "root_seed": 20261012,
+  "coupling_seed": 4500,
+  "graph_seed": 7,
+  "trials": 16,
+  "threshold": 0.05,
+  "cold_beta": 4.0,
+  "budgets": [
+    16,
+    64,
+    256,
+    1024,
+    4096
+  ],
+  "offsets": [
+    [
+      -4,
+      -1
+    ],
+    [
+      -3,
+      2
+    ],
+    [
+      -2,
+      -3
+    ],
+    [
+      -2,
+      -1
+    ],
+    [
+      -1,
+      0
+    ],
+    [
+      -1,
+      2
+    ],
+    [
+      -1,
+      4
+    ],
+    [
+      0,
+      -1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      -4
+    ],
+    [
+      1,
+      -2
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      -2
+    ],
+    [
+      4,
+      1
+    ]
+  ],
+  "checks": {
+    "reference": {
+      "grid_vs_imported": [
+        {
+          "size": 3,
+          "log_z_abs_diff": 0.0,
+          "edge_max_abs_diff": 0.0
+        },
+        {
+          "size": 8,
+          "log_z_abs_diff": 0.0,
+          "edge_max_abs_diff": 0.0
+        }
+      ],
+      "brute_force": [
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-random",
+          "graph_seed": 1,
+          "edges": 24,
+          "non_grid_edges": 5,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 3.219646771412954e-15
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-random",
+          "graph_seed": 1,
+          "edges": 24,
+          "non_grid_edges": 5,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 1.2212453270876722e-15
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-random",
+          "graph_seed": 2,
+          "edges": 24,
+          "non_grid_edges": 3,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 2.55351295663786e-15
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-random",
+          "graph_seed": 2,
+          "edges": 24,
+          "non_grid_edges": 3,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 8.881784197001252e-16
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-long",
+          "graph_seed": 1,
+          "edges": 20,
+          "non_grid_edges": 4,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 7.105427357601002e-15,
+          "edge_max_abs_err": 3.219646771412954e-15
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-long",
+          "graph_seed": 1,
+          "edges": 20,
+          "non_grid_edges": 4,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 3.552713678800501e-15,
+          "edge_max_abs_err": 8.881784197001252e-16
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-long",
+          "graph_seed": 2,
+          "edges": 20,
+          "non_grid_edges": 4,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 3.9968028886505635e-15
+        },
+        {
+          "patch": [
+            4,
+            4
+          ],
+          "family": "greedy-long",
+          "graph_seed": 2,
+          "edges": 20,
+          "non_grid_edges": 4,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 9.992007221626409e-16
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-random",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 3,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 7.105427357601002e-15,
+          "edge_max_abs_err": 2.9976021664879227e-15
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-random",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 3,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 7.771561172376096e-16
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-random",
+          "graph_seed": 2,
+          "edges": 20,
+          "non_grid_edges": 3,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 1.4210854715202004e-14,
+          "edge_max_abs_err": 3.552713678800501e-15
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-random",
+          "graph_seed": 2,
+          "edges": 20,
+          "non_grid_edges": 3,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 1.7763568394002505e-15,
+          "edge_max_abs_err": 1.6653345369377348e-15
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-long",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 2.9976021664879227e-15
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-long",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 3.552713678800501e-15,
+          "edge_max_abs_err": 7.771561172376096e-16
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-long",
+          "graph_seed": 2,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 2.1094237467877974e-15
+        },
+        {
+          "patch": [
+            3,
+            5
+          ],
+          "family": "greedy-long",
+          "graph_seed": 2,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 1.2212453270876722e-15
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-random",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 5,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 1.4210854715202004e-14,
+          "edge_max_abs_err": 2.7755575615628914e-15
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-random",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 5,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 3.552713678800501e-15,
+          "edge_max_abs_err": 1.6653345369377348e-15
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-random",
+          "graph_seed": 2,
+          "edges": 22,
+          "non_grid_edges": 4,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 1.4210854715202004e-14,
+          "edge_max_abs_err": 2.55351295663786e-15
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-random",
+          "graph_seed": 2,
+          "edges": 22,
+          "non_grid_edges": 4,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 7.771561172376096e-16
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-long",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 3.552713678800501e-15
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-long",
+          "graph_seed": 1,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 6.661338147750939e-16
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-long",
+          "graph_seed": 2,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "ferro",
+          "beta": 4.0,
+          "log_z_abs_err": 7.105427357601002e-15,
+          "edge_max_abs_err": 4.218847493575595e-15
+        },
+        {
+          "patch": [
+            2,
+            8
+          ],
+          "family": "greedy-long",
+          "graph_seed": 2,
+          "edges": 22,
+          "non_grid_edges": 6,
+          "couplings": "mixed",
+          "beta": 1.0,
+          "log_z_abs_err": 0.0,
+          "edge_max_abs_err": 2.3314683517128287e-15
+        }
+      ],
+      "max_brute_force_log_z_err": 1.4210854715202004e-14,
+      "max_brute_force_edge_err": 4.218847493575595e-15
+    },
+    "grid_equivalence": {
+      "size": 8,
+      "horizon": 256,
+      "snapshot_sums_identical": true,
+      "exchange_flags_identical": true
+    },
+    "empirical": {
+      "edges": 24,
+      "independent": 3.4790497507079915e-06,
+      "tempering5-k1": 7.4302669869650536e-06
+    }
+  },
+  "graphs": {
+    "L8-grid-s4500": {
+      "sites": 64,
+      "edges": 112,
+      "planar_bipartite_bound_2n_minus_4": 124,
+      "mean_degree": 3.5,
+      "degree_histogram": [
+        0,
+        0,
+        4,
+        24,
+        36
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 112
+      },
+      "bipartite_checkerboard": true
+    },
+    "L8-greedy-random-s4500": {
+      "sites": 64,
+      "edges": 108,
+      "planar_bipartite_bound_2n_minus_4": 124,
+      "mean_degree": 3.375,
+      "degree_histogram": [
+        1,
+        1,
+        12,
+        26,
+        12,
+        7,
+        5
+      ],
+      "isolated_sites": 1,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 82,
+        "(1, 2)": 20,
+        "(1, 4)": 4,
+        "(2, 3)": 2
+      },
+      "bipartite_checkerboard": true
+    },
+    "L8-greedy-long-s4500": {
+      "sites": 64,
+      "edges": 112,
+      "planar_bipartite_bound_2n_minus_4": 124,
+      "mean_degree": 3.5,
+      "degree_histogram": [
+        0,
+        0,
+        9,
+        32,
+        9,
+        12,
+        1,
+        0,
+        1
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 72,
+        "(1, 2)": 18,
+        "(1, 4)": 22
+      },
+      "bipartite_checkerboard": true
+    },
+    "L16-grid-s4500": {
+      "sites": 256,
+      "edges": 480,
+      "planar_bipartite_bound_2n_minus_4": 508,
+      "mean_degree": 3.75,
+      "degree_histogram": [
+        0,
+        0,
+        4,
+        56,
+        196
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 480
+      },
+      "bipartite_checkerboard": true
+    },
+    "L16-greedy-random-s4500": {
+      "sites": 256,
+      "edges": 472,
+      "planar_bipartite_bound_2n_minus_4": 508,
+      "mean_degree": 3.6875,
+      "degree_histogram": [
+        0,
+        2,
+        39,
+        80,
+        75,
+        41,
+        16,
+        2,
+        0,
+        1
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 332,
+        "(1, 2)": 100,
+        "(1, 4)": 36,
+        "(2, 3)": 4
+      },
+      "bipartite_checkerboard": true
+    },
+    "L16-greedy-long-s4500": {
+      "sites": 256,
+      "edges": 478,
+      "planar_bipartite_bound_2n_minus_4": 508,
+      "mean_degree": 3.734375,
+      "degree_histogram": [
+        0,
+        2,
+        19,
+        116,
+        71,
+        23,
+        12,
+        8,
+        4,
+        1
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 286,
+        "(1, 2)": 62,
+        "(1, 4)": 129,
+        "(2, 3)": 1
+      },
+      "bipartite_checkerboard": true
+    },
+    "L32-grid-s4500": {
+      "sites": 1024,
+      "edges": 1984,
+      "planar_bipartite_bound_2n_minus_4": 2044,
+      "mean_degree": 3.875,
+      "degree_histogram": [
+        0,
+        0,
+        4,
+        120,
+        900
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 1984
+      },
+      "bipartite_checkerboard": true
+    },
+    "L32-greedy-random-s4500": {
+      "sites": 1024,
+      "edges": 1806,
+      "planar_bipartite_bound_2n_minus_4": 2044,
+      "mean_degree": 3.52734375,
+      "degree_histogram": [
+        13,
+        46,
+        201,
+        282,
+        236,
+        147,
+        64,
+        27,
+        6,
+        2
+      ],
+      "isolated_sites": 13,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 1259,
+        "(1, 2)": 346,
+        "(2, 3)": 98,
+        "(1, 4)": 103
+      },
+      "bipartite_checkerboard": true
+    },
+    "L32-greedy-long-s4500": {
+      "sites": 1024,
+      "edges": 1982,
+      "planar_bipartite_bound_2n_minus_4": 2044,
+      "mean_degree": 3.87109375,
+      "degree_histogram": [
+        0,
+        2,
+        91,
+        353,
+        371,
+        66,
+        98,
+        25,
+        18
+      ],
+      "isolated_sites": 0,
+      "components_with_edges": 1,
+      "edges_by_offset_class": {
+        "(0, 1)": 1149,
+        "(1, 2)": 252,
+        "(1, 4)": 580,
+        "(2, 3)": 1
+      },
+      "bipartite_checkerboard": true
+    }
+  },
+  "targets": {
+    "L8-grid-s4500": {
+      "reference": {
+        "log_z": 271.0969942773181,
+        "q_per_spin": 1.056146402974421,
+        "min_abs_edge_correlation": 0.9966401796383062,
+        "finite_difference_max_abs_error": 9.867984207545533e-11
+      },
+      "reference_seconds": 0.011563011998077855,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1871675382587604,
+              "edge_mae_trial_sd": 0.10293971927820954,
+              "edge_max": 1.6275025048210443
+            },
+            "64": {
+              "edge_mae": 0.1360448256089047,
+              "edge_mae_trial_sd": 0.0911333421641169,
+              "edge_max": 1.3667538627639342
+            },
+            "256": {
+              "edge_mae": 0.07306631904850965,
+              "edge_mae_trial_sd": 0.0840107666343434,
+              "edge_max": 0.8233764207414647
+            },
+            "1024": {
+              "edge_mae": 0.027683768440129746,
+              "edge_mae_trial_sd": 0.049184154965189325,
+              "edge_max": 0.37034248664327796
+            },
+            "4096": {
+              "edge_mae": 0.00016028884195739865,
+              "edge_mae_trial_sd": 0.00041054107730124223,
+              "edge_max": 0.0026234887089305603
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 4.5642657990028965
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.24621607236275025,
+              "edge_mae_trial_sd": 0.040626619937326774,
+              "edge_max": 1.3832888140015052
+            },
+            "64": {
+              "edge_mae": 0.1991826881875227,
+              "edge_mae_trial_sd": 0.04229309503603116,
+              "edge_max": 1.2679732032948423
+            },
+            "256": {
+              "edge_mae": 0.1365399115126557,
+              "edge_mae_trial_sd": 0.040959359461903405,
+              "edge_max": 0.9438319998234226
+            },
+            "1024": {
+              "edge_mae": 0.08552096915940574,
+              "edge_mae_trial_sd": 0.03614232529945319,
+              "edge_max": 0.7649268322852545
+            },
+            "4096": {
+              "edge_mae": 0.03922662466303684,
+              "edge_mae_trial_sd": 0.027638711163815725,
+              "edge_max": 0.3765466809846951
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 1.5496434710003086
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.11541296508036922,
+              "edge_mae_trial_sd": 0.058914996450694916,
+              "edge_max": 1.447904615519446
+            },
+            "64": {
+              "edge_mae": 0.030258371936072056,
+              "edge_mae_trial_sd": 0.03149791884247268,
+              "edge_max": 0.540106498313322
+            },
+            "256": {
+              "edge_mae": 0.001675278938261622,
+              "edge_mae_trial_sd": 0.005358494955916812,
+              "edge_max": 0.03258851608139875
+            },
+            "1024": {
+              "edge_mae": 0.00015831159650782727,
+              "edge_mae_trial_sd": 7.606474061531985e-05,
+              "edge_max": 0.003050447241443724
+            },
+            "4096": {
+              "edge_mae": 0.00010965701869974089,
+              "edge_mae_trial_sd": 3.193670620673567e-05,
+              "edge_max": 0.0019253771984180656
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.0975494384765625,
+            0.43536376953125
+          ],
+          "seconds_incl_compile": 2.279927642994153
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.15811578618542427,
+              "edge_mae_trial_sd": 0.0705324514918254,
+              "edge_max": 1.7499702506433583
+            },
+            "64": {
+              "edge_mae": 0.0391292932099885,
+              "edge_mae_trial_sd": 0.048306825735920815,
+              "edge_max": 0.6106231580879141
+            },
+            "256": {
+              "edge_mae": 0.003308176856886725,
+              "edge_mae_trial_sd": 0.008636348178847758,
+              "edge_max": 0.0514445557899642
+            },
+            "1024": {
+              "edge_mae": 0.00017411676303628266,
+              "edge_mae_trial_sd": 7.381886771940762e-05,
+              "edge_max": 0.003662415549357409
+            },
+            "4096": {
+              "edge_mae": 9.791965252971808e-05,
+              "edge_mae_trial_sd": 4.50373808361904e-05,
+              "edge_max": 0.0016585704833710843
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.10076904296875,
+            0.43572998046875
+          ],
+          "seconds_incl_compile": 2.2466891310032224
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1401317320031629,
+              "edge_mae_trial_sd": 0.047671027145710684,
+              "edge_max": 1.5726882261724033
+            },
+            "64": {
+              "edge_mae": 0.03187508895608761,
+              "edge_mae_trial_sd": 0.023422588375377192,
+              "edge_max": 0.38540217764201
+            },
+            "256": {
+              "edge_mae": 0.0003335051896691584,
+              "edge_mae_trial_sd": 0.0001141444772929888,
+              "edge_max": 0.006973113114717336
+            },
+            "1024": {
+              "edge_mae": 0.00021377119939692884,
+              "edge_mae_trial_sd": 6.929310329024486e-05,
+              "edge_max": 0.004154258406385614
+            },
+            "4096": {
+              "edge_mae": 0.00010410296732782716,
+              "edge_mae_trial_sd": 2.9917021931811583e-05,
+              "edge_max": 0.0016238535554083458
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.513885498046875,
+            0.185089111328125,
+            0.3539886474609375,
+            0.908935546875
+          ],
+          "seconds_incl_compile": 3.081254092998279
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.20307699715649505,
+              "edge_mae_trial_sd": 0.059028958610961586,
+              "edge_max": 1.7499957468527745
+            },
+            "64": {
+              "edge_mae": 0.03672856448617443,
+              "edge_mae_trial_sd": 0.03965230650910561,
+              "edge_max": 0.4177022289208241
+            },
+            "256": {
+              "edge_mae": 0.0009454166083458657,
+              "edge_mae_trial_sd": 0.002260599040550688,
+              "edge_max": 0.01754849201439141
+            },
+            "1024": {
+              "edge_mae": 0.00022091248143604742,
+              "edge_mae_trial_sd": 0.00011329708419659621,
+              "edge_max": 0.004758817052603087
+            },
+            "4096": {
+              "edge_mae": 0.00011611533107950083,
+              "edge_mae_trial_sd": 6.126846419301742e-05,
+              "edge_max": 0.0018884487367796937
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.51348876953125,
+            0.1878662109375,
+            0.355224609375,
+            0.90380859375
+          ],
+          "seconds_incl_compile": 3.069264504003513
+        }
+      }
+    },
+    "L8-greedy-random-s4500": {
+      "reference": {
+        "log_z": 260.62353300926264,
+        "q_per_spin": 1.0117529896616777,
+        "min_abs_edge_correlation": 0.9796283781736229,
+        "finite_difference_max_abs_error": 1.0118761384347863e-10
+      },
+      "reference_seconds": 0.012046928000927437,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1630790686161208,
+              "edge_mae_trial_sd": 0.07831852745022,
+              "edge_max": 1.7260058845515767
+            },
+            "64": {
+              "edge_mae": 0.1256716063005728,
+              "edge_mae_trial_sd": 0.0806236762261233,
+              "edge_max": 1.4293106843777164
+            },
+            "256": {
+              "edge_mae": 0.08791670234041238,
+              "edge_mae_trial_sd": 0.082897709139697,
+              "edge_max": 1.0688215094072948
+            },
+            "1024": {
+              "edge_mae": 0.06240858122483526,
+              "edge_mae_trial_sd": 0.07831293878603131,
+              "edge_max": 0.7272232580012219
+            },
+            "4096": {
+              "edge_mae": 0.033494212816542863,
+              "edge_mae_trial_sd": 0.05343404016074159,
+              "edge_max": 0.4490250620003535
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 4.7391650959980325
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.2491609081210517,
+              "edge_mae_trial_sd": 0.03591794589206046,
+              "edge_max": 1.3508901383149077
+            },
+            "64": {
+              "edge_mae": 0.18260432375456154,
+              "edge_mae_trial_sd": 0.02448219398000971,
+              "edge_max": 1.1784257310075654
+            },
+            "256": {
+              "edge_mae": 0.1139527517219573,
+              "edge_mae_trial_sd": 0.038645865091114166,
+              "edge_max": 0.8006749240036465
+            },
+            "1024": {
+              "edge_mae": 0.07138107777867918,
+              "edge_mae_trial_sd": 0.027812527010581643,
+              "edge_max": 0.5976207715898485
+            },
+            "4096": {
+              "edge_mae": 0.04484914881647823,
+              "edge_mae_trial_sd": 0.02315814864464866,
+              "edge_max": 0.44587475201334814
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 1.62410112300131
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.09777991936665675,
+              "edge_mae_trial_sd": 0.06779301629098781,
+              "edge_max": 1.3184900376000435
+            },
+            "64": {
+              "edge_mae": 0.015491313662623938,
+              "edge_mae_trial_sd": 0.02018247914361006,
+              "edge_max": 0.31698591835231277
+            },
+            "256": {
+              "edge_mae": 0.0019450818963857824,
+              "edge_mae_trial_sd": 0.0014088570193998328,
+              "edge_max": 0.044412578947901994
+            },
+            "1024": {
+              "edge_mae": 0.001006878642386191,
+              "edge_mae_trial_sd": 0.0006355989931644131,
+              "edge_max": 0.020762510251699638
+            },
+            "4096": {
+              "edge_mae": 0.0004120199588917041,
+              "edge_mae_trial_sd": 0.00010133322280002292,
+              "edge_max": 0.006555115724309099
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.103790283203125,
+            0.3014373779296875
+          ],
+          "seconds_incl_compile": 2.3528756870000507
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1459687358391183,
+              "edge_mae_trial_sd": 0.05666926790381728,
+              "edge_max": 1.321802496215939
+            },
+            "64": {
+              "edge_mae": 0.023374901519444182,
+              "edge_mae_trial_sd": 0.032283766185260965,
+              "edge_max": 0.3812892865739533
+            },
+            "256": {
+              "edge_mae": 0.001720742135042215,
+              "edge_mae_trial_sd": 0.0007031035837933713,
+              "edge_max": 0.03929298313083549
+            },
+            "1024": {
+              "edge_mae": 0.0012274815507011903,
+              "edge_mae_trial_sd": 0.000680842421210741,
+              "edge_max": 0.029035797226101556
+            },
+            "4096": {
+              "edge_mae": 0.0005649996124996809,
+              "edge_mae_trial_sd": 0.00017279538474217863,
+              "edge_max": 0.012301109407330181
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.10211181640625,
+            0.30633544921875
+          ],
+          "seconds_incl_compile": 2.3144420799944783
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.07069590798267335,
+              "edge_mae_trial_sd": 0.04139118454936832,
+              "edge_max": 1.1204723896869955
+            },
+            "64": {
+              "edge_mae": 0.00786855725288965,
+              "edge_mae_trial_sd": 0.009582982832835494,
+              "edge_max": 0.15630043047307157
+            },
+            "256": {
+              "edge_mae": 0.0015836403904493414,
+              "edge_mae_trial_sd": 0.0005895118648947546,
+              "edge_max": 0.033509526023854506
+            },
+            "1024": {
+              "edge_mae": 0.0007521097500688581,
+              "edge_mae_trial_sd": 0.00015344374558331496,
+              "edge_max": 0.013022470946258885
+            },
+            "4096": {
+              "edge_mae": 0.0004011687188364407,
+              "edge_mae_trial_sd": 0.0001371121066737878,
+              "edge_max": 0.007264381718665967
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.523193359375,
+            0.1911773681640625,
+            0.3279876708984375,
+            0.7696533203125
+          ],
+          "seconds_incl_compile": 3.130591604000074
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.18317092532557577,
+              "edge_mae_trial_sd": 0.06664366127809881,
+              "edge_max": 1.7884560645071628
+            },
+            "64": {
+              "edge_mae": 0.020386627923574124,
+              "edge_mae_trial_sd": 0.019337648505638377,
+              "edge_max": 0.34224368001602834
+            },
+            "256": {
+              "edge_mae": 0.0016956706333214847,
+              "edge_mae_trial_sd": 0.0005996181800133558,
+              "edge_max": 0.0333583352361809
+            },
+            "1024": {
+              "edge_mae": 0.0008713880788844519,
+              "edge_mae_trial_sd": 0.00025312609238697177,
+              "edge_max": 0.0163392473585231
+            },
+            "4096": {
+              "edge_mae": 0.0004948930625147528,
+              "edge_mae_trial_sd": 0.0002023064938421171,
+              "edge_max": 0.009770760537526617
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.5206298828125,
+            0.19097900390625,
+            0.330322265625,
+            0.7662353515625
+          ],
+          "seconds_incl_compile": 3.125521658999787
+        }
+      }
+    },
+    "L8-greedy-long-s4500": {
+      "reference": {
+        "log_z": 271.1118501461994,
+        "q_per_spin": 1.0558164836701525,
+        "min_abs_edge_correlation": 0.9836748568621181,
+        "finite_difference_max_abs_error": 1.3332868142867937e-10
+      },
+      "reference_seconds": 0.01172287300141761,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.13065591880707378,
+              "edge_mae_trial_sd": 0.08174932872794514,
+              "edge_max": 1.747247761381867
+            },
+            "64": {
+              "edge_mae": 0.07840536183449649,
+              "edge_mae_trial_sd": 0.05602476442597817,
+              "edge_max": 1.4324124237215314
+            },
+            "256": {
+              "edge_mae": 0.05630864114114529,
+              "edge_mae_trial_sd": 0.05386956358862169,
+              "edge_max": 1.1864375331705959
+            },
+            "1024": {
+              "edge_mae": 0.04337179639234253,
+              "edge_mae_trial_sd": 0.041154038995135485,
+              "edge_max": 1.1252183393185256
+            },
+            "4096": {
+              "edge_mae": 0.03936135764042957,
+              "edge_mae_trial_sd": 0.03943447647724429,
+              "edge_max": 1.0115328628135292
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 5.281883044997812
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.16771877013137565,
+              "edge_mae_trial_sd": 0.045484870140518864,
+              "edge_max": 1.1588981662962488
+            },
+            "64": {
+              "edge_mae": 0.10975550891189524,
+              "edge_mae_trial_sd": 0.0384868052762106,
+              "edge_max": 1.0813728021509372
+            },
+            "256": {
+              "edge_mae": 0.09089088340615459,
+              "edge_mae_trial_sd": 0.03519692168113575,
+              "edge_max": 1.1040394459877374
+            },
+            "1024": {
+              "edge_mae": 0.07964837543993333,
+              "edge_mae_trial_sd": 0.03059553441253292,
+              "edge_max": 1.0716099473059333
+            },
+            "4096": {
+              "edge_mae": 0.07256348020740451,
+              "edge_mae_trial_sd": 0.028470343060035853,
+              "edge_max": 1.0751201250234712
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 1.6293514970020624
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.07407977963878601,
+              "edge_mae_trial_sd": 0.0655897859250445,
+              "edge_max": 1.0003007813409182
+            },
+            "64": {
+              "edge_mae": 0.01377456249041222,
+              "edge_mae_trial_sd": 0.03267908045727657,
+              "edge_max": 0.23261923974772972
+            },
+            "256": {
+              "edge_mae": 0.002733411586338799,
+              "edge_mae_trial_sd": 0.004883747763203728,
+              "edge_max": 0.054747034406598304
+            },
+            "1024": {
+              "edge_mae": 0.0005732563378715959,
+              "edge_mae_trial_sd": 0.00014166257287527453,
+              "edge_max": 0.007787570076616061
+            },
+            "4096": {
+              "edge_mae": 0.0003441440384158839,
+              "edge_mae_trial_sd": 0.0001334118788595784,
+              "edge_max": 0.005136007138853156
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.092376708984375,
+            0.3359375
+          ],
+          "seconds_incl_compile": 2.386152562998177
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.10692115795923425,
+              "edge_mae_trial_sd": 0.06659666857163822,
+              "edge_max": 1.2173629001791941
+            },
+            "64": {
+              "edge_mae": 0.041045708787791825,
+              "edge_mae_trial_sd": 0.057964447286806914,
+              "edge_max": 0.6538488284612732
+            },
+            "256": {
+              "edge_mae": 0.013307461458304243,
+              "edge_mae_trial_sd": 0.0247457536758002,
+              "edge_max": 0.23871892761242675
+            },
+            "1024": {
+              "edge_mae": 0.0011353813360049831,
+              "edge_mae_trial_sd": 0.0015476244548783202,
+              "edge_max": 0.02768851478708391
+            },
+            "4096": {
+              "edge_mae": 0.00042072623673775197,
+              "edge_mae_trial_sd": 0.00010905208585976506,
+              "edge_max": 0.005968983150005422
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.09185791015625,
+            0.3353271484375
+          ],
+          "seconds_incl_compile": 2.4264368870062754
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.05332876898082512,
+              "edge_mae_trial_sd": 0.04896743293056462,
+              "edge_max": 0.7639906650986836
+            },
+            "64": {
+              "edge_mae": 0.011521070501418196,
+              "edge_mae_trial_sd": 0.017084298846944724,
+              "edge_max": 0.21933947550179878
+            },
+            "256": {
+              "edge_mae": 0.0010259070582952722,
+              "edge_mae_trial_sd": 0.0003091789779975479,
+              "edge_max": 0.01968433191913708
+            },
+            "1024": {
+              "edge_mae": 0.0005358332550418258,
+              "edge_mae_trial_sd": 0.0001188866414911891,
+              "edge_max": 0.007069564463320667
+            },
+            "4096": {
+              "edge_mae": 0.00029283725715467137,
+              "edge_mae_trial_sd": 7.805380015307876e-05,
+              "edge_max": 0.0035084322815538624
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.5064544677734375,
+            0.1827545166015625,
+            0.333038330078125,
+            0.804290771484375
+          ],
+          "seconds_incl_compile": 3.2443537289946107
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.12418602835654438,
+              "edge_mae_trial_sd": 0.04598264297320271,
+              "edge_max": 1.5516214137174245
+            },
+            "64": {
+              "edge_mae": 0.02437453466648461,
+              "edge_mae_trial_sd": 0.032238149243965286,
+              "edge_max": 0.523365857974884
+            },
+            "256": {
+              "edge_mae": 0.0039065652420207705,
+              "edge_mae_trial_sd": 0.006931665852202585,
+              "edge_max": 0.10366913240399621
+            },
+            "1024": {
+              "edge_mae": 0.0005661668165650403,
+              "edge_mae_trial_sd": 0.00017192057862705552,
+              "edge_max": 0.007723051573335457
+            },
+            "4096": {
+              "edge_mae": 0.0004349893018060108,
+              "edge_mae_trial_sd": 0.00014302986848412002,
+              "edge_max": 0.006809969613912413
+            }
+          },
+          "qualifying_budget": 64,
+          "acceptance_by_slot_at_horizon": [
+            0.50537109375,
+            0.18804931640625,
+            0.33013916015625,
+            0.80438232421875
+          ],
+          "seconds_incl_compile": 3.317546807003964
+        }
+      }
+    },
+    "L16-grid-s4500": {
+      "reference": {
+        "log_z": 1155.908821119504,
+        "q_per_spin": 1.1280343154335144,
+        "min_abs_edge_correlation": 0.9797601851138517,
+        "finite_difference_max_abs_error": 4.381208729142827e-10
+      },
+      "reference_seconds": 0.4642879949969938,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.17913121579407107,
+              "edge_mae_trial_sd": 0.03096097618230583,
+              "edge_max": 1.9999999992376176
+            },
+            "64": {
+              "edge_mae": 0.14563417315696622,
+              "edge_mae_trial_sd": 0.02908857129468746,
+              "edge_max": 1.9999999754044717
+            },
+            "256": {
+              "edge_mae": 0.11741063943179046,
+              "edge_mae_trial_sd": 0.03618560871524004,
+              "edge_max": 1.9678385044022362
+            },
+            "1024": {
+              "edge_mae": 0.08680956836499397,
+              "edge_mae_trial_sd": 0.03424830045265168,
+              "edge_max": 1.7664287626341526
+            },
+            "4096": {
+              "edge_mae": 0.05565856769225614,
+              "edge_mae_trial_sd": 0.034995794599288164,
+              "edge_max": 1.4407949280192849
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 22.532044360996224
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.23791324180328927,
+              "edge_mae_trial_sd": 0.018899292542161487,
+              "edge_max": 1.5645817501272175
+            },
+            "64": {
+              "edge_mae": 0.18940807908812313,
+              "edge_mae_trial_sd": 0.01911221414720147,
+              "edge_max": 1.5057262678007746
+            },
+            "256": {
+              "edge_mae": 0.14626064471509073,
+              "edge_mae_trial_sd": 0.022667448809761823,
+              "edge_max": 1.5089835001911365
+            },
+            "1024": {
+              "edge_mae": 0.10939958860892846,
+              "edge_mae_trial_sd": 0.024849768662298915,
+              "edge_max": 1.4982725071782443
+            },
+            "4096": {
+              "edge_mae": 0.07958863669651771,
+              "edge_mae_trial_sd": 0.019043510743604233,
+              "edge_max": 1.3076888336814618
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 3.129914186996757
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1822309287849296,
+              "edge_mae_trial_sd": 0.026015582757854695,
+              "edge_max": 1.9687478250002681
+            },
+            "64": {
+              "edge_mae": 0.10617848498237598,
+              "edge_mae_trial_sd": 0.03221406447075647,
+              "edge_max": 1.804687375748017
+            },
+            "256": {
+              "edge_mae": 0.052641548788569074,
+              "edge_mae_trial_sd": 0.034351197032968975,
+              "edge_max": 1.215466278673895
+            },
+            "1024": {
+              "edge_mae": 0.014597484959448397,
+              "edge_mae_trial_sd": 0.021429135914502434,
+              "edge_max": 0.42133228442010795
+            },
+            "4096": {
+              "edge_mae": 0.0011249274824526763,
+              "edge_mae_trial_sd": 0.0029891891197870546,
+              "edge_max": 0.04801833658503348
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.002685546875,
+            0.264007568359375
+          ],
+          "seconds_incl_compile": 5.524885933002224
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.19848352478673065,
+              "edge_mae_trial_sd": 0.028361518262139243,
+              "edge_max": 1.9791662247319233
+            },
+            "64": {
+              "edge_mae": 0.11319033389486016,
+              "edge_mae_trial_sd": 0.032406167381410986,
+              "edge_max": 1.7760398342860402
+            },
+            "256": {
+              "edge_mae": 0.058941685162340926,
+              "edge_mae_trial_sd": 0.03400920824167325,
+              "edge_max": 1.3193879413323515
+            },
+            "1024": {
+              "edge_mae": 0.01490173551368974,
+              "edge_mae_trial_sd": 0.02295536963292767,
+              "edge_max": 0.4699813544016596
+            },
+            "4096": {
+              "edge_mae": 0.0012067848239068367,
+              "edge_mae_trial_sd": 0.0034305462437527827,
+              "edge_max": 0.042749007392353704
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.003173828125,
+            0.26409912109375
+          ],
+          "seconds_incl_compile": 5.518984925998666
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.17393573646214044,
+              "edge_mae_trial_sd": 0.020701268566992743,
+              "edge_max": 1.9062496981606634
+            },
+            "64": {
+              "edge_mae": 0.07915304122701243,
+              "edge_mae_trial_sd": 0.022969355460305683,
+              "edge_max": 1.684890706685541
+            },
+            "256": {
+              "edge_mae": 0.02196355488434986,
+              "edge_mae_trial_sd": 0.02151324713779959,
+              "edge_max": 0.7940611052399245
+            },
+            "1024": {
+              "edge_mae": 0.0020886630039936367,
+              "edge_mae_trial_sd": 0.0035140314102805052,
+              "edge_max": 0.09242998349771867
+            },
+            "4096": {
+              "edge_mae": 5.717461697038764e-05,
+              "edge_mae_trial_sd": 1.7075435969746153e-05,
+              "edge_max": 0.003951370659017628
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.18182373046875,
+            0.0072479248046875,
+            0.1313323974609375,
+            0.744659423828125
+          ],
+          "seconds_incl_compile": 7.832540915995196
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.21222306458628504,
+              "edge_mae_trial_sd": 0.027799271273220464,
+              "edge_max": 1.9687495602337513
+            },
+            "64": {
+              "edge_mae": 0.0943351274427343,
+              "edge_mae_trial_sd": 0.024992653528055048,
+              "edge_max": 1.5416524315962457
+            },
+            "256": {
+              "edge_mae": 0.024852415004879773,
+              "edge_mae_trial_sd": 0.023233546342115264,
+              "edge_max": 0.6560374888290383
+            },
+            "1024": {
+              "edge_mae": 0.001883795236593548,
+              "edge_mae_trial_sd": 0.004963310545416283,
+              "edge_max": 0.054996173469999236
+            },
+            "4096": {
+              "edge_mae": 6.17003225457074e-05,
+              "edge_mae_trial_sd": 1.630967240684031e-05,
+              "edge_max": 0.004364742592040768
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.183837890625,
+            0.00775146484375,
+            0.13128662109375,
+            0.72943115234375
+          ],
+          "seconds_incl_compile": 7.87280947000545
+        }
+      }
+    },
+    "L16-greedy-random-s4500": {
+      "reference": {
+        "log_z": 1134.4783436063894,
+        "q_per_spin": 1.1062450919149127,
+        "min_abs_edge_correlation": 0.9175548905534084,
+        "finite_difference_max_abs_error": 3.293076922261662e-11
+      },
+      "reference_seconds": 0.4377294680016348,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.17251269609468306,
+              "edge_mae_trial_sd": 0.04379673759416202,
+              "edge_max": 1.9999999987275774
+            },
+            "64": {
+              "edge_mae": 0.13146677540660157,
+              "edge_mae_trial_sd": 0.03717592697431863,
+              "edge_max": 1.9999999956953656
+            },
+            "256": {
+              "edge_mae": 0.10506491914294577,
+              "edge_mae_trial_sd": 0.03569030133419573,
+              "edge_max": 1.998697544461753
+            },
+            "1024": {
+              "edge_mae": 0.07774334557935302,
+              "edge_mae_trial_sd": 0.04399458643499842,
+              "edge_max": 1.738075544393321
+            },
+            "4096": {
+              "edge_mae": 0.05943213650856584,
+              "edge_mae_trial_sd": 0.04728420165336659,
+              "edge_max": 1.4119629717642221
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 29.354671694003628
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.23659702781501044,
+              "edge_mae_trial_sd": 0.017633300297403152,
+              "edge_max": 1.602032693354947
+            },
+            "64": {
+              "edge_mae": 0.1891058146120044,
+              "edge_mae_trial_sd": 0.020075389572264204,
+              "edge_max": 1.5702689773699832
+            },
+            "256": {
+              "edge_mae": 0.14720998159666449,
+              "edge_mae_trial_sd": 0.018737267751569645,
+              "edge_max": 1.3771895773377958
+            },
+            "1024": {
+              "edge_mae": 0.10904920095152436,
+              "edge_mae_trial_sd": 0.021679144939833615,
+              "edge_max": 1.1827566528794877
+            },
+            "4096": {
+              "edge_mae": 0.08048777029148459,
+              "edge_mae_trial_sd": 0.024234542056971592,
+              "edge_max": 1.0596287631934433
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 3.2149792700001854
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.17759703732399754,
+              "edge_mae_trial_sd": 0.03704980210115785,
+              "edge_max": 1.9479162843074187
+            },
+            "64": {
+              "edge_mae": 0.09606787064585678,
+              "edge_mae_trial_sd": 0.030968091214516946,
+              "edge_max": 1.7004840759904343
+            },
+            "256": {
+              "edge_mae": 0.04208654664552236,
+              "edge_mae_trial_sd": 0.03221901248355014,
+              "edge_max": 1.1535802690470334
+            },
+            "1024": {
+              "edge_mae": 0.00747206343953649,
+              "edge_mae_trial_sd": 0.011012136928288565,
+              "edge_max": 0.36678668883182763
+            },
+            "4096": {
+              "edge_mae": 0.00032955720271072187,
+              "edge_mae_trial_sd": 0.00010075316920090336,
+              "edge_max": 0.01468109793469577
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.0031585693359375,
+            0.072265625
+          ],
+          "seconds_incl_compile": 5.074960681995435
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.198293068442159,
+              "edge_mae_trial_sd": 0.03694052496675606,
+              "edge_max": 1.9895815487507864
+            },
+            "64": {
+              "edge_mae": 0.10603768556273138,
+              "edge_mae_trial_sd": 0.034511338661010096,
+              "edge_max": 1.7551961421905489
+            },
+            "256": {
+              "edge_mae": 0.040318929138166745,
+              "edge_mae_trial_sd": 0.03088364701010983,
+              "edge_max": 1.17119222595547
+            },
+            "1024": {
+              "edge_mae": 0.006241617827754764,
+              "edge_mae_trial_sd": 0.010024915597673083,
+              "edge_max": 0.33568178026671996
+            },
+            "4096": {
+              "edge_mae": 0.0004242973596967762,
+              "edge_mae_trial_sd": 0.0004968947350253871,
+              "edge_max": 0.02014068661707094
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.0040283203125,
+            0.0772705078125
+          ],
+          "seconds_incl_compile": 5.238904767997155
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.16147195876033202,
+              "edge_mae_trial_sd": 0.03198469510180102,
+              "edge_max": 1.884389201337315
+            },
+            "64": {
+              "edge_mae": 0.06530886129193916,
+              "edge_mae_trial_sd": 0.02692891806273993,
+              "edge_max": 1.529190651953518
+            },
+            "256": {
+              "edge_mae": 0.016548027861516018,
+              "edge_mae_trial_sd": 0.018635819748998996,
+              "edge_max": 0.6049592521963283
+            },
+            "1024": {
+              "edge_mae": 0.0011913897164009962,
+              "edge_mae_trial_sd": 0.001937089493244668,
+              "edge_max": 0.05389784383042409
+            },
+            "4096": {
+              "edge_mae": 0.00025538430069868795,
+              "edge_mae_trial_sd": 3.5406842676315e-05,
+              "edge_max": 0.009712171145670287
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.184661865234375,
+            0.0063018798828125,
+            0.09051513671875,
+            0.471649169921875
+          ],
+          "seconds_incl_compile": 8.543067904000054
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.2144707671025413,
+              "edge_mae_trial_sd": 0.03604010935997024,
+              "edge_max": 1.9791461126744785
+            },
+            "64": {
+              "edge_mae": 0.07205983508951035,
+              "edge_mae_trial_sd": 0.031101449254180007,
+              "edge_max": 1.6489720388665101
+            },
+            "256": {
+              "edge_mae": 0.014897107699366264,
+              "edge_mae_trial_sd": 0.014010007012361823,
+              "edge_max": 0.6235508668721333
+            },
+            "1024": {
+              "edge_mae": 0.0005998781792978044,
+              "edge_mae_trial_sd": 0.00019864458382310804,
+              "edge_max": 0.024265204770968052
+            },
+            "4096": {
+              "edge_mae": 0.0002778178284458832,
+              "edge_mae_trial_sd": 3.691492444061983e-05,
+              "edge_max": 0.013019969012347345
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.18951416015625,
+            0.006103515625,
+            0.0924072265625,
+            0.477783203125
+          ],
+          "seconds_incl_compile": 8.659422401004122
+        }
+      }
+    },
+    "L16-greedy-long-s4500": {
+      "reference": {
+        "log_z": 1152.9381733313435,
+        "q_per_spin": 1.124485700893356,
+        "min_abs_edge_correlation": 0.6640367769323058,
+        "finite_difference_max_abs_error": 1.144115358009401e-09
+      },
+      "reference_seconds": 0.44667536299675703,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1656973503750929,
+              "edge_mae_trial_sd": 0.04909987151397548,
+              "edge_max": 1.952073071568718
+            },
+            "64": {
+              "edge_mae": 0.1233906318236654,
+              "edge_mae_trial_sd": 0.04620185152127204,
+              "edge_max": 1.8777685347685051
+            },
+            "256": {
+              "edge_mae": 0.10055489547433685,
+              "edge_mae_trial_sd": 0.050178110608093456,
+              "edge_max": 1.8760937845678995
+            },
+            "1024": {
+              "edge_mae": 0.08619318386446388,
+              "edge_mae_trial_sd": 0.04197345184377913,
+              "edge_max": 1.8766567639574732
+            },
+            "4096": {
+              "edge_mae": 0.05826881145978403,
+              "edge_mae_trial_sd": 0.035997252196083476,
+              "edge_max": 1.5621601078805902
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 29.590822471000138
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.22537721209822303,
+              "edge_mae_trial_sd": 0.019287605033686647,
+              "edge_max": 1.5208165988598326
+            },
+            "64": {
+              "edge_mae": 0.18069665278927222,
+              "edge_mae_trial_sd": 0.01903114823289281,
+              "edge_max": 1.4817640467947
+            },
+            "256": {
+              "edge_mae": 0.1449352743653951,
+              "edge_mae_trial_sd": 0.017172349267183137,
+              "edge_max": 1.4093639347966855
+            },
+            "1024": {
+              "edge_mae": 0.12102692314278927,
+              "edge_mae_trial_sd": 0.014435890154069871,
+              "edge_max": 1.3576751311159017
+            },
+            "4096": {
+              "edge_mae": 0.09186313445345666,
+              "edge_mae_trial_sd": 0.01695035477465419,
+              "edge_max": 1.2049035520327254
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 3.2556561150049674
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1666524671987736,
+              "edge_mae_trial_sd": 0.025872862527016566,
+              "edge_max": 1.9999980464672082
+            },
+            "64": {
+              "edge_mae": 0.09950654211741239,
+              "edge_mae_trial_sd": 0.03300303607024411,
+              "edge_max": 1.7890553209518112
+            },
+            "256": {
+              "edge_mae": 0.0462286481004133,
+              "edge_mae_trial_sd": 0.025134807859908116,
+              "edge_max": 1.4667344933795974
+            },
+            "1024": {
+              "edge_mae": 0.009518993616019959,
+              "edge_mae_trial_sd": 0.008939372112645219,
+              "edge_max": 0.4371384338652671
+            },
+            "4096": {
+              "edge_mae": 0.00035257816792723195,
+              "edge_mae_trial_sd": 0.0008264427997791143,
+              "edge_max": 0.045545300307006466
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.003021240234375,
+            0.150787353515625
+          ],
+          "seconds_incl_compile": 5.187780541004031
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.20619338326345782,
+              "edge_mae_trial_sd": 0.028677923642738426,
+              "edge_max": 1.9999557897983995
+            },
+            "64": {
+              "edge_mae": 0.10698433982779781,
+              "edge_mae_trial_sd": 0.03851536053565312,
+              "edge_max": 1.6953106304695664
+            },
+            "256": {
+              "edge_mae": 0.05069626329389187,
+              "edge_mae_trial_sd": 0.03334538483441789,
+              "edge_max": 1.3052922773485598
+            },
+            "1024": {
+              "edge_mae": 0.016098139653740677,
+              "edge_mae_trial_sd": 0.023129581538330696,
+              "edge_max": 0.6610738646610199
+            },
+            "4096": {
+              "edge_mae": 0.0005634073936639241,
+              "edge_mae_trial_sd": 0.0012175551015999983,
+              "edge_max": 0.07383937493062104
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.00311279296875,
+            0.14385986328125
+          ],
+          "seconds_incl_compile": 5.3200737919978565
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.14979293913783676,
+              "edge_mae_trial_sd": 0.034031124532891345,
+              "edge_max": 1.9062482744776563
+            },
+            "64": {
+              "edge_mae": 0.08097532637869215,
+              "edge_mae_trial_sd": 0.022911379496884224,
+              "edge_max": 1.6327932084167167
+            },
+            "256": {
+              "edge_mae": 0.02575185865587815,
+              "edge_mae_trial_sd": 0.01606616819746414,
+              "edge_max": 1.0385703940435662
+            },
+            "1024": {
+              "edge_mae": 0.0024887558135607596,
+              "edge_mae_trial_sd": 0.00440527629727728,
+              "edge_max": 0.1977761355423192
+            },
+            "4096": {
+              "edge_mae": 0.00015305079140560227,
+              "edge_mae_trial_sd": 2.0227732805137265e-05,
+              "edge_max": 0.010313006281807799
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.1766510009765625,
+            0.0060882568359375,
+            0.0957489013671875,
+            0.5983734130859375
+          ],
+          "seconds_incl_compile": 8.627018803999817
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.19520809461571445,
+              "edge_mae_trial_sd": 0.0324172477765291,
+              "edge_max": 1.9791648584014616
+            },
+            "64": {
+              "edge_mae": 0.08944550864924813,
+              "edge_mae_trial_sd": 0.036381841094151435,
+              "edge_max": 1.7187438480283852
+            },
+            "256": {
+              "edge_mae": 0.027559458656843828,
+              "edge_mae_trial_sd": 0.020629879561131763,
+              "edge_max": 1.0587524470682137
+            },
+            "1024": {
+              "edge_mae": 0.0023393192301307893,
+              "edge_mae_trial_sd": 0.0033720220769701335,
+              "edge_max": 0.12141180250768663
+            },
+            "4096": {
+              "edge_mae": 0.0001420075598770975,
+              "edge_mae_trial_sd": 2.706780697853958e-05,
+              "edge_max": 0.010520943589681968
+            }
+          },
+          "qualifying_budget": 256,
+          "acceptance_by_slot_at_horizon": [
+            0.18048095703125,
+            0.00689697265625,
+            0.1014404296875,
+            0.603271484375
+          ],
+          "seconds_incl_compile": 8.71251733200188
+        }
+      }
+    },
+    "L32-grid-s4500": {
+      "reference": {
+        "log_z": 4639.933928307345,
+        "q_per_spin": 1.1325536824506903,
+        "min_abs_edge_correlation": 0.979629426735191,
+        "finite_difference_max_abs_error": 7.109339783539781e-10
+      },
+      "reference_seconds": 25.433896192997054,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.21126699047558464,
+              "edge_mae_trial_sd": 0.014913433470990547,
+              "edge_max": 1.9999999998979017
+            },
+            "64": {
+              "edge_mae": 0.16615030127091868,
+              "edge_mae_trial_sd": 0.013571100532379527,
+              "edge_max": 1.999999999516611
+            },
+            "256": {
+              "edge_mae": 0.12575927152627203,
+              "edge_mae_trial_sd": 0.01594445704465921,
+              "edge_max": 1.9999999989035218
+            },
+            "1024": {
+              "edge_mae": 0.09151716276946584,
+              "edge_mae_trial_sd": 0.021006187739767132,
+              "edge_max": 1.9999999212058497
+            },
+            "4096": {
+              "edge_mae": 0.06736763260072356,
+              "edge_mae_trial_sd": 0.01752902104609832,
+              "edge_max": 1.9993809799810556
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 97.2219549290021
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.26357023684561065,
+              "edge_mae_trial_sd": 0.011387688362975604,
+              "edge_max": 1.8208009228964
+            },
+            "64": {
+              "edge_mae": 0.21112639285748588,
+              "edge_mae_trial_sd": 0.012412472191456792,
+              "edge_max": 1.7333316498187412
+            },
+            "256": {
+              "edge_mae": 0.16858418146486165,
+              "edge_mae_trial_sd": 0.010646063790453441,
+              "edge_max": 1.5942476753660535
+            },
+            "1024": {
+              "edge_mae": 0.13373566496566672,
+              "edge_mae_trial_sd": 0.007211896573798631,
+              "edge_max": 1.5385654187028457
+            },
+            "4096": {
+              "edge_mae": 0.10564561265323023,
+              "edge_mae_trial_sd": 0.011186721978005755,
+              "edge_max": 1.3946105622121059
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 8.005733860001783
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.23254722350197493,
+              "edge_mae_trial_sd": 0.017907019851658643,
+              "edge_max": 1.9999999987063444
+            },
+            "64": {
+              "edge_mae": 0.158570666142951,
+              "edge_mae_trial_sd": 0.018715033545484344,
+              "edge_max": 1.9973948613836299
+            },
+            "256": {
+              "edge_mae": 0.09523006812024408,
+              "edge_mae_trial_sd": 0.018544873019428018,
+              "edge_max": 1.8925743480665904
+            },
+            "1024": {
+              "edge_mae": 0.04828818701376421,
+              "edge_mae_trial_sd": 0.0235785722182901,
+              "edge_max": 1.4846966615677024
+            },
+            "4096": {
+              "edge_mae": 0.015634998921126617,
+              "edge_mae_trial_sd": 0.016927858500781934,
+              "edge_max": 0.7639050569586785
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.0,
+            0.0146026611328125
+          ],
+          "seconds_incl_compile": 15.024681195005542
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.2400548927325833,
+              "edge_mae_trial_sd": 0.016432595788809325,
+              "edge_max": 1.9999999984532821
+            },
+            "64": {
+              "edge_mae": 0.168087055935525,
+              "edge_mae_trial_sd": 0.02197919916521647,
+              "edge_max": 1.992187404048592
+            },
+            "256": {
+              "edge_mae": 0.10511523067374823,
+              "edge_mae_trial_sd": 0.019277389396739137,
+              "edge_max": 1.8867159103892792
+            },
+            "1024": {
+              "edge_mae": 0.06329109441915128,
+              "edge_mae_trial_sd": 0.02226960839188594,
+              "edge_max": 1.6925713105386921
+            },
+            "4096": {
+              "edge_mae": 0.027809171933326708,
+              "edge_mae_trial_sd": 0.019729485429264962,
+              "edge_max": 1.2359114866777117
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [
+            0.0,
+            0.01544189453125
+          ],
+          "seconds_incl_compile": 15.103366707000532
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.21485670582552113,
+              "edge_mae_trial_sd": 0.008012892901495084,
+              "edge_max": 1.9791665604467377
+            },
+            "64": {
+              "edge_mae": 0.13581681379146407,
+              "edge_mae_trial_sd": 0.01401970163340013,
+              "edge_max": 1.8981750036708558
+            },
+            "256": {
+              "edge_mae": 0.07403783214409362,
+              "edge_mae_trial_sd": 0.01303813081943412,
+              "edge_max": 1.7037701226442432
+            },
+            "1024": {
+              "edge_mae": 0.028896037218357474,
+              "edge_mae_trial_sd": 0.013492599828674076,
+              "edge_max": 1.5021128586531218
+            },
+            "4096": {
+              "edge_mae": 0.004782288411539487,
+              "edge_mae_trial_sd": 0.006473892237794696,
+              "edge_max": 0.42752011046488003
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.0142364501953125,
+            0.0,
+            0.00830078125,
+            0.2563934326171875
+          ],
+          "seconds_incl_compile": 22.37839942699793
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.235448903790916,
+              "edge_mae_trial_sd": 0.02178619703510257,
+              "edge_max": 1.999999990552367
+            },
+            "64": {
+              "edge_mae": 0.13665090571992508,
+              "edge_mae_trial_sd": 0.014790226596689708,
+              "edge_max": 1.8958304957087289
+            },
+            "256": {
+              "edge_mae": 0.07445746205118971,
+              "edge_mae_trial_sd": 0.018050438145387298,
+              "edge_max": 1.8150590505554263
+            },
+            "1024": {
+              "edge_mae": 0.03711928524865606,
+              "edge_mae_trial_sd": 0.01601008924408377,
+              "edge_max": 1.3414604513320036
+            },
+            "4096": {
+              "edge_mae": 0.005450814203713128,
+              "edge_mae_trial_sd": 0.006109558559561892,
+              "edge_max": 0.4305941243217992
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.01336669921875,
+            0.0,
+            0.0146484375,
+            0.245361328125
+          ],
+          "seconds_incl_compile": 22.123514250997687
+        }
+      }
+    },
+    "L32-greedy-random-s4500": {
+      "reference": {
+        "log_z": 4188.591054858857,
+        "q_per_spin": 1.017275478765398,
+        "min_abs_edge_correlation": 0.6640367769323057,
+        "finite_difference_max_abs_error": 2.2809837352255613e-09
+      },
+      "reference_seconds": 19.15774756999599,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.19130392405320068,
+              "edge_mae_trial_sd": 0.02112143812919399,
+              "edge_max": 1.999999999999798
+            },
+            "64": {
+              "edge_mae": 0.14923615873647683,
+              "edge_mae_trial_sd": 0.025282224927263734,
+              "edge_max": 1.9999999999982707
+            },
+            "256": {
+              "edge_mae": 0.1138448870988052,
+              "edge_mae_trial_sd": 0.02118025600743411,
+              "edge_max": 1.99999999996839
+            },
+            "1024": {
+              "edge_mae": 0.09203678030201357,
+              "edge_mae_trial_sd": 0.021210172700259607,
+              "edge_max": 1.9999999999446643
+            },
+            "4096": {
+              "edge_mae": 0.07809330276979005,
+              "edge_mae_trial_sd": 0.01818898096713967,
+              "edge_max": 1.999991169487894
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 120.96162018200266
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.24824926676232406,
+              "edge_mae_trial_sd": 0.007555761622245739,
+              "edge_max": 1.7854010522691568
+            },
+            "64": {
+              "edge_mae": 0.19773855783336505,
+              "edge_mae_trial_sd": 0.00898353595694028,
+              "edge_max": 1.7780906429507826
+            },
+            "256": {
+              "edge_mae": 0.15702231710616985,
+              "edge_mae_trial_sd": 0.007349383813900336,
+              "edge_max": 1.6662540634305443
+            },
+            "1024": {
+              "edge_mae": 0.12154659860851408,
+              "edge_mae_trial_sd": 0.008168601939974793,
+              "edge_max": 1.583544951784699
+            },
+            "4096": {
+              "edge_mae": 0.09602280817970964,
+              "edge_mae_trial_sd": 0.010309219655567128,
+              "edge_max": 1.519578016118625
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 11.641607366000244
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.22033672631140025,
+              "edge_mae_trial_sd": 0.015340169993084733,
+              "edge_max": 1.999999999928228
+            },
+            "64": {
+              "edge_mae": 0.1567442931167391,
+              "edge_mae_trial_sd": 0.01619836999243442,
+              "edge_max": 1.9999999938666921
+            },
+            "256": {
+              "edge_mae": 0.10620269298019658,
+              "edge_mae_trial_sd": 0.010455907860731506,
+              "edge_max": 1.9876282139894839
+            },
+            "1024": {
+              "edge_mae": 0.06469412921213284,
+              "edge_mae_trial_sd": 0.012026759184887178,
+              "edge_max": 1.8756045227548785
+            },
+            "4096": {
+              "edge_mae": 0.0408094029604299,
+              "edge_mae_trial_sd": 0.00994049452657365,
+              "edge_max": 1.921101479468001
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [
+            0.0,
+            0.00152587890625
+          ],
+          "seconds_incl_compile": 18.020644935997552
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.22670628062001705,
+              "edge_mae_trial_sd": 0.014828018691442749,
+              "edge_max": 1.9999999997855242
+            },
+            "64": {
+              "edge_mae": 0.15782232608395896,
+              "edge_mae_trial_sd": 0.015779227222130317,
+              "edge_max": 1.99739548100774
+            },
+            "256": {
+              "edge_mae": 0.10090974725821619,
+              "edge_mae_trial_sd": 0.01639223487736937,
+              "edge_max": 1.9993489435110903
+            },
+            "1024": {
+              "edge_mae": 0.06748094748021125,
+              "edge_mae_trial_sd": 0.012983026479081575,
+              "edge_max": 1.9633758291865346
+            },
+            "4096": {
+              "edge_mae": 0.04493118087068221,
+              "edge_mae_trial_sd": 0.012073609334362493,
+              "edge_max": 1.7561031085773802
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [
+            0.0,
+            0.0054931640625
+          ],
+          "seconds_incl_compile": 18.18489726199914
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.20367127848922,
+              "edge_mae_trial_sd": 0.01754271132510141,
+              "edge_max": 1.9999999052854591
+            },
+            "64": {
+              "edge_mae": 0.12989853585629976,
+              "edge_mae_trial_sd": 0.014497341394710121,
+              "edge_max": 1.9140590428244053
+            },
+            "256": {
+              "edge_mae": 0.07182073271583232,
+              "edge_mae_trial_sd": 0.01652065032554376,
+              "edge_max": 1.8932281356229759
+            },
+            "1024": {
+              "edge_mae": 0.038426488316745194,
+              "edge_mae_trial_sd": 0.013006047383393166,
+              "edge_max": 1.7205364611568017
+            },
+            "4096": {
+              "edge_mae": 0.018633441504006726,
+              "edge_mae_trial_sd": 0.012576170866808073,
+              "edge_max": 1.2949164671295046
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.0195159912109375,
+            0.0,
+            0.0024566650390625,
+            0.02508544921875
+          ],
+          "seconds_incl_compile": 28.23085108899977
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.22778888788135862,
+              "edge_mae_trial_sd": 0.020408062712854586,
+              "edge_max": 1.9895833089677084
+            },
+            "64": {
+              "edge_mae": 0.13349519284275566,
+              "edge_mae_trial_sd": 0.01825293466396009,
+              "edge_max": 1.9348956180656454
+            },
+            "256": {
+              "edge_mae": 0.07977145430396783,
+              "edge_mae_trial_sd": 0.013035245939013243,
+              "edge_max": 1.937478896162292
+            },
+            "1024": {
+              "edge_mae": 0.0467575532955459,
+              "edge_mae_trial_sd": 0.011222019862430599,
+              "edge_max": 1.8040251810474437
+            },
+            "4096": {
+              "edge_mae": 0.024957586723555185,
+              "edge_mae_trial_sd": 0.013262108190194516,
+              "edge_max": 1.3259673474739264
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.020751953125,
+            0.0,
+            0.005615234375,
+            0.04034423828125
+          ],
+          "seconds_incl_compile": 28.97799743500218
+        }
+      }
+    },
+    "L32-greedy-long-s4500": {
+      "reference": {
+        "log_z": 4637.771546033744,
+        "q_per_spin": 1.1317413255263433,
+        "min_abs_edge_correlation": 0.9216636576321523,
+        "finite_difference_max_abs_error": 1.395974558171531e-09
+      },
+      "reference_seconds": 24.89919611699588,
+      "arms": {
+        "long": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.18580187035652534,
+              "edge_mae_trial_sd": 0.02209161135958605,
+              "edge_max": 1.9999999999999285
+            },
+            "64": {
+              "edge_mae": 0.1521364417761177,
+              "edge_mae_trial_sd": 0.020523420161579327,
+              "edge_max": 1.9999999999998854
+            },
+            "256": {
+              "edge_mae": 0.12081364947712013,
+              "edge_mae_trial_sd": 0.022991102620643415,
+              "edge_max": 1.999999999999885
+            },
+            "1024": {
+              "edge_mae": 0.10155507360193929,
+              "edge_mae_trial_sd": 0.025901943435612102,
+              "edge_max": 1.999999999993224
+            },
+            "4096": {
+              "edge_mae": 0.08179590093585151,
+              "edge_mae_trial_sd": 0.021552163012820473,
+              "edge_max": 1.9999999999669404
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 111.55289837099554
+        },
+        "independent": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.2447067147014756,
+              "edge_mae_trial_sd": 0.01071309734000927,
+              "edge_max": 1.7207801200006556
+            },
+            "64": {
+              "edge_mae": 0.193704016158054,
+              "edge_mae_trial_sd": 0.012584390278506457,
+              "edge_max": 1.7650595238913076
+            },
+            "256": {
+              "edge_mae": 0.1564512293631636,
+              "edge_mae_trial_sd": 0.0110117810768833,
+              "edge_max": 1.736934606373488
+            },
+            "1024": {
+              "edge_mae": 0.1273744825603207,
+              "edge_mae_trial_sd": 0.009173892103353903,
+              "edge_max": 1.7328765701670281
+            },
+            "4096": {
+              "edge_mae": 0.10468820589033026,
+              "edge_mae_trial_sd": 0.0074557144710539645,
+              "edge_max": 1.6236400451668032
+            }
+          },
+          "qualifying_budget": null,
+          "acceptance_by_slot_at_horizon": [],
+          "seconds_incl_compile": 11.08953893600119
+        },
+        "tempering5-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.21177622702138685,
+              "edge_mae_trial_sd": 0.01795405085817906,
+              "edge_max": 1.9999995708375429
+            },
+            "64": {
+              "edge_mae": 0.1399395188507584,
+              "edge_mae_trial_sd": 0.025408867511615158,
+              "edge_max": 1.9999999999823914
+            },
+            "256": {
+              "edge_mae": 0.09182875304715456,
+              "edge_mae_trial_sd": 0.02288174085446102,
+              "edge_max": 1.990885334211311
+            },
+            "1024": {
+              "edge_mae": 0.06057635921483879,
+              "edge_mae_trial_sd": 0.021778771863353898,
+              "edge_max": 1.9466142230219605
+            },
+            "4096": {
+              "edge_mae": 0.03593515199633862,
+              "edge_mae_trial_sd": 0.018184594679411744,
+              "edge_max": 1.5377881889471547
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [
+            0.0,
+            0.00262451171875
+          ],
+          "seconds_incl_compile": 18.228691761003574
+        },
+        "tempering5-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.21501691040660484,
+              "edge_mae_trial_sd": 0.02056775595492097,
+              "edge_max": 1.9999999999863252
+            },
+            "64": {
+              "edge_mae": 0.15031533945928663,
+              "edge_mae_trial_sd": 0.016830149896831802,
+              "edge_max": 1.9999999999581248
+            },
+            "256": {
+              "edge_mae": 0.09634727824113046,
+              "edge_mae_trial_sd": 0.015651352556100492,
+              "edge_max": 1.9667968735633514
+            },
+            "1024": {
+              "edge_mae": 0.06727890919455651,
+              "edge_mae_trial_sd": 0.020105733271220616,
+              "edge_max": 1.9674478813018168
+            },
+            "4096": {
+              "edge_mae": 0.04350336000546218,
+              "edge_mae_trial_sd": 0.015568594453268835,
+              "edge_max": 1.812784373428707
+            }
+          },
+          "qualifying_budget": 4096,
+          "acceptance_by_slot_at_horizon": [
+            0.0,
+            0.007568359375
+          ],
+          "seconds_incl_compile": 18.188667474001704
+        },
+        "tempering9-k1": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.1977859299817003,
+              "edge_mae_trial_sd": 0.02061003219519019,
+              "edge_max": 1.9999999992354192
+            },
+            "64": {
+              "edge_mae": 0.12239614232536136,
+              "edge_mae_trial_sd": 0.012618728455374827,
+              "edge_max": 1.9687038334101783
+            },
+            "256": {
+              "edge_mae": 0.06768245070770969,
+              "edge_mae_trial_sd": 0.01598820846654663,
+              "edge_max": 1.8749573706753306
+            },
+            "1024": {
+              "edge_mae": 0.03456994798524299,
+              "edge_mae_trial_sd": 0.01176178218123094,
+              "edge_max": 1.8328447565326986
+            },
+            "4096": {
+              "edge_mae": 0.02115594841005348,
+              "edge_mae_trial_sd": 0.009653858307217702,
+              "edge_max": 1.499579554091333
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.01300048828125,
+            0.0,
+            0.003875732421875,
+            0.074188232421875
+          ],
+          "seconds_incl_compile": 27.494332982998458
+        },
+        "tempering9-k4": {
+          "per_budget": {
+            "16": {
+              "edge_mae": 0.21920292449728407,
+              "edge_mae_trial_sd": 0.018044846123486433,
+              "edge_max": 1.9999914466632922
+            },
+            "64": {
+              "edge_mae": 0.12406011228571089,
+              "edge_mae_trial_sd": 0.01405457642645863,
+              "edge_max": 1.9765616619789208
+            },
+            "256": {
+              "edge_mae": 0.0694234708451501,
+              "edge_mae_trial_sd": 0.014306869358165848,
+              "edge_max": 1.825520589561045
+            },
+            "1024": {
+              "edge_mae": 0.035974050093282715,
+              "edge_mae_trial_sd": 0.009387910714954676,
+              "edge_max": 1.7760411109775418
+            },
+            "4096": {
+              "edge_mae": 0.0206498359576563,
+              "edge_mae_trial_sd": 0.009746010026426846,
+              "edge_max": 1.5515887270070727
+            }
+          },
+          "qualifying_budget": 1024,
+          "acceptance_by_slot_at_horizon": [
+            0.01409912109375,
+            0.0,
+            0.01092529296875,
+            0.06243896484375
+          ],
+          "seconds_incl_compile": 28.028081190001103
+        }
+      }
+    }
+  },
+  "wall_seconds_last_invocation": 486.46685098700254
+}
