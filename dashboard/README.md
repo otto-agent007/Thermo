@@ -72,7 +72,7 @@ Tests cover real React filter/keyboard interaction in a DOM harness, real archiv
 
 Scientific regression gates remain defined in the repository's `AGENTS.md`; this dashboard does not alter those gates or dependency pins.
 
-The **Proposals** view reads local, digest-checked harness records from
+The **Proposals** view, for the parked improvement harness, reads local, digest-checked records from
 `results/harness/`. Execution, verification, research outcome and owner review
 are separate; a research result is a bounded three-site exact trial. Draft
 patches and the three named screenshots are read-only links. Invalid or missing

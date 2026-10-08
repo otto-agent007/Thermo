@@ -131,6 +131,16 @@ work pointed at the right problem.
   should default to an exchange every 4 sweeps. A zero-write per-replica
   temperature control is the hardware feature that would reconcile the two
   views. The cost model excludes host latency, so sweep time is a lower bound.
+- **The improvement harness is parked** (2026-10-07,
+  `docs/improvement-harness.md`). It has never been run, and its research track
+  only tunes a fixture from the closed conservation line. Don't extend it or
+  treat it as the self-improvement plan. The owner wants real research autonomy
+  later: a scheduled loop that reads the lessons register and backlog, drafts
+  the next frozen protocol, waits for owner approval, then runs, replays and
+  writes up findings and lessons, never accepting its own results. Build it
+  from existing pieces (Hermes cron and kanban, autosave runners, dashboard),
+  not a new daemon like the rejected PR #57, and start it only when the owner
+  asks (roadmap row "Research autonomy loop").
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
