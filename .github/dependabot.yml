@@ -22,7 +22,7 @@ updates:
       interval: weekly
     open-pull-requests-limit: 3
     # Scientific 0.x dependencies are pinned by hand (AGENTS.md rule 6): a bump
-    # must update src/thermo_lab/provenance.py and the backend version asserts,
+    # must update src/thermo_lab/release_pins.py and the backend version asserts,
     # and preserve the upstream behavioral contracts in tests first.
     ignore:
       - dependency-name: thrml

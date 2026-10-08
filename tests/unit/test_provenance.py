@@ -4,11 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from thermo_lab.provenance import (
-    _PINNED_RELEASES,
-    collect_runtime_provenance,
-    find_repository_root,
-)
+from thermo_lab.provenance import collect_runtime_provenance, find_repository_root
+from thermo_lab.release_pins import PINNED_RELEASES
 
 
 def test_repository_root_is_found_from_a_nested_directory(tmp_path: Path) -> None:
@@ -48,7 +45,7 @@ def _locked_release(name: str) -> tuple[str, str]:
     raise AssertionError(f"{name} is not in uv.lock")
 
 
-@pytest.mark.parametrize("name", sorted(_PINNED_RELEASES))
+@pytest.mark.parametrize("name", sorted(PINNED_RELEASES))
 def test_pinned_release_matches_uv_lock(name: str) -> None:
     """A Dependabot bump that moves uv.lock must also move the provenance pin.
 
@@ -57,20 +54,20 @@ def test_pinned_release_matches_uv_lock(name: str) -> None:
     """
 
     version, wheel_sha256 = _locked_release(name)
-    pinned = _PINNED_RELEASES[name]
+    pinned = PINNED_RELEASES[name]
     assert pinned.version == version
     assert pinned.wheel_sha256 == wheel_sha256
 
 
-@pytest.mark.parametrize("name", sorted(_PINNED_RELEASES))
+@pytest.mark.parametrize("name", sorted(PINNED_RELEASES))
 def test_installed_release_is_the_pinned_one(name: str) -> None:
-    assert importlib.metadata.version(name) == _PINNED_RELEASES[name].version
+    assert importlib.metadata.version(name) == PINNED_RELEASES[name].version
 
 
 def test_runtime_provenance_marks_pinned_releases_verified() -> None:
     provenance = collect_runtime_provenance()
     by_name = {package.distribution: package for package in provenance.packages}
-    for name, release in _PINNED_RELEASES.items():
+    for name, release in PINNED_RELEASES.items():
         package = by_name[name]
         assert package.version == release.version
         assert package.release_source_commit == release.source_commit
