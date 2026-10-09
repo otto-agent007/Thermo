@@ -1,0 +1,19 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 2911472,
+  "members": {
+    "completion.json": "703fbfcaa7bb48b3e77445154e4ebc29cd9096fb1982c5290c853ee7c6946428",
+    "flags.npz": "e96ee84f7a04871bb6239d4512a751c3fb36c06e313622cc0d846925e17368a5",
+    "request.json": "aff59e933eb726c46f9415f40a44e20d165b6a4b04eb8e64ffc5a78d592c2a33",
+    "results.json": "244dfea85f913810b1f1813c134c33d600211f416d2f5cfb195597e278c67edb",
+    "source/docs/experiments/planar-annealing.md": "b45193375c9fe4ea26f528a7109e18fa38db9d9a62e8262e36a2f3fec67e61a8",
+    "source/src/thermo_lab/exchange_cost_projection.py": "e76dd62491989e44919f6dcd65af86af7fcd6689920e2e9129b5da7d2a26bd06",
+    "source/src/thermo_lab/hardware/z1.py": "cbce2258e6c741fe7a02bbe974150fb50300c93440bf3e992fa8593775b4e677",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/planar_annealing.py": "c24ba59866f7c1c25a0245380100ebe3ce3dc4d8effdb6f9e74161084f19c9ce",
+    "source/src/thermo_lab/planar_ising_scaling.py": "cec2cd61df6f8e6477c2716916ecdb3e00c3176d341b4364f3e696b3e6ad0b6e",
+    "source/uv.lock": "32dc495c101ed08e1db423109702000506c9de9783c0a815e912cb951cc294c9"
+  },
+  "sha256": "6dbff126df44b8428210ff4e2de3f6bb94107a8d65f4266dd79526e80622cbde"
+}
