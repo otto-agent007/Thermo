@@ -660,9 +660,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The three long shards run on all runner cores with pytest-xdist. It is
-        # loaded with `uv run --with` because archived studies pin uv.lock by
-        # SHA-256, so it cannot become a locked dependency.
+        # The long shards run on all runner cores with pytest-xdist, loaded with
+        # `uv run --with` because archived studies pin uv.lock by SHA-256.
+        # `loadfile` keeps a file's tests on one worker so expensive module
+        # fixtures are built once; the independent archive replays use
+        # `worksteal`. New test files fall into the *-rest/-other/-contracts
+        # catch-alls, whose --ignore lists must name every file split out.
         include:
           - name: unit-aggregation
             command: uv run pytest tests/unit/test_aggregation.py -m "not slow"
@@ -671,13 +674,47 @@ jobs:
               uv run pytest
               tests/unit/test_target_context_pasym_swap_results.py
               -m "not slow"
+          - name: unit-replays
+            command: >-
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest
+              tests/unit/test_planar_ising_scaling.py
+              tests/unit/test_am_binary_emulation.py
+              tests/unit/test_am_categorical_reference.py
+              -m "not slow"
+              -n auto --dist worksteal --durations=20
+          - name: unit-composed
+            command: >-
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest
+              tests/unit/test_composed_pasym_swap.py
+              tests/unit/test_composed_pasym_swap_artifacts.py
+              tests/unit/test_composed_pasym_swap_results.py
+              tests/unit/test_pasym_swap_results.py
+              tests/unit/test_return_fixture_study.py
+              tests/unit/test_thrml_m5a_kernel_inner_sweep.py
+              tests/unit/test_thrml_potts_contract.py
+              tests/unit/test_meta_ebm_thermalization.py
+              -m "not slow"
+              -n auto --dist loadfile --durations=20
           - name: unit-rest
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
               pytest tests/unit -m "not slow"
-              -n auto --dist loadfile --durations=0 --durations-min=2
+              -n auto --dist loadfile --durations=20
               --ignore=tests/unit/test_aggregation.py
               --ignore=tests/unit/test_target_context_pasym_swap_results.py
+              --ignore=tests/unit/test_planar_ising_scaling.py
+              --ignore=tests/unit/test_am_binary_emulation.py
+              --ignore=tests/unit/test_am_categorical_reference.py
+              --ignore=tests/unit/test_composed_pasym_swap.py
+              --ignore=tests/unit/test_composed_pasym_swap_artifacts.py
+              --ignore=tests/unit/test_composed_pasym_swap_results.py
+              --ignore=tests/unit/test_pasym_swap_results.py
+              --ignore=tests/unit/test_return_fixture_study.py
+              --ignore=tests/unit/test_thrml_m5a_kernel_inner_sweep.py
+              --ignore=tests/unit/test_thrml_potts_contract.py
+              --ignore=tests/unit/test_meta_ebm_thermalization.py
           - name: integration-composed-runner
             command: >-
               uv run pytest
@@ -704,24 +741,50 @@ jobs:
               tests/integration/test_quality_budget_full_preflight.py
               tests/integration/test_quality_budget_study.py
               -m "not slow"
+          - name: integration-heavy
+            command: >-
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest
+              tests/integration/test_conservation_tradeoff_audit.py
+              tests/integration/test_target_context_pasym_swap_runner.py
+              tests/integration/test_composed_trajectory_refinement_runner.py
+              tests/integration/test_thrml_model_context_pasym_swap_backend.py
+              -m "not slow"
+              -n auto --dist loadfile --durations=20
           - name: integration-other
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
               pytest tests/integration -m "not slow"
-              -n auto --dist loadfile --durations=0 --durations-min=2
+              -n auto --dist loadfile --durations=20
               --ignore=tests/integration/test_composed_pasym_swap_runner.py
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
               --ignore=tests/integration/test_context_conservation_audit.py
               --ignore=tests/integration/test_asymmetry_preservation_audit.py
               --ignore=tests/integration/test_quality_budget_full_preflight.py
               --ignore=tests/integration/test_quality_budget_study.py
+              --ignore=tests/integration/test_conservation_tradeoff_audit.py
+              --ignore=tests/integration/test_target_context_pasym_swap_runner.py
+              --ignore=tests/integration/test_composed_trajectory_refinement_runner.py
+              --ignore=tests/integration/test_thrml_model_context_pasym_swap_backend.py
           - name: upstream-regressions
             command: uv run pytest tests/upstream_regressions -m "not slow"
+          - name: slow-meta-ebm
+            command: >-
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest
+              tests/unit/test_meta_ebm_cap_baseline.py
+              tests/unit/test_meta_ebm_thermalization.py
+              tests/unit/test_meta_ebm_topology.py
+              -m slow
+              -n auto --dist loadfile --durations=20
           - name: slow-contracts
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
               pytest -m slow
-              -n auto --dist loadfile --durations=0 --durations-min=2
+              -n auto --dist loadfile --durations=20
+              --ignore=tests/unit/test_meta_ebm_cap_baseline.py
+              --ignore=tests/unit/test_meta_ebm_thermalization.py
+              --ignore=tests/unit/test_meta_ebm_topology.py
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"
