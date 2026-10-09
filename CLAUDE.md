@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-07)
+## Where the project stands (updated 2026-10-08)
 
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
@@ -116,6 +116,12 @@ work pointed at the right problem.
   and test a proposed cause on study-scale data before writing it up. A
   cue-informed start is the open variant; it waits for the owner. Source cards
   for the area are in `docs/knowledge/sources/`.
+  The coupling-bits study
+  (`docs/experiment-reports/2026-10-08-am-coupling-bits/`) programs the bias
+  design through the M5b codebook: 6 bits keep exact equilibrium recall within
+  0.01 when the step equals the coupling J, against 10 with separate coupling
+  and field caps and 12 with one full-scale cap. Encode its fields relative to
+  J. Static ±10% per-site beta jitter is negligible in every cell.
 - **Exchange cost projection**
   (`docs/experiment-reports/2026-10-07-exchange-cost-projection/`) prices
   replica exchange in the sealed Z1 Appendix-B model, where an accepted swap is
@@ -155,6 +161,23 @@ work pointed at the right problem.
   scaled-ladder study as closed by that probe unless the owner wants it
   recorded, and treat frustrated grids at beta 4 as an optimization target
   (energy per spin, annealing arms) rather than a sampling target.
+- **Planar annealing**
+  (`docs/experiment-reports/2026-10-08-planar-annealing/`) is that
+  optimization study: mixed-sign open grids of 64, 256 and 576 spins against
+  exact transfer-matrix ground states (`planar_annealing.ground_state_energy`,
+  max-plus over 2^L window states, L <= 24; `thermal_energy` gives the exact
+  q(beta) at any beta where Kac-Ward is ill-conditioned). Four parallel
+  annealed restarts are the best arm at every size and budget and qualify at
+  1e-3 per spin on all 64-spin targets, but the advantage shrinks from 4x to
+  23x at 64 spins to 1.3x to 2.2x at 256 and 576, where no arm gets within
+  1e-3 of the ground state within 65,536 sweeps (pre-registered negative).
+  Annealing to beta 8 or 16 makes no difference: the gap is trapping during
+  the ramp. The nine-replica ladder at cold beta 4 reports its own thermal
+  offset, not a search result. At equal p-bit updates the restarts win only
+  at 64 spins or at the largest budget, so say which accounting (elapsed
+  sweeps or updates) a restart claim uses. Open follow-ups wait for the
+  owner: schedule shape, a planar matching solver for L = 32, an N-scaled
+  cold ladder. None of them is an adaptive policy.
 - **Planar 16-offset ferro** (`docs/experiment-reports/2026-10-08-planar-16-offset-ferro/`,
   loop P-0001): #92 holds on a maximal planar subgraph of the Z1 16-offset
   rule (ferro, beta 4, about 42 percent long edges, paired grids). Only
@@ -237,9 +260,15 @@ as given. To avoid a repeat:
 ```bash
 uv sync --frozen
 uv run ruff format . && uv run ruff check .
-uv run pytest tests/unit -m "not slow"       # what CI's unit-rest job runs
+uv run pytest tests/unit -m "not slow"       # the tests CI's unit-rest job runs
 uv run pytest tests/unit/test_<module>.py    # iterate on one module first
 ```
+
+CI splits the long test runs into balanced jobs and runs each on all runner
+cores with `uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2 pytest ...
+-n auto` (see the comment on the `test` matrix in `scientific.yml`), which
+works locally too. Never add pytest-xdist (or anything else) to
+`pyproject.toml` for this: archived studies pin `uv.lock` by SHA-256.
 
 The full `uv run pytest` and the gate list in AGENTS.md are slow. Run the
 targeted tests while iterating, then the full gates for anything you touched
