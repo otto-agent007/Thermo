@@ -660,6 +660,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The three long shards run on all runner cores with pytest-xdist. It is
+        # loaded with `uv run --with` because archived studies pin uv.lock by
+        # SHA-256, so it cannot become a locked dependency.
         include:
           - name: unit-aggregation
             command: uv run pytest tests/unit/test_aggregation.py -m "not slow"
@@ -670,7 +673,9 @@ jobs:
               -m "not slow"
           - name: unit-rest
             command: >-
-              uv run pytest tests/unit -m "not slow"
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest tests/unit -m "not slow"
+              -n auto --dist worksteal --durations=20
               --ignore=tests/unit/test_aggregation.py
               --ignore=tests/unit/test_target_context_pasym_swap_results.py
           - name: integration-composed-runner
@@ -701,7 +706,9 @@ jobs:
               -m "not slow"
           - name: integration-other
             command: >-
-              uv run pytest tests/integration -m "not slow"
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest tests/integration -m "not slow"
+              -n auto --dist worksteal --durations=20
               --ignore=tests/integration/test_composed_pasym_swap_runner.py
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
               --ignore=tests/integration/test_context_conservation_audit.py
@@ -711,7 +718,10 @@ jobs:
           - name: upstream-regressions
             command: uv run pytest tests/upstream_regressions -m "not slow"
           - name: slow-contracts
-            command: uv run pytest -m slow
+            command: >-
+              uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              pytest -m slow
+              -n auto --dist worksteal --durations=20
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"
