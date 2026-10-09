@@ -233,9 +233,10 @@ uv run pytest tests/unit -m "not slow"       # the tests CI's unit-rest job runs
 uv run pytest tests/unit/test_<module>.py    # iterate on one module first
 ```
 
-CI runs its three long test shards in parallel with
-`uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2 pytest ... -n auto`,
-which works locally too. Never add pytest-xdist (or anything else) to
+CI splits the long test runs into balanced jobs and runs each on all runner
+cores with `uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2 pytest ...
+-n auto` (see the comment on the `test` matrix in `scientific.yml`), which
+works locally too. Never add pytest-xdist (or anything else) to
 `pyproject.toml` for this: archived studies pin `uv.lock` by SHA-256.
 
 The full `uv run pytest` and the gate list in AGENTS.md are slow. Run the
