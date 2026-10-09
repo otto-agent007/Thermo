@@ -8,8 +8,23 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-08)
+## Where the project stands (updated 2026-10-09)
 
+- **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
+  PR #101 on 2026-10-09) sets which questions come first. The standing
+  question is what a fixed-topology, low-precision, I/O-expensive p-bit array
+  can do usefully, at what task quality and projected cost, against a
+  conventional machine doing the same task. The order of work is a
+  hardware-constraint layer (queue row `constraint-layer`), then one task (a
+  small chained-EBM denoiser, `dtm-small-image`; associative-memory recall is
+  second), with the conventional baseline inside the same row. Sampler
+  comparisons on random instances are now probes, and the meta-EBM line
+  stays at contract checks and placement. A recorded study must name, in its
+  protocol's first paragraph, a number someone will design against;
+  anything else is a probe under `docs/research/`. Research rules 8 to 10:
+  run under the declared hardware constraints by default and say which a
+  study relaxed; state the resource accounting with every comparison; where
+  a task exists, report task-level error per unit of projected cost.
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
   the ±2 field/coupling cap chosen on Sep 1 put a ceiling of about
@@ -175,9 +190,9 @@ work pointed at the right problem.
   the ramp. The nine-replica ladder at cold beta 4 reports its own thermal
   offset, not a search result. At equal p-bit updates the restarts win only
   at 64 spins or at the largest budget, so say which accounting (elapsed
-  sweeps or updates) a restart claim uses. Open follow-ups wait for the
-  owner: schedule shape, a planar matching solver for L = 32, an N-scaled
-  cold ladder. None of them is an adaptive policy.
+  sweeps or updates) a restart claim uses. Its open follow-ups (schedule
+  shape, a planar matching solver for L = 32, an N-scaled cold ladder) stay
+  notes, not queue rows, under charter amendment 1.
 - **Planar 16-offset ferro** (`docs/experiment-reports/2026-10-08-planar-16-offset-ferro/`,
   loop P-0001): #92 holds on a maximal planar subgraph of the Z1 16-offset
   rule (ferro, beta 4, about 42 percent long edges, paired grids). Only
@@ -195,7 +210,10 @@ work pointed at the right problem.
   `docs/research-queue.md`, probes it, drafts a protocol PR and waits for the
   owner's `approve` on Discord before running; the owner's merge accepts
   results. Add or reorder queue rows only when the owner asks, and don't start
-  work on a row the loop has claimed (its branch is `research/<row>`).
+  work on a row the loop has claimed (its branch is `research/<row>`). A
+  director (`thermes-director`, Fable 5.1) reviews the direction after each
+  accepted study and weekly, as a docs-only PR under `docs/research/`; its
+  proposed queue changes are advice the owner adopts or not.
 - `docs/roadmap.md` has the one-row-per-milestone status table. Keep it current.
 
 ## Check assumptions before building process
