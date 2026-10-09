@@ -174,10 +174,9 @@ def test_archived_planar_ising_evidence_replays(tmp_path):
         [
             sys.executable,
             "-m",
-            "thermo_lab.planar_ising_scaling",
+            "thermo_lab.planar_ising_portable_replay",
             "--output-dir",
             str(output),
-            "--replay",
         ],
         check=True,
         env={
@@ -190,11 +189,12 @@ def test_archived_planar_ising_evidence_replays(tmp_path):
         capture_output=True,
         text=True,
     )
-    complete = json.loads((output / "completion.json").read_text())
-    assert complete["status"] == "planar_ising_scaling_complete"
+    complete = json.loads((output / "portable-completion.json").read_text())
+    assert complete["status"] == "planar_ising_scaling_portable_replay_complete"
     assert complete["targets"] == 18
     assert complete["cells_replayed"] == 540
     assert complete["decisions_replayed"] == 108
+    assert complete["decisions_unchanged_by_recomputed_references"] is True
 
 
 def test_jax_platform_is_cpu():

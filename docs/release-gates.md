@@ -673,7 +673,8 @@ comparison. Completion requires `status=planar_ising_scaling_complete`,
 `fixture_stationarity_passed=true` and `empirical_check_passed=true`.
 Generation takes about 25 minutes and has no checkpoint layer; restart an
 interrupted run in a fresh directory. CI replays the committed archive through
-the unit test (about five minutes, dominated by the 32 x 32 references).
+the unit test with the portable replay below (about five minutes, dominated by
+the 32 x 32 references).
 
 Replay with `--replay` authenticates sources, request, window sums and flags,
 recomputes every exact reference and check, then recomputes estimates from
@@ -682,6 +683,33 @@ tolerance 2e-12 relative. It does not regenerate sweeps. Sweeps are software
 simulation, references exact, and every energy or time figure a calibrated
 projection; none supports a hardware claim. Verdicts, including pre-registered
 negatives, do not gate.
+
+Single-thread settings do not make that replay portable. The BLAS kernel and
+memory layout still move the mixed-grid inverses: on the owner's machine the
+recomputed edges differ from the archive by up to 2e-10 at L = 8, 1e-8 at
+L = 16 and 4e-5 at L = 32 (ferro grids by about 1e-15), so `--replay` failed
+locally and on some CI hosts (October 8, 2026). The study module is pinned by
+its archive and stays unchanged. Use the portable replay instead:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_ising_portable_replay \
+  --output-dir results/planar-ising-scaling
+```
+
+It keeps every digest check and the reference, fixture and empirical checks
+at 2e-12. It requires each recomputed reference to match the archived one
+within the study's own precision bound (1e-4 in edges and q per spin, the
+limit its finite-difference check enforces) and within a relative 1e-10 in
+ln Z. It then recomputes cells, decisions and summaries from the archived
+references, which the committed manifest authenticates, at 2e-12, and
+requires the decisions computed from the fresh references to keep every
+status and budget and every best-arm summary. It writes
+`portable-completion.json` with
+`status=planar_ising_scaling_portable_replay_complete`, `targets=18`,
+`cells_replayed=540`, `decisions_replayed=108`,
+`decisions_unchanged_by_recomputed_references=true` and the per-target
+reference deviations. The archived `completion.json` is left as it was.
 
 ## Planar 16-offset ferro
 
