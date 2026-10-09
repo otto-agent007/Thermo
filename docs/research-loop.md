@@ -11,7 +11,9 @@ never merges and never accepts its own results: the owner approves each
 protocol by a Discord reply and accepts each result by merging its PR.
 
 It is built from existing pieces: a Hermes cron job, the `thermo` kanban
-board, the THERMES Discord channel and the autosave runners. There is no new
+board, the THERMES Discord channel and the autosave runners. A
+director agent reviews direction above the rows, after each accepted study,
+and proposes queue changes the owner may adopt; it is advice, never control. There is no new
 daemon (compare the rejected PR #57).
 
 ## Pieces
@@ -23,6 +25,7 @@ daemon (compare the rejected PR #57).
 | Proposer and executor | The `thermes` profile, working `LOOP P-NNNN` kanban cards in git worktrees | Opus 5.5 |
 | Reviewer | The `thermes-review` profile in the kanban review lane, comment-only | Fable 5.1, high effort |
 | CI fixer | The `thermes-ci` profile, given a card only when CI fails (see below) | Haiku 5.5 |
+| Director | The `thermes-director` profile, run after each loop PR merges and weekly as a floor; writes a direction review as a docs-only PR and proposes queue changes; never edits the queue, approves, runs or comments on study PRs (see below) | Fable 5.1, high effort |
 | Owner channel | #thermes on Discord | none |
 
 The gatekeeper, the card templates and the guard live in the THERMES profile
@@ -65,6 +68,78 @@ other THERMES scheduled scripts, not in this repository.
 
 The next proposal is drafted while a finished study waits for the owner.
 
+## Director
+
+*Added 2026-10-08 with charter amendment 1.* The proposer works inside one
+row: probe, fixed choices, protocol. The director works above the rows: did
+the last accepted result change what the lab should ask next, and is the
+queue still pointed at the charter's primary question? Those are different
+jobs and get different agents, because an agent that drafts protocols has
+every reason to find its own direction sound. The director is the second
+opinion on direction in the way the reviewer is the second opinion on a
+study.
+
+**Trigger.** The gatekeeper creates a `DIRECT D-NNNN` card when a loop PR
+merges (it already watches merges), and once a week on a fixed day if no
+merge happened, so a quiet week still gets a review. Never per tick, and
+never while a previous director card is open.
+
+**Inputs, all read from `main`.** `PROJECT_CHARTER.md` including its
+amendments; `docs/knowledge/lessons.md`; `docs/roadmap.md`; the findings of
+the last three merged studies and any probe notes under `docs/research/`
+since the previous review; `docs/research-queue.md`; the source cards under
+`docs/knowledge/sources/`; and the previous direction review. The source
+cards are not optional: the failure the amendment records was rediscovering
+the literature, and the only defence is an agent told to ask "is this
+already known?" against the lab's own reading list before endorsing a row.
+
+**Rubric.** The review answers these, in this order, each with a citation
+(a findings file, a lessons row, a source card, a queue row):
+
+1. For each result since the last review: did it produce a number someone
+   will design against (a precision requirement, a noise tolerance, a sweep
+   or I/O budget, a task quality at a projected cost, an upstream contract),
+   or was it a probe with a study's process? Was it run under the hardware
+   constraints, and which did it relax? Did it state its resource
+   accounting? Did it miss a pre-registered expectation, and which queue
+   rows assumed the opposite?
+2. For each queue row: what decision changes depending on its answer; what
+   is the cheapest probe that would make the full study unnecessary; is it
+   already answered in a source card; is it a third variant of something
+   that has failed twice.
+3. For the lab: can it state the amendment's four-week test today (one
+   task's precision and noise tolerance; sweeps, reads and writes per
+   useful sample; projected energy at a stated quality against a
+   conventional baseline)? If not, which row closes the largest gap?
+
+**Output.** One file, `docs/research/<date>-direction-review.md`, opened as
+a docs-only PR labelled `loop-direction`, with: a verdict per result, a
+proposed queue diff written as rows in the queue's own format (add, drop,
+reorder, hold or open; at most one *new* row per review, each with the
+decision it informs), and one named thing to drop. The gatekeeper posts the
+PR to #thermes. The owner merges it or closes it; merging accepts the
+review as a record, not the queue change. The queue stays owner-edited: the
+owner applies the diff by hand, or replies `adopt D-NNNN` and the gatekeeper
+opens the queue edit as a separate PR for the owner to merge.
+
+**What it may not do.** Edit `docs/research-queue.md`; approve, revise or
+reject a protocol; start, stop or touch a run; comment on an open study PR
+(the review lane does that); add more than one new row per review; propose
+a row the charter lists as out of bounds; or propose a third variant after
+two consecutive failures of the same kind, where its only permitted output
+is a question to the owner about the premise.
+
+**Keeping it honest.** A separate profile and model from the proposer,
+comment-only like the reviewer. Every verdict cites evidence, so a lazy
+review is visibly lazy. Every review names something to drop; a director
+that only adds rows is a backlog generator. Reviews are advice: the control
+is the owner reading one page a week. If direction reviews start being
+merged unread, the lab has an automated strategist, which is the failure the
+amendment describes with a human one.
+
+**Cost.** One card per merge or week, no probes, no runs. Flag a review
+over $10 in drafting the way proposals are flagged.
+
 ## CI failures
 
 The gatekeeper reads CI itself on every tick, at no model cost: the checks of
@@ -101,6 +176,7 @@ told to leave these to the gatekeeper.
 | `reject <why>` | Closes the draft PR; the row is skipped until its queue text changes |
 | `pause loop` / `resume loop` | Stops or restarts new proposals and runs; running work continues |
 | `loop status` | Lists active proposals and the week's spend |
+| `adopt D-NNNN` | Opens the queue edit proposed by that direction review as a PR for the owner to merge |
 
 Your words stay local: rejections and revision notes are kept in the
 THERMES profile and given to the proposer, never posted to GitHub.
@@ -109,6 +185,8 @@ THERMES profile and given to the proposer, never posted to GitHub.
 
 - At most one proposal waiting for the owner, one study running, and two
   studies not yet accepted.
+- At most one direction review open at a time, and at most one new queue row
+  proposed per review.
 - Probe at most 30 CPU-minutes; a production run over 8 CPU-hours is flagged
   for the owner. Run cards get a runtime cap of 2 × estimate + 3 hours
   (4 to 24 hours).
@@ -139,6 +217,8 @@ a determined bypass:
 - The executor and reviewer check the protocol diff against the approved
   commit; the gatekeeper flags proposal PRs that touch files outside
   `docs/experiments/`, `docs/research/` and the queue.
+- The gatekeeper flags a direction-review PR that touches anything outside
+  `docs/research/`, and a director card that comments on a study PR.
 
 ## Operating
 
