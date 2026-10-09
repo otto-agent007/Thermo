@@ -683,6 +683,54 @@ simulation, references exact, and every energy or time figure a calibrated
 projection; none supports a hardware claim. Verdicts, including pre-registered
 negatives, do not gate.
 
+## Planar 16-offset ferro
+
+Follow the [frozen protocol](experiments/planar-16-offset-ferro.md), CPU only,
+single-thread BLAS (the runner refuses to run or replay without it):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_16_offset_ferro \
+  --output-dir results/planar-16-offset-ferro-new --workers 2
+uv run --frozen pytest tests/unit/test_planar_16_offset_ferro.py
+```
+
+Eighteen targets (open grid and the `greedy-long` planar subgraph of the Z1
+16-offset rule, L = 8, 16 and 32, coupling seeds 4510 to 4512), six arms,
+five budgets (64 to 16384) and 16 trials produce 540 cells and 108
+decisions. Before sampling:
+
+- The study-local Kac-Ward must equal `planar_ising_scaling.kac_ward`
+  bitwise on grids.
+- It must match brute force on 24 patches with non-grid edges, to 1e-9.
+- Every reference's finite-difference check must be below 1e-4.
+- One two-colour sweep must be exactly stationary on two 16-offset patches.
+- The neighbour-list sampler must reproduce `planar_ising_scaling.compile_sampler`
+  bitwise for all six arms.
+- `tempering5-k1` must come within 0.01 of brute force on a 4 x 4
+  `greedy-long` patch.
+
+Generation takes about one hour with two workers. Each (target, arm) unit is
+saved atomically under `units/`. Resume an interrupted run with the same
+command, `--resume` and the same output directory. Resume re-authenticates
+the request and sources, re-verifies each unit by digest and reruns only the
+missing or corrupt ones.
+
+Completion requires:
+
+- `status=planar_16_offset_ferro_complete`
+- `targets=18`, `cells_replayed=540`, `decisions_replayed=108`
+- `references_recomputed=18`
+- `reference_checks_passed=true`, `kernel_checks_passed=true` and
+  `graph_rebuild_passed=true`
+
+Replay with `--replay` rebuilds every graph from its seed and recomputes
+every reference and check. It then recomputes the estimates from the uint16
+counts, along with errors, pricing, decisions, comparisons and the row
+verdict, at a relative tolerance of 2e-12. It does not regenerate sweeps.
+CI replays the committed archive through the unit test, which takes about
+three minutes. The row verdict does not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,

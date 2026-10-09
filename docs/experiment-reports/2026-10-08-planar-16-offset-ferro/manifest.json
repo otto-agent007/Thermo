@@ -1,0 +1,24 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 3807124,
+  "members": {
+    "attempts.json": "08b98ed1a4ae3829f1cd6722b98832a156e9eac8bb2b6065c814fcfab4242da4",
+    "checks.json": "c06db75470ceaf1792b11044bdc257d2cdb05d1a3e5a11d20b29259af697b92c",
+    "completion.json": "d8120317cf4a1c0f2f18116edc406d3b5a0a1070f4a47b198b83b0d107ae9a3d",
+    "counts.npz": "a696aa43dfb1ec71095f45b7e2c455fbfd25923567e63e81803b57514f427ca8",
+    "provenance.json": "1b0252c8984c8f08aedf66d19d0d1ea0e46a3e5b5930fbf0cf719e963f445e7e",
+    "request.json": "e54e8ba1b3f8691cd30fa054dba677337a461925729035cd81ba6087563382df",
+    "results.json": "f822ec2c19ae5c066c7f67b5a24891f02b9695c8a141f4c4f5869da6e459e3fc",
+    "run.log": "6aa5cedd361008f32d9d2b77c222dddf54fe8031e9d0440da11e60cc10988e3c",
+    "source/docs/experiments/planar-16-offset-ferro.md": "a2bcc5c8aedab553cd2e759a691b402c3413248a3d45868bdc7ebaa5a1da42e5",
+    "source/src/thermo_lab/exchange_cost_projection.py": "e76dd62491989e44919f6dcd65af86af7fcd6689920e2e9129b5da7d2a26bd06",
+    "source/src/thermo_lab/fixed_budget_sampling.py": "3827a94979078f75fb4aeabbf7984e746c663080e09e93d5cd13482f60dcf5c1",
+    "source/src/thermo_lab/hardware/z1.py": "cbce2258e6c741fe7a02bbe974150fb50300c93440bf3e992fa8593775b4e677",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/planar_16_offset_ferro.py": "289e8a93df80ac2e857ea8cc50eaec756ea0454d27cf5addd18b2332ef6119fd",
+    "source/src/thermo_lab/planar_ising_scaling.py": "cec2cd61df6f8e6477c2716916ecdb3e00c3176d341b4364f3e696b3e6ad0b6e",
+    "source/uv.lock": "32dc495c101ed08e1db423109702000506c9de9783c0a815e912cb951cc294c9"
+  },
+  "sha256": "ec5125924f7b2d66d2dcd3d03740a3123ff5637d89dc0068f1683f0c5bb840db"
+}
