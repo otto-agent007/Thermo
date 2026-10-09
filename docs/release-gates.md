@@ -967,3 +967,36 @@ Completion requires `status=am_categorical_reference_complete`, `dev_units=72`,
 The stage A archive must match the SHA-256 in its `completion.json`. CI replays
 the archive through the unit test, recomputing every exact reference (about 75
 seconds). Verdicts are scientific results and do not gate.
+
+## Associative memory: coupling bits and beta jitter
+
+Use the [frozen protocol](experiments/am-coupling-bits.md), CPU only, with the
+single-thread BLAS pin:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.am_coupling_bits \
+  --output-dir results/am-coupling-bits-new --workers 3
+# after an interruption: the same command plus --resume, same directory
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.am_coupling_bits \
+  --replay docs/experiment-reports/2026-10-08-am-coupling-bits/study.json.gz \
+  --output-dir results/am-coupling-bits-replay --workers 3
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run pytest tests/unit/test_am_coupling_bits.py
+```
+
+Completion requires `status=am_coupling_bits_complete`, `cells=6`,
+`held_sets=16`, `exact_units=288`, `sampled_runs=3072` (the protocol's arm
+table; its text says 2976, see the findings), `chain_laws=512`,
+`chain_laws_converged=true`, `preflight_passed=true`,
+`stock_equality_passed=true`, `prefix_check_passed=true`,
+`unquantized_matches_stage_a=true`, `stage_a_archive_verified=true`,
+`integrity=true` and `replayed=true`, plus `spec_bits` and `verdict_counts`.
+The run takes about 47 minutes on 3 workers (1.8 CPU-hours), so it autosaves
+one unit per cell and set under `units/`. A unit is reused only when the
+request digest and runner source hash match, and the unit test interrupts and
+resumes a small run. The stage A archive must match the SHA-256 in its
+`completion.json`. CI replays the archive with `--light` (12-bit-cue exact
+references only) through the unit test; the full replay is a local gate.
+Spec numbers and verdicts are scientific results and do not gate.
