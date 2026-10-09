@@ -155,6 +155,14 @@ work pointed at the right problem.
   scaled-ladder study as closed by that probe unless the owner wants it
   recorded, and treat frustrated grids at beta 4 as an optimization target
   (energy per spin, annealing arms) rather than a sampling target.
+- **Planar 16-offset ferro** (`docs/experiment-reports/2026-10-08-planar-16-offset-ferro/`,
+  loop P-0001): #92 holds on a maximal planar subgraph of the Z1 16-offset
+  rule (ferro, beta 4, about 42 percent long edges, paired grids). Only
+  tempering qualifies at 256 and 1024 spins within 4096 sweeps; the
+  nine-replica ladder keeps 256 and 1024 sweeps on every target. The thin
+  five-replica ladder loses more than tenfold cold-end acceptance on the long
+  edges and qualifies at 1024 spins with no margin; the probe's predicted slip
+  did not reproduce. Says nothing about the non-planar degree-16 lattice.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
