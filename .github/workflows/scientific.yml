@@ -675,7 +675,7 @@ jobs:
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
               pytest tests/unit -m "not slow"
-              -n auto --dist worksteal --durations=20
+              -n auto --dist loadfile --durations=0 --durations-min=2
               --ignore=tests/unit/test_aggregation.py
               --ignore=tests/unit/test_target_context_pasym_swap_results.py
           - name: integration-composed-runner
@@ -708,7 +708,7 @@ jobs:
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
               pytest tests/integration -m "not slow"
-              -n auto --dist worksteal --durations=20
+              -n auto --dist loadfile --durations=0 --durations-min=2
               --ignore=tests/integration/test_composed_pasym_swap_runner.py
               --ignore=tests/integration/test_numpy_composed_pasym_swap_backend.py
               --ignore=tests/integration/test_context_conservation_audit.py
@@ -721,7 +721,7 @@ jobs:
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
               pytest -m slow
-              -n auto --dist worksteal --durations=20
+              -n auto --dist loadfile --durations=0 --durations-min=2
     env:
       JAX_PLATFORMS: cpu
       PYTHONHASHSEED: "0"
