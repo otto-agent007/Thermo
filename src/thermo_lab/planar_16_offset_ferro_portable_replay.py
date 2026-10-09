@@ -15,11 +15,11 @@ and kernel checks at 2e-12. Each recomputed reference must match the archived on
 within the study's precision bound (1e-4) in edges, q per spin and the smallest edge
 correlation and to a relative 1e-10 in ln Z, check edges with the same correlation
 magnitudes (the two smallest |correlation| tie to about 1e-15 on these grids, so their
-indices can swap between hosts) and keep its finite-difference error below the bound. Cells, decisions, comparisons and the
-summary are then recomputed from the archived references, which the committed manifest
-authenticates, at the frozen 2e-12. Finally the cells are recomputed from the fresh
-references, and every decision's status and budget and the row verdict must be
-unchanged, so reference drift cannot move a verdict.
+indices can swap between hosts) and keep its finite-difference error below the bound.
+Cells, decisions, comparisons and the summary are then recomputed from the archived
+references, which the committed manifest authenticates, at the frozen 2e-12. Finally
+the cells are recomputed from the fresh references, and every decision's status and
+budget and the row verdict must be unchanged, so reference drift cannot move a verdict.
 
     uv run python -m thermo_lab.planar_16_offset_ferro_portable_replay --output-dir <dir>
 
