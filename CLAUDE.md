@@ -116,6 +116,12 @@ work pointed at the right problem.
   and test a proposed cause on study-scale data before writing it up. A
   cue-informed start is the open variant; it waits for the owner. Source cards
   for the area are in `docs/knowledge/sources/`.
+  The coupling-bits study
+  (`docs/experiment-reports/2026-10-08-am-coupling-bits/`) programs the bias
+  design through the M5b codebook: 6 bits keep exact equilibrium recall within
+  0.01 when the step equals the coupling J, against 10 with separate coupling
+  and field caps and 12 with one full-scale cap. Encode its fields relative to
+  J. Static ±10% per-site beta jitter is negligible in every cell.
 - **Exchange cost projection**
   (`docs/experiment-reports/2026-10-07-exchange-cost-projection/`) prices
   replica exchange in the sealed Z1 Appendix-B model, where an accepted swap is
