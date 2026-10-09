@@ -24,8 +24,9 @@ lower end. A shared full-scale cap spends its levels on the largest visible
 field (up to 28 J at P = 128), so J gets few steps. The protocol's negative
 reading applies: program this design's fields in units of J, not relative to
 the largest field. Recall is not monotone in b under `full` and `split`
-(figure). At P = 32 with an 8-bit cue, `full` reaches +0.011 at 7 bits and
-falls to −0.011 at 8.
+(figure). At P = 8 with an 8-bit cue, `full` rises to +0.011 at 7 bits and
+falls to −0.003 at 8. At P = 32 with an 8-bit cue, `full` is −0.028 at 7 bits
+and −0.011 at 8.
 
 Under `coupling`, recall is flat from 6 to 12 bits at a small fixed offset
 (−0.0035 to +0.0014). From 6 bits upward the field cap L·J no longer clips,
