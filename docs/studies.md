@@ -887,3 +887,17 @@ it settles for β = 4 or 8. The bias design still exceeds it in 16 of 24
 cell–budget pairs and never falls short. A cue-informed start is open. The
 [gate](release-gates.md#associative-memory-stage-a2-label-first-categorical-reference)
 covers run and replay.
+
+## Associative memory: coupling bits and beta jitter
+
+The [frozen protocol](experiments/am-coupling-bits.md) (P-0002) programs stage
+A's `bias` binary memory through the M5b codebook with three cap placements
+and 3 to 12 bits, and adds a static per-site beta gain jitter. Exact
+equilibrium recall is the spec metric; THRML runs at 4, 6 and 8 bits measure
+finite budgets and jitter.
+[Findings](experiment-reports/2026-10-08-am-coupling-bits/findings.md): with
+step = J the design needs 6 bits (as pre-registered); separate caps need 10
+and one full-scale cap needs 12 (both above the expectation). ±10% jitter is
+negligible in all six cells. The
+[gate](release-gates.md#associative-memory-coupling-bits-and-beta-jitter)
+covers run, resume and replay.
