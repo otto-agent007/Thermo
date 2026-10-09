@@ -711,6 +711,117 @@ status and budget and every best-arm summary. It writes
 `decisions_unchanged_by_recomputed_references=true` and the per-target
 reference deviations. The archived `completion.json` is left as it was.
 
+## Planar annealing
+
+Follow the [frozen protocol](experiments/planar-annealing.md), CPU only:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_annealing \
+  --output-dir results/planar-annealing-new          # add --resume after an interruption
+uv run --frozen pytest tests/unit/test_planar_annealing.py
+```
+
+Nine mixed-sign grids (L = 8, 16, 24 x seeds 400 to 402), six arms, five
+budgets and 16 trials produce 270 cells and 54 decisions. Before sampling,
+the max-plus and log-sum-exp transfer matrices must match brute force on
+2 x 2 to 4 x 4 grids (ground state to 1e-12, ln Z to 1e-9, thermal energy to
+1e-9) and the scaling study's transfer matrix at beta = 4 on L <= 16 to a
+relative 1e-12, and the two-colour kernel's stationarity check must pass.
+Completion requires `status=planar_annealing_complete`, `targets=9`,
+`cells_replayed=270`, `decisions_replayed=54`, `reference_checks_passed=true`
+and `fixture_stationarity_passed=true`, with `references_recomputed=9` for a
+full replay or `references_recomputed=6` and
+`references_verified_by_digest=3` with `--light`. The run takes about 2.5
+hours and autosaves one unit per target under `partial/`; resume with
+`--resume` in the same directory and the saved request. CI replays the
+committed archive with `--light` through the unit test (about a minute).
+
+Replay authenticates sources, request and exchange flags, recomputes the
+references for L <= 16 (and L = 24 unless `--light`), then every gap,
+fraction, pricing, decision and summary from the persisted per-trial
+energies with tolerance 2e-12 relative. It does not regenerate sweeps.
+Sweeps are software simulation, references exact, and every energy or time
+figure a calibrated projection; none supports a hardware claim. Verdicts,
+including a negative on every arm, do not gate.
+
+## Planar 16-offset ferro
+
+Follow the [frozen protocol](experiments/planar-16-offset-ferro.md), CPU only,
+single-thread BLAS (the runner refuses to run or replay without it):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_16_offset_ferro \
+  --output-dir results/planar-16-offset-ferro-new --workers 2
+uv run --frozen pytest tests/unit/test_planar_16_offset_ferro.py
+```
+
+Eighteen targets (open grid and the `greedy-long` planar subgraph of the Z1
+16-offset rule, L = 8, 16 and 32, coupling seeds 4510 to 4512), six arms,
+five budgets (64 to 16384) and 16 trials produce 540 cells and 108
+decisions. Before sampling:
+
+- The study-local Kac-Ward must equal `planar_ising_scaling.kac_ward`
+  bitwise on grids.
+- It must match brute force on 24 patches with non-grid edges, to 1e-9.
+- Every reference's finite-difference check must be below 1e-4.
+- One two-colour sweep must be exactly stationary on two 16-offset patches.
+- The neighbour-list sampler must reproduce `planar_ising_scaling.compile_sampler`
+  bitwise for all six arms.
+- `tempering5-k1` must come within 0.01 of brute force on a 4 x 4
+  `greedy-long` patch.
+
+Generation takes about one hour with two workers. Each (target, arm) unit is
+saved atomically under `units/`. Resume an interrupted run with the same
+command, `--resume` and the same output directory. Resume re-authenticates
+the request and sources, re-verifies each unit by digest and reruns only the
+missing or corrupt ones.
+
+Completion requires:
+
+- `status=planar_16_offset_ferro_complete`
+- `targets=18`, `cells_replayed=540`, `decisions_replayed=108`
+- `references_recomputed=18`
+- `reference_checks_passed=true`, `kernel_checks_passed=true` and
+  `graph_rebuild_passed=true`
+
+Replay with `--replay` rebuilds every graph from its seed and recomputes
+every reference and check. It then recomputes the estimates from the uint16
+counts, along with errors, pricing, decisions, comparisons and the row
+verdict, at a relative tolerance of 2e-12. It does not regenerate sweeps.
+The row verdict does not gate.
+
+That frozen replay is not portable across hosts. Each reference records its
+finite-difference precision, a difference of two ln Z values of 280 to 4,800
+divided by a 2e-4 step, so rounding alone moves it by up to about 5e-9 (the
+archived values are 1e-10 to 7e-9). The two edges it checks are the two
+smallest |correlation|, which tie to about 1e-15 on these grids, so they can
+swap between hosts. `--replay` failed on CI for the first reason
+(October 9, 2026). The study module is pinned by its archive and stays
+unchanged. CI replays the committed archive through the unit test with the
+portable replay instead (about three minutes):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_16_offset_ferro_portable_replay \
+  --output-dir results/planar-16-offset-ferro
+```
+
+It keeps the source, request, counts and graph-rebuild checks and the
+reference and kernel checks at 2e-12. Each recomputed reference must match
+the archived one within the study's 1e-4 precision bound in edges, q per
+spin, the smallest edge correlation and the checked edges' correlation
+magnitudes, and within a relative 1e-10 in ln Z, with a finite-difference
+error below 1e-4. Cells, decisions, comparisons and the summary are then
+recomputed from the archived references at 2e-12, and the cells recomputed
+from fresh references must leave every decision's status and budget and the
+row verdict unchanged. It writes `portable-completion.json` with
+`status=planar_16_offset_ferro_portable_replay_complete`, `targets=18`,
+`cells_replayed=540`, `decisions_replayed=108`,
+`decisions_unchanged_by_recomputed_references=true` and the per-target
+reference deviations. The archived `completion.json` is left as it was.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,
@@ -933,3 +1044,36 @@ Completion requires `status=am_categorical_reference_complete`, `dev_units=72`,
 The stage A archive must match the SHA-256 in its `completion.json`. CI replays
 the archive through the unit test, recomputing every exact reference (about 75
 seconds). Verdicts are scientific results and do not gate.
+
+## Associative memory: coupling bits and beta jitter
+
+Use the [frozen protocol](experiments/am-coupling-bits.md), CPU only, with the
+single-thread BLAS pin:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.am_coupling_bits \
+  --output-dir results/am-coupling-bits-new --workers 3
+# after an interruption: the same command plus --resume, same directory
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.am_coupling_bits \
+  --replay docs/experiment-reports/2026-10-08-am-coupling-bits/study.json.gz \
+  --output-dir results/am-coupling-bits-replay --workers 3
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run pytest tests/unit/test_am_coupling_bits.py
+```
+
+Completion requires `status=am_coupling_bits_complete`, `cells=6`,
+`held_sets=16`, `exact_units=288`, `sampled_runs=3072` (the protocol's arm
+table; its text says 2976, see the findings), `chain_laws=512`,
+`chain_laws_converged=true`, `preflight_passed=true`,
+`stock_equality_passed=true`, `prefix_check_passed=true`,
+`unquantized_matches_stage_a=true`, `stage_a_archive_verified=true`,
+`integrity=true` and `replayed=true`, plus `spec_bits` and `verdict_counts`.
+The run takes about 47 minutes on 3 workers (1.8 CPU-hours), so it autosaves
+one unit per cell and set under `units/`. A unit is reused only when the
+request digest and runner source hash match, and the unit test interrupts and
+resumes a small run. The stage A archive must match the SHA-256 in its
+`completion.json`. CI replays the archive with `--light` (12-bit-cue exact
+references only) through the unit test; the full replay is a local gate.
+Spec numbers and verdicts are scientific results and do not gate.

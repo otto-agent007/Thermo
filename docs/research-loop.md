@@ -197,8 +197,9 @@ THERMES profile and given to the proposer, never posted to GitHub.
   each doubling), and when a card runs well past its expected time. A cap can
   be restored with `weekly_budget_usd` in the loop config.
 - Out of bounds: the conservation line, reading A arms, a third adaptive
-  policy, the parked harness, the frustrated-grid/annealing track (reserved
-  for the owner's other session until its study lands), hardware, network
+  policy, the parked harness, the frustrated-grid/annealing track (recorded
+  in PR #98; its follow-ups are notes, not queue rows, under charter
+  amendment 1), hardware, network
   services, new dependencies, and anything CLAUDE.md says waits for the
   owner.
 

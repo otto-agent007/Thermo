@@ -687,6 +687,66 @@ ferro), so an N-scaled ladder is the open follow-up. The
 [gate](release-gates.md#planar-ising-scaling) replays the exact references,
 kernel checks, estimates, pricing and decisions from the persisted window sums.
 
+## Planar annealing
+
+The [frozen protocol](experiments/planar-annealing.md) asks the optimization
+question the October 8 probe raised: at equal elapsed sweeps on frustrated
+planar grids of 64, 256 and 576 spins, how close to the exact ground-state
+energy do annealing to beta 8 and 16, four parallel restarts, a cold chain and
+the nine-replica tempering ladder get, and what does each cost in the Z1
+model? References are exact transfer matrices (max-plus for the ground state,
+a one-sweep derivative for the thermal energy), since Kac-Ward is
+ill-conditioned at beta 8 and above.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run python -m thermo_lab.planar_annealing \
+  --output-dir results/planar-annealing
+```
+
+The [October 8 findings](experiment-reports/2026-10-08-planar-annealing/findings.md):
+four parallel restarts are the best arm at every size and budget, qualifying
+at 1e-3 on all three 64-spin targets (mean gap 2.3e-4 at 65,536 sweeps,
+4x to 23x better than one anneal), but the advantage falls to 1.4x to 2.2x
+at 256 spins and 1.3x to 1.7x at 576, where no arm gets within 1e-3 (best
+mean gaps 3.3e-3 and 4.4e-3, pre-registered negative). The endpoint
+(beta 8 or 16) does not matter, so the gap is trapping in the ramp. The
+nine-replica ladder at cold beta 4 reports its own thermal offset and costs
+6,900x to 72,000x the projected energy. At equal p-bit updates the restarts
+win only at 64 spins or at the largest budget. The
+[gate](release-gates.md#planar-annealing) replays references, gaps, pricing
+and decisions from the persisted per-trial energies.
+
+## Planar 16-offset ferro
+
+The [frozen protocol](experiments/planar-16-offset-ferro.md) (research-loop
+proposal P-0001) asks whether #92's allocations hold on the hardware-shaped
+graph. The 16-offset rule is not planar, so the study uses `greedy-long`, a
+maximal straight-line planar subgraph of it: longest offsets first, and about
+42 percent long edges at L = 32. Each target is paired with an open grid
+under the same coupling seeds. The study uses zero-field ferro targets at
+beta = 4 and #92's six arms, with budgets extended to 16384. The reference is
+an exact Kac-Ward on the explicit embedding, bitwise equal to #92's on grids.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run python -m thermo_lab.planar_16_offset_ferro \
+  --output-dir results/planar-16-offset-ferro --workers 2
+```
+
+The [recorded study](experiment-reports/2026-10-08-planar-16-offset-ferro/findings.md)
+finds that #92 holds on the 16-offset subgraph:
+
+- At 256 and 1024 spins, only tempering qualifies within 4096 sweeps.
+- The nine-replica ladder keeps 256 and 1024 sweeps on every target.
+- The probe's predicted thin-ladder slip did not reproduce. The five-replica
+  ladder's cold-end acceptance still falls more than tenfold, and it
+  qualifies at L = 32 with no margin.
+
+The run autosaves per unit and resumes with `--resume`. The
+[gate](release-gates.md#planar-16-offset-ferro) replays the references,
+checks, estimates, pricing, decisions and verdict from the persisted counts.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a
@@ -887,3 +947,17 @@ it settles for β = 4 or 8. The bias design still exceeds it in 16 of 24
 cell–budget pairs and never falls short. A cue-informed start is open. The
 [gate](release-gates.md#associative-memory-stage-a2-label-first-categorical-reference)
 covers run and replay.
+
+## Associative memory: coupling bits and beta jitter
+
+The [frozen protocol](experiments/am-coupling-bits.md) (P-0002) programs stage
+A's `bias` binary memory through the M5b codebook with three cap placements
+and 3 to 12 bits, and adds a static per-site beta gain jitter. Exact
+equilibrium recall is the spec metric; THRML runs at 4, 6 and 8 bits measure
+finite budgets and jitter.
+[Findings](experiment-reports/2026-10-08-am-coupling-bits/findings.md): with
+step = J the design needs 6 bits (as pre-registered); separate caps need 10
+and one full-scale cap needs 12 (both above the expectation). ±10% jitter is
+negligible in all six cells. The
+[gate](release-gates.md#associative-memory-coupling-bits-and-beta-jitter)
+covers run, resume and replay.
