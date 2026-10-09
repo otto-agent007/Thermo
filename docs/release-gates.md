@@ -745,6 +745,83 @@ Sweeps are software simulation, references exact, and every energy or time
 figure a calibrated projection; none supports a hardware claim. Verdicts,
 including a negative on every arm, do not gate.
 
+## Planar 16-offset ferro
+
+Follow the [frozen protocol](experiments/planar-16-offset-ferro.md), CPU only,
+single-thread BLAS (the runner refuses to run or replay without it):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_16_offset_ferro \
+  --output-dir results/planar-16-offset-ferro-new --workers 2
+uv run --frozen pytest tests/unit/test_planar_16_offset_ferro.py
+```
+
+Eighteen targets (open grid and the `greedy-long` planar subgraph of the Z1
+16-offset rule, L = 8, 16 and 32, coupling seeds 4510 to 4512), six arms,
+five budgets (64 to 16384) and 16 trials produce 540 cells and 108
+decisions. Before sampling:
+
+- The study-local Kac-Ward must equal `planar_ising_scaling.kac_ward`
+  bitwise on grids.
+- It must match brute force on 24 patches with non-grid edges, to 1e-9.
+- Every reference's finite-difference check must be below 1e-4.
+- One two-colour sweep must be exactly stationary on two 16-offset patches.
+- The neighbour-list sampler must reproduce `planar_ising_scaling.compile_sampler`
+  bitwise for all six arms.
+- `tempering5-k1` must come within 0.01 of brute force on a 4 x 4
+  `greedy-long` patch.
+
+Generation takes about one hour with two workers. Each (target, arm) unit is
+saved atomically under `units/`. Resume an interrupted run with the same
+command, `--resume` and the same output directory. Resume re-authenticates
+the request and sources, re-verifies each unit by digest and reruns only the
+missing or corrupt ones.
+
+Completion requires:
+
+- `status=planar_16_offset_ferro_complete`
+- `targets=18`, `cells_replayed=540`, `decisions_replayed=108`
+- `references_recomputed=18`
+- `reference_checks_passed=true`, `kernel_checks_passed=true` and
+  `graph_rebuild_passed=true`
+
+Replay with `--replay` rebuilds every graph from its seed and recomputes
+every reference and check. It then recomputes the estimates from the uint16
+counts, along with errors, pricing, decisions, comparisons and the row
+verdict, at a relative tolerance of 2e-12. It does not regenerate sweeps.
+The row verdict does not gate.
+
+That frozen replay is not portable across hosts. Each reference records its
+finite-difference precision, a difference of two ln Z values of 280 to 4,800
+divided by a 2e-4 step, so rounding alone moves it by up to about 5e-9 (the
+archived values are 1e-10 to 7e-9). The two edges it checks are the two
+smallest |correlation|, which tie to about 1e-15 on these grids, so they can
+swap between hosts. `--replay` failed on CI for the first reason
+(October 9, 2026). The study module is pinned by its archive and stays
+unchanged. CI replays the committed archive through the unit test with the
+portable replay instead (about three minutes):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run --frozen python -m thermo_lab.planar_16_offset_ferro_portable_replay \
+  --output-dir results/planar-16-offset-ferro
+```
+
+It keeps the source, request, counts and graph-rebuild checks and the
+reference and kernel checks at 2e-12. Each recomputed reference must match
+the archived one within the study's 1e-4 precision bound in edges, q per
+spin, the smallest edge correlation and the checked edges' correlation
+magnitudes, and within a relative 1e-10 in ln Z, with a finite-difference
+error below 1e-4. Cells, decisions, comparisons and the summary are then
+recomputed from the archived references at 2e-12, and the cells recomputed
+from fresh references must leave every decision's status and budget and the
+row verdict unchanged. It writes `portable-completion.json` with
+`status=planar_16_offset_ferro_portable_replay_complete`, `targets=18`,
+`cells_replayed=540`, `decisions_replayed=108`,
+`decisions_unchanged_by_recomputed_references=true` and the per-target
+reference deviations. The archived `completion.json` is left as it was.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,

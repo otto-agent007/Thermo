@@ -717,6 +717,36 @@ win only at 64 spins or at the largest budget. The
 [gate](release-gates.md#planar-annealing) replays references, gaps, pricing
 and decisions from the persisted per-trial energies.
 
+## Planar 16-offset ferro
+
+The [frozen protocol](experiments/planar-16-offset-ferro.md) (research-loop
+proposal P-0001) asks whether #92's allocations hold on the hardware-shaped
+graph. The 16-offset rule is not planar, so the study uses `greedy-long`, a
+maximal straight-line planar subgraph of it: longest offsets first, and about
+42 percent long edges at L = 32. Each target is paired with an open grid
+under the same coupling seeds. The study uses zero-field ferro targets at
+beta = 4 and #92's six arms, with budgets extended to 16384. The reference is
+an exact Kac-Ward on the explicit embedding, bitwise equal to #92's on grids.
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JAX_PLATFORMS=cpu JAX_ENABLE_X64=false \
+  uv run python -m thermo_lab.planar_16_offset_ferro \
+  --output-dir results/planar-16-offset-ferro --workers 2
+```
+
+The [recorded study](experiment-reports/2026-10-08-planar-16-offset-ferro/findings.md)
+finds that #92 holds on the 16-offset subgraph:
+
+- At 256 and 1024 spins, only tempering qualifies within 4096 sweeps.
+- The nine-replica ladder keeps 256 and 1024 sweeps on every target.
+- The probe's predicted thin-ladder slip did not reproduce. The five-replica
+  ladder's cold-end acceptance still falls more than tenfold, and it
+  qualifies at L = 32 with no margin.
+
+The run autosaves per unit and resumes with `--resume`. The
+[gate](release-gates.md#planar-16-offset-ferro) replays the references,
+checks, estimates, pricing, decisions and verdict from the persisted counts.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a
