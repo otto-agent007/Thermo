@@ -1,0 +1,371 @@
+{
+  "label": "exploration, not evidence (loop P-0004 probe)",
+  "p0": {
+    "m5c_equals_z1": true,
+    "planar_equals_z1": true,
+    "count": 16,
+    "all_odd_parity": true,
+    "_wall_seconds": 0.23363495199009776,
+    "_cpu_seconds_main": 0.23349411799999997
+  },
+  "p1": {
+    "precision_cells_reading_b": 120,
+    "rounded_arrays_bitwise_vs_round_parameters": 120,
+    "rounding_summary_bitwise_vs_archive": 120,
+    "mismatches": [],
+    "metric_cells": [
+      {
+        "cell": "B|0|1.0|variational|precision|4",
+        "bitwise": false,
+        "max_abs_diff": 8.326672684688674e-17,
+        "fields_bitwise": [
+          "bias",
+          "sweep_tv_ideal",
+          "sweep_tv_m5a"
+        ]
+      },
+      {
+        "cell": "B|0|1.0|variational|precision|8",
+        "bitwise": false,
+        "max_abs_diff": 3.774246815618914e-17,
+        "fields_bitwise": [
+          "bias",
+          "sweep_tv_ideal",
+          "sweep_tv_m5a"
+        ]
+      },
+      {
+        "cell": "B|0|1.0|variational|precision|12",
+        "bitwise": false,
+        "max_abs_diff": 6.920542271292522e-17,
+        "fields_bitwise": [
+          "sweep_tv_ideal",
+          "sweep_tv_m5a"
+        ]
+      }
+    ],
+    "metric_cells_bitwise": 0,
+    "metric_cpu_seconds_per_cell": [
+      13.784942967,
+      5.006896208000001,
+      5.008049219
+    ],
+    "note": "round_parameters accepts bits in {4,8,12} and raises outside the cap; the layer codebook clips and takes any width, and equals it bitwise on that domain",
+    "_wall_seconds": 24.262105960020563,
+    "_cpu_seconds_main": 24.254507491000002
+  },
+  "p2": {
+    "placements": 60,
+    "layer_lattice_check_passed": 60,
+    "verify_layout_fields_bitwise": 60,
+    "max_degree_seen": 16,
+    "resolved": [
+      {
+        "key": "4|7",
+        "archived_seconds": 1.5317682509921724,
+        "seconds": 1.320027851004852,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "1|4",
+        "archived_seconds": 1.9627080530044623,
+        "seconds": 1.3156414279947057,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "0|7",
+        "archived_seconds": 3.106975449001766,
+        "seconds": 2.2631185089994688,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "0|9",
+        "archived_seconds": 3.3223901570017915,
+        "seconds": 3.0253778460028116,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "0|6",
+        "archived_seconds": 3.7651781719905557,
+        "seconds": 3.020515379990684,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "3|4",
+        "archived_seconds": 4.0037903350021224,
+        "seconds": 3.0217977869906463,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "1|10",
+        "archived_seconds": 4.293184683003346,
+        "seconds": 2.930618610989768,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "2|0",
+        "archived_seconds": 4.842123344002175,
+        "seconds": 3.0114353770040907,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      },
+      {
+        "key": "2|9",
+        "archived_seconds": 4.962300977000268,
+        "seconds": 3.002641582977958,
+        "layout_bitwise": true,
+        "copies_equal": true,
+        "optimal": true
+      }
+    ],
+    "placement_cpu_seconds_archived_total": 2449.36119261205,
+    "_wall_seconds": 23.289363199000945,
+    "_cpu_seconds_main": 26.393233051
+  },
+  "p2_planar": {
+    "targets": 18,
+    "rebuilt_bitwise": 18,
+    "lattice_ok": 18,
+    "max_degree": 9,
+    "_wall_seconds": 1.1055020299972966,
+    "_cpu_seconds_main": 1.105491887
+  },
+  "p2_am": {
+    "P8/c12": {
+      "hidden_degree": 24,
+      "free_visible_degree": 8,
+      "over_degree": true,
+      "chain_nodes_lower_bound": 28,
+      "logical_free": 20,
+      "note": "lower bound on p-bits if every free spin of degree d became a ferromagnetic chain of ceil((d-2)/14) nodes; not a placement, changes the law"
+    },
+    "P8/c8": {
+      "hidden_degree": 24,
+      "free_visible_degree": 8,
+      "over_degree": true,
+      "chain_nodes_lower_bound": 32,
+      "logical_free": 24,
+      "note": "lower bound on p-bits if every free spin of degree d became a ferromagnetic chain of ceil((d-2)/14) nodes; not a placement, changes the law"
+    },
+    "P32/c12": {
+      "hidden_degree": 24,
+      "free_visible_degree": 32,
+      "over_degree": true,
+      "chain_nodes_lower_bound": 100,
+      "logical_free": 44,
+      "note": "lower bound on p-bits if every free spin of degree d became a ferromagnetic chain of ceil((d-2)/14) nodes; not a placement, changes the law"
+    },
+    "P32/c8": {
+      "hidden_degree": 24,
+      "free_visible_degree": 32,
+      "over_degree": true,
+      "chain_nodes_lower_bound": 112,
+      "logical_free": 48,
+      "note": "lower bound on p-bits if every free spin of degree d became a ferromagnetic chain of ceil((d-2)/14) nodes; not a placement, changes the law"
+    },
+    "P128/c12": {
+      "hidden_degree": 24,
+      "free_visible_degree": 128,
+      "over_degree": true,
+      "chain_nodes_lower_bound": 364,
+      "logical_free": 140,
+      "note": "lower bound on p-bits if every free spin of degree d became a ferromagnetic chain of ceil((d-2)/14) nodes; not a placement, changes the law"
+    },
+    "P128/c8": {
+      "hidden_degree": 24,
+      "free_visible_degree": 128,
+      "over_degree": true,
+      "chain_nodes_lower_bound": 400,
+      "logical_free": 144,
+      "note": "lower bound on p-bits if every free spin of degree d became a ferromagnetic chain of ceil((d-2)/14) nodes; not a placement, changes the law"
+    },
+    "_wall_seconds": 2.349400892853737e-05,
+    "_cpu_seconds_main": 2.3460999999835863e-05
+  },
+  "p3": {
+    "e0_kernel_output_degree": 17,
+    "e0_kernel_j_mask": [
+      4
+    ],
+    "placed_vector_is_m5c_refit": true,
+    "placed_physical_pbits": 42,
+    "free": 8,
+    "placed_exact_vs_refit_inner_k_law_max_abs": {
+      "1": 1.6653345369377348e-15,
+      "2": 1.7763568394002505e-15,
+      "4": 1.887379141862766e-15
+    },
+    "placed_exact_vs_archived_e0_law_max_abs": {
+      "1": 0.30707014904202223,
+      "2": 0.39525181495072775,
+      "4": 0.38211876086034335
+    },
+    "exact_joint_kernel_vs_e0_one_input_max_abs": 1.1102230246251565e-16,
+    "exact_cpu_seconds": 6.549571667000002,
+    "thrml_unplaced_cells": {
+      "y0-/K1": {
+        "histogram_bitwise": true,
+        "seconds": 33.38997545099119
+      },
+      "y0+/K1": {
+        "histogram_bitwise": true,
+        "seconds": 32.42168902102276
+      },
+      "y0-/K2": {
+        "histogram_bitwise": true,
+        "seconds": 57.31930544300121
+      }
+    },
+    "thrml_placed_seconds": 36.76603000698378,
+    "thrml_placed": {
+      "cell": "y0-/K1",
+      "output_max_dev": 0.004497491149289601,
+      "tolerance_output": 0.008947986503774926,
+      "joint_max_tv": 0.01883842268768913,
+      "tolerance_joint": 0.019652314207878194,
+      "pass": true,
+      "histogram_bitwise_vs_archive": false,
+      "max_input_tv_vs_archived_e0_histogram": 0.96630859375,
+      "note": "placed kernel is the M5c refit (J[4] masked), not the E0 vector; compared with its own exact law using E0's archived tolerance for this cell"
+    },
+    "_wall_seconds": 167.1116461759957,
+    "_cpu_seconds_main": 837.617882922
+  },
+  "p4": {
+    "exact_units": 96,
+    "exact_bitwise": 96,
+    "exact_max_abs_diff": 0.0,
+    "exact_cpu_seconds": 18.508184657,
+    "sampled_runs_bitwise": {
+      "coupling/6/j0/d0": true,
+      "coupling/6/j0.1/d0": true
+    },
+    "sampled_seconds": 1.7936954890028574,
+    "_wall_seconds": 20.614561383990804,
+    "_cpu_seconds_main": 23.279941108
+  },
+  "p5": {
+    "placement": {
+      "request_digest": "sha256:9dd4851c495091cc467b783e5a3fa18cc71e0eaad779bbc59986f5d83727464c",
+      "relaxed": [
+        "precision (float64 parameters)",
+        "beta jitter"
+      ],
+      "unit": "one outer sweep: every site kernel K = 4 inner sweeps, clamps rewritten",
+      "counts": {
+        "logical_pbits": 72,
+        "physical_pbits_used": 344,
+        "participating_free_pbits": 72,
+        "gibbs_node_updates": 288,
+        "elapsed_complete_sweeps": 48,
+        "node_reads": 12,
+        "node_full_sram_writes": 344,
+        "clamp_state_changes": 272,
+        "coupling_reflashes": 0,
+        "host_round_trips": 0
+      },
+      "sampling_energy_j": 2.04192e-12,
+      "read_energy_j": 2.0304e-11,
+      "write_energy_j": 5.2838399999999995e-08,
+      "modeled_total_energy_j": 5.286074591999999e-08,
+      "io_share": 0.999961371714219,
+      "evidence_class": "calibrated_projection",
+      "note": "kernels run one site at a time (M5b schedule): 12 x 4 complete sweeps elapsed, 4 x 72 updates (each free p-bit of the active kernel once per sweep); clamp writes are the placed copies (272), resets the 72 free p-bits"
+    },
+    "quantization": {
+      "request_digest": "sha256:ea5f714d299be36e51285373968d3300042e79646009d18662be60863e5be9b0",
+      "relaxed": [
+        "placement (complete bipartite, degree 24 and 8)",
+        "beta jitter"
+      ],
+      "unit": "one recalled pattern: cue written once, 256 sweeps, missing bits read once",
+      "counts": {
+        "logical_pbits": 32,
+        "physical_pbits_used": 32,
+        "participating_free_pbits": 20,
+        "gibbs_node_updates": 5120,
+        "elapsed_complete_sweeps": 256,
+        "node_reads": 12,
+        "node_full_sram_writes": 32,
+        "clamp_state_changes": 12,
+        "coupling_reflashes": 0,
+        "host_round_trips": 0
+      },
+      "sampling_energy_j": 3.6300799999999997e-11,
+      "read_energy_j": 2.0304e-11,
+      "write_energy_j": 4.9152e-09,
+      "modeled_total_energy_j": 4.9718048e-09,
+      "io_share": 0.992698667493945,
+      "evidence_class": "calibrated_projection"
+    },
+    "beta_jitter": {
+      "request_digest": "sha256:688133482576e8ad8e0398490d208cf2e3ef08599c32647eeee4038078525e08",
+      "relaxed": [
+        "placement (complete bipartite, degree 24 and 8)"
+      ],
+      "unit": "one recalled pattern: cue written once, 256 sweeps, missing bits read once",
+      "counts": {
+        "logical_pbits": 32,
+        "physical_pbits_used": 32,
+        "participating_free_pbits": 20,
+        "gibbs_node_updates": 5120,
+        "elapsed_complete_sweeps": 256,
+        "node_reads": 12,
+        "node_full_sram_writes": 32,
+        "clamp_state_changes": 12,
+        "coupling_reflashes": 0,
+        "host_round_trips": 0
+      },
+      "sampling_energy_j": 3.6300799999999997e-11,
+      "read_energy_j": 2.0304e-11,
+      "write_energy_j": 4.9152e-09,
+      "modeled_total_energy_j": 4.9718048e-09,
+      "io_share": 0.992698667493945,
+      "evidence_class": "calibrated_projection"
+    },
+    "chromatic_no_exchange": {
+      "request_digest": "sha256:e5553eda91454003046bbd32f546e4e16463943883146c873f54f8a20e136efa",
+      "relaxed": [
+        "precision (float32 couplings)",
+        "beta jitter"
+      ],
+      "unit": "one chain, 4096 sweeps, all spins read every 4 sweeps after 25% burn-in",
+      "counts": {
+        "logical_pbits": 1024,
+        "physical_pbits_used": 1024,
+        "participating_free_pbits": 1024,
+        "gibbs_node_updates": 4194304,
+        "elapsed_complete_sweeps": 4096,
+        "node_reads": 786432,
+        "node_full_sram_writes": 1024,
+        "clamp_state_changes": 0,
+        "coupling_reflashes": 0,
+        "host_round_trips": 0
+      },
+      "sampling_energy_j": 2.973761536e-08,
+      "read_energy_j": 1.330642944e-06,
+      "write_energy_j": 1.572864e-07,
+      "modeled_total_energy_j": 1.51766695936e-06,
+      "io_share": 0.9804057041786425,
+      "evidence_class": "calibrated_projection"
+    },
+    "relaxed_flag_changes_digest": true,
+    "_wall_seconds": 0.004622033011401072,
+    "_cpu_seconds_main": 0.004622635000000486
+  }
+}
