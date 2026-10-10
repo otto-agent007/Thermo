@@ -44,6 +44,17 @@ other THERMES scheduled scripts, not in this repository.
    first, pre-registered expectations, arms, budgets, decision rule,
    persistence plan, archive size estimate, gate) and opens a draft PR on
    `research/<row>`. No runner code yet.
+
+   A row whose deliverable is reusable code that later rows run through (a
+   layer, adapter or tool), and that the probe shows can be tested bitwise
+   against existing archives, is **engineering**, not a recorded study.
+   The proposer writes an engineering plan instead of a protocol, under
+   `docs/research/<date>-<row>-plan.md`: the modules, the constraints
+   applied and relaxed (rule 8), the archives the code must reproduce
+   bitwise (with any relaxed check flagged), the tests and a build
+   estimate. It opens a draft PR titled `proposal (engineering): <title>`.
+   The proposer asks the owner a question only when the row and these rules
+   leave a real choice open; a plainly engineering row is not a question.
 2. **Approval.** The gatekeeper posts the proposal to #thermes. The owner
    replies to that post with `approve`, `revise <notes>` or `reject <why>`.
    An approval binds to the PR's head commit at the time it was announced; if
@@ -58,13 +69,22 @@ other THERMES scheduled scripts, not in this repository.
    4 MB, and the studies, release-gate, AGENTS.md index, roadmap, CLAUDE.md
    and lessons entries, and marks the queue row done. Negative results are
    written as negatives.
+
+   For an engineering row, `approve` starts a **build** instead of a run.
+   The builder writes the module and its tests (bitwise against every
+   archive the plan names, relaxed checks flagged), passes the same unit
+   gate, appends an "As built" usage section to the plan, marks the queue
+   row done and readies the PR. There is no production run, no evidence
+   archive, no completion.json and no study-gate, studies or release-gate
+   entry, because nothing new is measured.
 4. **Second opinion.** The executor hands the card to the review lane. The
    reviewer reruns the replay and unit tests, checks the protocol diff,
    hash-bound files, numbers, evidence labels and archive size, and posts its
    verdict as a PR comment. It may send the work back once.
 5. **Acceptance.** The gatekeeper posts the results and the reviewer's
    verdict. The owner reviews and merges the PR, or closes it. Merging is
-   the only acceptance.
+   the only acceptance. For an engineering row, merging the build PR marks
+   the row done.
 
 The next proposal is drafted while a finished study waits for the owner.
 
@@ -165,12 +185,14 @@ state.
 ## Owner commands in #thermes
 
 Reply to the gatekeeper's post, or name the proposal (`approve P-0003`).
-Only messages from the Discord allowlist count; the THERMES chat agent is
-told to leave these to the gatekeeper.
+Only messages from the Discord allowlist count. The THERMES chat agent is
+in quiet mode in #thermes (owner, October 10, 2026): it answers only when
+@-mentioned, and never answers loop commands, so every reply to a loop
+command comes from the gatekeeper.
 
 | Command | Effect |
 | --- | --- |
-| `approve` | Approves the announced protocol; its run starts when no other study is running |
+| `approve` | Approves the announced protocol or engineering plan; its run or build starts when no other study is running |
 | `revise <notes>` | Sends the draft back to the proposer with your notes |
 | `answer <text>` | Answers a proposer's question and restarts the draft |
 | `reject <why>` | Closes the draft PR; the row is skipped until its queue text changes |
