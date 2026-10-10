@@ -55,8 +55,9 @@ other THERMES scheduled scripts, not in this repository.
    estimate. It opens a draft PR titled `proposal (engineering): <title>`.
    The proposer asks the owner a question only when the row and these rules
    leave a real choice open; a plainly engineering row is not a question.
-2. **Approval.** The gatekeeper posts the proposal to #thermes. The owner
-   replies to that post with `approve`, `revise <notes>` or `reject <why>`.
+2. **Approval.** The gatekeeper posts the proposal to #thermes, ending with
+   numbered choices. The owner replies `yes` (or `1`) to approve, a number
+   for another choice, `revise <notes>` or `reject <why>`.
    An approval binds to the PR's head commit at the time it was announced; if
    the PR changed since, the gatekeeper refuses and re-announces.
 3. **Run.** One study runs at a time. The executor checks that the protocol
@@ -137,10 +138,14 @@ a docs-only PR labelled `loop-direction`, with: a verdict per result, a
 proposed queue diff written as rows in the queue's own format (add, drop,
 reorder, hold or open; at most one *new* row per review, each with the
 decision it informs), and one named thing to drop. The gatekeeper posts the
-PR to #thermes. The owner merges it or closes it; merging accepts the
-review as a record, not the queue change. The queue stays owner-edited: the
-owner applies the diff by hand, or replies `adopt D-NNNN` and the gatekeeper
-opens the queue edit as a separate PR for the owner to merge.
+PR to #thermes. The owner merges it or closes it. Merging accepts the
+review, and the gatekeeper then opens its queue diff as a separate queue PR,
+merged row by row onto the current queue; rows the review drops come out
+`held` unless the owner replies `adopt D-NNNN drop`. The queue stays
+owner-edited: nothing changes until the owner merges that queue PR, and a
+row changed on main since the review read it is a conflict the gatekeeper
+reports instead of overwriting. `yes D-NNNN` opens the queue PR before
+the review is merged.
 
 **What it may not do.** Edit `docs/research-queue.md`; approve, revise or
 reject a protocol; start, stop or touch a run; comment on an open study PR
@@ -184,21 +189,30 @@ state.
 
 ## Owner commands in #thermes
 
-Reply to the gatekeeper's post, or name the proposal (`approve P-0003`).
-Only messages from the Discord allowlist count. The THERMES chat agent is
-in quiet mode in #thermes (owner, October 10, 2026): it answers only when
-@-mentioned, and never answers loop commands, so every reply to a loop
-command comes from the gatekeeper.
+Every post that waits on you ends with numbered choices. When only one item
+is waiting, a bare reply is enough: no reply-to, no ID. With more than one
+waiting, reply to the item's post or name it (`yes P-0004`, `2 P-0004`).
+Several commands go in one message, one per line; lines after a command
+that takes notes continue its notes. Anything the gatekeeper can't parse
+gets a short reply listing what is waiting and the replies it takes; it is
+never silently ignored. Only messages from the Discord allowlist count.
+The THERMES chat agent is in quiet mode in #thermes (owner, October 10,
+2026): it answers only when @-mentioned, and never answers loop commands,
+so every reply to a loop command comes from the gatekeeper. A message that
+@-mentions the bot is left to the chat agent.
 
-| Command | Effect |
+| Reply | Effect |
 | --- | --- |
-| `approve` | Approves the announced protocol or engineering plan; its run or build starts when no other study is running |
+| `yes` (or `ok`, `approve`) | Approves the waiting protocol or engineering plan; its run or build starts when no other study is running. On a question, takes the recommended option |
+| a number, e.g. `2` | Picks that numbered choice from the post; notes may follow on the same or later lines |
 | `revise <notes>` | Sends the draft back to the proposer with your notes |
-| `answer <text>` | Answers a proposer's question and restarts the draft |
+| `answer <text>` | Answers a proposer's question in your own words and restarts the draft |
 | `reject <why>` | Closes the draft PR; the row is skipped until its queue text changes |
+| `hold <row>` | Opens a one-line queue PR setting that row to `held`; a proposal ID works too |
+| `status` (or `loop status`) | Lists what is waiting, active proposals and the week's spend |
+| `help` | The waiting items and these replies |
 | `pause loop` / `resume loop` | Stops or restarts new proposals and runs; running work continues |
-| `loop status` | Lists active proposals and the week's spend |
-| `adopt D-NNNN` | Opens the queue edit proposed by that direction review as a PR for the owner to merge |
+| `adopt D-NNNN` (`… drop`) | Opens that review's queue change as a PR now; merging the review does this anyway. `drop` keeps its drops instead of holding them |
 
 Your words stay local: rejections and revision notes are kept in the
 THERMES profile and given to the proposer, never posted to GitHub.
