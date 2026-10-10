@@ -185,8 +185,10 @@ state.
 ## Owner commands in #thermes
 
 Reply to the gatekeeper's post, or name the proposal (`approve P-0003`).
-Only messages from the Discord allowlist count; the THERMES chat agent is
-told to leave these to the gatekeeper.
+Only messages from the Discord allowlist count. The THERMES chat agent is
+in quiet mode in #thermes (owner, October 10, 2026): it answers only when
+@-mentioned, and never answers loop commands, so every reply to a loop
+command comes from the gatekeeper.
 
 | Command | Effect |
 | --- | --- |
