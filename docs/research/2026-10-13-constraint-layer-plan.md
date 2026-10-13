@@ -262,3 +262,195 @@ dependencies. No new archive. No production run.
 - It does not add replica exchange or free temperature schedules.
 - It does not add CLAUDE.md, AGENTS.md or roadmap entries; this card does not
   ask for them. Suggested text for the owner can go in the build PR body.
+
+## As built
+
+Built 2026-10-13 by THERMES (loop card t_2522f9e4, PR #107). Everything
+above this heading is the approved plan, unchanged. This section records what
+the build delivered and where it differs.
+
+### Modules
+
+Package `src/thermo_lab/constraints/`, about 800 lines:
+
+- `request.py`: `CONSTRAINTS`, `ConstraintRequest`, `to_canonical()`,
+  `digest()`.
+- `model.py`: `PairwiseModel`.
+- `lattice.py`: `colour`, `check -> LatticeReport`, `require_placement`,
+  `solve_m5c_layout`, `lower_m5c_layout`, `place_m5c`, `planar_target`,
+  `build_planar_target`, `unplaced`, `unplaced_m5a_kernel`.
+- `quantize.py`: `codebook`, `quantize_array`, `rounding_summary`, `cap_for`,
+  `quantize`, `quantize_terms`.
+- `jitter.py`: `static_gains`, `request_gains`.
+- `gibbs.py`: `MAX_EXACT_FREE = 12`, `free_states`,
+  `exact_chromatic_kernels`, `propagate`.
+- `thrml_lowering.py`: `lower`, `lower_am`, `final_states`. This is the only
+  module that imports THRML.
+- `accounting.py`: `count`, `price`.
+
+It imports `meta_ebm_cap_baseline`, `meta_ebm_thermalization_core`,
+`meta_ebm_topology`, `planar_16_offset_ferro`, `am_coupling_bits` and
+`hardware.z1` read-only. It edits no file outside the new package. No new
+dependency.
+
+### Usage
+
+```python
+from thermo_lab.constraints import (
+    ConstraintRequest,
+    check,
+    count,
+    exact_chromatic_kernels,
+    planar_target,
+    price,
+    quantize,
+)
+
+request = ConstraintRequest(
+    model_id="L16 planar ferro, 6-bit",
+    bits=6,
+    cap_rule="full",  # quantization applies
+    relaxed=("beta_jitter",),
+    reasons={"beta_jitter": "noise-free baseline arm"},
+)
+model = planar_target(target)  # a planar-16-offset-ferro target dict
+assert check(model).ok  # 16-offset lattice, two colours, degree <= 16
+model_q, rounding = quantize(model, request)
+counts = count(
+    request,
+    logical_pbits=256,
+    physical_pbits_used=256,
+    free_pbits=256,
+    sweeps=4096,
+    node_reads=256,
+    node_full_sram_writes=256,
+)
+priced = price(request, counts)  # calibrated_projection; carries request.digest()
+```
+
+THRML sampling is `thrml_lowering.lower(model, request)`. It returns the
+`IsingEBM`, the program and the free colour blocks. `final_states` runs
+chains to exactly K sweeps. Exact laws for at most 12 free nodes come from
+`exact_chromatic_kernels`.
+
+### Tests
+
+`tests/unit/test_constraints.py` has 43 tests: 32 fast and 11 `slow`. Every
+archive is checked against its committed SHA-256 before use, or loaded
+through the study's own hash-checking loader. The fast subset took 13 s on
+this box. The slow subset took 742 s wall (3,619 s user; JAX uses all
+cores).
+
+Archive and sampler checks:
+
+| Plan item | Test | Bitwise check | Subset |
+| --- | --- | --- | --- |
+| 1 M5b rounding | `test_m5b_rounding_all_120_reading_b_precision_cells_bitwise` | 120/120 cells. Rounded arrays equal `round_parameters`, and the summary equals the archived `rounding` field | fast |
+| 1 M5b metrics | `test_m5b_chain_metrics_three_cells_sweep_tv_bitwise_rest_within_1e15` | 3 cells. `sweep_tv_*` bitwise, the rest within 1e-15, in a pinned subprocess | slow |
+| 2 M5c layouts | `test_m5c_all_60_layouts_on_lattice_and_verify_layout_bitwise` | 60/60 pass `check` (max degree 16), and `verify_layout`'s archived fields are bitwise | fast |
+| 2 M5c re-solve | `test_m5c_fast_resolved_placement_equals_archived_layout[4\|7, 1\|4]` | MILP layout equals the archived layout | fast |
+| 2 M5c re-solve | `test_m5c_resolved_placements_under_5s_equal_archived_layouts` | The other 7 placements under 5 s | slow |
+| 3 Planar | `test_planar_all_18_targets_rebuild_bitwise_and_lie_on_lattice` | 18/18 rebuilt bitwise and on the lattice (max degree 9) | fast |
+| 4 AM exact | `test_am_6bit_exact_recall_relaxed_placement_bitwise` | 8 units: `coupling/6` recall bitwise | fast |
+| 4 AM exact | `test_am_6bit_exact_recall_all_96_units_relaxed_placement_bitwise` | 96/96 units | slow |
+| 4 AM sampled | `test_am_6bit_sampled_p8_relaxed_placement_bitwise[0.0, 0.1]` | P = 8, 12-bit cue, seed 7400: correct-bit counts bitwise at jitter 0 and 0.1 | fast |
+| 5 E0 | `test_e0_relaxed_placement_first_batch_y0minus_k1_histogram_bitwise` | y0-/K1, first 16 inputs, histogram rows bitwise | fast |
+| 5 E0 | `test_e0_relaxed_placement_all_cells_histograms_bitwise[6 cells]` | All 6 cells, 1,024 inputs, 65,536 chains: bitwise | slow |
+| 5 E0 placed | `test_e0_placed_refit_exact_law_equals_its_inner_kernel_64_inputs` | Placed refit's exact law against its own `inner_kernel` law, at most 1e-14 | fast |
+| 5 E0 placed | `test_e0_placed_refit_exact_law_all_inputs_and_documented_gap_to_e0` | The same on 1,024 inputs. Records the gap to E0's law (documented, not a failure) | slow |
+| 5 E0 placed | `test_e0_placed_refit_thrml_within_archived_tolerance_one_cell` | THRML on the placed refit, y0-/K1, within E0's archived output and joint tolerances | slow |
+| 6 Pricing | `test_pricing_four_examples_equal_pinned_counts` | 288/12/344/272, 5,120/12/32/12 (twice) and 4,194,304/786,432/1,024/0 | fast |
+
+The other fast tests cover four things:
+
+- Request: the digest is canonical; flipping or rewording one relaxed flag
+  changes it; an unknown constraint is rejected; `no_replica_exchange`
+  cannot be relaxed; quantization and jitter fields are validated.
+- Lattice: the offsets equal those of M5c, planar-16-offset-ferro and the Z1
+  profile. `check` rejects a bad offset, a same-colour edge, degree 17 and
+  the E0 kernel itself. An unplaced model requires `placement` relaxed.
+- Quantizer and gains: `round_parameters` is matched bitwise at 4, 8 and 12
+  bits. Values outside the cap clip. The `coupling` rule rejects mixed
+  magnitudes. `static_gains` equals `am_coupling_bits.gains`.
+- Exact kernels: rows sum to one, and the enumerator is bounded at 12 free
+  nodes. A pinned-BLAS subprocess check covers the environment.
+- Jittered lowering: `lower` with static gains (through
+  `GainSpinConditional`) on a placed four-free-node model agrees with the
+  exact gain-weighted one-sweep law to within 6 sigma per state (65,536
+  chains, fixed key). This is a statistical self-check, not an archive
+  reproduction.
+
+Results of the slow run on this box: 10 of 11 passed on the first run. The
+96-unit AM exact test failed in the last bits because the shell lacked the
+BLAS pin (deviation 1 below). After the subprocess fix it passed, and both
+AM exact tests passed with the pin deliberately unset. The placed-versus-E0
+output-law gap was 0.307, 0.395 and 0.382 at K = 1, 2 and 4. These equal the
+probe's numbers. They are a restated exploration value, not a new
+measurement.
+
+### Relaxed checks, flagged
+
+The names come from the hashed `ConstraintRequest.relaxed` in each test.
+
+| Check | Relaxed |
+| --- | --- |
+| M5b rounding | `placement`, `beta_jitter` |
+| M5c placement, E0 placed refit | `quantization`, `beta_jitter` |
+| Planar | `quantization`, `beta_jitter` |
+| AM exact and jitter-0 sampled | `placement`, `beta_jitter` |
+| AM jitter-0.1 sampled | `placement` |
+| E0 unplaced | `placement`, `quantization`, `beta_jitter` |
+
+Every AM and E0 test that relies on relaxed placement says
+`relaxed_placement` in its name.
+
+### Deviations from the plan
+
+1. **The AM exact check runs in a pinned subprocess.** Under threaded
+   OpenBLAS, 4 of the 8 fast AM units differ in the last bits. One example:
+   0.9949744706144386 against the archived 0.9949744706144596. With
+   `OPENBLAS_NUM_THREADS=1` all 96 are bitwise. Setting the pin inside the
+   test module does not work, because pytest has already loaded numpy. Both
+   AM exact tests therefore run in a subprocess with the pin set, as the M5b
+   metric test does. The AM archive was produced single-threaded. This is
+   the same BLAS effect the plan already bounds for M5b's stationary fields.
+2. The AM fast subset is 8 units: each of the 6 cells at seed 7400, plus
+   P8/c12 and P128/c8 at seed 7415. The plan said "one per cell and seed
+   class" without naming them.
+3. `ConstraintRequest` adds `reasons`, as the plan's text implies, and
+   `bits=None` / `cap_rule="none"` when quantization is relaxed. The cap is
+   set only by the `absolute` rule.
+4. `PairwiseModel` gains an optional `colours` field so that `unplaced`
+   models carry a colour per node. Placed models derive their colours from
+   their sites.
+5. `lattice.unplaced_m5a_kernel` is a named helper for E0's node order
+   (inputs, hidden, output; hidden block first).
+6. The full re-solve of all 60 M5c placements stays out of the suite, as
+   planned. To run it by hand (about 41 CPU-minutes), call
+   `lattice.solve_m5c_layout(refit, structure)` for each `seed|site` key in
+   `docs/experiment-reports/2026-09-30-meta-ebm-topology/study.json.gz` and
+   compare it with `placements[key]["layout"]`. Use the test helpers
+   `_m5c_vectors` and `_resolve` with `OPENBLAS_NUM_THREADS=1`.
+
+No hash-bound source or committed archive changed. Nothing was written under
+`results/`. No new number was measured.
+
+### What a later row must declare
+
+A row that runs through this layer must state all of the following in its
+protocol and hashed request:
+
+- one `ConstraintRequest` per model, with its digest;
+- the relaxed constraints, each with a reason;
+- `bits`, `cap_rule` and `cap` when quantization applies;
+- `jitter` and `jitter_words` when jitter is positive;
+- `update_rule` (`whole_array` or `active_kernel`);
+- `dtype`.
+
+If placement applies, the model must pass `require_placement`. A model over
+degree 16 is not placed by chains or masking; it runs with `placement`
+relaxed, or the row is changed. Results keep their evidence classes: exact
+laws are `exact_reference`, THRML runs are `software_simulation`, and
+`price` output is a `calibrated_projection` of algorithmic counts. None is
+hardware evidence. Run on CPU with `OPENBLAS_NUM_THREADS=1` set before numpy
+loads, or compare BLAS-dependent float64 fields numerically at about 1e-15.
