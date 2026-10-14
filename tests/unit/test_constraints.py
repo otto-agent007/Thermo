@@ -490,11 +490,17 @@ def test_m5b_chain_metrics_three_cells_sweep_tv_bitwise_rest_within_1e15() -> No
 VERIFY_FIELDS = ("conditional_error", "j_copies", "a_copies", "copies", "physical_pbits")
 
 
-def test_m5c_all_60_layouts_on_lattice_and_verify_layout_bitwise() -> None:
+def test_m5c_all_60_layouts_on_lattice_and_verify_layout_cross_host_replay_rule() -> None:
+    """``conditional_error`` is a float64 rounding residue (about 1e-15) whose last
+    bits depend on the CPU's BLAS kernels; CI's main run at 6c9e5f4 differed on
+    placement 0|2. Off the archive host it is checked with M5c's own replay rule
+    (``meta_ebm_topology.replay`` compares placements with ``m5a._close``, which
+    keeps the integer fields exact); ``THERMO_ARCHIVE_HOST=1`` also asserts bitwise."""
     archive = _json_archive("m5c")
     vectors = _m5c_vectors()
     request = _request("m5c refits", {**RELAX_QUANT_FLOAT64, **RELAX_JITTER}, dtype="float64")
     max_degree = 0
+    not_bitwise = []
     for key, placed in archive["placements"].items():
         seed, site = map(int, key.split("|"))
         vecs, structs = vectors[seed]
@@ -506,9 +512,15 @@ def test_m5c_all_60_layouts_on_lattice_and_verify_layout_bitwise() -> None:
         max_degree = max(max_degree, report.max_degree)
         assert len(model.sites) == placed["physical_pbits"]
         again = m5c.verify_layout(placed["layout"], p, s)
-        assert all(again[f] == placed[f] for f in VERIFY_FIELDS), key
+        stored = {f: placed[f] for f in VERIFY_FIELDS}
+        m5a._close(stored, {f: again[f] for f in VERIFY_FIELDS}, f"placements.{key}")
+        if any(again[f] != stored[f] for f in VERIFY_FIELDS):
+            not_bitwise.append(key)
     assert len(archive["placements"]) == 60
     assert max_degree == 16
+    print(f"M5c layouts: {60 - len(not_bitwise)}/60 verify_layout fields bitwise on this host")
+    if ARCHIVE_HOST:
+        assert not not_bitwise, not_bitwise
 
 
 def _resolve(key: str) -> None:
