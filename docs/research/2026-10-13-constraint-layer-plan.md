@@ -346,8 +346,8 @@ Archive and sampler checks:
 | Plan item | Test | Bitwise check | Subset |
 | --- | --- | --- | --- |
 | 1 M5b rounding | `test_m5b_rounding_all_120_reading_b_precision_cells_bitwise` | 120/120 cells. Rounded arrays equal `round_parameters`, and the summary equals the archived `rounding` field | fast |
-| 1 M5b metrics | `test_m5b_chain_metrics_three_cells_sweep_tv_bitwise_rest_within_1e15` | 3 cells. `sweep_tv_*` bitwise, the rest within 1e-15, in a pinned subprocess | slow |
-| 2 M5c layouts | `test_m5c_all_60_layouts_on_lattice_and_verify_layout_bitwise` | 60/60 pass `check` (max degree 16), and `verify_layout`'s archived fields are bitwise | fast |
+| 1 M5b metrics | `test_m5b_chain_metrics_three_cells_cross_host_within_1e15` | 3 cells. Every metric within 1e-15, in a pinned subprocess; `sweep_tv_*` bitwise with `THERMO_ARCHIVE_HOST=1` | slow |
+| 2 M5c layouts | `test_m5c_all_60_layouts_on_lattice_and_verify_layout_cross_host_replay_rule` | 60/60 pass `check` (max degree 16), and `verify_layout`'s archived fields match under M5c's replay rule; bitwise with `THERMO_ARCHIVE_HOST=1` | fast |
 | 2 M5c re-solve | `test_m5c_fast_resolved_placement_equals_archived_layout[4\|7, 1\|4]` | MILP layout equals the archived layout | fast |
 | 2 M5c re-solve | `test_m5c_resolved_placements_under_5s_equal_archived_layouts` | The other 7 placements under 5 s | slow |
 | 3 Planar | `test_planar_all_18_targets_rebuild_bitwise_and_lie_on_lattice` | 18/18 rebuilt bitwise and on the lattice (max degree 9) | fast |
@@ -404,9 +404,10 @@ The names come from the hashed `ConstraintRequest.relaxed` in each test.
 Every AM and E0 test that relies on relaxed placement says
 `relaxed_placement` in its name.
 
-Cross-host relaxation (review round 1, deviation 7). Four tests are bitwise
-only on the archive host and say `cross_host` in their name: the two AM
-exact tests and the two E0 unplaced tests. Off that host they check a
+Cross-host relaxation (review round 1 and the fix after merge, deviation
+7). Six tests are bitwise only on the archive host and say `cross_host` in
+their name: the two AM exact tests, the two E0 unplaced tests, the M5c
+layout test and the M5b metrics test. Off that host they check a
 declared tolerance or the archived verdicts, as the studies' own replays do.
 This is a test-side relaxation of the comparison, not of a hardware
 constraint, so it is not a `ConstraintRequest` field and the request digests
@@ -417,6 +418,8 @@ are unchanged. `THERMO_ARCHIVE_HOST=1` restores the bitwise assertion.
 | AM exact recall | every value within 1e-12 of the archive | `am_coupling_bits.replay` (`_match`, rtol = atol = 1e-12) |
 | E0 histograms, fast | first 16 rows of y0-/K1 within the frozen output and joint tolerances | E0 `evaluate` pass rule |
 | E0 histograms, slow | E0 `evaluate` with frozen tolerances gives the archived `output_pass`, `joint_pass`, `closest_k` and control rejections | E0 `replay` (frozen tolerances; histograms authenticated by digest, not regenerated) |
+| M5c layouts | integer fields exact; `conditional_error` within rel 1e-9, abs 1e-10 | `meta_ebm_topology.replay` (placements through `m5a._close`) |
+| M5b metrics | every metric within 1e-15, `sweep_tv_*` included | the plan's own bound for BLAS-dependent M5b fields (M5b's replay allows 1e-10) |
 
 ### Deviations from the plan
 
@@ -456,8 +459,19 @@ are unchanged. `THERMO_ARCHIVE_HOST=1` restores the bitwise assertion.
    and E0 authenticates histograms by digest and recomputes only the
    evaluation. The four affected tests were renamed `cross_host` and check
    the rules in the table above; with `THERMO_ARCHIVE_HOST=1` they also
-   assert bitwise equality. The other bitwise checks (M5b rounding, M5c,
-   planar, AM sampled, pricing) passed on CI unchanged.
+   assert bitwise equality. After the merge, main's CI at 6c9e5f4 (run
+   38503799344, `unit-rest`) failed the M5c layout test on placement 0|2,
+   though the PR's run had passed it: `conditional_error` is a float64
+   rounding residue of about 1e-15, and its last bits follow the runner's
+   BLAS kernels. With `OPENBLAS_CORETYPE` set to Prescott, Nehalem or
+   Sandybridge it differs on 8 of 60 placements locally; Haswell, Zen and
+   this box's own kernels match. That test is now `cross_host` too and uses
+   M5c's replay rule. The slow M5b metrics test had the same latent fault:
+   under the Prescott and Sandybridge kernels `sweep_tv_m5a` is not bitwise
+   (up to 1.1e-16; worst field 4.4e-16), so off the archive host every
+   metric is checked within 1e-15. Under the Prescott kernels the rest of
+   the suite passes unchanged (M5b rounding, M5c re-solve, planar, AM
+   sampled, pricing and the existing `cross_host` tests).
 
 No hash-bound source or committed archive changed. Nothing was written under
 `results/`. No new number was measured.
