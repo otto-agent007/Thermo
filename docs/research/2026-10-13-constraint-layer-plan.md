@@ -351,11 +351,11 @@ Archive and sampler checks:
 | 2 M5c re-solve | `test_m5c_fast_resolved_placement_equals_archived_layout[4\|7, 1\|4]` | MILP layout equals the archived layout | fast |
 | 2 M5c re-solve | `test_m5c_resolved_placements_under_5s_equal_archived_layouts` | The other 7 placements under 5 s | slow |
 | 3 Planar | `test_planar_all_18_targets_rebuild_bitwise_and_lie_on_lattice` | 18/18 rebuilt bitwise and on the lattice (max degree 9) | fast |
-| 4 AM exact | `test_am_6bit_exact_recall_relaxed_placement_bitwise` | 8 units: `coupling/6` recall bitwise | fast |
-| 4 AM exact | `test_am_6bit_exact_recall_all_96_units_relaxed_placement_bitwise` | 96/96 units | slow |
+| 4 AM exact | `test_am_6bit_exact_recall_relaxed_placement_cross_host_within_1e12` | 8 units: `coupling/6` recall within 1e-12 on any host; bitwise with `THERMO_ARCHIVE_HOST=1` | fast |
+| 4 AM exact | `test_am_6bit_exact_recall_all_96_units_relaxed_placement_cross_host_within_1e12` | 96/96 units, same rule | slow |
 | 4 AM sampled | `test_am_6bit_sampled_p8_relaxed_placement_bitwise[0.0, 0.1]` | P = 8, 12-bit cue, seed 7400: correct-bit counts bitwise at jitter 0 and 0.1 | fast |
-| 5 E0 | `test_e0_relaxed_placement_first_batch_y0minus_k1_histogram_bitwise` | y0-/K1, first 16 inputs, histogram rows bitwise | fast |
-| 5 E0 | `test_e0_relaxed_placement_all_cells_histograms_bitwise[6 cells]` | All 6 cells, 1,024 inputs, 65,536 chains: bitwise | slow |
+| 5 E0 | `test_e0_relaxed_placement_cross_host_first_batch_y0minus_k1_within_frozen_tolerance` | y0-/K1, first 16 inputs, within E0's frozen output and joint tolerances; bitwise with `THERMO_ARCHIVE_HOST=1` | fast |
+| 5 E0 | `test_e0_relaxed_placement_cross_host_all_cells_archived_verdicts[6 cells]` | All 6 cells, 1,024 inputs, 65,536 chains: E0's own `evaluate` with frozen tolerances gives the archived passes, closest K and control rejections; bitwise with `THERMO_ARCHIVE_HOST=1` | slow |
 | 5 E0 placed | `test_e0_placed_refit_exact_law_equals_its_inner_kernel_64_inputs` | Placed refit's exact law against its own `inner_kernel` law, at most 1e-14 | fast |
 | 5 E0 placed | `test_e0_placed_refit_exact_law_all_inputs_and_documented_gap_to_e0` | The same on 1,024 inputs. Records the gap to E0's law (documented, not a failure) | slow |
 | 5 E0 placed | `test_e0_placed_refit_thrml_within_archived_tolerance_one_cell` | THRML on the placed refit, y0-/K1, within E0's archived output and joint tolerances | slow |
@@ -404,6 +404,20 @@ The names come from the hashed `ConstraintRequest.relaxed` in each test.
 Every AM and E0 test that relies on relaxed placement says
 `relaxed_placement` in its name.
 
+Cross-host relaxation (review round 1, deviation 7). Four tests are bitwise
+only on the archive host and say `cross_host` in their name: the two AM
+exact tests and the two E0 unplaced tests. Off that host they check a
+declared tolerance or the archived verdicts, as the studies' own replays do.
+This is a test-side relaxation of the comparison, not of a hardware
+constraint, so it is not a `ConstraintRequest` field and the request digests
+are unchanged. `THERMO_ARCHIVE_HOST=1` restores the bitwise assertion.
+
+| Check | Off the archive host | Source of the rule |
+| --- | --- | --- |
+| AM exact recall | every value within 1e-12 of the archive | `am_coupling_bits.replay` (`_match`, rtol = atol = 1e-12) |
+| E0 histograms, fast | first 16 rows of y0-/K1 within the frozen output and joint tolerances | E0 `evaluate` pass rule |
+| E0 histograms, slow | E0 `evaluate` with frozen tolerances gives the archived `output_pass`, `joint_pass`, `closest_k` and control rejections | E0 `replay` (frozen tolerances; histograms authenticated by digest, not regenerated) |
+
 ### Deviations from the plan
 
 1. **The AM exact check runs in a pinned subprocess.** Under threaded
@@ -431,6 +445,19 @@ Every AM and E0 test that relies on relaxed placement says
    `docs/experiment-reports/2026-09-30-meta-ebm-topology/study.json.gz` and
    compare it with `placements[key]["layout"]`. Use the test helpers
    `_m5c_vectors` and `_resolve` with `OPENBLAS_NUM_THREADS=1`.
+7. **AM exact and E0 histograms are bitwise only on the archive host.**
+   PR #107's CI at 3915dd0 (run 38479335702, `slow-contracts`, ubuntu-latest,
+   4 xdist workers) failed both, though the BLAS pin was set: AM exact
+   P128/c12 units were not bitwise, and E0 histograms differed in 5 of 6
+   cells (all but y0+/K1). Locally (i7-7700K, the host that wrote both
+   archives) all pass bitwise. The cause is CPU-dependent float64 BLAS and
+   XLA float32 code generation, not threading. Neither study's replay ever
+   promised cross-host bitwise equality: AM replays exact values at 1e-12,
+   and E0 authenticates histograms by digest and recomputes only the
+   evaluation. The four affected tests were renamed `cross_host` and check
+   the rules in the table above; with `THERMO_ARCHIVE_HOST=1` they also
+   assert bitwise equality. The other bitwise checks (M5b rounding, M5c,
+   planar, AM sampled, pricing) passed on CI unchanged.
 
 No hash-bound source or committed archive changed. Nothing was written under
 `results/`. No new number was measured.

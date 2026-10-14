@@ -603,9 +603,21 @@ for uid in uids:
     xi = stage_a.patterns(seed, p)
     zq = quantize_terms(am.nominal_terms(beta, theta, xi), request)
     mine = [am.exact_recall_terms(zq, xi, t, cue) for t in range(record["request"]["targets"])]
-    out[uid] = mine == record["exact"][uid]["models"]["coupling/6"]
+    archived = record["exact"][uid]["models"]["coupling/6"]
+    out[uid] = {
+        "bitwise": mine == archived,
+        "max_abs": max(abs(a - b) for a, b in zip(mine, archived, strict=True)),
+    }
 print(json.dumps({"request_digest": request.digest(), "units": out}))
 """
+
+AM_CROSS_HOST_ATOL = 1e-12
+"""Declared cross-host tolerance for the AM exact recall: the study's own replay
+tolerance (``am_coupling_bits.replay`` compares exact references with
+``potts_symmetry_tempering._match``, rtol = atol = 1e-12). Float64 BLAS kernels
+differ by CPU, so bitwise equality holds only on the archive host (lesson
+2026-10-06); set ``THERMO_ARCHIVE_HOST=1`` to also assert it."""
+ARCHIVE_HOST = os.environ.get("THERMO_ARCHIVE_HOST") == "1"
 
 
 def _am_units(uids: tuple[str, ...]) -> dict:
@@ -614,6 +626,7 @@ def _am_units(uids: tuple[str, ...]) -> dict:
     The archive was produced with OPENBLAS_NUM_THREADS=1; under threaded BLAS four
     of the fast units differ in the last bits (e.g. 0.9949744706144386 against
     ...4596), so the check runs where the pin is guaranteed before numpy loads.
+    Returns ``{uid: {"bitwise": bool, "max_abs": float}}``.
     """
     request = _am_request()
     assert "placement" in request.relaxed
@@ -639,16 +652,26 @@ def _am_units(uids: tuple[str, ...]) -> dict:
     return out["units"]
 
 
-def test_am_6bit_exact_recall_relaxed_placement_bitwise() -> None:
+def _assert_am_units(units: dict) -> None:
+    worst = {u: v["max_abs"] for u, v in units.items() if v["max_abs"] > AM_CROSS_HOST_ATOL}
+    assert not worst, worst
+    not_bitwise = sorted(u for u, v in units.items() if not v["bitwise"])
+    print(f"AM exact: {len(units) - len(not_bitwise)}/{len(units)} units bitwise on this host")
+    if ARCHIVE_HOST:
+        assert not not_bitwise, not_bitwise
+
+
+def test_am_6bit_exact_recall_relaxed_placement_cross_host_within_1e12() -> None:
     units = _am_units(AM_FAST_UNITS)
-    assert units == dict.fromkeys(AM_FAST_UNITS, True)
+    assert set(units) == set(AM_FAST_UNITS)
+    _assert_am_units(units)
 
 
 @pytest.mark.slow
-def test_am_6bit_exact_recall_all_96_units_relaxed_placement_bitwise() -> None:
+def test_am_6bit_exact_recall_all_96_units_relaxed_placement_cross_host_within_1e12() -> None:
     units = _am_units(())
     assert len(units) == 96
-    assert all(units.values()), [u for u, ok in units.items() if not ok]
+    _assert_am_units(units)
 
 
 @pytest.mark.parametrize("jitter", [0.0, 0.1])
@@ -714,7 +737,7 @@ def _e0_histograms(model, request, cell, n_inputs: int) -> np.ndarray:
     return hist
 
 
-def _e0_unplaced(cell_id: str, n_inputs: int) -> None:
+def _e0_unplaced(cell_id: str, n_inputs: int) -> tuple[np.ndarray, np.ndarray, dict]:
     from thermo_lab import thrml_m5a_kernel_inner_sweep as e0
 
     record = _json_archive("e0b")
@@ -725,17 +748,84 @@ def _e0_unplaced(cell_id: str, n_inputs: int) -> None:
     cell = next(c for c in e0.cells(record["request"]) if c["id"] == cell_id)
     hist = _e0_histograms(model, request, cell, n_inputs)
     archived = np.asarray(record["histograms"][cell_id])[:n_inputs]
-    assert np.array_equal(hist, archived), cell_id
+    bitwise = bool(np.array_equal(hist, archived))
+    print(f"E0 {cell_id}: histograms bitwise on this host: {bitwise}")
+    if ARCHIVE_HOST:
+        assert bitwise, cell_id
+    return hist, archived, cell
 
 
-def test_e0_relaxed_placement_first_batch_y0minus_k1_histogram_bitwise() -> None:
-    _e0_unplaced("y0-/K1", 16)
+@cache
+def _e0_frozen_references() -> dict:
+    """E0's exact references with its archived (frozen) tolerances, as its replay builds them."""
+    from thermo_lab import thrml_m5a_kernel_inner_sweep as e0
+
+    record = _json_archive("e0b")
+    frozen = {
+        cell_id: {k: ref[k] for k in ("tolerance_output", "tolerance_joint")}
+        for cell_id, ref in record["references"]["cells"].items()
+    }
+    return e0.exact_references(record["request"], tolerances=frozen)
+
+
+def test_e0_relaxed_placement_cross_host_first_batch_y0minus_k1_within_frozen_tolerance() -> None:
+    """First 16 inputs of y0-/K1: within E0's frozen tolerances of the exact law.
+
+    Float32 THRML histograms are bitwise only on the archive host (CI's runner
+    differs in 5 of 6 cells), so off that host the check is E0's own pass rule.
+    """
+    from thermo_lab import thrml_m5a_kernel_inner_sweep as e0
+
+    hist, _, cell = _e0_unplaced("y0-/K1", 16)
+    record = _json_archive("e0b")
+    loaded = e0.load_kernel(record["request"])
+    structure = loaded["structure"]
+    inputs = m5a.blanket_inputs(structure)[:16]
+    nh = len(structure["triples"])
+    laws, _ = e0._joint_laws(loaded["vector"], structure, inputs, "hidden_first", 1.0, 2)
+    law = laws[(cell["incoming"], cell["sweeps"])]
+    y_plus = e0.joint_states(nh)[:, nh] > 0
+    empirical = hist / record["request"]["chains_per_input"]
+    out_dev = np.max(np.abs(empirical[:, y_plus].sum(axis=1) - law[:, y_plus].sum(axis=1)))
+    joint_tv = np.max(0.5 * np.abs(empirical - law).sum(axis=1))
+    frozen = record["references"]["cells"]["y0-/K1"]
+    assert out_dev <= frozen["tolerance_output"], out_dev
+    assert joint_tv <= frozen["tolerance_joint"], joint_tv
+
+
+E0_VERDICT_FIELDS = ("output_pass", "joint_pass", "closest_k")
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize("cell_id", ["y0-/K1", "y0-/K2", "y0-/K4", "y0+/K1", "y0+/K2", "y0+/K4"])
-def test_e0_relaxed_placement_all_cells_histograms_bitwise(cell_id: str) -> None:
-    _e0_unplaced(cell_id, 1024)
+def test_e0_relaxed_placement_cross_host_all_cells_archived_verdicts(cell_id: str) -> None:
+    """All 1,024 inputs: the layer's histograms reach E0's archived verdicts.
+
+    E0's own ``evaluate`` with its frozen tolerances, applied to this cell's new
+    histograms, must give the archived output and joint passes, the archived
+    closest K and the archived control rejections. Bitwise histograms are
+    asserted only with ``THERMO_ARCHIVE_HOST=1``.
+    """
+    from thermo_lab import thrml_m5a_kernel_inner_sweep as e0
+
+    hist, _, _ = _e0_unplaced(cell_id, 1024)
+    record = _json_archive("e0b")
+    histograms = {**record["histograms"], cell_id: hist.tolist()}
+    evaluation = e0.evaluate(record["request"], _e0_frozen_references(), histograms)
+    mine, archived = evaluation["cells"][cell_id], record["evaluation"]["cells"][cell_id]
+    assert {k: mine[k] for k in E0_VERDICT_FIELDS} == {k: archived[k] for k in E0_VERDICT_FIELDS}
+    assert mine["output_pass"] and mine["joint_pass"] and mine["closest_k"] == "K"
+
+    def rejections(ev: dict) -> list:
+        return [
+            (c["control"], c["rejected"]) for c in ev["control_rejections"] if c["cell"] == cell_id
+        ]
+
+    assert rejections(evaluation) == rejections(record["evaluation"])
+    print(
+        f"E0 {cell_id}: output dev {mine['output_max_deviation']:.6f} "
+        f"(archived {archived['output_max_deviation']:.6f}), joint TV {mine['joint_max_tv']:.6f}"
+    )
 
 
 def _placed_refit():
