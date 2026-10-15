@@ -747,6 +747,40 @@ The run autosaves per unit and resumes with `--resume`. The
 [gate](release-gates.md#planar-16-offset-ferro) replays the references,
 checks, estimates, pricing, decisions and verdict from the persisted counts.
 
+## DTM small-image denoiser
+
+The [frozen protocol](experiments/dtm-small-image.md) (research-loop proposal
+P-0006, queue row `dtm-small-image`) is the lab's first task-level benchmark
+under the constraint layer. It names one number to design against: the
+coupling bits b\* and sweeps per step K\* at which a small chained-EBM
+denoiser on the 16-offset lattice keeps its float quality within 0.01, and
+the projected joule at that point. It compares this against the exact Bayes
+posterior and a 114-parameter logistic denoiser. Images come from an exact
+four-component Ising mixture at L = 8. Free nodes carry their state from one
+image to the next ("continuation").
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.dtm_small_image \
+  --output-dir results/dtm-small-image --workers 3
+```
+
+The [recorded study](experiment-reports/2026-10-14-dtm-small-image/findings.md)
+resolves only at T = 2:
+
+- At T = 2, 4 bits and K = 64 stay within tolerance in every seed. Error is
+  0.075 against Bayes 0.067, and the projected cost is 2.0e-8 J per sample,
+  99 percent I/O.
+- Static 10 percent beta jitter is negligible.
+- The DTM matches the logistic baseline under the rule, but the logistic is
+  ahead by 0.003 to 0.006 in every seed: a negative for the denoiser.
+- At T = 1, continuation leaves one of three seeds trapped, so K\* is
+  "> 256" and the 3-bit control is undetectable.
+
+The run autosaves per unit and resumes with `--resume`. The
+[gate](release-gates.md#dtm-small-image-denoiser) replays references,
+rounding, pricing and decisions from the per-image counts.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a

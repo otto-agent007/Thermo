@@ -268,12 +268,18 @@ REPORT = sorted((ROOT / "docs/experiment-reports").glob("*-dtm-small-image"))
 
 @pytest.mark.skipif(not REPORT, reason="no committed archive yet")
 def test_committed_archive_light_replay(tmp_path):
+    import hashlib
     import tarfile
 
     report = REPORT[-1]
-    with tarfile.open(report / "evidence.tar.gz") as archive:
+    manifest = json.loads((report / "manifest.json").read_text())
+    archive_path = report / manifest["archive"]
+    assert hashlib.sha256(archive_path.read_bytes()).hexdigest() == manifest["sha256"]
+    with tarfile.open(archive_path) as archive:
         archive.extractall(tmp_path, filter="data")
     out = next(p.parent for p in tmp_path.rglob("study.json.gz"))
+    for name, digest in manifest["members"].items():
+        assert hashlib.sha256((out / name).read_bytes()).hexdigest() == digest
     completion = dtm.replay(out, light=True)
     committed = json.loads((report / "completion.json").read_text())
     for key in ("result_digest", "k_star", "b_star", "jitter_verdict", "baseline_verdict"):
