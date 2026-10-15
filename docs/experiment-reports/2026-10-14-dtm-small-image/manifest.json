@@ -1,0 +1,33 @@
+{
+  "archive": "evidence.tar.gz",
+  "bytes": 1697260,
+  "sha256": "8bde892e4acccb5a9cc0a52021a11d8f9c78b047ea4f740e038d17fffe9fec59",
+  "members": {
+    "attempts.json": "832f124e8c8a39897588e0656014417e2cd09026060ddddac57051f777c24f90",
+    "completion.json": "ad73bbdec2593802f5deebe38c19aeb54510cf7f4d700a43c2dab04bd4be0afc",
+    "float-reference-check.json": "373afb36c5466cfe3042b173e6016f59e9d18d75df7a2655c294efb08b3192a6",
+    "preflight.json": "512437479381662dab268dc4f105756fe3f4dc539d1cb3c4ca85eb0eefb4cf1d",
+    "provenance.json": "bc5594feb36aab821000cb14c445d52325fc73dabb0e05942fd500aca6189224",
+    "request.json": "cf37ced5cba437eb0b412ec4db76c2c9d9a69e9f2fd6a6051ee367b2830bf9e7",
+    "run.log": "06a1b7eb1ce1d894ba1258a952fcb88dea295c86719030932af6d69e2bc7714e",
+    "study.json.gz": "4d6981a4df2f1bc960c107472eaa67961e53b17e4251d36843db17b700199483",
+    "source/docs/experiments/dtm-small-image.md": "1096e10fd317c06c58a9ec4604cf7a79caf828939c1bb64f7b45c524b92356c2",
+    "source/src/thermo_lab/am_coupling_bits.py": "914fd7fce1ad90f92e2c1d7345058e49f89a768b66487934a22d8b58395d3252",
+    "source/src/thermo_lab/constraints/__init__.py": "fc093264976b51d88d303835b6cd45095b9d367326f933f5e16b2cb06384d9dd",
+    "source/src/thermo_lab/constraints/accounting.py": "4f66cc9a0662a5cdbe23227c6be139a15710f0b0643b49cd6852810960d922ff",
+    "source/src/thermo_lab/constraints/gibbs.py": "23643893db7e9224fc219fe18f92dc01bc6ebbb45cf9a9b80201e893221f923e",
+    "source/src/thermo_lab/constraints/jitter.py": "6f50f90fc6074f2bbc7bfd7dbabacc8eeceff34899f0590608fa21cb24b292c0",
+    "source/src/thermo_lab/constraints/lattice.py": "5e36510ee9a1801213f66da8c58cb424c7ff770930019c7de1c4d7374b8611db",
+    "source/src/thermo_lab/constraints/model.py": "1dfd3ef643a828a54352bac3a38184ef8a95bf1fd45e18c5fb373d5366ef442c",
+    "source/src/thermo_lab/constraints/quantize.py": "6ea0e5d899b8e72a8a07534586f766c86e1b227ccf3578d22944704934dcb9b7",
+    "source/src/thermo_lab/constraints/request.py": "1aac985ec3e07ed88ecff0b0924e19a80eb908a4e920dfe9eec96d6a11105c57",
+    "source/src/thermo_lab/constraints/thrml_lowering.py": "1d2bcb5762a61023e06fc3a653a60c439167e549c7f9d250beb4cda8fad56520",
+    "source/src/thermo_lab/dtm_small_image.py": "173d325799893b41d9e94c6ed988708b4ed3b558022f34ca765063a577f4dbf5",
+    "source/src/thermo_lab/hardware/z1.py": "cbce2258e6c741fe7a02bbe974150fb50300c93440bf3e992fa8593775b4e677",
+    "source/src/thermo_lab/hashing.py": "2a0090642233dfcca53f0a3f754b461aff3acfb187fb71ac64dee2e407fad3ce",
+    "source/src/thermo_lab/meta_ebm_thermalization_core.py": "7d917248bda3489536f005c2b29aa1d67bc356c1618cce61fe95f2e7805ba462",
+    "source/src/thermo_lab/persistence.py": "ae3951c43b0057a778fa87684d10c115d88c70a65efdfe4d7bc849abb1a8e4bc",
+    "source/src/thermo_lab/planar_ising_scaling.py": "cec2cd61df6f8e6477c2716916ecdb3e00c3176d341b4364f3e696b3e6ad0b6e",
+    "source/uv.lock": "32dc495c101ed08e1db423109702000506c9de9783c0a815e912cb951cc294c9"
+  }
+}

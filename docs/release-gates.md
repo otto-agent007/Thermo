@@ -822,6 +822,70 @@ row verdict unchanged. It writes `portable-completion.json` with
 `decisions_unchanged_by_recomputed_references=true` and the per-target
 reference deviations. The archived `completion.json` is left as it was.
 
+## DTM small-image denoiser
+
+Follow the [frozen protocol](experiments/dtm-small-image.md), CPU only,
+single-thread BLAS (the runner refuses to run or replay without it):
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen python -m thermo_lab.dtm_small_image \
+  --output-dir results/dtm-small-image-new --workers 3
+uv run --frozen pytest tests/unit/test_dtm_small_image.py
+```
+
+The run trains six chained denoisers in software (three seeds, T = 1 and 2)
+on an exact L = 8 Ising-mixture image family. It then runs 168 THRML cells
+through `thermo_lab.constraints` (float64, 3, 4, 6 and 8 bits, `split` caps,
+jitter 0 and 0.1, K = 16, 64 and 256 with continuation, plus a float
+K = 1024 reference) and 36 NumPy control cells, on 1,000 exact test images.
+Before any production seed:
+
+- The transfer matrix must match brute force.
+- THRML must agree with NumPy chromatic Gibbs within |z| < 5 from both
+  starts.
+- Every arm must lower to float64 with equal weights and pass placement at
+  maximum degree 16.
+- Pricing must reproduce the protocol's table.
+- Calibration must project under 6 CPU-hours.
+
+The float stop rule (`float-reference-check.json`) halts the run if two seeds'
+float models fail to beat the noisy input.
+
+Generation takes about one hour with three workers. Each unit is saved
+atomically under `units/`. Resume an interrupted run with the same command,
+`--resume` and the same output directory. Resume re-authenticates the request
+and sources, re-verifies each unit by digest and reruns only missing or
+corrupt units.
+
+Completion requires:
+
+- `status=dtm_small_image_complete`
+- `seeds=3`, `trained_models=6`, `thrml_cells=168`, `numpy_cells=36` and
+  `test_images=1000`
+- `preflight_passed`, `placement_passed`, `references_recomputed`,
+  `prefix_check_passed` and `replayed` all `true`
+
+`--replay` does the following:
+
+- re-authenticates the sources and all 81 constraint requests;
+- recomputes the exact references at 1e-12 relative and the transfer check;
+- re-verifies rounding and placement;
+- recomputes pricing, bootstraps, decisions and the operating point from the
+  per-image counts;
+- reruns the seed-0 float K = 1024 cell at each T and requires identical
+  counts.
+
+CPU seconds are kept out of the result digest. CI replays the committed
+archive with `--light`, which skips the cell rerun (about 10 seconds):
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen pytest tests/unit/test_dtm_small_image.py -k committed_archive
+```
+
+The decisions (K\*, b\*, jitter, steps and baseline) do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,
