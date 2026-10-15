@@ -20,7 +20,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 3
+    # No routine version updates: archived studies pin uv.lock by SHA-256 and
+    # their replays fail when it changes (#113, #115). Security updates still
+    # open PRs; bump by hand when an upgrade matters.
+    open-pull-requests-limit: 0
     # Scientific 0.x dependencies are pinned by hand (AGENTS.md rule 6): a bump
     # must update src/thermo_lab/release_pins.py and the backend version asserts,
     # and preserve the upstream behavioral contracts in tests first.
