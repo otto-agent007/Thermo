@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-09)
+## Where the project stands (updated 2026-10-14)
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
   PR #101 on 2026-10-09) sets which questions come first. The standing
@@ -24,7 +24,10 @@ work pointed at the right problem.
   anything else is a probe under `docs/research/`. Research rules 8 to 10:
   run under the declared hardware constraints by default and say which a
   study relaxed; state the resource accounting with every comparison; where
-  a task exists, report task-level error per unit of projected cost.
+  a task exists, report task-level error per unit of projected cost. The
+  owner dated the amendment's four-week test (charter, "How to tell whether
+  this is working") from the constraint layer's merge on 2026-10-14, so it
+  falls due on 2026-11-11.
 - The conservation line (M4B–M4I) is **closed** as of PR #49. M4H and M4I
   confirmed the diagnosis in `docs/research/2026-09-23-cap-leakage-analysis.md`:
   the ±2 field/coupling cap chosen on Sep 1 put a ceiling of about
@@ -201,6 +204,23 @@ work pointed at the right problem.
   five-replica ladder loses more than tenfold cold-end acceptance on the long
   edges and qualifies at 1024 spins with no margin; the probe's predicted slip
   did not reproduce. Says nothing about the non-planar degree-16 lattice.
+- **The constraint layer** (`src/thermo_lab/constraints/`, loop P-0004,
+  engineering, PR #107; plan and as-built notes in
+  `docs/research/2026-10-13-constraint-layer-plan.md`) is the shared code for
+  rules 8 and 9: a hashed `ConstraintRequest` (every relaxed constraint needs
+  a reason), placement checks on the 16-offset lattice (`check`,
+  `require_placement`; degree at most 16, two colours), M5b-codebook
+  quantization, static beta jitter, exact chromatic kernels for at most 12
+  free nodes, THRML lowering, and `count`/`price` (a `calibrated_projection`
+  under the sealed Z1 profile). A row that runs under constraints uses it and
+  declares what the plan's "What a later row must declare" lists. Neither the
+  AM `bias` design (degree 24 and up) nor the E0 kernel (degree 17) can be
+  placed, so their checks run with `placement` relaxed and flagged. Under the
+  sealed profile a clamp change is a full SRAM write, so I/O dominates
+  projected energy (D-0002, `docs/research/2026-10-14-direction-review.md`);
+  count reads and writes, not only sweeps. Archive-exact tests are
+  `cross_host`: bitwise only with `THERMO_ARCHIVE_HOST=1`, numeric elsewhere
+  (#109). Run a new archive check once under `OPENBLAS_CORETYPE=Prescott`.
 - **DTM small-image denoiser** (`docs/experiment-reports/2026-10-14-dtm-small-image/`,
   loop P-0006): first task under the constraint layer. A two-step chained
   denoiser on the 16-offset lattice (L = 8, exact Ising-mixture images) keeps
