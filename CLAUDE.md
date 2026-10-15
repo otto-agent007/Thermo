@@ -201,6 +201,13 @@ work pointed at the right problem.
   five-replica ladder loses more than tenfold cold-end acceptance on the long
   edges and qualifies at 1024 spins with no margin; the probe's predicted slip
   did not reproduce. Says nothing about the non-planar degree-16 lattice.
+- **DTM small-image denoiser** (`docs/experiment-reports/2026-10-14-dtm-small-image/`,
+  loop P-0006): first task under the constraint layer. A two-step chained
+  denoiser on the 16-offset lattice (L = 8, exact Ising-mixture images) keeps
+  float quality at 4 bits and K = 64 (error 0.075, Bayes 0.067; 2.0e-8 J per
+  sample projected, 99 percent I/O); jitter is negligible. A 114-parameter
+  logistic is ahead in every seed (negative). At one step, continuation
+  traps one of three seeds and nothing resolves.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
