@@ -886,6 +886,73 @@ JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
 
 The decisions (K\*, b\*, jitter, steps and baseline) do not gate.
 
+## DTM baseline headroom
+
+Follow the [frozen protocol](experiments/dtm-baseline-headroom.md), CPU only,
+single-thread BLAS (the runner refuses to run or replay without it). Each
+worker pins itself to one core, so the float32 JAX ladder fits are bitwise
+reproducible:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen python -m thermo_lab.dtm_baseline_headroom \
+  --output-dir results/dtm-baseline-headroom-new --workers 3
+uv run --frozen pytest tests/unit/test_dtm_baseline_headroom.py
+```
+
+Stage 1 fits nine ladder rungs on six exact L = 8 families: three rates at
+seed 0, then two more seeds, 270 fits. Stage 2 trains P-0006's DTM on the
+candidate families, at most three, and runs four cells per seed. Those are
+the THRML operating point, the THRML float K = 1024 reference, and NumPy
+random-start and continuation controls.
+
+Before production:
+
+- The transfer matrix must match brute force at 1e-12.
+- Every DTM layer must pass placement.
+- THRML must agree with NumPy within |z| < 5 from both starts.
+- Ladder MAC counts must equal a hand count.
+- Pricing must reproduce 128 reads, 128 writes, 24,576 updates and
+  X = 320,826.
+- Calibration must project under 10 CPU-hours. The recorded run's
+  calibration underestimated by 2.7x, so read it as a lower bound.
+
+The ladder must reach Bayes + 0.01 on `anchor_p0006`, or stage 2 does not
+run. Stage 2 units exist only after the digested candidate list is written.
+
+Generation takes about 2 h 10 min with three workers (just over 6
+CPU-hours). Each unit is saved atomically under `units/`. Resume an
+interrupted run with the same command, `--resume` and the same output
+directory. A changed request is refused.
+
+Completion requires:
+
+- `status=dtm_baseline_headroom_complete`
+- `families=6`, `ladder_fits=270` and `test_images_per_family=1000`
+- `candidates` from 0 to 3, and `dtm_cells` equal to 12 times `candidates`
+- `preflight_passed`, `placement_passed`, `references_recomputed`,
+  `anchor_control_passed`, `prefix_check_passed` and `replayed` all `true`
+
+`--replay` does the following:
+
+- re-authenticates the sources;
+- recomputes the exact references at 1e-12;
+- recomputes candidacy, baselines, bootstraps, prices and verdicts from the
+  counts;
+- re-verifies placement;
+- refits one ladder rung and reruns one DTM cell, requiring identical
+  counts.
+
+CI replays the committed archive with `--light`, which skips the refit
+(about 30 seconds):
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen pytest tests/unit/test_dtm_baseline_headroom.py -k committed_archive
+```
+
+The candidate list, verdicts and break-evens do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,

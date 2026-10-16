@@ -781,6 +781,40 @@ The run autosaves per unit and resumes with `--resume`. The
 [gate](release-gates.md#dtm-small-image-denoiser) replays references,
 rounding, pricing and decisions from the per-image counts.
 
+## DTM baseline headroom
+
+The [frozen protocol](experiments/dtm-baseline-headroom.md) (research-loop
+proposal P-0007, queue row `dtm-baseline-headroom`) asks two questions.
+First, is there an exact L = 8 denoising family on which the smallest
+conventional model within 0.01 of the Bayes floor costs at least
+X = 320,826 MACs per image? Second, on such a family, does P-0006's lattice
+denoiser at its recorded operating point beat the smallest ladder model
+that matches it, in projected joules? Six families are tested, with a
+nine-rung digital ladder (270 fits) and the P-0006 recipe on up to three
+candidates (36 cells).
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.dtm_baseline_headroom \
+  --output-dir results/dtm-baseline-headroom --workers 3
+```
+
+The [recorded study](experiment-reports/2026-10-16-dtm-baseline-headroom/findings.md)
+is negative:
+
+- Headroom exists on three families (`t4`, `smooth8`, `smooth16`): no rung
+  below X reaches Bayes + 0.01. Global pooling closes parity and
+  corner-key at 243,200 MACs.
+- The DTM is 0.078 to 0.147 above Bayes. The 3,136-MAC 7 x 7 logistic
+  matches it in all nine seeds, so the ladder wins every family.
+- P-0006's operating point does not resolve in any seed: continuation
+  loses to a random start by more than the tolerance in all nine.
+- The verdict holds at the float K = 1024 reference too.
+
+The run autosaves per unit and resumes with `--resume`. The
+[gate](release-gates.md#dtm-baseline-headroom) replays references,
+candidacy, baselines, prices and verdicts from the per-image counts.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a
