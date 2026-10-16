@@ -63,6 +63,8 @@ A card may give different statuses to different claims, for example a
 | [Domain wall encoding of discrete variables for quantum annealing and QAOA](sources/chancellor-domain-wall.md) | Paper | `asserted`; pairwise categorical encoding in P − 1 spins |
 | [On the role of non-linear latent features in bipartite generative neural networks](sources/bonnaire-latent-features.md) | Paper | `asserted`; binary hidden units cut RBM memory capacity |
 | [Thermodynamic significance of QUBO encoding on quantum annealers](sources/doucet-qubo-encoding.md) | Paper | `asserted`; one-hot penalty strength trade-off |
+| [Stochastic Relaxation, Gibbs Distributions, and the Bayesian Restoration of Images](sources/geman-gibbs-restoration.md) | Paper | `asserted`; MRF prior gives an MRF posterior; the Gibbs sampler |
+| [On the Statistical Analysis of Dirty Pictures](sources/besag-dirty-pictures.md) | Paper | `asserted`; local characteristics dominate; MPM for pixel error |
 
 ## Adding or updating a card
 
