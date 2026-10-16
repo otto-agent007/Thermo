@@ -215,6 +215,12 @@ L = 16 is not opened: it was conditional on a qualifying family.
   and the NumPy controls.
 - `calibrated_projection`: every joule.
 
+Constraints (rule 8): the operating-point arm relaxes nothing (placement
+on the 16-offset lattice, the 4-bit `split` codebook, 10 percent static
+beta jitter, two-colour Gibbs, no exchange). The float K = 1024 reference
+arm relaxes `quantization` and `beta_jitter`, with reasons in the hashed
+request; it is the convergence reference, not a hardware arm.
+
 There is no Z1 measurement, latency or device noise. No energy is claimed
 outside the profile's counted operations. There is no lower bound on
 digital cost, because a model outside the ladder could be cheaper. There

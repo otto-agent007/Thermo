@@ -58,6 +58,9 @@ Evidence classes:
 - The ladder (JAX float32), the DTM runs and the NumPy controls:
   `software_simulation`, CPU.
 - Joules on both sides: `calibrated_projection`.
+- Constraints (rule 8): nothing relaxed at the operating point. The float
+  K = 1024 reference relaxes `quantization` and `beta_jitter` (reasons in
+  the hashed request).
 
 There is no hardware claim.
 
