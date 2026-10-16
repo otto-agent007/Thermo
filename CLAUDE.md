@@ -247,12 +247,18 @@ work pointed at the right problem.
   template). The operating point resolves in no seed (continuation loses to
   a random start), so none is recommended. The runtime calibration
   underestimated by 2.7x; calibrate on longer fits. Owner, 2026-10-16, on
-  the premise question: continue. The next row asks whether a hand-built
-  model of the exact posterior, its global latent spread over the lattice,
-  reaches Bayes under the constraint layer before any training; a real
-  binarized set waits for that answer. Cost favours continuing: 99 percent
-  of the DTM's projected joule is I/O, which does not grow with latent nodes
-  or sweeps.
+  the premise question: continue with `dtm-exact-posterior-lattice` (D-0004,
+  amended), a hand-built model of the exact posterior with its global
+  latent spread over the lattice, before any training. The line stops if
+  (a) its exact equilibrium error is above Bayes + 0.01 at 8 bits, (b) no
+  priced start reaches Bayes + 0.01 within K = 1024, or (c) on `smooth8`
+  the cheapest working start does not beat the archived ladder at 1 pJ per
+  MAC; a real binarized set opens only on a positive. Under continuation,
+  I/O is 99 percent of the projected joule and does not grow with latent
+  nodes or sweeps, but continuation lost to a random start in all nine
+  seeds, and a random start writes every free node (7.9e-8 against 2.0e-8 J
+  per sample), so a positive that needs one is close to a tie. Don't
+  retrain the P-0006 denoiser or refit the P-0007 ladder for this line.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
