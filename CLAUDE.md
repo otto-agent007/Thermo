@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-14)
+## Where the project stands (updated 2026-10-16)
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
   PR #101 on 2026-10-09) sets which questions come first. The standing
@@ -227,7 +227,15 @@ work pointed at the right problem.
   float quality at 4 bits and K = 64 (error 0.075, Bayes 0.067; 2.0e-8 J per
   sample projected, 99 percent I/O); jitter is negligible. A 114-parameter
   logistic is ahead in every seed (negative). At one step, continuation
-  traps one of three seeds and nothing resolves.
+  traps one of three seeds and nothing resolves. Its `completion.json`
+  operating point (T = 1, K = 256) is that unresolved arm; use T = 2
+  (lessons, 2026-10-15). Cite the quality result (94 percent of the
+  noisy-to-Bayes headroom, positive) and the cost result (negative) apart.
+  D-0003 (#120, queue PR #121) opens `dtm-baseline-headroom`: is there an
+  exact synthetic family at L <= 16 where the smallest conventional model
+  that matches the denoiser is costly? Task rows follow the standing rules
+  in the queue header: reads and writes per sample are the headline, the
+  joule is a band, and the baseline is priced per MAC.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or

@@ -20,8 +20,8 @@ daemon (compare the rejected PR #57).
 
 | Piece | What it is | Model |
 | --- | --- | --- |
-| Queue | `docs/research-queue.md` on `main`, edited only by the owner (or on the owner's request) | none |
-| Gatekeeper | `loop-tick.py` in the THERMES Hermes profile, run every 5 minutes by a no-agent cron job. It reads owner commands from Discord by exact match, reconciles kanban cards and PRs, and creates the next card. | none |
+| Queue | `docs/research-queue.md` on `main`, edited only by the owner (or on the owner's request). Its header holds the owner's standing rules for kinds of row (task rows since D-0003); the proposer, executor, reviewer and director follow them | none |
+| Gatekeeper | `loop-tick.py` in the THERMES Hermes profile, run every 5 minutes by a no-agent cron job. It reads owner commands from Discord by exact match, reconciles kanban cards and PRs, and creates the next card. It posts each error once; while the error repeats it stays quiet, and the first tick without it posts one all-clear line. | none |
 | Proposer and executor | The `thermes` profile, working `LOOP P-NNNN` kanban cards in git worktrees | Opus 5.5 |
 | Reviewer | The `thermes-review` profile in the kanban review lane, comment-only | Fable 5.1, high effort |
 | CI fixer | The `thermes-ci` profile, given a card only when CI fails (see below) | Haiku 5.5 |
