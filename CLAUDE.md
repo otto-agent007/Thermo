@@ -236,6 +236,23 @@ work pointed at the right problem.
   that matches the denoiser is costly? Task rows follow the standing rules
   in the queue header: reads and writes per sample are the headline, the
   joule is a band, and the baseline is priced per MAC.
+- **DTM baseline headroom** (`docs/experiment-reports/2026-10-16-dtm-baseline-headroom/`,
+  loop P-0007): negative, the denoising line's second ladder-at-least-as-good
+  result. Three of six exact L = 8 template-mixture families (q = 0.35) have
+  digital headroom: no ladder rung under 320,826 MACs reaches Bayes + 0.01.
+  P-0006's denoiser does not use it: 0.078 to 0.147 above Bayes, and a
+  3,136-MAC 7 x 7 logistic matches it in all nine seeds. The float K = 1024
+  reference is no better, so the model is the limit, not the constraints:
+  its latents are local, and these posteriors hinge on a global one (which
+  template). The operating point resolves in no seed (continuation loses to
+  a random start), so none is recommended. The runtime calibration
+  underestimated by 2.7x; calibrate on longer fits. Owner, 2026-10-16, on
+  the premise question: continue. The next row asks whether a hand-built
+  model of the exact posterior, its global latent spread over the lattice,
+  reaches Bayes under the constraint layer before any training; a real
+  binarized set waits for that answer. Cost favours continuing: 99 percent
+  of the DTM's projected joule is I/O, which does not grow with latent nodes
+  or sweeps.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
