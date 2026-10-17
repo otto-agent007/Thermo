@@ -125,9 +125,10 @@ write constant, free-node writes by start, and 179 or 301 node updates per
 sweep. Relay-path nodes are not yet counted, so these are lower bounds.
 
 - **`smooth8` stop (c) against 3.43e-6 J (3.43e6 MACs at 1 pJ):**
-  - random start: 3.60e-6 to 3.74e-6 J per 64-draw estimate at K = 64 to
-    1024, **0.92x to 0.95x of the rung, so a random start fails (c) at
-    every K**;
+  - random start: 3.60e-6 to 3.73e-6 J per 64-draw estimate at K = 64 to
+    1024, **1.05x to 1.09x the rung, so a random start fails (c) at
+    every K**. (Corrected in round 3 of the proposal: this line first
+    printed the inverse ratio, 0.92x to 0.95x. The verdict was right.)
   - reset every 5 images: 1.24e-6 to 1.37e-6 J, 2.5x to 2.8x cheaper;
   - continuation: 6.4e-7 to 7.8e-7 J, 4.4x to 5.3x cheaper.
   - The owner's round-1 estimate (1.8x for a random start) used about 190
@@ -135,8 +136,8 @@ sweep. Relay-path nodes are not yet counted, so these are lower bounds.
 - **`t4`:** random start 2.4e-6 to 2.5e-6 J, continuation 6.4e-7 to
   7.2e-7 J per 64-draw estimate. `t4` does not decide cost; its likely
   digital cost is near 2.4e5 MACs.
-- With clamp loads at the read constant the random start falls to 3.0e-6 J
-  on `smooth8`, still within 15 percent of the rung.
+- With clamp loads at the read constant the random start falls to 2.98e-6
+  to 3.11e-6 J on `smooth8`, 0.87x to 0.91x the rung.
 - (c) is judged against the archived rung, not the digital minimum. The
   ladder has nothing between 243,200 and 1.74e6 MACs.
 
