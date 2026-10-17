@@ -1,7 +1,10 @@
 # DTM exact-posterior lattice: exploratory protocol (draft, proposal P-0008)
 
 Drafted on 2026-10-17 for queue row `dtm-exact-posterior-lattice`, revised
-the same day after the owner's review of PR #126 (round 2 of the proposal). It
+twice the same day after the owner's reviews of PR #126 (rounds 2 and 3 of
+the proposal; round 3 replaced the oracle test with a paired oracle/random
+comparison at K = 4096 and moved tie-value selection to development
+images). It
 is not frozen until the owner approves it, and no runner exists yet. The
 probes are
 [round 1](../research/2026-10-16-dtm-exact-posterior-lattice-probe.md)
@@ -62,9 +65,10 @@ and free-node writes per sample from a priced start?
     27 to 34 copies plus relay nodes, coupled to 3 or 4 pixels per copy).
     The collapsed model keeps the placed, quantized couplings and per-copy
     biases. The report names it as the tie limit everywhere it appears.
-  - The start, on the oracle-start reference arm only (copies and relays set
-    to the generating template, pixels to the noisy image). The arm is
-    unpriced and never enters stop (b) or (c); it only separates finite-w
+  - The start, on the oracle-start cell of the oracle pair only (copies and
+    relays set to the generating template, pixels to the noisy image). The
+    pair (oracle start and random start, both K = 4096 on the operating arm)
+    is unpriced and never enters stop (b) or (c); it only separates finite-w
     representation from mixing.
 - **Outside the layer.** Nothing is trained. Model parameters are computed
   from the generator in float64 and then quantized.
@@ -110,9 +114,9 @@ and free-node writes per sample from a priced start?
   - *Bounds:* representation. On `smooth8` the placed tie-limit model's
     exact 64-draw equilibrium is +0.0102 to +0.0124 at 8 bits across the w
     grid and both layouts (round 3, 200 images), on the (b) line before any
-    sampling. The
-    stage E stop below decides this exactly instead of leaving it to
-    sampling noise. One-hot is not run: it is exact in float and fails at 8
+    sampling. The stage E stop below decides this exactly, on the test
+    images at w\* only, instead of leaving it to sampling noise. One-hot is
+    not run: it is exact in float and fails at 8
     bits on range on both families (round 1, round 2).
 - **Layout: two candidate pixel bases, one carried.** Both are checked by
   `require_placement` with nothing relaxed; round 3 placed both on both
@@ -135,11 +139,13 @@ and free-node writes per sample from a priced start?
     (index 4); `smooth8` 339 and 332. Border copies are partial, so the
     index-4 basis does not halve the copies: 27 to 32 per unit against 27
     to 34. It saves 8 and 7 free nodes, not about 110.
-  - **Carried layout (rule, fixed now).** Stage E computes the tie-limit
-    gap on both layouts. The study carries the layout with fewer free nodes
-    among those that pass stop (a), index 4 on equal counts; if neither
-    passes, (a) fires. Round 3 predicts index 4 on both families. Stage D
-    scans w on the carried layout.
+  - **Carried layout (rule, fixed now).** Stage E-dev computes the
+    tie-limit gaps on both layouts on the development images. The study
+    carries the layout with fewer free nodes among those with at least one
+    admitted tie value, index 4 on equal counts; if neither has one, it
+    carries index 4. Round 3 predicts index 4 on both families. Stage D
+    scans w on the carried layout. The layout choice never uses test
+    images.
   - *Bounds:* mixing. A unit's latent flips by moving domain walls through
     a sparse, mostly one-dimensional copy graph, which AM A found does not
     mix (lessons, 2026-10-07). Only these two bases are tested. Index-7 to
@@ -147,12 +153,16 @@ and free-node writes per sample from a priced start?
 - **Copy parameters.** Each copy carries its unit's pixel couplings
   unchanged and 1/n of the unit bias, so the w → ∞ limit is the unplaced
   model.
-- **Tie coupling w.** Chosen per family on a development set from
-  {1.5, 2, 2.5, 3} at 8 bits, jitter 0, random start, K = 1024, one
-  development sampler seed, on the carried layout: the w with the smallest
-  development gap. Round 2 found w = 1 too weak and w = 4 worse than 2 on
-  `t4`; round 3 (index 4, `t4`, 200 images) found +0.011, +0.004, +0.016
-  and +0.024 for w = 1.5, 2, 2.5, 3.
+- **Tie coupling w.** Grid {1.5, 1.75, 2, 2.25, 2.5, 3} (1.75 and 2.25
+  added in round 3 to resolve the minimum near 2). Chosen per family on the
+  300 development images only, in two steps: stage E-dev admits the tie
+  values whose tie-limit model passes the exact thresholds on development
+  images (rule 1 below); stage D samples the admitted values at 8 bits,
+  jitter 0, random start, K = 1024, one development sampler seed, on the
+  carried layout, and w\* is the admitted value with the smallest
+  development gap. The test images see w\* only. Round 2 found w = 1 too
+  weak and w = 4 worse than 2 on `t4`; round 3 (index 4, `t4`, 200 images)
+  found +0.011, +0.004, +0.016 and +0.024 for w = 1.5, 2, 2.5, 3.
   - *Bounds:* everything. Under `split` the ties share the coupling cap, so
     at w ≥ 0.375 the tie sets the coupling step (w/127 at 8 bits) and coarsens
     J = 0.35 and the pixel couplings. This is a property of `split`, and
@@ -161,12 +171,13 @@ and free-node writes per sample from a priced start?
   8 bits jitter 0, 6 bits jitter 0. 4 bits is exact-only (round 1: +0.033 on
   `t4`; round 2: +0.077 on `smooth8`, unplaced codebook).
 - **Starts.** Continuation, random, reset every 5 images (N = 5 from round
-  1). Streams of 20 images. Plus an unpriced oracle start on the reference
-  arm (below).
+  1). Streams of 20 images. Plus an unpriced oracle start in the oracle
+  pair (below).
 - **Sweeps.** K in {64, 256, 1024} per sample, as the row says. A float
-  K = 4096 random-start reference locates the placed model's own
-  equilibrium. Round 2 found `t4` still falling between 256 and 1024 at
-  w = 2.
+  K = 4096 random-start reference locates the unquantized placed model's
+  equilibrium. The oracle pair (oracle and random start, operating arm,
+  K = 4096) locates the operating model's finite-w equilibrium. Round 2
+  found `t4` still falling between 256 and 1024 at w = 2.
 - **Estimate.** 64-draw pixelwise majority, ties to +1 (owner). Exact floor
   of the true posterior's own 64-draw majority: +0.0018 on `t4`, +0.0047 on
   `smooth8`.
@@ -182,29 +193,34 @@ and free-node writes per sample from a priced start?
 
 ## Pre-registered expectations (from the probes)
 
-1. `t4` passes stop (a) on both layouts: the tie-limit placed model is
-   within 0.01 of Bayes at 8 bits (round 3: MPM gap −0.0006 to +0.0009,
-   64-draw gap +0.0015 to +0.0027 across the w grid, 200 images). Index 4
-   is carried (189 free nodes against 197).
+1. `t4` passes stop (a) at w\*: the tie-limit placed model is within 0.01
+   of Bayes at 8 bits (round 3: MPM gap −0.0006 to +0.0009, 64-draw gap
+   +0.0015 to +0.0027 across the w grid and both layouts, 200 images), so
+   stage E-dev admits every tie value on both layouts. Index 4 is carried
+   (189 free nodes against 197).
 2. `t4` stop (b) is undecided by the probes. Round 3's best index-4 cell
    (w = 2, random start, K = 1024, one seed, 200 images) is +0.0043; the
    other three tie values are +0.011 to +0.024; index 5 at w = 2 is +0.0125.
-   Round 2's index-5 cells were +0.018 to +0.040. Expect the operating arm
-   to sit between +0.004 and +0.015, near the threshold, so the pooled rule
-   and its power (below) matter.
-3. If (b) fires on `t4`, the mechanism is mixing: the oracle start holds
-   (round 3, K = 1024, one seed, 200 images: −0.053 on index 4 and −0.041
-   on index 5 against Bayes, while the conditioned target is −0.068, so the
-   chains partly relax but keep most of the latent), and the gap falls with
-   K beyond 1024.
+   Round 2's index-5 cells were +0.018 to +0.040. Expect w\* at 1.75, 2 or
+   2.25, and the operating arm to sit between +0.004 and +0.015, near the
+   threshold, so the pooled rule and its power (below) matter.
+3. If (b) fires on `t4`, expect the oracle pair to disagree, and the
+   mechanism to be "mixing beyond 4096, representation unresolved". Round 3
+   (K = 1024, one seed, 200 images) left the oracle start at −0.053 on
+   index 4 against Bayes, near its conditioned target of −0.068: the chains
+   keep most of the generating latent, which the noisy image does not
+   carry, while random starts sit above Bayes. The probes did not run
+   K = 4096 on the operating arm, so this expectation is weak.
 4. Continuation is no better than a random start in any seed.
 5. Jitter changes nothing (round 1: +0.0096 against +0.0098).
-6. `smooth8` does not run. If it does, the stage E stop fires: the tie-limit
-   model's 64-draw gap is above 0.01 at every w (round 3, index 4: +0.0102
-   to +0.0121; index 5: +0.0105 to +0.0124; 200 images), and the mechanism
-   is bias-design representation. Had it passed, a random start would fail
-   (c) at every K (index 4 with relays: 332 free nodes, 3.91e-6 to 4.05e-6
-   J per estimate at K = 64 to 1024, 1.14x to 1.18x the 3.43e-6 J rung).
+6. `smooth8` does not run. If it does, stage E-dev admits no tie value
+   (round 3, 64-draw gap, index 4: +0.0102 to +0.0121; index 5: +0.0105 to
+   +0.0124; 200 images), w\* falls back to the smallest development
+   tie-limit gap, and the stage E stop fires on the test images at w\*: the
+   mechanism is bias-design representation. Had it passed, a random start
+   would fail (c) at every K (index 4 with relays: 332 free nodes, 3.91e-6
+   to 4.05e-6 J per estimate at K = 64 to 1024, 1.14x to 1.18x the 3.43e-6 J
+   rung).
 
 A miss on any of these is a result.
 
@@ -214,25 +230,36 @@ A miss on any of these is a result.
   MPM error, the tie-limit placed model's equilibrium (float64, enumeration
   over 2^C hidden states times the transfer matrix), the same model and the
   true posterior conditioned on the generating hidden state (the oracle
-  arm's latent-retention diagnostic), and every n-draw floor.
-- `software_simulation`: every NumPy Gibbs cell (CPU), including the oracle
-  arm. NumPy Gibbs is not the lowered THRML program.
+  cell's latent-retention diagnostic), and every n-draw floor.
+- `software_simulation`: every NumPy Gibbs cell (CPU), including both cells
+  of the oracle pair. NumPy Gibbs is not the lowered THRML program.
 - `calibrated_projection`: every joule, on both sides.
 
 ## Arms and controls
 
-Per family (`smooth8` only if `t4` passes (a) and (b)):
+Per family (`smooth8` only if `t4` passes (a) and (b)), in this order. No
+stage uses test images to choose among tie values or layouts.
 
-**Stage E, exact (gating stop (a), the layout choice, and on `smooth8` stop
-(b)).** The tie-limit placed model on both layouts at each w in the grid at
-8 bits, and on the carried layout at float, 6 and 4 bits at the tie value
-with the smallest 8-bit tie-limit MPM gap (fixed before sampling, so stage E
-does not wait for w\*), on 1,000 test images: MPM error and exact 64-draw
-majority error against Bayes. Also at the unplaced codebook, for comparison
-with the probes. Stage E runs before any sampling.
+**Stage E-dev, exact, development images (admission and the layout
+choice).** The tie-limit placed model on both layouts at each of the six
+tie values at 8 bits, on the 300 development images: MPM error and exact
+64-draw majority error against Bayes. Admission (rule 1 below) and the
+carried layout are decided here. Runs before any sampling.
 
-**Stage D, development.** On the carried layout, the tie values that stage E
-admits x 300 development images, one development sampler seed.
+**Stage D, development, sampled.** On the carried layout, the admitted tie
+values x 300 development images, one development sampler seed. w\* is the
+admitted value with the smallest development gap. If no value is admitted,
+stage D does not run and w\* is the value with the smallest development
+tie-limit gap that the family's stop is judged on (MPM gap on `t4`, 64-draw
+gap on `smooth8`), ties to the smaller w.
+
+**Stage E-test, exact, test images, at w\* only (gating stop (a) and the
+`smooth8` stage E stop).** On the carried layout at w\*, the tie-limit
+placed model at 8 bits, float, 6 and 4 bits, on the 1,000 test images: MPM
+error and exact 64-draw majority error against Bayes. Also the unplaced
+model at float, 8, 6 and 4 bits, for comparison with the probes. No other
+tie value or layout is evaluated on the test images. Runs before any test
+image is sampled.
 
 **Stage S, sampled.** On the carried layout at w\*, for each sampler seed
 s in {0, 1, 2}:
@@ -242,40 +269,45 @@ s in {0, 1, 2}:
 - precision control: 6 bits, jitter 0;
 
 each from three starts at K in {64, 256, 1024}: 27 cells per seed, 81 per
-family. Plus two references per seed:
+family. Plus three reference cells per seed, each on the seed's 500 images:
 
 - float K = 4096 random-start reference (1 cell);
-- **oracle-start reference** (3 cells): operating arm (8 bits, jitter 0.1)
-  at K = 1024, every copy and relay node of unit c set to +1 if c generated
-  the image and −1 otherwise, pixels set to the noisy image. One cell per
-  seed on each of three disjoint thirds of the seed's 500 images (167, 167,
-  166). Start relaxed, unpriced, outside (b) and (c).
+- **oracle pair** (2 cells), both on the operating arm (8 bits, jitter 0.1)
+  at K = 4096: an *oracle start* (every copy and relay node of unit c set
+  to +1 if c generated the image and −1 otherwise, pixels set to the noisy
+  image; start relaxed) and a *random start*. The two cells see the same
+  images, so their gaps are paired. Unpriced, outside (b) and (c).
 
 Controls: Bayes; noisy input; the unplaced model's exact 64-draw floor; the
 true posterior's 64-draw floor; the float K = 4096 reference; the
-conditioned exact targets for the oracle arm's latent retention.
+conditioned exact targets for the oracle cell's latent retention.
 
 ## Primary decision rule (thresholds fixed now)
 
 Replication unit: the sampler seed. "Gap" is the 64-draw majority's pixel
 error minus the Bayes MPM error on the same images.
 
-1. **Stop (a).** On a layout and tie value, the tie-limit placed model's
-   exact MPM gap at 8 bits is above 0.01 (point estimate, 1,000 images).
-   A tie value that fails is dropped from stage D. If every tie value fails
-   on both layouts, (a) fires: stage S does not run on that family, and the
-   mechanism is precision or the bias design, whichever the float row
-   separates.
-2. **Stage E stop (b), `smooth8` only.** On the carried layout, a tie value
-   whose tie-limit model's exact 64-draw majority gap at 8 bits on the
-   1,000 fresh test images is above 0.01 is dropped from stage D. If every
-   tie value is dropped, stop (b) fires at stage E: stage S does not run on
+1. **Admission (development images) and stop (a) (test images, w\*
+   only).** On a layout and tie value, stage E-dev admits the value if the
+   tie-limit placed model's exact MPM gap at 8 bits on the 300 development
+   images is at most 0.01 (on `smooth8` its exact 64-draw gap must also be
+   at most 0.01; rule 2). Values that are not admitted do not enter
+   stage D. Stop (a) is then judged once, on the carried layout at w\*: it
+   fires if the tie-limit model's exact MPM gap at 8 bits on the 1,000 test
+   images is above 0.01 (point estimate). If it fires, stage S does not run
+   on that family, and the mechanism is precision or the bias design,
+   whichever the float row at w\* separates. No other tie value is judged
+   on the test images, so there is no selection among tie values there.
+2. **Stage E stop (b), `smooth8` only.** Admission on `smooth8` also
+   requires the tie-limit model's exact 64-draw majority gap at 8 bits on
+   the development images to be at most 0.01. The stop itself is judged
+   once, on the carried layout at w\* on the 1,000 test images: if that
+   gap is above 0.01, stop (b) fires at stage E, stage S does not run on
    `smooth8`, and the mechanism is **bias-design representation**, not the
    lattice. A perfect sampler of that model would already miss, so no
-   sampled cell could reach. Tolerance 0.01 and 64 draws, as on `t4`. The
-   stop is checked per tie value and fires only if every value misses, so
-   picking among tie values on the test images can only make the negative
-   harder to reach, never easier.
+   sampled cell could reach. Tolerance 0.01 and 64 draws, as on `t4`.
+   Because w\* is fixed on development images before the test images are
+   scored, the test verdict is not a minimum over tie values.
 3. **Reaching.** A cell (bits, jitter, start, K) reaches if (i) its gap
    pooled over the three seeds (mean of the three per-seed gaps, 1,500
    images) is at most 0.01, and (ii) every per-seed gap is at most 0.015
@@ -305,26 +337,31 @@ error minus the Bayes MPM error on the same images.
    comparisons, in this order:
    - *precision or jitter*, if the 8-bit jitter-0 arm or the float
      reference reaches where the operating arm does not;
-   - the **oracle reference** separates the rest. It *holds* if its pooled
-     gap to Bayes is at most 0.01 and every per-seed gap at most 0.015 (the
-     reaching rule applied to the oracle arm);
-   - *mixing within budget*, if the oracle arm holds: started in the right
-     mode, the finite-w placed model keeps a posterior good enough to reach,
-     so the random-start miss is the chain not finding the mode in 1024
-     sweeps. The float K = 4096 reference is reported beside it;
-   - *finite-w representation*, if the oracle arm does not hold: started in
-     the right mode, the copies still lose the latent at w\*, so tied copies
-     at a tie strength the codebook can express do not represent a global
-     latent, whatever the mixing.
-   - Caveat, stated in the report: the oracle start carries the generating
-     template, which the noisy image does not. The exact tie-limit model
-     conditioned on it sits far below Bayes (round 3: −0.068 on `t4`, −0.102
-     on `smooth8`, 64-draw gap, 200 images), so a chain that never leaves
-     the start mode also "holds". The oracle cell's distance from that
-     conditioned target (its *latent retention*) is reported as a
-     diagnostic: near the target means the latent never moved in 1024
-     sweeps; near Bayes means the chain relaxed to the model's own
-     posterior. Neither gates.
+   - otherwise the **oracle pair** separates the rest. Let g_o and g_r be
+     the oracle-start and random-start pooled gaps (mean of the three
+     per-seed gaps, 1,500 paired images) at K = 4096 on the operating arm,
+     and d = g_o − g_r. The pair *agrees* if |d| ≤ 0.01 (point estimate;
+     the paired stream bootstrap interval of d is reported beside it and
+     does not gate). If it agrees, the common value g\* = (g_o + g_r)/2 is
+     taken as the operating model's finite-w equilibrium gap at w\*:
+     - *mixing within budget*, if g\* ≤ 0.01: the finite-w placed model's
+       own equilibrium is within tolerance, so the miss at K ≤ 1024 is the
+       chain not reaching it within the row's sweep budget;
+     - *finite-w representation*, if g\* > 0.01: two starts that differ
+       in the latent agree on an equilibrium that misses, so tied copies
+       at a tie strength the codebook can express do not represent the
+       posterior, whatever the mixing.
+   - *mixing beyond 4096, representation unresolved*, if the pair does not
+     agree (|d| > 0.01): the chains still remember their start after 4096
+     sweeps, so the equilibrium is not located and representation is not
+     decided.
+   - Latent retention is reported as a diagnostic for the oracle cell: its
+     distance from the exact tie-limit model conditioned on the generating
+     template (round 3: −0.068 on `t4`, −0.102 on `smooth8` against Bayes,
+     64-draw gap, 200 images). Near that target means the latent never
+     moved; near the random-start cell means the chain forgot its start. It
+     does not gate. The oracle start carries the generating template, which
+     the noisy image does not, so the oracle cell alone is never the test.
    Copy agreement (fraction of a unit's copies equal to its majority) at the
    last sweep is reported per cell as a diagnostic and does not gate.
 8. **Stop (c), `smooth8` only.** The operating point's joule per 64-draw
@@ -334,7 +371,7 @@ error minus the Bayes MPM error on the same images.
 
 Any stop closes the denoising line at L ≤ 16 **for this construction**:
 hand-built bias-design template units, spread as tied copies (index-4 or
-index-5 pixel basis, whichever stage E carries, with relay paths on the
+index-5 pixel basis, whichever stage E-dev carries, with relay paths on the
 16-offset lattice), 8-bit `split` codebook, NumPy two-colour Gibbs. The
 closing sentence names that geometry and says no other layout was tested.
 The real binarized set opens only on a positive (row).
@@ -344,7 +381,7 @@ The real binarized set opens only on a positive (row).
 One chain's 64 pixel states after K sweeps of two-colour Gibbs on the placed
 model with the noisy image clamped, starting from the previous image's
 final state in the stream (continuation), a uniform state (random), a
-uniform state every fifth image (reset), or, on the unpriced reference arm
+uniform state every fifth image (reset), or, in the unpriced oracle pair
 only, the oracle state (every copy and relay of the generating unit +1, of
 the others −1, pixels at the noisy image). An estimate is the pixelwise
 majority of 64 independent chains, ties to +1. Bayes: the exact marginal
@@ -357,14 +394,16 @@ P-0007 seeds 20261201 to 20261210; P-0006 seeds 20261101 to 20261108).
 
 - Test images and noise: `default_rng([20261301, f])`. The generating
   component of each image is recorded from the same stream, for the oracle
-  arm.
+  pair.
 - Development images and noise: `default_rng([20261302, f])`.
-- Development sampler: `default_rng([20261303, f, w_index])`.
+- Development sampler: `default_rng([20261303, f, w_index])`, w_index the
+  position in the six-value grid.
 - Stage S chains: `default_rng([20261304, f, s, cell])`.
 - Float reference chains: `default_rng([20261305, f, s])`.
 - Jitter words: (20261306, f, s).
 - Bootstrap: `default_rng([20261307, f, s])`.
-- Oracle reference chains: `default_rng([20261308, f, s, third])`.
+- Oracle pair chains: `default_rng([20261308, f, s, start])`, start 0 for
+  the oracle start and 1 for the random start.
 
 ## Budgets and CPU estimate
 
@@ -374,18 +413,22 @@ free nodes), 4.76e-4 on index-4 `smooth8` (332). Tie-limit exact rows: about
 17 CPU-s per 200 images on `smooth8`, under 2 on `t4`.
 
 - **`t4`:** stage S 27 cell-groups x 500 images x 1,344 sweeps, 1.15
-  CPU-hours; float reference 3 x 500 x 4,096, 0.4; oracle reference 1,500
-  images x 1,024, 0.1; development 0.1; exact stage (two layouts) and
-  preflight 0.1. **About 1.8 CPU-hours.**
-- **`smooth8`, stage E only** (expected if it runs): 15 exact rows on
-  1,000 images, **about 0.4 CPU-hours.**
+  CPU-hours; float reference 3 x 500 x 4,096, 0.4; oracle pair 2 x 3 x 500
+  x 4,096, 0.8; development up to 6 x 300 x 1,024, 0.15; exact stages
+  (12 development rows, 8 test rows) and preflight 0.1. **About 2.6
+  CPU-hours.**
+- **`smooth8`, exact stages only** (expected if it runs): 12 development
+  rows on 300 images and 8 test rows on 1,000, **about 0.3 CPU-hours.**
 - **`smooth8`, full** (only if the stage E stop does not fire): stage S 2.4,
-  float reference 0.8, oracle 0.2, development 0.15, exact 0.4. About 4.0
-  CPU-hours.
-- **Total: 1.8 CPU-hours if `t4` stops, 2.2 if `smooth8` stops at stage E,
-  5.8 if both run in full.** P-0007 ran 2.7x over a short-run calibration,
-  so the runner calibrates on full-length cells and stops if the projection
-  exceeds 8 CPU-hours. About 0.7, 0.9 or 2.2 hours wall on three workers.
+  float reference 0.8, oracle pair 1.6, development 0.3, exact 0.3. About
+  5.4 CPU-hours.
+- **Total: 2.6 CPU-hours if `t4` stops, 2.9 if `smooth8` stops at stage E,
+  8.0 if both run in full.** The oracle pair at K = 4096 adds 0.7 on `t4`
+  and 1.4 on `smooth8` against round 2. P-0007 ran 2.7x over a short-run
+  calibration, so the runner calibrates on full-length cells and stops if
+  the projection exceeds 10 CPU-hours (raised from 8 to keep the full
+  two-family plan under the cap). About 0.9, 1.0 or 2.7 hours wall on three
+  workers.
 
 ## Preflight (gating, probe seed)
 
@@ -395,7 +438,7 @@ free nodes), 4.76e-4 on index-4 `smooth8` (332). Tie-limit exact rows: about
    bases, both families).
 2. Tie limit: summing each unit's quantized per-copy biases and taking its
    copies' common pixel couplings reproduces the collapsed model used by
-   stage E, to 1e-12.
+   stages E-dev and E-test, to 1e-12.
 3. Sampler: the NumPy engine against the constraint layer's
    `exact_chromatic_kernels` on a sub-model of at most 12 free nodes (a
    2 x 2 pixel patch with one unit's copies and a relay), K in {1, 2, 4},
@@ -413,10 +456,13 @@ free nodes), 4.76e-4 on index-4 `smooth8` (332). Tie-limit exact rows: about
 
 The run may exceed 30 minutes, so the runner follows the
 [autosave contract](../experiment-runner.md#autosave-and-resume-contract).
-Work units are atomic: one exact stage per family, one development cell,
-one stage S cell (family, arm, start, K, seed), one reference cell. The
-`smooth8` exact stage is created only after the `t4` verdict is written and
-digested, and its sampled units only after its stage E verdict. Resume is
+Work units are atomic: one exact stage E-dev per family, one development
+cell, one exact stage E-test per family, one stage S cell (family, arm,
+start, K, seed), one reference cell (float reference or one oracle-pair
+start). Stage E-test is created only after w\* is written and digested. The
+`smooth8` exact stages are created only after the `t4` verdict is written and
+digested, its stage D units only after its stage E-dev admission, and its
+stage S units only after its stage E-test verdict. Resume is
 the same command with `--resume` and the same output directory. A unit
 test interrupts a small run and checks that the resumed record is
 identical.
@@ -429,13 +475,14 @@ digests and relaxed reasons, w grid, seeds); preflight; per-image
 wrong-pixel counts (uint8) for every cell, Bayes and the noisy input;
 per-image generating components; per-cell copy agreement; exact-stage
 marginal summaries; pricing; CPU timings, kept out of the result digest;
-the evaluation. At most 97 cells per family x 500 images, under 0.3 MB
+the evaluation. At most 96 cells per family x 500 images, under 0.3 MB
 gzipped.
 
-Replay recomputes Bayes errors, the exact stage, the conditioned targets
-and the floors at 1e-12 relative, recomputes the carried layout, reaching,
-the operating point, mechanism, bootstraps, prices and verdicts from the
-archived counts, and re-verifies placement of both layouts. A prefix check
+Replay recomputes Bayes errors, both exact stages, the conditioned targets
+and the floors at 1e-12 relative, recomputes admission, the carried layout,
+w\*, reaching, the operating point, the oracle-pair agreement and
+mechanism, bootstraps, prices and verdicts from the archived counts, and
+re-verifies placement of both layouts. A prefix check
 reruns one stage S cell and one development cell and requires identical
 counts. CI replays without the prefix check (`--light`).
 
@@ -444,46 +491,56 @@ counts. CI replays without the prefix check (`--light`).
 `completion.json`, written last by the runner, must show:
 
 - `status=dtm_exact_posterior_lattice_complete`;
-- `families_run` (1 or 2; a family runs when its stage E runs);
-  `exact_rows` equal to 15 times `families_run` (two layouts x four tie
-  values at 8 bits; float, 6 and 4 bits at the stage E tie value; float,
-  8, 6 and 4 bits unplaced);
-- `sampled_cells` equal to the development cells admitted by stage E plus
-  93 for each family that reaches stage S (81 stage S, 3 float reference,
-  9 oracle reference), with the per-family split listed;
+- `families_run` (1 or 2; a family runs when its stage E-dev runs);
+  `exact_rows` equal to 20 times `families_run` (stage E-dev: two layouts x
+  six tie values at 8 bits on development images; stage E-test at w\*:
+  placed 8, float, 6 and 4 bits, unplaced float, 8, 6 and 4 bits on test
+  images);
+- `sampled_cells` equal to the development cells admitted by stage E-dev
+  plus 90 for each family that reaches stage S (81 stage S, 3 float
+  reference, 6 oracle pair), with the per-family split listed;
 - `preflight_passed`, `placement_passed`, `references_recomputed`,
   `prefix_check_passed`, `replayed` all `true`.
 
-It also carries the carried layout, w\*, the stop verdicts (a), (b) (and
-whether (b) fired at stage E), (c) per family, the named mechanism, and the
+It also carries the admitted tie values, the carried layout, w\*, the stop
+verdicts (a), (b) (and whether (b) fired at stage E), (c) per family, the
+oracle-pair gaps and agreement, the named mechanism, and the
 operating point with its counts and joule band. These are scientific
 results, not integrity checks.
 
 ## Stop rules
 
 - Preflight fails: stop before production. Do not tune tolerances.
-- Calibration projects over 8 CPU-hours: stop and report.
+- Calibration projects over 10 CPU-hours: stop and report.
 - Stop (a) or (b) fires on `t4`: `smooth8` does not run.
-- The stage E stop fires on `smooth8`: its stage D and S do not run.
+- The stage E stop fires on `smooth8`: its stage S does not run (stage D
+  has run only if a tie value was admitted on development images).
 - Two consecutive failed runs with the same error: stop and report.
 - A replay mismatch is an integrity failure.
 
 ## What a negative result means
 
-- **(a) fires.** The lattice's precision under `split`, with ties sharing
-  the coupling cap, cannot hold the posterior even with infinite ties. The
-  number is the precision gap.
-- **(b) fires at stage E (`smooth8`).** The hand-built bias-design encoding
-  misses Bayes + 0.01 with a perfect sampler at 8 bits. The mechanism is
-  bias-design representation, not the lattice. The number is the
-  tie-limit 64-draw gap. Cost (c) is not decided.
-- **(b) fires with "mixing within budget".** The placed model at w\* holds
-  the posterior from the right start, but random, continued and reset
-  chains do not reach it in 1024 sweeps. The number is the gap at K = 1024
-  and the float K = 4096 reference's gap.
-- **(b) fires with "finite-w representation".** Even from the generating
-  template, tied copies at a tie strength the codebook can express lose the
-  latent. The number is the oracle arm's gap.
+- **(a) fires.** At w\*, chosen on development images, the lattice's
+  precision under `split`, with ties sharing the coupling cap, cannot hold
+  the posterior on the test images even with infinite ties. The number is
+  the precision gap.
+- **(b) fires at stage E (`smooth8`).** At w\*, the hand-built bias-design
+  encoding misses Bayes + 0.01 on the test images with a perfect sampler
+  at 8 bits. The mechanism is bias-design representation, not the
+  lattice. The number is the tie-limit 64-draw gap at w\*. Cost (c) is not
+  decided.
+- **(b) fires with "mixing within budget".** Oracle and random starts
+  agree at K = 4096 on a finite-w equilibrium within Bayes + 0.01, but no
+  priced start reaches it in 1024 sweeps. The numbers are the gap at
+  K = 1024 and the common K = 4096 value.
+- **(b) fires with "finite-w representation".** Oracle and random starts
+  agree at K = 4096 on an equilibrium above Bayes + 0.01: tied copies at a
+  tie strength the codebook can express do not represent the posterior.
+  The number is the common value.
+- **(b) fires with "mixing beyond 4096, representation unresolved".** The
+  two starts still differ by more than 0.01 after 4096 sweeps. The study
+  does not locate the finite-w equilibrium. The numbers are both pooled
+  gaps and their difference.
 - **(c) fires on `smooth8`.** The lattice holds and samples the posterior but
   costs at least as much per estimate as the archived rung at 1 pJ per MAC.
 - **Any of these** closes the denoising line at L ≤ 16 for the tested
