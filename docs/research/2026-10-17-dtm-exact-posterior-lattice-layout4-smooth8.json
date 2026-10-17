@@ -1,0 +1,543 @@
+{
+ "label": "exploration, not evidence",
+ "draws_per_estimate": 64,
+ "evidence_classes": {
+  "tie_limit_gaps": "exact_reference (float64)",
+  "gibbs": "software_simulation (NumPy two-colour Gibbs, CPU; not the lowered THRML program)"
+ },
+ "families": [
+  {
+   "family": "smooth8_h05_q035",
+   "b0": -15.0,
+   "images": 200,
+   "bayes_mpm": 0.229765625,
+   "true_posterior_maj64_floor_gap": 0.004431457795275413,
+   "layouts": [
+    {
+     "basis": "index5",
+     "basis_vectors": [
+      [
+       2,
+       1
+      ],
+      [
+       -1,
+       2
+      ]
+     ],
+     "clamp_coset": [
+      0,
+      1
+     ],
+     "unit_cosets": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "every_unit_covers_each_pixel_once": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 955,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 339,
+     "copies_per_unit": [
+      34,
+      27,
+      27,
+      27,
+      34,
+      27,
+      34,
+      27
+     ],
+     "direct_ties_per_unit": [
+      30,
+      24,
+      24,
+      24,
+      30,
+      24,
+      30,
+      24
+     ],
+     "relay_nodes_per_unit": [
+      6,
+      4,
+      4,
+      4,
+      6,
+      4,
+      6,
+      4
+     ],
+     "relay_edges_per_unit": [
+      9,
+      6,
+      6,
+      6,
+      9,
+      6,
+      9,
+      6
+     ],
+     "max_pixels_per_copy": 3,
+     "copy_free_nodes": 237,
+     "relay_free_nodes": 38,
+     "scanned": true,
+     "tie_limit": {
+      "1.5": {
+       "caps": {
+        "coupling": 1.5,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.008125,
+       "mpm_gap_se": 0.0022206745050857156,
+       "maj64_gap": 0.010508265777472783
+      },
+      "2.0": {
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.00859375,
+       "mpm_gap_se": 0.002539704149210115,
+       "maj64_gap": 0.010727241083010519
+      },
+      "2.5": {
+       "caps": {
+        "coupling": 2.5,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.010390625,
+       "mpm_gap_se": 0.002567395730425074,
+       "maj64_gap": 0.012399039731766332
+      },
+      "3.0": {
+       "caps": {
+        "coupling": 3.0,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.008671875,
+       "mpm_gap_se": 0.0025850632806804726,
+       "maj64_gap": 0.011676653648751088
+      }
+     },
+     "cells": [
+      {
+       "tie_w": 2.0,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.30619122052416997
+       },
+       "gap_to_bayes": 0.04078125,
+       "gap_ci95": [
+        0.024607421875,
+        0.053984374999999994
+       ],
+       "cpu_s": 90.791597702
+      },
+      {
+       "tie_w": 2.0,
+       "start": "oracle",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.30619122052416997
+       },
+       "gap_to_bayes": -0.043984375,
+       "gap_ci95": [
+        -0.05765625,
+        -0.031875
+       ],
+       "cpu_s": 88.020039938
+      }
+     ]
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -3,
+      2
+     ],
+     "unit_cosets": [
+      [
+       -2,
+       -3
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "every_unit_covers_each_pixel_once": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 948,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 332,
+     "copies_per_unit": [
+      28,
+      28,
+      27,
+      28,
+      30,
+      31,
+      32,
+      32
+     ],
+     "direct_ties_per_unit": [
+      26,
+      25,
+      24,
+      25,
+      27,
+      28,
+      29,
+      29
+     ],
+     "relay_nodes_per_unit": [
+      2,
+      4,
+      4,
+      4,
+      5,
+      4,
+      4,
+      5
+     ],
+     "relay_edges_per_unit": [
+      3,
+      6,
+      6,
+      6,
+      7,
+      6,
+      6,
+      7
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 236,
+     "relay_free_nodes": 32,
+     "scanned": true,
+     "tie_limit": {
+      "1.5": {
+       "caps": {
+        "coupling": 1.5,
+        "field": 0.29708492527366137
+       },
+       "mpm_gap": 0.00703125,
+       "mpm_gap_se": 0.002155608108521845,
+       "maj64_gap": 0.010232239154317228
+      },
+      "2.0": {
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.29708492527366137
+       },
+       "mpm_gap": 0.008125,
+       "mpm_gap_se": 0.0025305335467855463,
+       "maj64_gap": 0.010395777900456558
+      },
+      "2.5": {
+       "caps": {
+        "coupling": 2.5,
+        "field": 0.29708492527366137
+       },
+       "mpm_gap": 0.010234375,
+       "mpm_gap_se": 0.0024954750093989213,
+       "maj64_gap": 0.012110262542741645
+      },
+      "3.0": {
+       "caps": {
+        "coupling": 3.0,
+        "field": 0.29708492527366137
+       },
+       "mpm_gap": 0.0078125,
+       "mpm_gap_se": 0.002607044055253027,
+       "maj64_gap": 0.011348535730642975
+      }
+     },
+     "cells": [
+      {
+       "tie_w": 2.0,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.29708492527366137
+       },
+       "gap_to_bayes": 0.04296875,
+       "gap_ci95": [
+        0.031484375,
+        0.05429882812499999
+       ],
+       "cpu_s": 97.39797706400003
+      },
+      {
+       "tie_w": 2.0,
+       "start": "oracle",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.29708492527366137
+       },
+       "gap_to_bayes": -0.04656249999999999,
+       "gap_ci95": [
+        -0.063830078125,
+        -0.030779296875000004
+       ],
+       "cpu_s": 87.64006319600003
+      }
+     ]
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -2,
+      -3
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "every_unit_covers_each_pixel_once": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 965,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 349,
+     "copies_per_unit": [
+      30,
+      31,
+      32,
+      32,
+      30,
+      31,
+      32,
+      32
+     ],
+     "direct_ties_per_unit": [
+      27,
+      27,
+      29,
+      30,
+      27,
+      28,
+      29,
+      29
+     ],
+     "relay_nodes_per_unit": [
+      5,
+      6,
+      5,
+      2,
+      6,
+      3,
+      4,
+      4
+     ],
+     "relay_edges_per_unit": [
+      7,
+      9,
+      7,
+      3,
+      8,
+      5,
+      6,
+      6
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 250,
+     "relay_free_nodes": 35
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -1,
+      0
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -2,
+       -3
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "every_unit_covers_each_pixel_once": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 951,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 335,
+     "copies_per_unit": [
+      30,
+      31,
+      32,
+      32,
+      28,
+      28,
+      27,
+      28
+     ],
+     "direct_ties_per_unit": [
+      27,
+      27,
+      29,
+      30,
+      26,
+      25,
+      24,
+      25
+     ],
+     "relay_nodes_per_unit": [
+      6,
+      5,
+      4,
+      2,
+      3,
+      5,
+      5,
+      5
+     ],
+     "relay_edges_per_unit": [
+      8,
+      8,
+      6,
+      3,
+      4,
+      7,
+      7,
+      7
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 236,
+     "relay_free_nodes": 35
+    }
+   ],
+   "unplaced_8bit_maj64_gap": 0.011328168149946279,
+   "oracle_component_check": {
+    "mean_posterior_weight_of_generating_component": 0.48240307082462425,
+    "argmax_agrees": 0.62
+   }
+  }
+ ],
+ "total_cpu_s": 516.2561698630001
+}

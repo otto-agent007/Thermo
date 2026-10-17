@@ -1,0 +1,402 @@
+{
+ "draws_per_estimate": 64,
+ "evidence_classes": {
+  "gibbs": "software_simulation (NumPy, CPU)",
+  "unplaced_floors": "exact_reference"
+ },
+ "families": [
+  {
+   "b0": -5.0,
+   "bayes_maj64_floor_gap": 0.0017963044184679505,
+   "bayes_mpm": 0.230703125,
+   "cells": [
+    {
+     "K": 256,
+     "bits": 8,
+     "caps": {
+      "coupling": 1.0,
+      "field": 0.5
+     },
+     "cpu_s": 11.024657687,
+     "gap_ci95": [
+      0.014294921875,
+      0.043437500000000004
+     ],
+     "gap_to_bayes": 0.030234375,
+     "start": "random",
+     "tie_w": 1.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 1.0,
+      "field": 0.5
+     },
+     "cpu_s": 43.720495902,
+     "gap_ci95": [
+      0.015542968749999999,
+      0.044064453124999986
+     ],
+     "gap_to_bayes": 0.030390624999999998,
+     "start": "random",
+     "tie_w": 1.0
+    },
+    {
+     "K": 256,
+     "bits": 8,
+     "caps": {
+      "coupling": 1.0,
+      "field": 0.5
+     },
+     "cpu_s": 10.939372044999999,
+     "gap_ci95": [
+      0.013357421875,
+      0.03937695312499999
+     ],
+     "gap_to_bayes": 0.027265624999999998,
+     "start": "continue",
+     "tie_w": 1.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 1.0,
+      "field": 0.5
+     },
+     "cpu_s": 43.753665174000005,
+     "gap_ci95": [
+      0.018121093749999994,
+      0.042970703124999995
+     ],
+     "gap_to_bayes": 0.031640625,
+     "start": "continue",
+     "tie_w": 1.0
+    },
+    {
+     "K": 256,
+     "bits": 8,
+     "caps": {
+      "coupling": 2.0,
+      "field": 0.5
+     },
+     "cpu_s": 10.664740942999998,
+     "gap_ci95": [
+      0.014294921874999996,
+      0.036564453124999986
+     ],
+     "gap_to_bayes": 0.026171875,
+     "start": "random",
+     "tie_w": 2.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 2.0,
+      "field": 0.5
+     },
+     "cpu_s": 42.39637558499999,
+     "gap_ci95": [
+      0.004687500000000001,
+      0.02976757812499999
+     ],
+     "gap_to_bayes": 0.018359374999999997,
+     "start": "random",
+     "tie_w": 2.0
+    },
+    {
+     "K": 256,
+     "bits": 8,
+     "caps": {
+      "coupling": 2.0,
+      "field": 0.5
+     },
+     "cpu_s": 10.554555044000011,
+     "gap_ci95": [
+      0.019763671875000003,
+      0.047892578124999995
+     ],
+     "gap_to_bayes": 0.03578125,
+     "start": "continue",
+     "tie_w": 2.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 2.0,
+      "field": 0.5
+     },
+     "cpu_s": 42.13949609900001,
+     "gap_ci95": [
+      0.01015625,
+      0.033986328124999986
+     ],
+     "gap_to_bayes": 0.02359375,
+     "start": "continue",
+     "tie_w": 2.0
+    },
+    {
+     "K": 256,
+     "bits": 8,
+     "caps": {
+      "coupling": 4.0,
+      "field": 0.5
+     },
+     "cpu_s": 10.628818798000026,
+     "gap_ci95": [
+      0.019140625,
+      0.04914062500000001
+     ],
+     "gap_to_bayes": 0.03546875,
+     "start": "random",
+     "tie_w": 4.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 4.0,
+      "field": 0.5
+     },
+     "cpu_s": 42.32601368699997,
+     "gap_ci95": [
+      0.024687499999999998,
+      0.04961132812499999
+     ],
+     "gap_to_bayes": 0.038828125,
+     "start": "random",
+     "tie_w": 4.0
+    },
+    {
+     "K": 256,
+     "bits": 8,
+     "caps": {
+      "coupling": 4.0,
+      "field": 0.5
+     },
+     "cpu_s": 10.511653593999995,
+     "gap_ci95": [
+      0.023123046875,
+      0.05304687499999999
+     ],
+     "gap_to_bayes": 0.039609375,
+     "start": "continue",
+     "tie_w": 4.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 4.0,
+      "field": 0.5
+     },
+     "cpu_s": 41.819530731999976,
+     "gap_ci95": [
+      0.021638671874999998,
+      0.048593750000000005
+     ],
+     "gap_to_bayes": 0.036562500000000005,
+     "start": "continue",
+     "tie_w": 4.0
+    }
+   ],
+   "family": "t4_h05_q035",
+   "images": 200,
+   "layout": {
+    "distinct_sites": true,
+    "every_unit_covers_each_pixel_once": true,
+    "pixel_degree": 9,
+    "units": [
+     {
+      "chains": 4,
+      "copies": 34,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 3,
+      "ties": 30
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     }
+    ]
+   },
+   "unplaced": {
+    "8": 0.0016627223409378827
+   }
+  },
+  {
+   "b0": -15.0,
+   "bayes_maj64_floor_gap": 0.004431457795275413,
+   "bayes_mpm": 0.229765625,
+   "cells": [
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 2.0,
+      "field": 0.30619122052416997
+     },
+     "cpu_s": 72.256436495,
+     "gap_ci95": [
+      0.021718750000000002,
+      0.044531249999999994
+     ],
+     "gap_to_bayes": 0.03359375,
+     "start": "random",
+     "tie_w": 2.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 2.0,
+      "field": 0.30619122052416997
+     },
+     "cpu_s": 71.01864898099996,
+     "gap_ci95": [
+      0.0396875,
+      0.073126953125
+     ],
+     "gap_to_bayes": 0.057265625,
+     "start": "continue",
+     "tie_w": 2.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 4.0,
+      "field": 0.30619122052416997
+     },
+     "cpu_s": 72.59362529499998,
+     "gap_ci95": [
+      0.06585937500000001,
+      0.09461328124999997
+     ],
+     "gap_to_bayes": 0.0809375,
+     "start": "random",
+     "tie_w": 4.0
+    },
+    {
+     "K": 1024,
+     "bits": 8,
+     "caps": {
+      "coupling": 4.0,
+      "field": 0.30619122052416997
+     },
+     "cpu_s": 70.85917860500001,
+     "gap_ci95": [
+      0.10100976562500001,
+      0.14367578125
+     ],
+     "gap_to_bayes": 0.121875,
+     "start": "continue",
+     "tie_w": 4.0
+    }
+   ],
+   "family": "smooth8_h05_q035",
+   "images": 200,
+   "layout": {
+    "distinct_sites": true,
+    "every_unit_covers_each_pixel_once": true,
+    "pixel_degree": 13,
+    "units": [
+     {
+      "chains": 4,
+      "copies": 34,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 3,
+      "ties": 30
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     },
+     {
+      "chains": 4,
+      "copies": 34,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 3,
+      "ties": 30
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     },
+     {
+      "chains": 4,
+      "copies": 34,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 3,
+      "ties": 30
+     },
+     {
+      "chains": 3,
+      "copies": 27,
+      "max_pixels_per_copy": 3,
+      "relay_same_colour": 0,
+      "relays_relaxed": 2,
+      "ties": 24
+     }
+    ]
+   },
+   "unplaced": {
+    "8": 0.011328168149946279
+   }
+  }
+ ],
+ "label": "exploration, not evidence",
+ "relaxed": "placement, for 2-3 direct relay ties per unit joining parallel copy chains",
+ "total_cpu_s": 626.258467679
+}
