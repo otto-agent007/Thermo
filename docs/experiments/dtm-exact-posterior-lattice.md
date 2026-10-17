@@ -335,8 +335,10 @@ error minus the Bayes MPM error on the same images.
    by construction (lessons, 2026-10-15).
 7. **Mechanism when (b) fires after sampling**, named from fixed
    comparisons, in this order:
-   - *precision or jitter*, if the 8-bit jitter-0 arm or the float
-     reference reaches where the operating arm does not;
+   - *precision or jitter*, if the 8-bit jitter-0 arm reaches at a K at
+     most 1024 where the operating arm does not, or the float K = 4096
+     reference reaches where the oracle pair's 8-bit random-start K = 4096
+     cell does not (same images, paired);
    - otherwise the **oracle pair** separates the rest. Let g_o and g_r be
      the oracle-start and random-start pooled gaps (mean of the three
      per-seed gaps, 1,500 paired images) at K = 4096 on the operating arm,
