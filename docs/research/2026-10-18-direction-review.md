@@ -13,16 +13,10 @@ PR #124, merged; its row landed in PR #125 with the owner's amendments).
 
 Leave the queue empty and write the four-week test's answer down now, before
 its due date of 2026-11-11 (`CLAUDE.md`, "Where the project stands", first
-bullet). On every task the lab has run, clause 3 reads against the hardware,
-and the P-0008 pricing shows why no L = 8 task could have changed that under
-the current I/O premise: 64 clamp loads per draw at the sealed profile's write
-constant cost 6.3e-7 J per 64-draw estimate before a single sweep (arithmetic
-on `docs/experiment-reports/2026-10-17-dtm-exact-posterior-lattice/findings.md`,
-"Resource accounting": 64 writes per sample, 64 samples per estimate, write
-constant 1.536e-10 J), which is above the 2.4e-7 J a 243,200-MAC digital net
-costs on `t4` at 1 pJ per MAC (`docs/research-queue.md`, row
-`dtm-exact-posterior-lattice`, notes). The denoising line is closed by the
-owner's own stop rule, its last two results fail the same way, and the
+bullet). On every task the lab has run, clause 3 reads against the hardware
+on cost, quality or both. (The draft's clamp-floor argument stood here; the
+owner struck it, see "Owner decision" at the end.) The denoising line is
+closed by the owner's own stop rule, its last two results fail the same way, and the
 charter's second task (dense associative memory) needs the same construction
 that just failed. Under the loop's rule my only output for this line is the
 premise question in "Pattern" below. No new row.
@@ -145,27 +139,23 @@ Two things make this a premise question rather than a row question.
    chains). A placeable associative memory is therefore the same
    construction with the same two failure modes, and a row for it would be
    the third variant.
-2. **The cost verdict is set by the I/O premise, not by any model.** Under
-   the sealed profile a clamp load is a full SRAM write, about 21,665 updates
-   (`docs/experiment-reports/2026-10-07-exchange-cost-projection/findings.md`),
-   and every DTM study prices one clamp load per pixel per draw. At L = 8
-   and 64 draws that is 6.3e-7 J per estimate at the write constant with
-   zero sweeps, 87 percent of P-0008's continuation estimate (arithmetic on
-   the findings' counts). The band's low end (clamp loads at the read
-   constant) is 7x lower and rests on a constant Extropic has not published
-   (queue header). So on any L = 8 task the hardware wins only if the digital
-   side costs more than about 6e5 MACs at 1 pJ per MAC, or if the clamp
-   constant or the I/O path changes. Neither is a sampler or model question.
+2. **The cost verdict depends on the I/O premise as well as the model.**
+   Under the sealed profile a clamp load is a full SRAM write, about 21,665
+   updates (`docs/experiment-reports/2026-10-07-exchange-cost-projection/findings.md`),
+   and every DTM study prices one clamp load per pixel per draw. The draft's
+   clamp-floor and break-even sentences that stood here were struck by the
+   owner: the thinned-draw probe (PR #129, exploration) found one clamp load
+   can serve all 64 draws of an estimate on `t4`, at about 1e-7 J per
+   estimate. See "Owner decision".
 
 **Premise question for the owner (also in this card's metadata).** The
 denoising line is closed under your stop rules, its last two results fail
 the same way, and the charter's second task needs the construction that
 failed. Which premise, if any, do you want tested next?
 
-- (1) None: state the four-week test's answer on 2026-11-11 as "clause 3
-  reads against the hardware on every task run, and the write-constant clamp
-  floor says it would on any L = 8 task whose digital cost is under about
-  6e5 MACs", and choose the next task outside denoising and dense memory.
+- (1) None: state the four-week test's answer on 2026-11-11, and choose the
+  next task outside denoising and dense memory. (Clause 3's wording is set
+  in "Owner decision".)
   This is the charter's own instruction when the test fails ("revisit it
   rather than add process"), and it is what I would do.
 - (2) The I/O premise: whether one clamp load may serve many draws (thinned
@@ -238,14 +228,14 @@ Due 2026-11-11. For one task, yes, and every clause now has a bound on it:
    0.071 costs 3.1e-10 to 3.1e-8 J per image across the per-MAC band
    (P-0007 findings, "Cost, both sides projected"). The digital model wins
    at every band point but one corner, and is more accurate there. On `t4`
-   there is no operating point to price, and the clamp floor above says
-   the hardware could not have won at the write constant.
+   there is no operating point to price. Owner's reading, with the thinned
+   draws of PR #129: cost-competitive above 1 pJ/MAC, 0.002 short on
+   quality, no task wins on both.
 
-The row that closes the largest gap: none open, and the gap is not a row's.
-It is the clamp constant and the I/O path (item 2 of "Pattern"), which only
-Extropic's publication or the owner's reading of the profile can move. The
-honest statement on 2026-11-11 is that the amendment produced the numbers
-it asked for and they read against the hardware on the task Extropic names.
+The row that closes the largest gap: none open. The owner chooses the next
+task on representation, not I/O (see "Owner decision"). The honest statement
+on 2026-11-11 is that the amendment produced the numbers it asked for and no
+task the lab has run wins on both cost and quality.
 
 ## The one thing to drop
 
@@ -268,11 +258,21 @@ No queue change.
 
 ## Evidence classes
 
-Nothing in this review is new evidence. The 6.3e-7 J clamp floor is
-arithmetic on P-0008's archived counts (64 writes per sample, 64 samples per
-estimate) and the sealed profile's write constant (1.536e-10 J, as the
-round-1 probe JSON records it), under the same `calibrated_projection`
-label; the 87 percent share and the 6e5-MAC break-even follow from it at
-1 pJ per MAC. The reading of the dense memory's hidden unit and the mixture
+Nothing in this review is new evidence. The thinned-draw figure (about 1e-7 J
+per 64-draw estimate) is from PR #129, an exploration probe in NumPy on CPU,
+priced as a `calibrated_projection`; it is not a recorded study. The reading
+of the dense memory's hidden unit and the mixture
 posterior's template latent as the same placement problem is this review's,
 not a source card's claim. No hardware claim.
+
+## Owner decision, 2026-10-18
+
+Recorded by THERMES at the owner's instruction in #thermes; not the
+director's text.
+
+- Premise question: choice (1). No premise is tested next.
+- The draft's 6e5-MAC clamp-floor sentence is dropped. The thinned-draw probe
+  (PR #129) shows one clamp load serves 64 draws, about 1e-7 J per estimate.
+- Four-week test, clause 3, due 2026-11-11: cost-competitive above 1 pJ/MAC,
+  0.002 short on quality, no task wins on both.
+- The next task is chosen on representation, not I/O.
