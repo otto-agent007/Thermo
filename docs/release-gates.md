@@ -953,6 +953,78 @@ JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
 
 The candidate list, verdicts and break-evens do not gate.
 
+## DTM exact-posterior lattice
+
+Follow the [frozen protocol](experiments/dtm-exact-posterior-lattice.md),
+CPU only, single-thread BLAS (the runner refuses to run or replay without
+it):
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen python -m thermo_lab.dtm_exact_posterior_lattice \
+  --output-dir results/dtm-exact-posterior-lattice-new --workers 3
+uv run --frozen pytest tests/unit/test_dtm_exact_posterior_lattice.py
+```
+
+The stages run per family, in order:
+
+- E-dev: exact, both layouts at six tie values, on development images.
+- D: sampled development cells, which choose w\*.
+- E-test: exact, at w\* on the test images.
+- S: 81 cells, a float K = 4096 reference and the oracle pair, over three
+  sampler seeds.
+
+`smooth8_h05_q035` runs only if `t4_h05_q035` passes stops (a) and (b).
+
+Before production:
+
+- Layouts and `require_placement` must pass with nothing relaxed.
+- The tie limit must reproduce the collapsed model to 1e-12.
+- The NumPy engine must match `exact_chromatic_kernels` on a 9-node
+  sub-model at max |z| < 5. States with an expected count under 5 are
+  pooled into one bin.
+- Pricing must reproduce a hand count.
+- The one-hot oracle must reproduce Bayes to 1e-12.
+- The oracle start must match the generating component.
+- Calibration must project under 10 CPU-hours. The recorded run
+  calibration underestimated `t4` by 1.6x.
+
+The recorded run took about 1 h 35 min with three workers (4.56
+CPU-hours, `t4` only). Each unit is saved atomically under `units/`.
+Resume with the same command, `--resume` and the same output directory. A
+changed request is refused.
+
+Completion requires:
+
+- `status=dtm_exact_posterior_lattice_complete`;
+- `families_run` 1 or 2, and `exact_rows` equal to 20 times
+  `families_run`;
+- `sampled_cells` equal to the admitted development cells plus 90 for each
+  family that reaches stage S, with the per-family split;
+- `preflight_passed`, `placement_passed`, `references_recomputed`,
+  `prefix_check_passed` and `replayed` all `true`.
+
+`--replay` does the following:
+
+- re-authenticates the sources;
+- recomputes Bayes, both exact stages, the conditioned targets and the
+  floors at 1e-12;
+- recomputes admission, w\*, reaching, the oracle pair, the mechanism,
+  bootstraps, prices and verdicts from the counts;
+- re-verifies placement;
+- reruns one stage S cell and one development cell, requiring identical
+  counts.
+
+CI replays the committed archive with `--light`, which skips the rerun
+(about 2 minutes):
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen pytest tests/unit/test_dtm_exact_posterior_lattice.py -k committed_archive
+```
+
+The stop verdicts, mechanism and operating point do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,

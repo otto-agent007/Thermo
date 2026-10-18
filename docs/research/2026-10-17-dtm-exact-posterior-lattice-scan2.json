@@ -1,0 +1,227 @@
+{
+ "bayes_mpm_dev": 0.211875,
+ "bias_centered": [
+  {
+   "b0": -24.0,
+   "hidden_mass_none_on": 0.9990205237149837,
+   "hidden_mass_one_on": 0.0009794407866222383,
+   "maj16_error": 0.3077984960925885,
+   "maj16_gap_to_bayes": 0.09592349609258849,
+   "mpm_error": 0.2899479166666667,
+   "mpm_gap_se": 0.006884312292002141,
+   "mpm_gap_to_bayes": 0.07807291666666667
+  },
+  {
+   "b0": -23.0,
+   "hidden_mass_none_on": 0.9973792712421247,
+   "hidden_mass_one_on": 0.0026204688918111813,
+   "maj16_error": 0.3074372109870247,
+   "maj16_gap_to_bayes": 0.09556221098702465,
+   "mpm_error": 0.28942708333333333,
+   "mpm_gap_se": 0.00687790456172759,
+   "mpm_gap_to_bayes": 0.07755208333333333
+  },
+  {
+   "b0": -22.0,
+   "hidden_mass_none_on": 0.9931360831764219,
+   "hidden_mass_one_on": 0.006862040046108091,
+   "maj16_error": 0.30655333751602704,
+   "maj16_gap_to_bayes": 0.09467833751602704,
+   "mpm_error": 0.28854166666666664,
+   "mpm_gap_se": 0.006865782772675537,
+   "mpm_gap_to_bayes": 0.07666666666666666
+  },
+  {
+   "b0": -21.0,
+   "hidden_mass_none_on": 0.9826860976479554,
+   "hidden_mass_one_on": 0.01730070984714731,
+   "maj16_error": 0.3045453358190163,
+   "maj16_gap_to_bayes": 0.0926703358190163,
+   "mpm_error": 0.28583333333333333,
+   "mpm_gap_se": 0.006809114298682008,
+   "mpm_gap_to_bayes": 0.07395833333333333
+  },
+  {
+   "b0": -20.0,
+   "hidden_mass_none_on": 0.9584095047170884,
+   "hidden_mass_one_on": 0.041501660887927755,
+   "maj16_error": 0.30026607187898086,
+   "maj16_gap_to_bayes": 0.08839107187898085,
+   "mpm_error": 0.28161458333333333,
+   "mpm_gap_se": 0.006656290780917078,
+   "mpm_gap_to_bayes": 0.06973958333333333
+  },
+  {
+   "b0": -19.0,
+   "hidden_mass_none_on": 0.9053533855633104,
+   "hidden_mass_one_on": 0.0940831157696283,
+   "maj16_error": 0.2917949052335272,
+   "maj16_gap_to_bayes": 0.07991990523352721,
+   "mpm_error": 0.27203125,
+   "mpm_gap_se": 0.006315899876529739,
+   "mpm_gap_to_bayes": 0.06015625
+  },
+  {
+   "b0": -18.0,
+   "hidden_mass_none_on": 0.799616745121114,
+   "hidden_mass_one_on": 0.19713496727919128,
+   "maj16_error": 0.2768319821246225,
+   "maj16_gap_to_bayes": 0.06495698212462254,
+   "mpm_error": 0.25848958333333333,
+   "mpm_gap_se": 0.005736110334348008,
+   "mpm_gap_to_bayes": 0.046614583333333334
+  },
+  {
+   "b0": -17.0,
+   "hidden_mass_none_on": 0.6225778218472169,
+   "hidden_mass_one_on": 0.3614949346912337,
+   "maj16_error": 0.2567604666427777,
+   "maj16_gap_to_bayes": 0.04488546664277768,
+   "mpm_error": 0.23677083333333335,
+   "mpm_gap_se": 0.004646497870295271,
+   "mpm_gap_to_bayes": 0.024895833333333332
+  },
+  {
+   "b0": -16.0,
+   "hidden_mass_none_on": 0.39610130468415733,
+   "hidden_mass_one_on": 0.541745518776383,
+   "maj16_error": 0.23918562641526264,
+   "maj16_gap_to_bayes": 0.027310626415262634,
+   "mpm_error": 0.22057291666666667,
+   "mpm_gap_se": 0.0032788712821443396,
+   "mpm_gap_to_bayes": 0.008697916666666666
+  },
+  {
+   "b0": -15.0,
+   "hidden_mass_none_on": 0.18998453439178273,
+   "hidden_mass_one_on": 0.6263270117338601,
+   "maj16_error": 0.23050098039030237,
+   "maj16_gap_to_bayes": 0.018625980390302367,
+   "mpm_error": 0.21583333333333332,
+   "mpm_gap_se": 0.002484945147802715,
+   "mpm_gap_to_bayes": 0.003958333333333334
+  },
+  {
+   "b0": -14.0,
+   "hidden_mass_none_on": 0.06417378535294993,
+   "hidden_mass_one_on": 0.5378281871039136,
+   "maj16_error": 0.23365154526985374,
+   "maj16_gap_to_bayes": 0.02177654526985373,
+   "mpm_error": 0.2196875,
+   "mpm_gap_se": 0.0037333713675972084,
+   "mpm_gap_to_bayes": 0.0078125
+  },
+  {
+   "b0": -13.0,
+   "hidden_mass_none_on": 0.014858981322959786,
+   "hidden_mass_one_on": 0.343391203447966,
+   "maj16_error": 0.24952578772336256,
+   "maj16_gap_to_bayes": 0.03765078772336253,
+   "mpm_error": 0.23885416666666667,
+   "mpm_gap_se": 0.006111192597996462,
+   "mpm_gap_to_bayes": 0.026979166666666665
+  },
+  {
+   "b0": -12.0,
+   "hidden_mass_none_on": 0.002448125443578326,
+   "hidden_mass_one_on": 0.1703985061220867,
+   "maj16_error": 0.27253436924084384,
+   "maj16_gap_to_bayes": 0.06065936924084384,
+   "mpm_error": 0.26729166666666665,
+   "mpm_gap_se": 0.00859028077250473,
+   "mpm_gap_to_bayes": 0.05541666666666667
+  },
+  {
+   "b0": -11.0,
+   "hidden_mass_none_on": 0.00031181424296060123,
+   "hidden_mass_one_on": 0.06834236763503537,
+   "maj16_error": 0.2966815823332177,
+   "maj16_gap_to_bayes": 0.08480658233321763,
+   "mpm_error": 0.28765625,
+   "mpm_gap_se": 0.00999116811642242,
+   "mpm_gap_to_bayes": 0.07578125
+  }
+ ],
+ "cpu_s": 433.263588976,
+ "evidence_class": "exact_reference",
+ "family": "smooth8_h05_q035",
+ "label": "exploration, not evidence",
+ "n_dev": 300,
+ "onehot_centered": [
+  {
+   "bits": null,
+   "caps": null,
+   "hidden_mass_one_on": 0.24119803147749386,
+   "lambda": 12.0,
+   "maj16_error": 0.24928891171873574,
+   "maj16_gap_to_bayes": 0.03741391171873572,
+   "mpm_error": 0.2403125,
+   "mpm_gap_se": 0.005902927717399649,
+   "mpm_gap_to_bayes": 0.0284375
+  },
+  {
+   "bits": 8,
+   "caps": {
+    "coupling": 6.0,
+    "field": 36.76716295415259
+   },
+   "hidden_mass_one_on": 0.24402251905810285,
+   "lambda": 12.0,
+   "maj16_error": 0.25742033228391475,
+   "maj16_gap_to_bayes": 0.04554533228391476,
+   "mpm_error": 0.24859375,
+   "mpm_gap_se": 0.006153504054874622,
+   "mpm_gap_to_bayes": 0.03671875
+  },
+  {
+   "bits": null,
+   "caps": null,
+   "hidden_mass_one_on": 0.906925813653542,
+   "lambda": 16.0,
+   "maj16_error": 0.2248233771577989,
+   "maj16_gap_to_bayes": 0.012948377157798886,
+   "mpm_error": 0.21276041666666667,
+   "mpm_gap_se": 0.0010223748329400383,
+   "mpm_gap_to_bayes": 0.0008854166666666666
+  },
+  {
+   "bits": 8,
+   "caps": {
+    "coupling": 8.0,
+    "field": 48.76716295415259
+   },
+   "hidden_mass_one_on": 0.8838758924325549,
+   "lambda": 16.0,
+   "maj16_error": 0.2408835780653021,
+   "maj16_gap_to_bayes": 0.029008578065302094,
+   "mpm_error": 0.23401041666666667,
+   "mpm_gap_se": 0.0055307754957532795,
+   "mpm_gap_to_bayes": 0.022135416666666668
+  },
+  {
+   "bits": null,
+   "caps": null,
+   "hidden_mass_one_on": 0.9999628945200324,
+   "lambda": 24.0,
+   "maj16_error": 0.22445685167737306,
+   "maj16_gap_to_bayes": 0.012581851677373064,
+   "mpm_error": 0.211875,
+   "mpm_gap_se": 0.0,
+   "mpm_gap_to_bayes": 0.0
+  },
+  {
+   "bits": 8,
+   "caps": {
+    "coupling": 12.0,
+    "field": 72.76716295415258
+   },
+   "hidden_mass_one_on": 0.9999628869361307,
+   "lambda": 24.0,
+   "maj16_error": 0.28391059950257147,
+   "maj16_gap_to_bayes": 0.07203559950257145,
+   "mpm_error": 0.2734375,
+   "mpm_gap_se": 0.008052325102444798,
+   "mpm_gap_to_bayes": 0.0615625
+  }
+ ]
+}

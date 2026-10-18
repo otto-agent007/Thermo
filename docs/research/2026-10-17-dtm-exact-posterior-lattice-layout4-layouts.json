@@ -1,0 +1,495 @@
+{
+ "t4/index5/clamp(0, 1)/order[0, 1, 2, 3]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 561,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 197,
+  "copies_per_unit": [
+   34,
+   27,
+   27,
+   27
+  ],
+  "direct_ties_per_unit": [
+   30,
+   24,
+   24,
+   24
+  ],
+  "relay_nodes_per_unit": [
+   6,
+   4,
+   4,
+   4
+  ],
+  "relay_edges_per_unit": [
+   9,
+   6,
+   6,
+   6
+  ],
+  "max_pixels_per_copy": 3,
+  "copy_free_nodes": 115,
+  "relay_free_nodes": 18
+ },
+ "t4/index4/clamp(-3, 2)/order[0, 1, 2, 3]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 553,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 189,
+  "copies_per_unit": [
+   28,
+   28,
+   27,
+   28
+  ],
+  "direct_ties_per_unit": [
+   26,
+   25,
+   24,
+   25
+  ],
+  "relay_nodes_per_unit": [
+   2,
+   4,
+   4,
+   4
+  ],
+  "relay_edges_per_unit": [
+   3,
+   6,
+   6,
+   6
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 111,
+  "relay_free_nodes": 14
+ },
+ "t4/index4/clamp(-3, 2)/order[0, 4, 1, 5]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 558,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 194,
+  "copies_per_unit": [
+   28,
+   30,
+   28,
+   31
+  ],
+  "direct_ties_per_unit": [
+   26,
+   27,
+   25,
+   28
+  ],
+  "relay_nodes_per_unit": [
+   2,
+   5,
+   4,
+   2
+  ],
+  "relay_edges_per_unit": [
+   3,
+   7,
+   6,
+   4
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 117,
+  "relay_free_nodes": 13
+ },
+ "t4/index4/clamp(-2, -3)/order[0, 1, 2, 3]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 568,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 204,
+  "copies_per_unit": [
+   30,
+   31,
+   32,
+   32
+  ],
+  "direct_ties_per_unit": [
+   27,
+   27,
+   29,
+   30
+  ],
+  "relay_nodes_per_unit": [
+   4,
+   5,
+   4,
+   2
+  ],
+  "relay_edges_per_unit": [
+   6,
+   8,
+   6,
+   3
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 125,
+  "relay_free_nodes": 15
+ },
+ "t4/index4/clamp(-2, -3)/order[0, 4, 1, 5]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 564,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 200,
+  "copies_per_unit": [
+   30,
+   30,
+   31,
+   31
+  ],
+  "direct_ties_per_unit": [
+   27,
+   27,
+   27,
+   28
+  ],
+  "relay_nodes_per_unit": [
+   4,
+   4,
+   4,
+   2
+  ],
+  "relay_edges_per_unit": [
+   6,
+   6,
+   7,
+   4
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 122,
+  "relay_free_nodes": 14
+ },
+ "t4/index4/clamp(-1, 0)/order[0, 1, 2, 3]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 568,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 204,
+  "copies_per_unit": [
+   30,
+   31,
+   32,
+   32
+  ],
+  "direct_ties_per_unit": [
+   27,
+   27,
+   29,
+   30
+  ],
+  "relay_nodes_per_unit": [
+   4,
+   5,
+   4,
+   2
+  ],
+  "relay_edges_per_unit": [
+   6,
+   8,
+   6,
+   3
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 125,
+  "relay_free_nodes": 15
+ },
+ "t4/index4/clamp(-1, 0)/order[0, 4, 1, 5]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 562,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 9,
+  "pixel_degree": 9,
+  "free_nodes": 198,
+  "copies_per_unit": [
+   30,
+   28,
+   31,
+   28
+  ],
+  "direct_ties_per_unit": [
+   27,
+   26,
+   27,
+   25
+  ],
+  "relay_nodes_per_unit": [
+   5,
+   3,
+   5,
+   4
+  ],
+  "relay_edges_per_unit": [
+   7,
+   4,
+   8,
+   6
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 117,
+  "relay_free_nodes": 17
+ },
+ "smooth8/index5/clamp(0, 1)/order[0, 1, 2, 3, 4, 5, 6, 7]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 955,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 13,
+  "pixel_degree": 13,
+  "free_nodes": 339,
+  "copies_per_unit": [
+   34,
+   27,
+   27,
+   27,
+   34,
+   27,
+   34,
+   27
+  ],
+  "direct_ties_per_unit": [
+   30,
+   24,
+   24,
+   24,
+   30,
+   24,
+   30,
+   24
+  ],
+  "relay_nodes_per_unit": [
+   6,
+   4,
+   4,
+   4,
+   6,
+   4,
+   6,
+   4
+  ],
+  "relay_edges_per_unit": [
+   9,
+   6,
+   6,
+   6,
+   9,
+   6,
+   9,
+   6
+  ],
+  "max_pixels_per_copy": 3,
+  "copy_free_nodes": 237,
+  "relay_free_nodes": 38
+ },
+ "smooth8/index4/clamp(-3, 2)/order[0, 1, 2, 3, 4, 5, 6, 7]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 948,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 13,
+  "pixel_degree": 13,
+  "free_nodes": 332,
+  "copies_per_unit": [
+   28,
+   28,
+   27,
+   28,
+   30,
+   31,
+   32,
+   32
+  ],
+  "direct_ties_per_unit": [
+   26,
+   25,
+   24,
+   25,
+   27,
+   28,
+   29,
+   29
+  ],
+  "relay_nodes_per_unit": [
+   2,
+   4,
+   4,
+   4,
+   5,
+   4,
+   4,
+   5
+  ],
+  "relay_edges_per_unit": [
+   3,
+   6,
+   6,
+   6,
+   7,
+   6,
+   6,
+   7
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 236,
+  "relay_free_nodes": 32
+ },
+ "smooth8/index4/clamp(-2, -3)/order[0, 1, 2, 3, 4, 5, 6, 7]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 965,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 13,
+  "pixel_degree": 13,
+  "free_nodes": 349,
+  "copies_per_unit": [
+   30,
+   31,
+   32,
+   32,
+   30,
+   31,
+   32,
+   32
+  ],
+  "direct_ties_per_unit": [
+   27,
+   27,
+   29,
+   30,
+   27,
+   28,
+   29,
+   29
+  ],
+  "relay_nodes_per_unit": [
+   5,
+   6,
+   5,
+   2,
+   6,
+   3,
+   4,
+   4
+  ],
+  "relay_edges_per_unit": [
+   7,
+   9,
+   7,
+   3,
+   8,
+   5,
+   6,
+   6
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 250,
+  "relay_free_nodes": 35
+ },
+ "smooth8/index4/clamp(-1, 0)/order[0, 1, 2, 3, 4, 5, 6, 7]": {
+  "every_unit_covers_each_pixel_once": true,
+  "placement_passed_nothing_relaxed": true,
+  "placement_error": null,
+  "request_relaxed": [],
+  "edges": 951,
+  "offset_violations": 0,
+  "colour_violations": 0,
+  "max_degree": 13,
+  "pixel_degree": 13,
+  "free_nodes": 335,
+  "copies_per_unit": [
+   30,
+   31,
+   32,
+   32,
+   28,
+   28,
+   27,
+   28
+  ],
+  "direct_ties_per_unit": [
+   27,
+   27,
+   29,
+   30,
+   26,
+   25,
+   24,
+   25
+  ],
+  "relay_nodes_per_unit": [
+   6,
+   5,
+   4,
+   2,
+   3,
+   5,
+   5,
+   5
+  ],
+  "relay_edges_per_unit": [
+   8,
+   8,
+   6,
+   3,
+   4,
+   7,
+   7,
+   7
+  ],
+  "max_pixels_per_copy": 4,
+  "copy_free_nodes": 236,
+  "relay_free_nodes": 35
+ }
+}

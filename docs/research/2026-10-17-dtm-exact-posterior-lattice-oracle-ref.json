@@ -1,0 +1,43 @@
+{
+ "label": "exploration, not evidence",
+ "evidence_class": "exact_reference",
+ "families": [
+  {
+   "family": "t4_h05_q035",
+   "images": 200,
+   "oracle_bayes_gap": -0.0690625,
+   "oracle_bayes_maj64_gap": -0.06807395205927821,
+   "layouts": {
+    "index5": {
+     "free_nodes": 197,
+     "tie_limit_conditioned_mpm_gap": -0.069296875,
+     "tie_limit_conditioned_maj64_gap": -0.0680942338257026
+    },
+    "index4": {
+     "free_nodes": 189,
+     "tie_limit_conditioned_mpm_gap": -0.069296875,
+     "tie_limit_conditioned_maj64_gap": -0.0680942338257026
+    }
+   }
+  },
+  {
+   "family": "smooth8_h05_q035",
+   "images": 200,
+   "oracle_bayes_gap": -0.103359375,
+   "oracle_bayes_maj64_gap": -0.10191332591270771,
+   "layouts": {
+    "index5": {
+     "free_nodes": 339,
+     "tie_limit_conditioned_mpm_gap": -0.10328125,
+     "tie_limit_conditioned_maj64_gap": -0.10191019177972657
+    },
+    "index4": {
+     "free_nodes": 332,
+     "tie_limit_conditioned_mpm_gap": -0.10328125,
+     "tie_limit_conditioned_maj64_gap": -0.10189542585339549
+    }
+   }
+  }
+ ],
+ "total_cpu_s": 10.216346653
+}

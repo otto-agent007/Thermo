@@ -1,0 +1,1172 @@
+{
+ "label": "exploration, not evidence",
+ "draws_per_estimate": 64,
+ "evidence_classes": {
+  "tie_limit_gaps": "exact_reference (float64)",
+  "gibbs": "software_simulation (NumPy two-colour Gibbs, CPU; not the lowered THRML program)"
+ },
+ "families": [
+  {
+   "family": "t4_h05_q035",
+   "b0": -5.0,
+   "images": 200,
+   "bayes_mpm": 0.230703125,
+   "true_posterior_maj64_floor_gap": 0.0017963044184679505,
+   "layouts": [
+    {
+     "basis": "index5",
+     "basis_vectors": [
+      [
+       2,
+       1
+      ],
+      [
+       -1,
+       2
+      ]
+     ],
+     "clamp_coset": [
+      0,
+      1
+     ],
+     "unit_cosets": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 561,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 197,
+     "copies_per_unit": [
+      34,
+      27,
+      27,
+      27
+     ],
+     "direct_ties_per_unit": [
+      30,
+      24,
+      24,
+      24
+     ],
+     "relay_nodes_per_unit": [
+      6,
+      4,
+      4,
+      4
+     ],
+     "relay_edges_per_unit": [
+      9,
+      6,
+      6,
+      6
+     ],
+     "max_pixels_per_copy": 3,
+     "copy_free_nodes": 115,
+     "relay_free_nodes": 18,
+     "scanned": true,
+     "tie_limit": {
+      "1.5": {
+       "caps": {
+        "coupling": 1.5,
+        "field": 0.5
+       },
+       "mpm_gap": 0.0,
+       "mpm_gap_se": 0.0015146569818322117,
+       "maj64_gap": 0.00218769636945655
+      },
+      "2.0": {
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.5
+       },
+       "mpm_gap": -7.8125e-05,
+       "mpm_gap_se": 0.0012358728826042987,
+       "maj64_gap": 0.0015728485648767443
+      },
+      "2.5": {
+       "caps": {
+        "coupling": 2.5,
+        "field": 0.5
+       },
+       "mpm_gap": 0.0003125,
+       "mpm_gap_se": 0.0022993864568378775,
+       "maj64_gap": 0.0015483230178570616
+      },
+      "3.0": {
+       "caps": {
+        "coupling": 3.0,
+        "field": 0.5
+       },
+       "mpm_gap": 0.000625,
+       "mpm_gap_se": 0.0025471565398385333,
+       "maj64_gap": 0.0019167884176732272
+      }
+     },
+     "cells": [
+      {
+       "tie_w": 2.0,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.5
+       },
+       "gap_to_bayes": 0.012499999999999999,
+       "gap_ci95": [
+        0.001796875000000001,
+        0.022578125
+       ],
+       "cpu_s": 52.29944626599999
+      },
+      {
+       "tie_w": 2.0,
+       "start": "oracle",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.5
+       },
+       "gap_to_bayes": -0.040625,
+       "gap_ci95": [
+        -0.052736328125,
+        -0.028359375
+       ],
+       "cpu_s": 50.21147886599999
+      }
+     ]
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -3,
+      2
+     ],
+     "unit_cosets": [
+      [
+       -2,
+       -3
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 553,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 189,
+     "copies_per_unit": [
+      28,
+      28,
+      27,
+      28
+     ],
+     "direct_ties_per_unit": [
+      26,
+      25,
+      24,
+      25
+     ],
+     "relay_nodes_per_unit": [
+      2,
+      4,
+      4,
+      4
+     ],
+     "relay_edges_per_unit": [
+      3,
+      6,
+      6,
+      6
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 111,
+     "relay_free_nodes": 14,
+     "scanned": true,
+     "tie_limit": {
+      "1.5": {
+       "caps": {
+        "coupling": 1.5,
+        "field": 0.5
+       },
+       "mpm_gap": -0.000546875,
+       "mpm_gap_se": 0.00133089332385971,
+       "maj64_gap": 0.002672324541957386
+      },
+      "2.0": {
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.5
+       },
+       "mpm_gap": -0.000625,
+       "mpm_gap_se": 0.0011286929894003983,
+       "maj64_gap": 0.002033258247221452
+      },
+      "2.5": {
+       "caps": {
+        "coupling": 2.5,
+        "field": 0.5
+       },
+       "mpm_gap": 0.00046875,
+       "mpm_gap_se": 0.0021303037105500746,
+       "maj64_gap": 0.0020631726597285264
+      },
+      "3.0": {
+       "caps": {
+        "coupling": 3.0,
+        "field": 0.5
+       },
+       "mpm_gap": 0.000859375,
+       "mpm_gap_se": 0.002360564423641661,
+       "maj64_gap": 0.002428930043034296
+      }
+     },
+     "cells": [
+      {
+       "tie_w": 1.5,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 1.5,
+        "field": 0.5
+       },
+       "gap_to_bayes": 0.010859375,
+       "gap_ci95": [
+        0.0010156250000000003,
+        0.020080078124999987
+       ],
+       "cpu_s": 48.304027944
+      },
+      {
+       "tie_w": 2.0,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.5
+       },
+       "gap_to_bayes": 0.004296875,
+       "gap_ci95": [
+        -0.002734375,
+        0.01125
+       ],
+       "cpu_s": 46.621263723
+      },
+      {
+       "tie_w": 2.5,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.5,
+        "field": 0.5
+       },
+       "gap_to_bayes": 0.016171875000000002,
+       "gap_ci95": [
+        0.004685546875,
+        0.027187499999999996
+       ],
+       "cpu_s": 45.563605384
+      },
+      {
+       "tie_w": 3.0,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 3.0,
+        "field": 0.5
+       },
+       "gap_to_bayes": 0.024296875000000002,
+       "gap_ci95": [
+        0.011640625,
+        0.03656445312499999
+       ],
+       "cpu_s": 46.25416645200005
+      },
+      {
+       "tie_w": 2.0,
+       "start": "oracle",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.5
+       },
+       "gap_to_bayes": -0.052578124999999996,
+       "gap_ci95": [
+        -0.06406640625,
+        -0.039843750000000004
+       ],
+       "cpu_s": 46.97967089500003
+      }
+     ]
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -3,
+      2
+     ],
+     "unit_cosets": [
+      [
+       -2,
+       -3
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      4,
+      1,
+      5
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 558,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 194,
+     "copies_per_unit": [
+      28,
+      30,
+      28,
+      31
+     ],
+     "direct_ties_per_unit": [
+      26,
+      27,
+      25,
+      28
+     ],
+     "relay_nodes_per_unit": [
+      2,
+      5,
+      4,
+      2
+     ],
+     "relay_edges_per_unit": [
+      3,
+      7,
+      6,
+      4
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 117,
+     "relay_free_nodes": 13
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -2,
+      -3
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 552,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 196,
+     "copies_per_unit": [
+      28,
+      29,
+      30,
+      30
+     ],
+     "direct_ties_per_unit": [
+      25,
+      25,
+      27,
+      28
+     ],
+     "relay_nodes_per_unit": [
+      4,
+      5,
+      4,
+      2
+     ],
+     "relay_edges_per_unit": [
+      6,
+      8,
+      6,
+      3
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 117,
+     "relay_free_nodes": 15
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -2,
+      -3
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      4,
+      1,
+      5
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 556,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 196,
+     "copies_per_unit": [
+      28,
+      30,
+      29,
+      31
+     ],
+     "direct_ties_per_unit": [
+      25,
+      27,
+      25,
+      28
+     ],
+     "relay_nodes_per_unit": [
+      4,
+      4,
+      4,
+      2
+     ],
+     "relay_edges_per_unit": [
+      6,
+      6,
+      7,
+      4
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 118,
+     "relay_free_nodes": 14
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -1,
+      0
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -2,
+       -3
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 552,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 196,
+     "copies_per_unit": [
+      28,
+      29,
+      30,
+      30
+     ],
+     "direct_ties_per_unit": [
+      25,
+      25,
+      27,
+      28
+     ],
+     "relay_nodes_per_unit": [
+      4,
+      5,
+      4,
+      2
+     ],
+     "relay_edges_per_unit": [
+      6,
+      8,
+      6,
+      3
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 117,
+     "relay_free_nodes": 15
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -1,
+      0
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -2,
+       -3
+      ]
+     ],
+     "slot_order": [
+      0,
+      4,
+      1,
+      5
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 554,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 9,
+     "pixel_degree": 9,
+     "free_nodes": 194,
+     "copies_per_unit": [
+      28,
+      28,
+      29,
+      28
+     ],
+     "direct_ties_per_unit": [
+      25,
+      26,
+      25,
+      25
+     ],
+     "relay_nodes_per_unit": [
+      5,
+      3,
+      5,
+      4
+     ],
+     "relay_edges_per_unit": [
+      7,
+      4,
+      8,
+      6
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 113,
+     "relay_free_nodes": 17
+    }
+   ],
+   "unplaced_8bit_maj64_gap": 0.0016627223409378827,
+   "oracle_component_check": {
+    "mean_posterior_weight_of_generating_component": 0.5393118422606975,
+    "argmax_agrees": 0.66
+   }
+  },
+  {
+   "family": "smooth8_h05_q035",
+   "b0": -15.0,
+   "images": 200,
+   "bayes_mpm": 0.229765625,
+   "true_posterior_maj64_floor_gap": 0.004431457795275413,
+   "layouts": [
+    {
+     "basis": "index5",
+     "basis_vectors": [
+      [
+       2,
+       1
+      ],
+      [
+       -1,
+       2
+      ]
+     ],
+     "clamp_coset": [
+      0,
+      1
+     ],
+     "unit_cosets": [
+      [
+       1,
+       0
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 955,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 339,
+     "copies_per_unit": [
+      34,
+      27,
+      27,
+      27,
+      34,
+      27,
+      34,
+      27
+     ],
+     "direct_ties_per_unit": [
+      30,
+      24,
+      24,
+      24,
+      30,
+      24,
+      30,
+      24
+     ],
+     "relay_nodes_per_unit": [
+      6,
+      4,
+      4,
+      4,
+      6,
+      4,
+      6,
+      4
+     ],
+     "relay_edges_per_unit": [
+      9,
+      6,
+      6,
+      6,
+      9,
+      6,
+      9,
+      6
+     ],
+     "max_pixels_per_copy": 3,
+     "copy_free_nodes": 237,
+     "relay_free_nodes": 38,
+     "scanned": true,
+     "tie_limit": {
+      "1.5": {
+       "caps": {
+        "coupling": 1.5,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.008125,
+       "mpm_gap_se": 0.0022206745050857156,
+       "maj64_gap": 0.010508265777472783
+      },
+      "2.0": {
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.00859375,
+       "mpm_gap_se": 0.002539704149210115,
+       "maj64_gap": 0.010727241083010519
+      },
+      "2.5": {
+       "caps": {
+        "coupling": 2.5,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.010390625,
+       "mpm_gap_se": 0.002567395730425074,
+       "maj64_gap": 0.012399039731766332
+      },
+      "3.0": {
+       "caps": {
+        "coupling": 3.0,
+        "field": 0.30619122052416997
+       },
+       "mpm_gap": 0.008671875,
+       "mpm_gap_se": 0.0025850632806804726,
+       "maj64_gap": 0.011676653648751088
+      }
+     },
+     "cells": [
+      {
+       "tie_w": 2.0,
+       "start": "random",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.30619122052416997
+       },
+       "gap_to_bayes": 0.04078125,
+       "gap_ci95": [
+        0.024607421875,
+        0.053984374999999994
+       ],
+       "cpu_s": 93.61983428599996
+      },
+      {
+       "tie_w": 2.0,
+       "start": "oracle",
+       "K": 1024,
+       "bits": 8,
+       "jitter": 0.0,
+       "caps": {
+        "coupling": 2.0,
+        "field": 0.30619122052416997
+       },
+       "gap_to_bayes": -0.043984375,
+       "gap_ci95": [
+        -0.05765625,
+        -0.031875
+       ],
+       "cpu_s": 91.89436004499998
+      }
+     ]
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -3,
+      2
+     ],
+     "unit_cosets": [
+      [
+       -2,
+       -3
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 948,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 332,
+     "copies_per_unit": [
+      28,
+      28,
+      27,
+      28,
+      30,
+      31,
+      32,
+      32
+     ],
+     "direct_ties_per_unit": [
+      26,
+      25,
+      24,
+      25,
+      27,
+      28,
+      29,
+      29
+     ],
+     "relay_nodes_per_unit": [
+      2,
+      4,
+      4,
+      4,
+      5,
+      4,
+      4,
+      5
+     ],
+     "relay_edges_per_unit": [
+      3,
+      6,
+      6,
+      6,
+      7,
+      6,
+      6,
+      7
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 236,
+     "relay_free_nodes": 32
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -2,
+      -3
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -1,
+       0
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 949,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 341,
+     "copies_per_unit": [
+      28,
+      29,
+      30,
+      30,
+      30,
+      31,
+      32,
+      32
+     ],
+     "direct_ties_per_unit": [
+      25,
+      25,
+      27,
+      28,
+      27,
+      28,
+      29,
+      29
+     ],
+     "relay_nodes_per_unit": [
+      5,
+      6,
+      5,
+      2,
+      6,
+      3,
+      4,
+      4
+     ],
+     "relay_edges_per_unit": [
+      7,
+      9,
+      7,
+      3,
+      8,
+      5,
+      6,
+      6
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 242,
+     "relay_free_nodes": 35
+    },
+    {
+     "basis": "index4",
+     "basis_vectors": [
+      [
+       -4,
+       -1
+      ],
+      [
+       0,
+       -1
+      ]
+     ],
+     "clamp_coset": [
+      -1,
+      0
+     ],
+     "unit_cosets": [
+      [
+       -3,
+       2
+      ],
+      [
+       -2,
+       -3
+      ]
+     ],
+     "slot_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "built": true,
+     "placement_passed_nothing_relaxed": true,
+     "placement_error": null,
+     "request_relaxed": [],
+     "edges": 936,
+     "offset_violations": 0,
+     "colour_violations": 0,
+     "max_degree": 13,
+     "pixel_degree": 13,
+     "free_nodes": 328,
+     "copies_per_unit": [
+      28,
+      29,
+      30,
+      30,
+      28,
+      28,
+      27,
+      28
+     ],
+     "direct_ties_per_unit": [
+      25,
+      25,
+      27,
+      28,
+      26,
+      25,
+      24,
+      25
+     ],
+     "relay_nodes_per_unit": [
+      6,
+      5,
+      4,
+      3,
+      3,
+      5,
+      5,
+      5
+     ],
+     "relay_edges_per_unit": [
+      8,
+      8,
+      6,
+      4,
+      4,
+      7,
+      7,
+      7
+     ],
+     "max_pixels_per_copy": 4,
+     "copy_free_nodes": 228,
+     "relay_free_nodes": 36
+    }
+   ],
+   "unplaced_8bit_maj64_gap": 0.011328168149946279,
+   "oracle_component_check": {
+    "mean_posterior_weight_of_generating_component": 0.48240307082462425,
+    "argmax_agrees": 0.62
+   }
+  }
+ ]
+}

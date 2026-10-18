@@ -1,0 +1,93 @@
+{
+ "bayes_maj64_floor_gap_test": 0.004684944046880576,
+ "bayes_mpm_test": 0.22440625,
+ "chosen_b0": -15.0,
+ "cpu_s": 227.636547013,
+ "dev": [
+  {
+   "b0": -15.5,
+   "hidden_mass_none_on": 0.2855642689984547,
+   "hidden_mass_one_on": 0.6035158273753979,
+   "maj16_gap_to_bayes": 0.021630947214442784,
+   "maj64_gap_to_bayes": 0.009394535271048752,
+   "mpm_gap_se": 0.0027039398025906565,
+   "mpm_gap_to_bayes": 0.00546875
+  },
+  {
+   "b0": -15.0,
+   "hidden_mass_none_on": 0.18998453439178273,
+   "hidden_mass_one_on": 0.6263270117338601,
+   "maj16_gap_to_bayes": 0.018625980390302367,
+   "maj64_gap_to_bayes": 0.0072883413836479175,
+   "mpm_gap_se": 0.002484945147802715,
+   "mpm_gap_to_bayes": 0.003958333333333334
+  },
+  {
+   "b0": -14.5,
+   "hidden_mass_none_on": 0.11571240116757864,
+   "hidden_mass_one_on": 0.6030285144592671,
+   "maj16_gap_to_bayes": 0.01858696018853394,
+   "maj64_gap_to_bayes": 0.007921889886581965,
+   "mpm_gap_se": 0.0028720559142635547,
+   "mpm_gap_to_bayes": 0.004166666666666667
+  }
+ ],
+ "evidence_class": "exact_reference",
+ "family": "smooth8_h05_q035",
+ "label": "exploration, not evidence",
+ "test": [
+  {
+   "b0": -15.0,
+   "bits": null,
+   "caps": null,
+   "hidden_mass_none_on": 0.20780020338322192,
+   "hidden_mass_one_on": 0.6145646712066382,
+   "maj16_gap_to_bayes": 0.021195331190650802,
+   "maj64_gap_to_bayes": 0.010070304083301633,
+   "mpm_gap_se": 0.0018867881567552684,
+   "mpm_gap_to_bayes": 0.00715625
+  },
+  {
+   "b0": -15.0,
+   "bits": 8,
+   "caps": {
+    "coupling": 0.375,
+    "field": 8.267162954152589
+   },
+   "hidden_mass_none_on": 0.193220957132637,
+   "hidden_mass_one_on": 0.6135166455743942,
+   "maj16_gap_to_bayes": 0.021381068381558115,
+   "maj64_gap_to_bayes": 0.010608773646518408,
+   "mpm_gap_se": 0.001999625681247671,
+   "mpm_gap_to_bayes": 0.00840625
+  },
+  {
+   "b0": -15.0,
+   "bits": 6,
+   "caps": {
+    "coupling": 0.375,
+    "field": 8.267162954152589
+   },
+   "hidden_mass_none_on": 0.14403419102102544,
+   "hidden_mass_one_on": 0.620555500366925,
+   "maj16_gap_to_bayes": 0.04772905294051715,
+   "maj64_gap_to_bayes": 0.03978766145867425,
+   "mpm_gap_se": 0.005493687595257722,
+   "mpm_gap_to_bayes": 0.0376875
+  },
+  {
+   "b0": -15.0,
+   "bits": 4,
+   "caps": {
+    "coupling": 0.375,
+    "field": 8.267162954152589
+   },
+   "hidden_mass_none_on": 0.03927850674458998,
+   "hidden_mass_one_on": 0.6466940812419671,
+   "maj16_gap_to_bayes": 0.08475174275735525,
+   "maj64_gap_to_bayes": 0.07858370274807086,
+   "mpm_gap_se": 0.006956670549886224,
+   "mpm_gap_to_bayes": 0.07684375
+  }
+ ]
+}
