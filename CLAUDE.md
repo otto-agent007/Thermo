@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-16)
+## Where the project stands (updated 2026-10-18)
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
   PR #101 on 2026-10-09) sets which questions come first. The standing
@@ -259,6 +259,20 @@ work pointed at the right problem.
   seeds, and a random start writes every free node (7.9e-8 against 2.0e-8 J
   per sample), so a positive that needs one is close to a tie. Don't
   retrain the P-0006 denoiser or refit the P-0007 ladder for this line.
+- **DTM exact-posterior lattice** (`docs/experiment-reports/2026-10-17-dtm-exact-posterior-lattice/`,
+  loop P-0008): negative; stop (b) fires on `t4`. A hand-built model of the
+  exact posterior (bias-design template units as tied copies on the index-4
+  basis, relays on the 16-offset lattice, 8-bit `split`) holds the
+  posterior at its tie limit (exact MPM gap 0.0003), but no priced start
+  reaches Bayes + 0.01 within K = 1024 (best: random, 0.017). The oracle
+  pair agrees at K = 4096 on 0.0117, so the mechanism is finite-w
+  representation (small margin). `smooth8` did not run; cost (c) is
+  undecided. The denoising line closes at L <= 16 for this construction
+  only; the real binarized set stays closed. No operating point to use.
+  This is the line's third consecutive negative; what follows it is the
+  owner's call at D-0005, not a fourth variant. An exact tie-limit check
+  is not the finite-tie model the hardware runs: evaluate that equilibrium
+  with an oracle-start pair at a long K (lessons, 2026-10-17).
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
