@@ -815,6 +815,40 @@ The run autosaves per unit and resumes with `--resume`. The
 [gate](release-gates.md#dtm-baseline-headroom) replays references,
 candidacy, baselines, prices and verdicts from the per-image counts.
 
+## DTM exact-posterior lattice
+
+The [frozen protocol](experiments/dtm-exact-posterior-lattice.md)
+(research-loop proposal P-0008, queue row `dtm-exact-posterior-lattice`)
+asks whether a hand-built lattice model of an exact posterior reaches
+Bayes + 0.01 under the constraint layer, with no training. The model's
+template latent is encoded as binary hidden units and spread over the
+16-offset lattice as tied copies. The study also asks at what reads and
+writes per sample it gets there. `t4_h05_q035` runs first, and
+`smooth8_h05_q035` only if `t4` passes stops (a) and (b).
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.dtm_exact_posterior_lattice \
+  --output-dir results/dtm-exact-posterior-lattice --workers 3
+```
+
+The [recorded study](experiment-reports/2026-10-17-dtm-exact-posterior-lattice/findings.md)
+is negative:
+
+- The exact tie-limit model holds the posterior: its MPM gap is 0.0003 at
+  8 bits on 1,000 test images, so stop (a) passes.
+- Stop (b) fires. No priced start reaches Bayes + 0.01 within K = 1024. The
+  best is random at 0.017. Continuation, the cheapest in writes, is at
+  0.021.
+- Rule 7 names finite-w representation. The oracle pair agrees at
+  K = 4096 on 0.0117, and the float reference misses at 0.012.
+- `smooth8` did not run, so cost stop (c) is undecided.
+
+The run autosaves per unit and resumes with `--resume`. The
+[gate](release-gates.md#dtm-exact-posterior-lattice) replays references,
+admission, w\*, reaching, the oracle pair, the mechanism, prices and
+verdicts from the per-image counts.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a
