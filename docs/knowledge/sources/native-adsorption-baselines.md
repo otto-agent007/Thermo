@@ -1,0 +1,69 @@
+# Adsorption application and competent digital baselines
+
+```toml
+id = "native-adsorption-baselines"
+title = "Adsorption application evidence and conventional computation"
+kind = "source_collection"
+status = "asserted"
+last_checked = 2026-10-20
+
+[[sources]]
+id = "application"
+url = "https://doi.org/10.1021/acs.jpcc.8b04390"
+record = "https://www.ornl.gov/publications/supercritical-fluid-adsorption-to-weakly-attractive-solids-universal-scaling-laws/"
+title = "Supercritical Fluid Adsorption to Weakly Attractive Solids: Universal Scaling Laws"
+authors = "Miroslaw S. Gruszkiewicz, Gernot Rother, Lukas Vlcek and Victoria H. Distefano"
+published = "Journal of Physical Chemistry C 122 (2018), 15558–15566"
+locator = "ORNL publication abstract"
+
+[[sources]]
+id = "digital"
+url = "https://arxiv.org/abs/1007.3726v1"
+published = "Computer Physics Communications 181 (2010), 1549–1556"
+doi = "https://doi.org/10.1016/j.cpc.2010.05.005"
+title = "Multi-GPU Accelerated Multi-Spin Monte Carlo Simulations of the 2D Ising Model"
+authors = "Benjamin Block, Peter Virnau and Tobias Preis"
+locator = "Abstract"
+
+[[claims]]
+id = "C1"
+status = "asserted"
+source = "application"
+text = "Lattice-gas GCMC in a modeled silica-aerogel pore framework produced excess adsorption isotherms agreeing with experimental measurements and predicted adsorbate microstructures."
+
+[[claims]]
+id = "C2"
+status = "asserted"
+source = "digital"
+text = "Conventional Ising Monte Carlo implementations use checkerboard parallelism, multispin coding and multiple GPUs."
+```
+
+## What transfers
+
+The application source supports a practical purpose for adsorption calculations.
+It does not validate our narrow pore, the Schneider wall convention, or a
+Thermo placement of the aerogel model.
+
+The digital source establishes implementation techniques, not performance of
+our inhomogeneous three-dimensional pore. Its historical GPU speed ratios and
+hardware power must not be extrapolated to this screen.
+
+## Our baseline requirements and hypotheses
+
+- A nine-site transverse slice has 512 occupation states. Exact finite-pore
+  transfer computation is a candidate for the cheapest qualifying baseline;
+  use factorized operations and include setup and observable evaluation.
+  This is our structural derivation, not a result asserted by either source.
+- Compare optimized compiled grand-canonical occupancy updates, with lookup
+  tables or vectorization where valid. Multispin coding may be worthwhile;
+  applicability and measured benefit require checking for the actual fields.
+- Evaluate valid cluster methods if competitive; require batched GPU comparison
+  before a later scale claim. A slow Python Gibbs loop is insufficient evidence
+  of digital headroom.
+- Match loading, working-capacity and pair-statistic accuracy. Count programming,
+  reads, reductions, random generation, memory and equilibration. Do not assign
+  invented MAC costs to bit operations or claim energy advantage from an unknown
+  digital-energy denominator.
+
+Lower total energy at matched accuracy remains our hypothesis. These sources
+establish neither Thermo accuracy nor a hardware or economic advantage.
