@@ -1,0 +1,379 @@
+{
+  "geometry": {
+    "degree_histogram": {
+      "3": 8,
+      "4": 64,
+      "5": 58,
+      "6": 14
+    },
+    "edges": 327,
+    "sites": 144,
+    "vertical_edges": 135,
+    "wall_sites": 128,
+    "within_slice_edges": 192
+  },
+  "input_sha256": "c4db957d7f672eb4e22400eaf610a7db549125871fe193e5da1b051f2a12a7ef",
+  "mapping_checks": [
+    {
+      "mu_index": 0,
+      "nominal_bias_formula_max_error": 0.0,
+      "nominal_weight_max_error": 0.0
+    },
+    {
+      "mu_index": 1,
+      "nominal_bias_formula_max_error": 0.0,
+      "nominal_weight_max_error": 0.0
+    },
+    {
+      "mu_index": 2,
+      "nominal_bias_formula_max_error": 0.0,
+      "nominal_weight_max_error": 0.0
+    }
+  ],
+  "metadata": {
+    "imports_probe_or_reference": false,
+    "input_path": "/workspace/scratch/d0e7ba8190d1/Thermo/docs/research/native_adsorption_probe/probe.json",
+    "linear_response_convention": "Cov(total_N, sum_i(delta_fugacity_i*n_i))/144, evaluated at unrounded midpoint",
+    "numpy_version": "2.4.6",
+    "python": "3.11.17 (main, Oct  3 2026, 01:05:36) [Clang 22.1.3 ]",
+    "source_path": "/workspace/scratch/d0e7ba8190d1/Thermo/docs/research/native_adsorption_probe/rounding_audit.py",
+    "source_sha256": "cc551b5696dc56c77a285efb7dd1e45f9a9c27a3d66bfde52998c35fef630916",
+    "susceptibility_convention": "Var(total_N)/144; beta=1, uniform fugacity derivative",
+    "utc_timestamp": "2026-10-20T22:42:36.802358+00:00"
+  },
+  "method": "independent_dense_512x512_occupation_basis_forward_moments",
+  "models": [
+    {
+      "bits": 0,
+      "d_loading_d_uniform_mu": 0.21507984107545988,
+      "difference_from_saved_loading": -4.996003610813204e-16,
+      "difference_from_saved_logZ_spin": 2.842170943040401e-14,
+      "difference_from_saved_pair_occupation": 1.249000902703301e-16,
+      "loading": 0.1999999999999545,
+      "logZ_gas": 27.377641431463942,
+      "logZ_spin": 149.46482246041472,
+      "mean_N": 28.799999999993446,
+      "mu": -0.1644052920687611,
+      "mu_index": 0,
+      "pair_occupation": 0.0858699718743841,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 1.4210854715202004e-14,
+      "variance_N": 30.971497114866224,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 6,
+      "d_loading_d_uniform_mu": 0.22203221955740007,
+      "difference_from_saved_loading": 1.6653345369377348e-16,
+      "difference_from_saved_logZ_spin": 0.0,
+      "difference_from_saved_pair_occupation": 3.469446951953614e-16,
+      "fugacity_rounding_delta": {
+        "counts_by_delta": [
+          {
+            "count": 2,
+            "delta": -0.024151444752217532
+          },
+          {
+            "count": 14,
+            "delta": -0.01049738626799046
+          },
+          {
+            "count": 8,
+            "delta": -0.004970398004976229
+          },
+          {
+            "count": 64,
+            "delta": 0.008683660479250399
+          },
+          {
+            "count": 56,
+            "delta": 0.02233771896347747
+          }
+        ],
+        "max": 0.02233771896347747,
+        "mean": 0.0109141461897962,
+        "min": -0.024151444752217532
+      },
+      "loading": 0.20272526947192548,
+      "logZ_gas": 27.467102509533582,
+      "logZ_spin": 148.76846501281906,
+      "mean_N": 29.19243880395727,
+      "mu": -0.1644052920687611,
+      "mu_index": 0,
+      "pair_occupation": 0.0877258171358252,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 2.842170943040401e-14,
+      "variance_N": 31.97263961626561,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 8,
+      "d_loading_d_uniform_mu": 0.2177023752433382,
+      "difference_from_saved_loading": 4.718447854656915e-16,
+      "difference_from_saved_logZ_spin": -2.842170943040401e-14,
+      "difference_from_saved_pair_occupation": 3.7470027081099033e-16,
+      "fugacity_rounding_delta": {
+        "counts_by_delta": [
+          {
+            "count": 14,
+            "delta": -0.014541906413535699
+          },
+          {
+            "count": 8,
+            "delta": 0.00311864228611336
+          },
+          {
+            "count": 64,
+            "delta": 0.004639140333705161
+          },
+          {
+            "count": 56,
+            "delta": 0.006159638381296961
+          },
+          {
+            "count": 2,
+            "delta": 0.015282626666847321
+          }
+        ],
+        "max": 0.015282626666847321,
+        "mean": 0.003428975225992096,
+        "min": -0.014541906413535699
+      },
+      "loading": 0.2007339779010916,
+      "logZ_gas": 27.30624937938194,
+      "logZ_spin": 149.1465441920613,
+      "mean_N": 28.905692817757192,
+      "mu": -0.1644052920687611,
+      "mu_index": 0,
+      "pair_occupation": 0.08630795145518062,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 1.4210854715202004e-14,
+      "variance_N": 31.3491420350407,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 0,
+      "d_loading_d_uniform_mu": 0.7801474236428526,
+      "difference_from_saved_loading": -5.551115123125783e-16,
+      "difference_from_saved_logZ_spin": 2.842170943040401e-14,
+      "difference_from_saved_pair_occupation": -7.771561172376096e-16,
+      "loading": 0.49999999999999795,
+      "logZ_gas": 56.95885101559741,
+      "logZ_spin": 132.3090222261231,
+      "mean_N": 71.9999999999997,
+      "mu": 0.4847198442982543,
+      "mu_index": 1,
+      "pair_occupation": 0.34562388251182563,
+      "rounding_pattern_linear_loading_response": {
+        "6": 0.005649771642651063,
+        "6_core": -0.00022468898079525742,
+        "6_wall": 0.005874460623445987,
+        "8": 0.011042588754012823,
+        "8_core": -6.1598518297216e-05,
+        "8_wall": 0.011104187272308033
+      },
+      "spin_gas_energy_identity_max_error": 1.4210854715202004e-14,
+      "variance_N": 112.34122900457078,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 6,
+      "d_loading_d_uniform_mu": 0.7799526505617362,
+      "difference_from_saved_loading": -1.2212453270876722e-15,
+      "difference_from_saved_logZ_spin": 2.842170943040401e-14,
+      "difference_from_saved_pair_occupation": 1.6653345369377348e-16,
+      "fugacity_rounding_delta": {
+        "counts_by_delta": [
+          {
+            "count": 2,
+            "delta": -0.031209008013949324
+          },
+          {
+            "count": 14,
+            "delta": -0.017554949529722252
+          },
+          {
+            "count": 8,
+            "delta": -0.012027961266708687
+          },
+          {
+            "count": 64,
+            "delta": 0.0016260972175183852
+          },
+          {
+            "count": 56,
+            "delta": 0.015280155701745457
+          }
+        ],
+        "max": 0.015280155701745457,
+        "mean": 0.0038565829280641844,
+        "min": -0.031209008013949324
+      },
+      "loading": 0.5056398520975471,
+      "logZ_gas": 57.15669701190407,
+      "logZ_spin": 132.22919425160913,
+      "mean_N": 72.81213870204678,
+      "mu": 0.4847198442982543,
+      "mu_index": 1,
+      "pair_occupation": 0.35176108020535957,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 2.1316282072803006e-14,
+      "variance_N": 112.31318168089001,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 8,
+      "d_loading_d_uniform_mu": 0.7846664008788858,
+      "difference_from_saved_loading": 4.440892098500626e-16,
+      "difference_from_saved_logZ_spin": 0.0,
+      "difference_from_saved_pair_occupation": 0.0,
+      "fugacity_rounding_delta": {
+        "counts_by_delta": [
+          {
+            "count": 2,
+            "delta": -0.006941887140678782
+          },
+          {
+            "count": 14,
+            "delta": -0.005421389093086981
+          },
+          {
+            "count": 8,
+            "delta": 0.012239159606561856
+          },
+          {
+            "count": 64,
+            "delta": 0.013759657654153656
+          },
+          {
+            "count": 56,
+            "delta": 0.015280155701745457
+          }
+        ],
+        "max": 0.015280155701745457,
+        "mean": 0.012114144891885411,
+        "min": -0.006941887140678782
+      },
+      "loading": 0.5110776976333778,
+      "logZ_gas": 57.70335329295514,
+      "logZ_spin": 132.18130607126506,
+      "mean_N": 73.59518845920641,
+      "mu": 0.4847198442982543,
+      "mu_index": 1,
+      "pair_occupation": 0.35721563463153466,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 3.375077994860476e-14,
+      "variance_N": 112.99196172655957,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 0,
+      "d_loading_d_uniform_mu": 0.3547036828230527,
+      "difference_from_saved_loading": -2.220446049250313e-16,
+      "difference_from_saved_logZ_spin": 0.0,
+      "difference_from_saved_pair_occupation": 5.551115123125783e-16,
+      "loading": 0.800000000000021,
+      "logZ_gas": 104.85314325678874,
+      "logZ_spin": 144.48417862259012,
+      "mean_N": 115.20000000000303,
+      "mu": 0.9808189532527588,
+      "mu_index": 2,
+      "pair_occupation": 0.6999810133261176,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 7.105427357601002e-15,
+      "variance_N": 51.077330326519586,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 6,
+      "d_loading_d_uniform_mu": 0.33562600412626076,
+      "difference_from_saved_loading": -2.220446049250313e-16,
+      "difference_from_saved_logZ_spin": 5.684341886080802e-14,
+      "difference_from_saved_pair_occupation": 4.440892098500626e-16,
+      "fugacity_rounding_delta": {
+        "counts_by_delta": [
+          {
+            "count": 2,
+            "delta": -0.013654058484226739
+          },
+          {
+            "count": 14,
+            "delta": 3.3306690738754696e-16
+          },
+          {
+            "count": 8,
+            "delta": 0.005526988263014232
+          },
+          {
+            "count": 64,
+            "delta": 0.019181046747241304
+          },
+          {
+            "count": 56,
+            "delta": 0.032835105231468376
+          }
+        ],
+        "max": 0.032835105231468376,
+        "mean": 0.021411532457787066,
+        "min": -0.013654058484226739
+      },
+      "loading": 0.8076904346416547,
+      "logZ_gas": 107.35303778218119,
+      "logZ_spin": 145.4424428110219,
+      "mean_N": 116.30742258839828,
+      "mu": 0.9808189532527588,
+      "mu_index": 2,
+      "pair_occupation": 0.710567430046466,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 7.105427357601002e-15,
+      "variance_N": 48.33014459418155,
+      "vertical_factor_check_max_error": 0.0
+    },
+    {
+      "bits": 8,
+      "d_loading_d_uniform_mu": 0.3641080965548756,
+      "difference_from_saved_loading": 2.220446049250313e-16,
+      "difference_from_saved_logZ_spin": 2.842170943040401e-14,
+      "difference_from_saved_pair_occupation": -9.992007221626409e-16,
+      "fugacity_rounding_delta": {
+        "counts_by_delta": [
+          {
+            "count": 8,
+            "delta": -0.013684482428324873
+          },
+          {
+            "count": 64,
+            "delta": -0.012163984380733073
+          },
+          {
+            "count": 56,
+            "delta": -0.010643486333141716
+          },
+          {
+            "count": 2,
+            "delta": -0.0015204980475914676
+          },
+          {
+            "count": 14,
+            "delta": 3.3306690738754696e-16
+          }
+        ],
+        "max": 3.3306690738754696e-16,
+        "mean": -0.010326715906559931,
+        "min": -0.013684482428324873
+      },
+      "loading": 0.79577585830009,
+      "logZ_gas": 103.71417040872807,
+      "logZ_spin": 144.08872931980176,
+      "mean_N": 114.59172359521297,
+      "mu": 0.9808189532527588,
+      "mu_index": 2,
+      "pair_occupation": 0.6943822523410197,
+      "rounding_pattern_linear_loading_response": {},
+      "spin_gas_energy_identity_max_error": 2.842170943040401e-14,
+      "variance_N": 52.43156590390208,
+      "vertical_factor_check_max_error": 0.0
+    }
+  ],
+  "no_sampling_or_parameter_scan": true
+}

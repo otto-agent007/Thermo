@@ -215,3 +215,78 @@ question. Changing this pore's caps, temperature, geometry or read schedule
 is not an automatic follow-up. The other ranked families remain unselected.
 The November 11 charter conclusion remains: no tested task wins on both
 quality and cost.
+
+## Follow-up diagnosis: why the probe missed
+
+At the owner's request, a second implementation independently reconstructed
+the open box directly in occupation variables and used a dense 512×512
+transfer matrix with particle-number moments. This is a verification method,
+not a replacement for the efficient digital baseline. It imports neither
+the probe nor its reference helper. All nine fixed models agree with the
+saved loading values within 1.22e-15, pair statistics within 9.99e-16, and
+log partition functions within 5.68e-14. Geometry, boundary coordination,
+spin/gas energy identities and transfer factors pass. No new trajectories,
+parameter scan, cap change or tolerance change was performed.
+
+The [audit code](native_adsorption_probe/rounding_audit.py) and
+[audit record](native_adsorption_probe/rounding-audit.json) preserve the
+calculation and original evidence hash.
+
+**The deterministic cause is coherent field rounding.** The 8-bit field
+step is 1.9904094766263793/127 = 0.015672515564. Couplings are represented
+exactly. At middle loading, all 128 wall-site fields round upward:
+
+| Sites | Nominal field | 8-bit field | Change |
+| ---: | ---: | ---: | ---: |
+| 8 | -0.50764008 | -0.50152050 | +0.00611958 |
+| 64 | -0.25764008 | -0.25076025 | +0.00687983 |
+| 56 | -0.00764008 | 0 | +0.00764008 |
+
+The 16 central-site fields round downward, but those sites are already
+nearly occupied. At fixed exact couplings, a field change `delta_h` is
+equivalent to a local chemical-potential change `2*delta_h`. The wall errors
+therefore reinforce a preference for occupation rather than canceling.
+
+The exact nominal midpoint variance of total occupancy is 112.341229;
+`d(loading)/d(mu) = Var(N)/144 = 0.7801474`. More directly, linear response
+to the **actual nonuniform rounding pattern**, computed as
+`Cov(N, sum_i 2*delta_h_i*n_i)/144`, predicts a loading shift of
+**0.01104259**, versus the actual **0.01107770**: 99.68% of the shift.
+The wall part of that first-order response is +0.01110419; the central-site
+part is -0.00006160. This supports rounding amplified by the model's response,
+with no implementation discrepancy found. The 6-bit codebook has a different
+alignment and a smaller midpoint shift; that does not establish that fewer
+bits are generally preferable.
+
+**The sampling failure is insufficient statistical precision, not a
+demonstrated mixing failure.** Every ideal-control point estimate, pooled
+and averaged separately by start, lies inside its observable tolerance.
+Its largest pooled errors are 0.005169 loading, 0.006508 pair occupation
+and 0.006087 working capacity. The confidence intervals fail qualification.
+At the ideal midpoint, the three seed-group loading estimates are
+0.4940321, 0.5110677 and 0.5040148. Their standard error is 0.0049419;
+the two-degree-of-freedom t multiplier of 4.30265 gives a half-width of
+0.0212634. Start agreement likewise remains uncertified; a persistent
+initialization effect was not demonstrated.
+
+The exact variance exposes a weakness in the original allocation: even
+assuming independent retained states, 64 reads give a per-trajectory
+loading standard error of about **0.00920**. Using the true iid variance
+for all 384 midpoint reads, the three-group t-scaled half-width is about
+**0.0162** before accounting for mean error. This is a design approximation,
+not a new confidence interval or a guarantee that every realization fails.
+It nevertheless shows that the allocation was poorly powered to certify
+0.01 accuracy, even in an ideal control. This limitation should have been
+made explicit when recommending the read/replication budget.
+
+For the 8-bit/jitter midpoint, the sampled mean is 0.5152633. Subtracting
+the exact rounded target 0.5110777 leaves **0.0041856**, with exploratory
+95% interval **[-0.0062906, +0.0146619]**. That residual is compatible with
+zero; it cannot be attributed specifically to jitter or poor mixing.
+
+The exact miss is **1.10777 percentage points against a 1-point tolerance**,
+only 0.10777 percentage points beyond the screen's chosen threshold. That
+threshold is not an experimentally validated material requirement. Keeping
+this frozen allocation held follows the declared rule, but neither this
+small precision miss nor the inconclusive sampled estimates rules out native
+adsorption, local Gibbs updates or 8-bit hardware as a family.
