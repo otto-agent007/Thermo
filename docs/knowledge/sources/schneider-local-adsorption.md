@@ -1,4 +1,4 @@
-# A finite local lattice-gas model for adsorption
+# Phase transitions in disordered mesoporous solids
 
 ```toml
 id = "schneider-local-adsorption"
@@ -9,11 +9,9 @@ last_checked = 2026-10-20
 
 [source]
 url = "https://doi.org/10.1038/s41598-017-07406-2"
-full_text = "https://pmc.ncbi.nlm.nih.gov/articles/PMC5543148/"
-verified_text = "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5543148/fullTextXML"
+version = "Scientific Reports 7, 7216 (2017)"
 authors = "Daniel Schneider, Daria Kondrashova and Rustem Valiullin"
-published = "Scientific Reports 7, 7216 (2017)"
-locator = "Methods: GCMC simulations of gas sorption, equations 22–23"
+note = "Methods: GCMC simulations of gas sorption, equations 22–23; verified through the Europe PMC full-text XML linked below."
 
 [[claims]]
 id = "C1"
@@ -25,6 +23,10 @@ id = "C2"
 status = "asserted"
 text = "The printed Hamiltonian has +sum_i phi_i n_i; the stated field is phi_i=3 epsilon beside pore walls and zero elsewhere."
 ```
+
+The [full text](https://pmc.ncbi.nlm.nih.gov/articles/PMC5543148/) and
+[verified XML](https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5543148/fullTextXML)
+provide the equation locators recorded above.
 
 ## Model convention
 

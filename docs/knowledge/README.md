@@ -65,6 +65,9 @@ A card may give different statuses to different claims, for example a
 | [Thermodynamic significance of QUBO encoding on quantum annealers](sources/doucet-qubo-encoding.md) | Paper | `asserted`; one-hot penalty strength trade-off |
 | [Stochastic Relaxation, Gibbs Distributions, and the Bayesian Restoration of Images](sources/geman-gibbs-restoration.md) | Paper | `asserted`; MRF prior gives an MRF posterior; the Gibbs sampler |
 | [On the Statistical Analysis of Dirty Pictures](sources/besag-dirty-pictures.md) | Paper | `asserted`; local characteristics dominate; MPM for pixel error |
+| [Phase transitions in disordered mesoporous solids](sources/schneider-local-adsorption.md) | Paper | `asserted`; finite local lattice-gas model and printed wall-field convention |
+| [Supercritical Fluid Adsorption to Weakly Attractive Solids](sources/native-adsorption-baselines.md) | Paper | `asserted`; adsorption application evidence, not validation of Thermo's pore |
+| [Multi-GPU Accelerated Multi-Spin Monte Carlo Simulations](sources/block-multigpu-ising.md) | Paper | `asserted`; conventional implementation techniques, not a Thermo performance result |
 
 ## Adding or updating a card
 
