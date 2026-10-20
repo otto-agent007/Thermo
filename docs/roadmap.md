@@ -1,6 +1,19 @@
 # Roadmap
 
-## Active sequence (updated October 6, 2026)
+## Current direction (owner selection October 20, 2026)
+
+[Charter amendment 2](../PROJECT_CHARTER.md#amendment-2-2026-10-20-representation-architecture-and-useful-computation)
+records the shift to studying how representation and hardware constraints
+determine useful computation. Repository adoption is by merge. The
+[research agenda](research/2026-10-20-lab-research-agenda.md) identifies the
+bounded claims, missing evidence and next selection criteria.
+
+Denoising remains closed; the tested native-adsorption allocation is held.
+This strategic update adds no queue row or experiment. The authoritative
+execution list is the owner-curated [research queue](research-queue.md).
+The existing four-week evaluation remains due **November 11, 2026**.
+
+## Recorded milestone sequence
 
 PR #20 closes M1: the frozen full-program equilibrium update has an unbiased
 population-loss audit with paired, approximate uncertainty. Its three checked
@@ -9,7 +22,8 @@ software-simulation evidence for one update. M3 checks finite-sweep gradient
 correctness on the bounded microcircuit. M4 completes the predeclared bounded
 full-program learning study; physical-hardware performance remains open.
 
-The next research milestones are ordered by dependency:
+The milestone history below is ordered by dependency. Its historical
+follow-up suggestions do not override the current charter or queue:
 
 | Milestone | Status | Question and completion evidence |
 | --- | --- | --- |
