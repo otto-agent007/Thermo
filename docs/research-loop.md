@@ -300,21 +300,18 @@ Existing direction reviews may propose work; only the owner selects it through
 the existing queue and protocol process. The current charter and agenda govern
 closed lines and holds, including denoising and adsorption.
 
-Use these operational outcomes in a diagnostic handoff:
+State the operational outcome in the loop's own terms rather than a new
+vocabulary. When no row is eligible the gatekeeper posts `Loop idle: no open,
+unclaimed rows in docs/research-queue.md.` once, and `loop-tick.py --status`
+lists what is waiting and the active proposals; quote those. A run whose
+integrity checks and replay pass has succeeded operationally even when its
+science is negative.
 
-| Outcome | Meaning |
-| --- | --- |
-| `success` | The bounded action and its required verification completed; science may still be negative. |
-| `clean_noop` | Fresh state was checked and no transition is due. |
-| `blocked` | A required input, tool, integrity check or fresh state is unavailable; name the blocker. |
-| `approval_required` | A specific next action awaits the existing owner's decision. |
-| `exhausted` | No eligible queue row or authorized work remains; no automatic refill. |
-| `stagnated` | Comparable evidence shows repeated action without useful progress; stop and name the unresolved decision. |
-
-Classify only the scope actually observed. A repository queue can be exhausted
-while live scheduler health is unknown. An API error is not a clean no-op;
-cached eligibility cannot authorize a launch. A card saying "running" without
-worker evidence leaves execution unconfirmed and does not justify a duplicate.
+Classify only the scope actually observed. A repository queue can have no
+open row while live scheduler health is unknown. An API error is not an idle
+tick; cached eligibility cannot authorize a launch. A card saying "running"
+without worker evidence leaves execution unconfirmed and does not justify a
+duplicate.
 Compare approval chronology and the protocol diff: runner-code commits after
 approval are expected; a changed approved protocol is not.
 

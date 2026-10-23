@@ -6,10 +6,11 @@ scheduler activation or external-profile change. Base: `539d1aac`.
 ## Scope and source
 
 Use Debrief to explain observed runs, then Doctor only for supported design
-amendments. Route requests through `AGENTS.md` and the existing research-loop
-review/handoff. Two local skills plus one shared diagnostic contract are
-sufficient; a new daemon, executable classifier or runtime state schema would
-require implementation evidence from the external Hermes profile.
+amendments. Route requests through the existing research-loop review/handoff
+(`docs/research-loop.md`, Doctor and Debrief). Two local skills plus one
+shared diagnostic contract are sufficient; a new daemon, executable
+classifier or runtime state schema would require implementation evidence
+from the external Hermes profile.
 
 Adapted from Forward Future Loopy at
 [`75966cbd572a4185064971c9fe5e9c52e8f8456d`](https://github.com/Forward-Future/loopy/tree/75966cbd572a4185064971c9fe5e9c52e8f8456d/skills/loopy):
@@ -35,7 +36,7 @@ and outcome/handoff fields; it does not demonstrate a live Hermes defect.
 | Sound bounded loop; no numeric retry cap | Doctor: Ready, no repair; existing no-progress stop is sufficient. |
 | Feedback cannot change next action | Doctor: Not actually a loop; recommend one-shot work. |
 | Prompt explicitly permits cached-row launch after failed refresh | Doctor: Repair needed; replace only that fallback with blocked/no launch pending fresh state. |
-| Completed negative and no open rows despite demand for 24/7 discovery | Debrief: process can have worked; scientific stop remains, queue exhausted, new topic requires owner selection. |
+| Completed negative and no open rows despite demand for 24/7 discovery | Debrief: process can have worked; scientific stop remains, no open row, new topic requires owner selection. |
 | Last study old; no host state/log | Inconclusive about scheduler health; no inferred crash or missed schedule. |
 | API error; actual fallback unknown | Environment/tool evidence, blocked freshness; no speculative prompt rewrite. |
 | Head changed for runner code; approved protocol unchanged; worker unknown | Do not invalidate approval from head inequality alone or launch a duplicate; obtain worker/handoff evidence. |
@@ -50,8 +51,9 @@ labeled Ready. The focused recheck passed: unavailable fallback design yields
 Inconclusive; an inspected sound repository design yields Ready while live
 scheduler health remains unknown.
 
-Structural checks passed: minimal skill frontmatter, all 37 local link targets
-in the two skills, AGENTS and loop documentation, and `git diff --check`.
+Structural checks passed: minimal skill frontmatter, every local link target
+in the two skills, the loop documentation and this note (rechecked after the
+revision below), and `git diff --check`.
 Protected sources, frozen protocols, charter, queue and workflows are unchanged.
 No production code was changed; no scientific test suite or replay was run for
 this documentation-only change. These finite application checks do not prove
@@ -69,35 +71,16 @@ or experiment launches. The actual profile is absent from this workspace;
 live health and adoption remain unverified. Publication and runtime changes
 remain separate decisions.
 
-The owner reports an older Intel i7 (possibly i7-7700K), 32 GB RAM and a
-GTX 1050 Ti on the Thermo host. This inventory is not host-verified. Verify it
-before recommending concurrency or GPU settings; this cloud workspace's
-resources are not evidence about that host. No compute-setting change follows
-from this skills integration.
+## Revision after review
 
-## Cloud executor inventory (2026-10-23)
-
-Read-only resource inspection found five affinity-visible logical CPUs but a
-`cpu.max` quota of `400000 100000`: four CPU equivalents, not five guaranteed
-cores. The reported model is AMD EPYC 9V74. `memory.max` is 16 GiB; the
-`/proc/meminfo` view is about 17.6 GiB and is not the enforced allocation.
-Available space at inspection was about 29.8 GiB in `/workspace` and 8.8 GiB
-in `/tmp`. No NVIDIA device nodes or `nvidia-smi` were available; GPU execution
-is not established.
-
-The default Python is 3.12.14 and uv is 0.12.19. Thermo requires Python 3.11;
-there is no project virtual environment and no JAX/JAXlib or pytest in the
-default interpreter. The lockfile pins JAX/JAXlib 0.10.2, but that is not an
-installed/runtime-verified backend. Hermes/THERMES are absent. The default uv
-cache is read-only; future setup must use a writable cache location. No
-dependencies were installed and no JAX smoke or scientific run was performed.
-
-This suggests a possible CPU host for bounded work after compatible frozen
-setup and an approved question, not a continuously available worker. Session
-lifetime, sustained performance and GPU availability remain unverified. Before
-an approved run, reconcile the existing row/card with the other host to prevent
-duplicate execution; record this host's actual provenance and limits, calibrate
-within the existing budget, and follow the study's atomic checkpoint/resume and
-replay contract. Keep CPU measurements separate from hardware cost projections.
-No open study is selected by this inventory; denoising remains closed and the
-tested adsorption allocation held.
+A host-side review found that the gatekeeper already reports an idle queue
+(`Loop idle: no open, unclaimed rows in docs/research-queue.md.`, posted once)
+and that `loop-tick.py --status` lists waiting items and active proposals.
+The draft's six-value outcome table was a second vocabulary that no code
+emits, so it was replaced by a pointer to those reports. The AGENTS.md
+paragraph was dropped, since the research-loop section already routes
+requests and AGENTS.md is loaded into every session. Neither Claude Code
+(`.claude/skills/`) nor the thermes profile (`skills.external_dirs: []`)
+discovers `.agents/skills/`; the skills are reached through the
+research-loop links. The cloud and host hardware inventories were removed;
+`docs/environments.md` holds the verified host specification.

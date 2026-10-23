@@ -30,9 +30,10 @@ Ready applies only to a design actually inspected.
    repeat, stop or escalation. Check handoffs across agents and machines.
 3. Report at most three material weaknesses: stale authority, self-grading,
    irreproducible checks, development/acceptance evidence reuse, missing
-   recovery records, unbounded retries, or ambiguous outcomes. Apply the
-   outcome vocabulary in `docs/research-loop.md`; do not score the loop or
-   invent schedules, timeouts, budgets, tools or owners.
+   recovery records, unbounded retries, or ambiguous outcomes. State
+   outcomes in the loop's own terms (`docs/research-loop.md`, Doctor and
+   Debrief); do not score the loop or invent schedules, timeouts, budgets,
+   tools or owners.
 4. Tie each runtime claim to a cited observation. Missing host evidence is
    not a crash. A scientific negative is not an integrity failure. An empty
    executable queue is not permission to select a topic.

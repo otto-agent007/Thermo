@@ -40,8 +40,9 @@ independently supported scientific conclusion.
    that run, not a recurring pattern.
 3. Report scheduler health, operational outcome and scientific disposition
    separately using the research-loop contract. Passing integrity/replay
-   with a scientific stop is `success` for completion, not a reason to retry.
-   No eligible queue row is `exhausted`; closed/held work is not a fallback.
+   with a scientific stop is an operational success, not a reason to retry.
+   No eligible queue row means the loop is idle; closed/held work is not a
+   fallback.
 4. Recommend one smallest justified amendment, or **No loop change needed**.
    A tool outage alone calls for tool evidence/recovery, not a prompt rewrite.
    A requested goal beyond current authority is an owner decision, not an
