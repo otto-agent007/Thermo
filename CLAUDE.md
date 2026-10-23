@@ -8,15 +8,36 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-18)
+## Where the project stands (updated 2026-10-20)
+
+- **Charter amendment 2** records the owner's 2026-10-20 selection of a
+  representation-and-architecture research direction; repository adoption
+  is by merge. The lab asks when physical stochastic computation provides
+  useful value against the strongest practical digital method, which
+  representations permit it, and which hardware requirements would change
+  the answer. Use the bounded claims and selection questions in
+  `docs/research/2026-10-20-lab-research-agenda.md`. This supersedes amendment
+  1's old task ordering, not its constraints, evidence gates or 2026-11-11
+  evaluation. The agenda is not an executable queue.
+- **Current research disposition:** D-0005 and the owner's subsequent
+  decision close the denoising line with no additional premise test. The
+  2026-10-18 thinned-draw exploration reduced projected cost without meeting
+  task quality. The owner-selected native-adsorption eligibility probe in
+  `docs/research/2026-10-20-native-adsorption-eligibility-probe.md` leaves its
+  allocation **held**: exact 8-bit midpoint loading error is 0.011078 against
+  0.01, and sampled uncertainty remains unresolved even in the ideal
+  control. The independent audit finds coherent rounding, not a calculation
+  bug; it does not establish harmful jitter or persistent mixing failure.
+  The owner selected the broader lab direction, not a correction experiment
+  or another application. No new queue row or run follows automatically.
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
-  PR #101 on 2026-10-09) sets which questions come first. The standing
-  question is what a fixed-topology, low-precision, I/O-expensive p-bit array
+  PR #101 on 2026-10-09) established the preceding research cycle. Its primary
+  question was what a fixed-topology, low-precision, I/O-expensive p-bit array
   can do usefully, at what task quality and projected cost, against a
-  conventional machine doing the same task. The order of work is a
+  conventional machine doing the same task. Its original order of work was a
   hardware-constraint layer (queue row `constraint-layer`), then one task (a
-  small chained-EBM denoiser, `dtm-small-image`; associative-memory recall is
+  small chained-EBM denoiser, `dtm-small-image`; associative-memory recall was
   second), with the conventional baseline inside the same row. Sampler
   comparisons on random instances are now probes, and the meta-EBM line
   stays at contract checks and placement. A recorded study must name, in its
@@ -308,6 +329,10 @@ as given. To avoid a repeat:
   costs hours. M4G's five-stage chain is not the template.
 - Say so plainly when a result is negative or a gate is structurally
   unreachable. Don't soften it into "inconclusive".
+- Do not strengthen an uncertainty-limited qualification failure into a
+  demonstrated mechanism failure. Separate intended-model, representation,
+  update-process and estimator errors before attributing the cause. State
+  which model class and parameter range a finding actually covers.
 
 ## Engineering habits
 

@@ -1,5 +1,10 @@
 # Thermo project charter
 
+The owner selected a representation-and-architecture research direction on
+2026-10-20, recorded in Amendment 2 below. Its repository adoption is by
+merge. Earlier track lists and task ordering are historical where that
+amendment supersedes them.
+
 ## Project identity
 
 Thermo is a reproducible research laboratory for designing stochastic programs,
@@ -268,3 +273,100 @@ for small models, hashed canonical inputs, pinned 0.x upstreams, replay
 before reporting, the autosave contract for long runs, the lessons
 register, and the rule that two consecutive failures of the same kind stop
 and ask the owner.
+
+### Amendment 2 (2026-10-20): representation, architecture and useful computation
+
+**Status and scope.** The owner selected this direction on 2026-10-20.
+This amendment implements that selection for review and takes effect on
+merge. It supersedes Amendment 1's next-cycle task ordering and broadens its
+primary question; it preserves the constraint layer, evidence requirements,
+study gates and owner-curated research queue. It selects no new experiment.
+
+#### Scientific mission
+
+Thermo studies the relationship between physical representation, hardware
+constraints and useful computation. Its central question is:
+
+> Under what conditions does physical stochastic computation provide a
+> useful capability more economically than the best practical conventional
+> method, and what representations and architectures make that possible?
+
+The working hypothesis is that a local, sufficiently precise model that
+remains resident while producing useful stochastic information can benefit
+from inexpensive updates and limited data movement. This is a hypothesis
+to challenge. Locality, low update energy and randomness alone establish
+neither useful task quality nor an advantage over a digital algorithm.
+
+The lab's contribution is a bounded, predictive account of where this
+hypothesis holds, where it fails, and which architecture changes could
+alter that boundary. A scoped negative or a quantified hardware requirement
+can be valuable without being a performance win.
+
+#### Research priorities
+
+1. **Representation.** Determine which mathematical structures fit the
+   declared topology, coefficient range and precision without costly global
+   variables or copying. Separate intended-model fidelity, finite
+   representation bias, the distribution induced by actual updates, and
+   finite-budget estimation error. State what is measured and what remains
+   unidentified; these errors need not be independent or add linearly.
+2. **Useful computation.** Identify an intended user, a decision or
+   observable, and a justified accuracy requirement. Compare the strongest
+   practical conventional methods for that output, including structure-aware
+   exact methods and amortized methods when the workload permits them.
+   Count setup, calibration, programming, initialization, updates, reads,
+   writes, host processing and the number of queries over which costs are
+   amortized. Unknown costs remain unknown.
+3. **Architecture.** When a constraint blocks value, identify a measurable
+   requirement for changing it: precision, connectivity, placement
+   expansion, variation tolerance, or access cost. Keep any relaxed-feature
+   result separate from the supported machine, price the feature where
+   possible, and retain an unrelaxed comparison. This permits bounded
+   analytical co-design; it does not authorize unavailable hardware,
+   integrations or an extension of the parked Thermalizers work.
+
+The [research agenda](docs/research/2026-10-20-lab-research-agenda.md)
+connects these priorities to the existing results and the questions that
+could change the next selection. It is a decision aid, not another queue.
+
+#### How a question earns work
+
+A proposed recorded study must still name a number someone will design
+against in its first paragraph. It also states the falsifiable mechanism,
+the scope of the prediction, the intended decision, and the result that
+would stop the direction. These fit in the existing proposal and report;
+they do not add runners, approval stages or mandatory companion documents.
+
+Use existing results and literature first. A synthetic mechanism study can
+be useful if it tests a bounded prediction with a design consequence; an
+application advantage additionally requires a meaningful task and matched
+conventional baseline. General claims require independent cases beyond
+those used to develop the explanation. Sampler work earns a place only
+when it resolves a selected task or architecture question.
+
+Exploratory probes can inform selection and stopping decisions when labeled
+as exploration. They are not recorded-study evidence or demonstrations of
+physical hardware performance. This clarifies Amendment 1's probe wording
+without promoting any previous probe to a recorded study.
+
+#### Commitments and evaluation
+
+- D-0005's denoising closure and the owner's decision to test no further
+  premise in that line stand. The tested adsorption allocation remains
+  held. A rounding correction, larger pore or replacement application needs
+  its own explicit selection through the existing process.
+- No frozen protocol, archived result, tolerance or stop rule changes.
+  Two consecutive failures of the same kind still trigger an owner premise
+  decision; a new strategic label does not restart that count.
+- Amendment 1's four-week evaluation remains due **2026-11-11**, measured
+  from the constraint layer's 2026-10-14 merge. Report its original task,
+  quality and cost requirements against the available evidence, including
+  negative results and gaps. This amendment does not reset that clock or
+  substitute an agenda for those requirements.
+- Alongside that evaluation, summarize which bounded representation or
+  architecture claims the lab can support, which remain hypotheses, and
+  the single most consequential unresolved decision. A knowledge summary
+  is a separate deliverable, not evidence of computational advantage.
+- Topic selection and acceptance remain with the owner. Direction reviews
+  propose at most one new queue row; this amendment adds none and starts
+  no run. No open row means the loop has no experiment to start.

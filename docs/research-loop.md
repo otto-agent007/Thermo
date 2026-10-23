@@ -114,6 +114,11 @@ cards are not optional: the failure the amendment records was rediscovering
 the literature, and the only defence is an agent told to ask "is this
 already known?" against the lab's own reading list before endorsing a row.
 
+Under charter amendment 2, also read the
+[representation-and-architecture agenda](research/2026-10-20-lab-research-agenda.md).
+It records the owner's strategic selection and bounded interpretations of
+existing work. Its open questions are not queue rows or run authorization.
+
 **Rubric.** The review answers these, in this order, each with a citation
 (a findings file, a lessons row, a source card, a queue row):
 
@@ -132,6 +137,18 @@ already known?" against the lab's own reading list before endorsing a row.
    task's precision and noise tolerance; sweeps, reads and writes per
    useful sample; projected energy at a stated quality against a
    conventional baseline)? If not, which row closes the largest gap?
+4. What bounded relationship between representation, architecture and
+   useful computation did the result establish or challenge? Separate the
+   intended model, constrained representation, actual update process and
+   estimator. Name unsupported generalizations, the intended user/design
+   decision, the strongest relevant digital baseline, and whether a
+   hardware requirement follows. A counterfactual feature must be labeled
+   as relaxed and cannot establish an advantage on the supported machine.
+   For the next proposed question, name its falsifier and the cheapest
+   decisive check. A new strategic framing does not reopen a closed line.
+
+The four-week test in item 3 remains due 2026-11-11. Report it on its original
+terms; the broader knowledge assessment in item 4 does not replace it.
 
 **Output.** One file, `docs/research/<date>-direction-review.md`, opened as
 a docs-only PR labelled `loop-direction`, with: a verdict per result, a
