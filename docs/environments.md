@@ -1,7 +1,8 @@
 # Execution environments
 
 *Draft, October 3, 2026 (local and in-session cloud figures measured October 1;
-published cloud figures checked October 3). Where Thermo work runs, what each place can hold,
+published cloud figures checked October 3; a cloud instance remeasured
+October 23). Where Thermo work runs, what each place can hold,
 and which gates fit where. Figures here are operational observations, not
 evidence; a runner records the limits it actually saw in its own
 `run-status.json` (see the autosave contract in
@@ -19,18 +20,18 @@ study that runs longer than a few minutes.
 
 ## Environments
 
-| | Local workstation | Codex cloud (OpenAI) |
+| | Local workstation (`zad1`) | Codex cloud (OpenAI) |
 | --- | --- | --- |
-| CPU | Intel i7-7700K, 4 cores / 8 threads, no cgroup CPU limit | Quota of 4 cores' CPU time; 5 logical CPUs visible |
-| Memory | 31 GiB, 2 GiB swap | 16 GiB published for the plan; the October 1 instance reported 32 GiB; no swap |
-| GPU | GTX 1050 Ti (4 GiB, Pascal, compute capability 6.1), driver 580.178.04, CUDA 12.6 toolkit at `/usr/local/cuda-12.6`; **approved for use** on October 3, 2026 (see [GPU use](#gpu-use)); the locked JAX 0.10.2 is CPU-only until a CUDA plugin is pinned | None |
-| Storage | Repo on `/mnt/2TBHDD` (about 1.6 TB free); root disk about 13 GB free | October 1 instance: about 32 GiB workspace, 29 GiB free; `/tmp` and `/dev/shm` about 17 GiB each and RAM-backed; check mounts in each session |
+| CPU | Intel i7-7700K, 4 cores / 8 threads, no cgroup CPU limit | Quota of 4 cores' CPU time (`cpu.max` `400000 100000`); 5 logical CPUs visible; October 23 instance reported AMD EPYC 9V74 |
+| Memory | 31 GiB, 2 GiB swap | 16 GiB published for the plan; the October 1 instance reported 32 GiB; the October 23 instance enforced 16 GiB (`memory.max`; `/proc/meminfo` showed about 17.6 GiB, which is not the limit); no swap |
+| GPU | GTX 1050 Ti (4 GiB, Pascal, compute capability 6.1), driver 580.178.04, CUDA 12.6 toolkit at `/usr/local/cuda-12.6`; **approved for use** on October 3, 2026 (see [GPU use](#gpu-use)); the locked JAX 0.10.2 is CPU-only until a CUDA plugin is pinned | None (October 23: no NVIDIA device nodes, no `nvidia-smi`) |
+| Storage | Repo on `/mnt/2TBHDD` (about 1.6 TB free); root disk about 13 GB free | October 1 instance: about 32 GiB workspace, 29 GiB free; `/tmp` and `/dev/shm` about 17 GiB each and RAM-backed; October 23 instance: about 29.8 GiB free in `/workspace` and 8.8 GiB in `/tmp`; check mounts in each session |
 | Open files / stack | 1,048,576 / 16 MiB | 16,384 per process / 8 MiB per thread |
 | Network | Open | Restricted; package-manager destinations allowed, other downloads may be blocked (a Chromium download was) |
 | Persistence | Local files persist | Saved task VM state is recoverable for up to seven days by default; do not depend on background processes surviving a reply (see the checkpoint rule) |
 | Time limits | None | No per-turn maximum is published; observed single-turn cutoff: **not yet measured** (fill in after the probe below, with the date) |
 | Sandboxing | `bwrap` 0.9 installed; `thermo-harness` runs | Commands already run in a nested sandbox; `thermo-harness` needs approved execution outside it |
-| Toolchain | Python 3.11 via `uv`, Node 26, Codex CLI, Hermes Agent | `uv sync --frozen` on setup; Node only if the dashboard is in scope |
+| Toolchain | Python 3.11 via `uv`, Node 26, Codex CLI, Hermes Agent | `uv sync --frozen` on setup; Node only if the dashboard is in scope. October 23 instance: default Python 3.12.14 and uv 0.12.19, no project environment, no JAX or pytest installed, and a read-only default uv cache, so setup must provide Python 3.11 and a writable `UV_CACHE_DIR` |
 
 ## Rules that follow
 
@@ -43,8 +44,9 @@ study that runs longer than a few minutes.
   The cloud commands are spelled out in the fit table. On the local box,
   three to four workers leave headroom for the owner.
 - **Memory.** Budget for the published 16 GiB on the cloud box, not the
-  32 GiB one instance happened to report, and there is no swap to absorb a
-  spike. M5b peaked at 0.89 GiB per worker and 4.56 GiB for the session; the
+  32 GiB one instance happened to report (the October 23 instance enforced
+  16 GiB), and there is no swap to absorb a spike. M5b peaked at 0.89 GiB
+  per worker and 4.56 GiB for the session; the
   M5a four-worker dense matrix probe peaked at 6.33 GiB total cgroup memory
   (see its [dated protocol amendment](experiments/meta-ebm-cap-baseline.md#september-27-2026--durable-checkpointing-and-four-worker-matrix-profile)).
   Those measured peaks fit in 16 GiB; they do not bound every target set.
@@ -172,6 +174,11 @@ Sources: [cloud environments](https://learn.chatgpt.com/docs/environments/cloud-
   command, let it autosave, and send the same command plus `--resume` as the
   next message, in the same output directory. Size each turn under the
   observed single-turn cutoff once the probe below has produced one.
+- **One host per run.** Before an approved loop study runs in the cloud,
+  check its card and `research/<row>` branch on `zad1` so the same run does
+  not also start there, and record the cloud instance's own limits in the
+  run's provenance. Calibrate runtime on the cloud box within the approved
+  budget; timings from `zad1` do not transfer.
 - **Results must land in the workspace or a PR.** Do not rely on `/tmp` or
   in-memory state for recovery. Archives come back gzipped and bounded.
 

@@ -276,6 +276,64 @@ a determined bypass:
 
 ## Operating
 
+### Doctor and Debrief
+
+For a requested loop diagnosis, use the repository skills
+[Loop Debrief](../.agents/skills/loop-debrief/SKILL.md) to explain an observed
+run, then [Loop Doctor](../.agents/skills/loop-doctor/SKILL.md) to audit only
+design changes supported by that evidence. Doctor can also audit a design
+without run evidence, explicitly labeled as such. These are unpublished
+Thermo adaptations of Forward Future Loopy, not an installed scheduler.
+
+Use this pairing inside an already-authorized review or audit. The director
+may include the concise result in its existing direction review when observed
+run evidence warrants it; no extra card, approval stage or per-tick model call
+is introduced. Preserve the director's trigger, scope and one-row limit.
+The external Hermes profile must be inspected separately before any runtime
+wiring change. Repository instructions do not prove that profile loaded them.
+
+Keep three conclusions separate: **scheduler health** (observed or unknown),
+**operational outcome**, and **scientific disposition** (including a negative,
+closed line or held allocation). No open row means no experiment is eligible;
+it does not prove the scheduler stopped or that all hypotheses are exhausted.
+Existing direction reviews may propose work; only the owner selects it through
+the existing queue and protocol process. The current charter and agenda govern
+closed lines and holds, including denoising and adsorption.
+
+State the operational outcome in the loop's own terms rather than a new
+vocabulary. When no row is eligible the gatekeeper posts `Loop idle: no open,
+unclaimed rows in docs/research-queue.md.` once, and `loop-tick.py --status`
+lists what is waiting and the active proposals; quote those. A run whose
+integrity checks and replay pass has succeeded operationally even when its
+science is negative.
+
+Classify only the scope actually observed. A repository queue can have no
+open row while live scheduler health is unknown. An API error is not an idle
+tick; cached eligibility cannot authorize a launch. A card saying "running"
+without worker evidence leaves execution unconfirmed and does not justify a
+duplicate.
+Compare approval chronology and the protocol diff: runner-code commits after
+approval are expected; a changed approved protocol is not.
+
+Record a compact handoff in the existing authorized review/report, or return
+it to the requester when writing is not authorized. Include:
+
+- inspected main/loop version, observation time and evidence locators;
+- row/card/PR and approval commit when applicable;
+- bounded action, checks actually performed, and last verified progress;
+- scheduler evidence or its absence, operational outcome/reason and separate
+  scientific disposition;
+- missing evidence, next responsible actor/action, and the existing trigger
+  for revisiting it (unknown when not established).
+
+Reference evidence rather than copying private messages, credentials or raw
+host logs into the repository. This is a diagnostic contract, not a new
+runtime state schema. It does not alter `loop.json`, activate a schedule,
+reopen studies or authorize a run. A completed negative needs no loop repair
+unless independent evidence identifies a process defect.
+
+### Host commands
+
 ```bash
 # status, or a dry run that prints what the next tick would do
 python3 ~/.hermes/profiles/thermes/scripts/loop-tick.py --status
