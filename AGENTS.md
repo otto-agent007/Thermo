@@ -24,6 +24,13 @@ preparing for future TSU hardware. Correct evidence labeling is a release gate.
 
 ## Engineering rules
 
+For a requested research-loop diagnosis, read the applicable local skill:
+[Loop Debrief](.agents/skills/loop-debrief/SKILL.md) for observed run evidence,
+then [Loop Doctor](.agents/skills/loop-doctor/SKILL.md) for a design audit or
+minimal repair. Follow the diagnostic handoff contract in
+[docs/research-loop.md](docs/research-loop.md#doctor-and-debrief). These skills
+do not authorize experiments or activate the external Hermes scheduler.
+
 - Keep import-package code under `src/thermo_lab`; do not use `import thermo`,
   which collides with an existing package.
 - Confine Torx and THRML API usage to backend/experiment adapters.
