@@ -82,5 +82,9 @@ paragraph was dropped, since the research-loop section already routes
 requests and AGENTS.md is loaded into every session. Neither Claude Code
 (`.claude/skills/`) nor the thermes profile (`skills.external_dirs: []`)
 discovers `.agents/skills/`; the skills are reached through the
-research-loop links. The cloud and host hardware inventories were removed;
-`docs/environments.md` holds the verified host specification.
+research-loop links. The October 23 cloud inventory (four CPU equivalents
+on an AMD EPYC 9V74, 16 GiB enforced, no GPU, Python 3.12 without the
+project environment) moved to the Codex cloud column of
+`docs/environments.md` for planning future cloud runs. The host
+inventory is verified: the local box is `zad1`, an i7-7700K, as recorded
+there.
