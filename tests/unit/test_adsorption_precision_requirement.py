@@ -155,8 +155,9 @@ def test_small_run_writes_completion_last_and_replays(small_run, tmp_path: Path)
     assert completion["rules"] == 4 and completion["bits"] == 9
     for key in ("control_passed", "preflight_passed", "replayed", "checks_passed"):
         assert completion[key] is True
-    files = sorted(out.iterdir(), key=lambda p: p.stat().st_mtime_ns)
-    assert files[-1].name == "completion.json"
+    # Timestamps here are kernel-tick coarse, so files written in one tick tie.
+    newest = max(p.stat().st_mtime_ns for p in out.iterdir())
+    assert (out / "completion.json").stat().st_mtime_ns == newest
     assert record["evidence"]["cells"].startswith("exact_reference")
     _cli("--replay", str(out / "study.json.gz"), "--output-dir", str(tmp_path / "replay"))
     replayed = json.loads((tmp_path / "replay" / "completion.json").read_text())

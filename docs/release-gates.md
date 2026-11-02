@@ -1025,6 +1025,53 @@ JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
 
 The stop verdicts, mechanism and operating point do not gate.
 
+## Adsorption precision requirement
+
+Follow the [frozen protocol](experiments/adsorption-precision-requirement.md),
+CPU only, single-thread BLAS (the runner refuses to run or replay without
+it). The run takes about 12 s, so it has no autosave layer:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen python -m thermo_lab.adsorption_precision_requirement \
+  --output-dir results/adsorption-precision-requirement-new
+uv run --frozen pytest tests/unit/test_adsorption_precision_requirement.py
+```
+
+Preflight gates. It checks:
+
+- the SHA-256 of the protocol, the archived transfer helper and the
+  archived probe JSON;
+- the helper's 24-case `--self-test`;
+- the control, in which nearest rounding at 6 and 8 bits on the frozen
+  points must reproduce the archive to 1e-12;
+- a hand-computed six-site diffusion check.
+
+Every cell must have exact couplings and codebook fields. Every diffusion
+cell with no clipped site must also keep each class's running residual
+within step/2.
+
+Completion requires:
+
+- `status=adsorption_precision_requirement_complete`;
+- `rules=4`, `bits=9`, `frozen_cells=108` and `secondary_cells=216`;
+- `control_passed`, `preflight_passed`, `checks_passed` and `replayed` all
+  `true`.
+
+Replay re-checks the preflight and re-solves the six secondary chemical
+potentials, comparing them at 1e-9. It then recomputes every cell at the
+archived chemical potentials, comparing values at 1e-12 and rounded-field
+SHA-256 bitwise. It also recomputes every verdict, the decision and the
+linear-response analysis (1e-9). The full replay takes seconds, so CI
+replays in full:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen pytest tests/unit/test_adsorption_precision_requirement.py -k archived
+```
+
+The values of b\*, b_stable and the recommended rule do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,

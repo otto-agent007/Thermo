@@ -1,0 +1,9 @@
+2026-11-02T21:23:56Z P-0009 request sha256:97b2b5ac1ec1951de8f728b08f2df56e20a6bb45f55ecf1272e4b80df7ebfdab
+2026-11-02T21:23:56Z P-0009 preflight passed=True control max diff 1.1102230246251565e-15
+2026-11-02T21:23:56Z P-0009 full-precision frozen cells: 3
+2026-11-02T21:23:57Z P-0009 secondary chemical potentials solved: 6
+2026-11-02T21:23:59Z P-0009 frozen cells: 108
+2026-11-02T21:24:01Z P-0009 secondary cells: 216
+2026-11-02T21:24:02Z P-0009 checks passed=True; recommended diffuse_class_family at b_stable 4
+2026-11-02T21:24:07Z P-0009 replay passed in 5.8s
+2026-11-02T21:24:07Z P-0009 completion published after 11.7s
