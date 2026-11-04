@@ -849,6 +849,37 @@ The run autosaves per unit and resumes with `--resume`. The
 admission, w\*, reaching, the oracle pair, the mechanism, prices and
 verdicts from the per-image counts.
 
+## Adsorption precision requirement
+
+The [frozen protocol](experiments/adsorption-precision-requirement.md)
+(research-loop proposal P-0009, queue row `adsorption-precision-requirement`)
+asks how many field bits, and which rounding rule, keep the exact
+equilibrium loading, working capacity and pair occupancy of the held
+3×3×16 adsorption model within tolerance at its three frozen chemical
+potentials. It compares four rules (nearest and class or site error
+diffusion on the archived family caps, and nearest on per-point caps) at
+4 to 12 bits, with a secondary grid of six fresh chemical potentials.
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.adsorption_precision_requirement \
+  --output-dir results/adsorption-precision-requirement
+```
+
+The [recorded study](experiment-reports/2026-11-02-adsorption-precision-requirement/findings.md)
+is exact (`exact_reference`) throughout. The b_stable values are:
+
+- 4 bits under class error diffusion on the family caps (the recommended
+  rule). This is the grid floor, so it is an upper bound.
+- 9 bits under nearest rounding. It passes at 6 and 7 bits and fails at 8,
+  which reproduces the archived 0.0111 miss.
+- 8 bits under per-point caps.
+
+Every rule also passes the secondary grid at its own b_stable. The run
+takes about 12 s, and the
+[gate](release-gates.md#adsorption-precision-requirement) replays every
+cell in full. The result does not unhold `native-adsorption-eligibility`.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a
