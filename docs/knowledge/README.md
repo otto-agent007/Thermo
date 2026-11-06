@@ -68,6 +68,7 @@ A card may give different statuses to different claims, for example a
 | [Phase transitions in disordered mesoporous solids](sources/schneider-local-adsorption.md) | Paper | `asserted`; finite local lattice-gas model and printed wall-field convention |
 | [Supercritical Fluid Adsorption to Weakly Attractive Solids](sources/native-adsorption-baselines.md) | Paper | `asserted`; adsorption application evidence, not validation of Thermo's pore |
 | [Multi-GPU Accelerated Multi-Spin Monte Carlo Simulations](sources/block-multigpu-ising.md) | Paper | `asserted`; conventional implementation techniques, not a Thermo performance result |
+| [Error diffusion and quantization bias correction](sources/error-diffusion-quantization-bias.md) | Paper | `asserted`; technique family behind class error diffusion; abstracts only |
 
 ## Adding or updating a card
 
