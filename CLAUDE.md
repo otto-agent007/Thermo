@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-10-20)
+## Where the project stands (updated 2026-11-11)
 
 - **Charter amendment 2** records the owner's 2026-10-20 selection of a
   representation-and-architecture research direction; repository adoption
@@ -30,6 +30,12 @@ work pointed at the right problem.
   bug; it does not establish harmful jitter or persistent mixing failure.
   The owner selected the broader lab direction, not a correction experiment
   or another application. No new queue row or run follows automatically.
+  Since then: D-0006 advised dropping `native-adsorption-eligibility`; the
+  queue keeps it `held` with the drop in its notes, and sampling adsorption
+  again would be a new row, which D-0008 advises against on cost grounds.
+  P-0009 and P-0010 (below) answered the precision question exactly; neither
+  unholds the allocation. The queue has no open row. Amendment 1's four-week
+  evaluation falls due on 2026-11-11.
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
   PR #101 on 2026-10-09) established the preceding research cycle. Its primary
@@ -294,6 +300,31 @@ work pointed at the right problem.
   owner's call at D-0005, not a fourth variant. An exact tie-limit check
   is not the finite-tie model the hardware runs: evaluate that equilibrium
   with an oracle-start pair at a long K (lessons, 2026-10-17).
+- **Adsorption precision** (`docs/experiment-reports/2026-11-02-adsorption-precision-requirement/`,
+  loop P-0009, PR #135): positive, exact. On the held 3×3×16 pore with its
+  archived family caps, class error diffusion (`diffuse_class_family`, a
+  host-side compile step) keeps loading, capacity and pair occupancy within
+  tolerance from 4 field bits. 4 was the study's grid floor; P-0010's
+  exploration found 2 and 3 bits fail, so 4 is exact. Nearest rounding
+  needs 9: it passes at 6 and 7 and fails at
+  8 (the archived 0.0111 miss). Per-point caps need 8. Every rule also
+  passes six fresh chemical potentials. The 8-bit miss is coherent rounding
+  (all 128 wall fields round the same way), and diffusion cancels it.
+  Report the stable bit count, not the first pass. This does not unhold
+  `native-adsorption-eligibility` or authorize sampling.
+- **Rounding-rule transfer** (`docs/research/2026-11-05-rounding-rule-transfer-probe.md`,
+  loop P-0010, probe, PR #146): negative for transfer. On P-0008's placed
+  tie-limit model, class diffusion cuts the 4-bit MPM gap from 0.0752 to
+  0.0150 (bootstrap 0.0111 to 0.0191), still above 0.01, and both rules
+  first pass at 5 bits. P-0008's archived "6 bits" came from a grid that
+  skipped 5; its requirement is 5 under either rule. Diffusion fixes classes
+  that act through sums (copy couplings, copy biases, the pore's fields), but
+  not grid couplings, because a grid's marginals respond to each edge's J,
+  not to the class mean. There, the 4-bit limit is the shared `split` cap
+  that the tie sets. Keep nearest rounding as the default of
+  `thermo_lab.constraints.quantize`. Treat class diffusion as a per-model
+  compile option and check it exactly before use. A per-kind cap would be a
+  different question and is not a queue row.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
