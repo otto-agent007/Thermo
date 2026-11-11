@@ -48,6 +48,11 @@ E0 and E3 stay discrete and use only dependencies Thermo already pins
    integration time and sample count, before any hardware assumption? (E4)
 6. As the quartic term grows, when does a continuous double-well network
    reproduce the discrete Ising target that THRML samples? (E5)
+7. Does domain-wall encoding mix under Gibbs sampling when chains are short
+   and the penalty is annealed from low to high, as
+   [codon optimization](sources/extropic-codon-optimization.md) reports,
+   although associative memory stage A's long chains at a fixed cold β did
+   not? A probe, if the owner wants one; not a queue row.
 
 ## Ranked candidates
 
