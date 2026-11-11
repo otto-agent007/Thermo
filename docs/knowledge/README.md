@@ -69,6 +69,10 @@ A card may give different statuses to different claims, for example a
 | [Supercritical Fluid Adsorption to Weakly Attractive Solids](sources/native-adsorption-baselines.md) | Paper | `asserted`; adsorption application evidence, not validation of Thermo's pore |
 | [Multi-GPU Accelerated Multi-Spin Monte Carlo Simulations](sources/block-multigpu-ising.md) | Paper | `asserted`; conventional implementation techniques, not a Thermo performance result |
 | [Error diffusion and quantization bias correction](sources/error-diffusion-quantization-bias.md) | Paper | `asserted`; technique family behind class error diffusion; abstracts only |
+| [Energy-efficient Codon Optimization on Thermodynamic Hardware](sources/extropic-codon-optimization.md) | Paper + code | `asserted`; domain-wall Ising on THRML; energy excludes reflashes; code has no license |
+| [CN101 - A Digital Thermodynamic Computer for Generative AI](sources/normal-cn101.md) | Paper | `asserted`; fabricated digital chip, measured quality, no energy figures |
+| [A Blueprint for Equilibrium-Based Differentiable Continuous-Variable Thermodynamic Computing](sources/extropic-cv-blueprint.md) | Paper | `asserted`; superconducting Langevin line, not Z1; energy figures are projections |
+| [Programmable Probabilistic Computer with 1,000,000 p-bits](sources/aadit-million-pbits.md) | Paper | `asserted`; FPGA p-bits; communication-to-update ratio sets quality |
 
 ## Adding or updating a card
 
