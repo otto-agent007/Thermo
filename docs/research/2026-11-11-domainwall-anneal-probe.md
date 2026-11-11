@@ -21,7 +21,7 @@ domain-wall runs fit this picture: its chains have at most 5 spins.
 ## Fixed choices
 
 All were fixed in [`probe.py`](am_domainwall_anneal_probe/probe.py) and
-committed as `aeca1d1` before the full run. A two-unit timing smoke test ran
+committed as `9ec55e5` before the full run. A two-unit timing smoke test ran
 before that commit; it showed one unit's numbers and changed nothing.
 
 | Choice | Value | Can it bound the metric? |
