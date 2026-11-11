@@ -79,8 +79,11 @@ sampling is THRML on a GPU, simulating a TSU.
   an equilibrium at fixed cold β, and P is ramped from low to high on purpose
   so defects can form and heal. The paper's P-independence claim covers a
   single wall moving; stage A's failure was multi-wall configurations at a
-  fixed penalty. That is Thermo's reading, not a tested result. Checking it
-  would be a probe, and running one is the owner's call.
+  fixed penalty. The [2026-11-11 probe](../../research/2026-11-11-domainwall-anneal-probe.md)
+  tested this on stage A's model (exploration). A ramped penalty and β mix on
+  5- and 7-spin chains (about one wall per chain, recall up to the sampled
+  categorical reference) but not on 31- and 127-spin chains. The bias design
+  stays ahead in either case.
 - **I/O is not priced.** C4 counts Gibbs updates only, at 1.3 fJ each. Under
   Thermo's sealed Z1 profile (`docs/z1-hardware-model.md`: 7.09 fJ per update,
   1.692 pJ per read, 153.6 pJ per full SRAM write), the same default run would

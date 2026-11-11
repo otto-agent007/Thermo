@@ -52,7 +52,9 @@ E0 and E3 stay discrete and use only dependencies Thermo already pins
    and the penalty is annealed from low to high, as
    [codon optimization](sources/extropic-codon-optimization.md) reports,
    although associative memory stage A's long chains at a fixed cold β did
-   not? A probe, if the owner wants one; not a queue row.
+   not? Answered for stage A's model by the
+   [2026-11-11 probe](../research/2026-11-11-domainwall-anneal-probe.md):
+   yes on 5- and 7-spin chains, no on 31 and 127.
 
 ## Ranked candidates
 
