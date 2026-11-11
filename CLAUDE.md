@@ -304,8 +304,9 @@ work pointed at the right problem.
   loop P-0009, PR #135): positive, exact. On the held 3×3×16 pore with its
   archived family caps, class error diffusion (`diffuse_class_family`, a
   host-side compile step) keeps loading, capacity and pair occupancy within
-  tolerance from 4 field bits. 4 is the lowest count tested, so it is an
-  upper bound. Nearest rounding needs 9: it passes at 6 and 7 and fails at
+  tolerance from 4 field bits. 4 was the study's grid floor; P-0010's
+  exploration found 2 and 3 bits fail, so 4 is exact. Nearest rounding
+  needs 9: it passes at 6 and 7 and fails at
   8 (the archived 0.0111 miss). Per-point caps need 8. Every rule also
   passes six fresh chemical potentials. The 8-bit miss is coherent rounding
   (all 128 wall fields round the same way), and diffusion cancels it.
