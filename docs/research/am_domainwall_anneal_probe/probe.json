@@ -1,0 +1,2790 @@
+{
+ "controls": {
+  "archived_unit_reproduced": true,
+  "endpoint_exact_matches_archive": true,
+  "endpoint_exact_max_abs_diff": 4.8405723873656825e-14,
+  "staged_runner_bitwise": true
+ },
+ "cpu_count": 8,
+ "evidence": "exploration; sampled recall software_simulation (THRML 0.1.4, CPU, float32); equilibrium recall exact_reference; not hardware",
+ "fixed_choices": {
+  "beta_start_ratio": 8.0,
+  "cells": [
+   "P6/c12",
+   "P6/c8",
+   "P8/c12",
+   "P8/c8",
+   "P32/c12",
+   "P32/c8",
+   "P128/c12",
+   "P128/c8"
+  ],
+  "frac": [
+   0.1,
+   1.6
+  ],
+  "max_stages": 8,
+  "probe_root_seed": 20261111,
+  "ramps": [
+   {
+    "beta_final": 8.0,
+    "id": "ramp/penalty/b8",
+    "schedule": "penalty"
+   },
+   {
+    "beta_final": 8.0,
+    "id": "ramp/penalty_beta/b8",
+    "schedule": "penalty_beta"
+   },
+   {
+    "beta_final": 16.0,
+    "id": "ramp/penalty/b16",
+    "schedule": "penalty"
+   },
+   {
+    "beta_final": 16.0,
+    "id": "ramp/penalty_beta/b16",
+    "schedule": "penalty_beta"
+   }
+  ],
+  "stage_a_archive_sha256": "c83ee9dcd33c0a698ed03f60913f869ffa9088355902c7d1f07bde1fbd31b26f",
+  "stage_a_source_sha256": "004055add3b00166f08d3d15a7b6fa43072725e298885225722c00448a5ac211"
+ },
+ "p6_stage_a": {
+  "budget": {
+   "P6/c12/bias/K16": {
+    "ci": [
+     0.05324955692997684,
+     0.09915771484374997
+    ],
+    "config": "bias/b16/f0.6",
+    "diff_vs_categorical": 0.07345920138888888,
+    "recall": 0.9822410300925926,
+    "verdict": "exceeds"
+   },
+   "P6/c12/bias/K256": {
+    "ci": [
+     0.031114140263310178,
+     0.059428801359953674
+    ],
+    "config": "bias/b16/f0.8",
+    "diff_vs_categorical": 0.042308666087962944,
+    "recall": 0.9951985677083335,
+    "verdict": "exceeds"
+   },
+   "P6/c12/bias/K4": {
+    "ci": [
+     0.1316569010416667,
+     0.1639178240740741
+    ],
+    "config": "bias/b16/f0.4",
+    "diff_vs_categorical": 0.14999276620370375,
+    "recall": 0.956741898148148,
+    "verdict": "exceeds"
+   },
+   "P6/c12/bias/K64": {
+    "ci": [
+     0.040769675925925904,
+     0.06658257378472217
+    ],
+    "config": "bias/b16/f0.6",
+    "diff_vs_categorical": 0.052182798032407385,
+    "recall": 0.9915635850694445,
+    "verdict": "exceeds"
+   },
+   "P6/c12/categorical/K16": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b8",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.9087818287037037,
+    "verdict": "reference"
+   },
+   "P6/c12/categorical/K256": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b8",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.9528899016203706,
+    "verdict": "reference"
+   },
+   "P6/c12/categorical/K4": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b4",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.8067491319444445,
+    "verdict": "reference"
+   },
+   "P6/c12/categorical/K64": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b8",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.9393807870370371,
+    "verdict": "reference"
+   },
+   "P6/c12/domainwall/K16": {
+    "ci": [
+     -0.13806694878472217,
+     -0.09605712890625004
+    ],
+    "config": "domainwall/b8/f0.1",
+    "diff_vs_categorical": -0.11776620370370368,
+    "recall": 0.791015625,
+    "verdict": "falls_short"
+   },
+   "P6/c12/domainwall/K256": {
+    "ci": [
+     -0.1543346263744213,
+     -0.09855844003182872
+    ],
+    "config": "domainwall/b8/f0.1",
+    "diff_vs_categorical": -0.12882486979166666,
+    "recall": 0.8240650318287037,
+    "verdict": "falls_short"
+   },
+   "P6/c12/domainwall/K4": {
+    "ci": [
+     -0.08309032298900461,
+     -0.04925243236400462
+    ],
+    "config": "domainwall/b8/f0.1",
+    "diff_vs_categorical": -0.06713867187499999,
+    "recall": 0.7396104600694445,
+    "verdict": "falls_short"
+   },
+   "P6/c12/domainwall/K64": {
+    "ci": [
+     -0.1460964626736111,
+     -0.09681396484375003
+    ],
+    "config": "domainwall/b8/f0.1",
+    "diff_vs_categorical": -0.12365270543981484,
+    "recall": 0.8157280815972223,
+    "verdict": "falls_short"
+   },
+   "P6/c12/hopfield/K16": {
+    "ci": [
+     0.01213424117476849,
+     0.07419569227430552
+    ],
+    "config": "hopfield/b8",
+    "diff_vs_categorical": 0.04345703125,
+    "recall": 0.9522388599537037,
+    "verdict": "inconclusive"
+   },
+   "P6/c12/hopfield/K256": {
+    "ci": [
+     -0.036025435836226825,
+     0.0376268174913194
+    ],
+    "config": "hopfield/b16",
+    "diff_vs_categorical": 0.0028211805555555434,
+    "recall": 0.955711082175926,
+    "verdict": "inconclusive"
+   },
+   "P6/c12/hopfield/K4": {
+    "ci": [
+     0.10653076171875003,
+     0.16416897243923606
+    ],
+    "config": "hopfield/b8",
+    "diff_vs_categorical": 0.1365288628472222,
+    "recall": 0.9432779947916666,
+    "verdict": "exceeds"
+   },
+   "P6/c12/hopfield/K64": {
+    "ci": [
+     -0.021193892867476846,
+     0.051101119429976805
+    ],
+    "config": "hopfield/b8",
+    "diff_vs_categorical": 0.015055338541666657,
+    "recall": 0.9544361255787036,
+    "verdict": "inconclusive"
+   },
+   "P6/c12/onehot/K16": {
+    "ci": [
+     0.02510240342881946,
+     0.08295898437499996
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.05458803530092593,
+    "recall": 0.9633698640046298,
+    "verdict": "exceeds"
+   },
+   "P6/c12/onehot/K256": {
+    "ci": [
+     -0.0009770146122685093,
+     0.04801500108506946
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.023310908564814825,
+    "recall": 0.9762008101851851,
+    "verdict": "inconclusive"
+   },
+   "P6/c12/onehot/K4": {
+    "ci": [
+     0.11801689995659721,
+     0.1512152777777778
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.13560655381944445,
+    "recall": 0.942355685763889,
+    "verdict": "exceeds"
+   },
+   "P6/c12/onehot/K64": {
+    "ci": [
+     0.0031803837528934977,
+     0.05551938657407406
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.030662254050925913,
+    "recall": 0.9700430410879629,
+    "verdict": "inconclusive"
+   },
+   "P6/c8/bias/K16": {
+    "ci": [
+     0.10393439398871526,
+     0.13246053059895832
+    ],
+    "config": "bias/b16/f0.4",
+    "diff_vs_categorical": 0.11964925130208333,
+    "recall": 0.909823947482639,
+    "verdict": "exceeds"
+   },
+   "P6/c8/bias/K256": {
+    "ci": [
+     0.12215169270833333,
+     0.1329345703125
+    ],
+    "config": "bias/b8/f0.6",
+    "diff_vs_categorical": 0.12818739149305555,
+    "recall": 0.9491373697916666,
+    "verdict": "exceeds"
+   },
+   "P6/c8/bias/K4": {
+    "ci": [
+     0.10881059434678823,
+     0.14474995930989587
+    ],
+    "config": "bias/b16/f0.4",
+    "diff_vs_categorical": 0.12885199652777782,
+    "recall": 0.8219468858506945,
+    "verdict": "exceeds"
+   },
+   "P6/c8/bias/K64": {
+    "ci": [
+     0.12486436631944446,
+     0.1366923014322917
+    ],
+    "config": "bias/b16/f0.6",
+    "diff_vs_categorical": 0.1311713324652778,
+    "recall": 0.9477810329861112,
+    "verdict": "exceeds"
+   },
+   "P6/c8/categorical/K16": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b4",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.7901746961805555,
+    "verdict": "reference"
+   },
+   "P6/c8/categorical/K256": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b4",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.820949978298611,
+    "verdict": "reference"
+   },
+   "P6/c8/categorical/K4": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b4",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.6930948893229166,
+    "verdict": "reference"
+   },
+   "P6/c8/categorical/K64": {
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "config": "categorical/b4",
+    "diff_vs_categorical": 0.0,
+    "recall": 0.8166097005208334,
+    "verdict": "reference"
+   },
+   "P6/c8/domainwall/K16": {
+    "ci": [
+     -0.08920152452256945,
+     -0.06043802897135416
+    ],
+    "config": "domainwall/b4/f0.1",
+    "diff_vs_categorical": -0.07385932074652778,
+    "recall": 0.7163153754340278,
+    "verdict": "falls_short"
+   },
+   "P6/c8/domainwall/K256": {
+    "ci": [
+     -0.11498786078559028,
+     -0.04000820583767363
+    ],
+    "config": "domainwall/b8/f0.1",
+    "diff_vs_categorical": -0.08054606119791667,
+    "recall": 0.7404039171006945,
+    "verdict": "falls_short"
+   },
+   "P6/c8/domainwall/K4": {
+    "ci": [
+     -0.04220275878906247,
+     -0.020731438530815948
+    ],
+    "config": "domainwall/b4/f0.1",
+    "diff_vs_categorical": -0.03141954210069442,
+    "recall": 0.6616753472222222,
+    "verdict": "falls_short"
+   },
+   "P6/c8/domainwall/K64": {
+    "ci": [
+     -0.11284790039062499,
+     -0.06883324517144099
+    ],
+    "config": "domainwall/b4/f0.1",
+    "diff_vs_categorical": -0.09098307291666664,
+    "recall": 0.7256266276041666,
+    "verdict": "falls_short"
+   },
+   "P6/c8/hopfield/K16": {
+    "ci": [
+     0.049953884548611084,
+     0.10232967800564231
+    ],
+    "config": "hopfield/b4",
+    "diff_vs_categorical": 0.07511393229166664,
+    "recall": 0.8652886284722222,
+    "verdict": "exceeds"
+   },
+   "P6/c8/hopfield/K256": {
+    "ci": [
+     0.027113003200954867,
+     0.08177931043836804
+    ],
+    "config": "hopfield/b4",
+    "diff_vs_categorical": 0.0535888671875,
+    "recall": 0.8745388454861112,
+    "verdict": "exceeds"
+   },
+   "P6/c8/hopfield/K4": {
+    "ci": [
+     0.12895812988281255,
+     0.19284227159288186
+    ],
+    "config": "hopfield/b4",
+    "diff_vs_categorical": 0.158447265625,
+    "recall": 0.8515421549479166,
+    "verdict": "exceeds"
+   },
+   "P6/c8/hopfield/K64": {
+    "ci": [
+     0.028306749131944465,
+     0.08047909206814235
+    ],
+    "config": "hopfield/b4",
+    "diff_vs_categorical": 0.05244276258680555,
+    "recall": 0.869052463107639,
+    "verdict": "exceeds"
+   },
+   "P6/c8/onehot/K16": {
+    "ci": [
+     -0.030246310763888885,
+     0.0630430433485243
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.01635742187499999,
+    "recall": 0.8065321180555555,
+    "verdict": "inconclusive"
+   },
+   "P6/c8/onehot/K256": {
+    "ci": [
+     -0.04088575575086806,
+     0.07603556315104158
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.016018337673611105,
+    "recall": 0.8369683159722222,
+    "verdict": "inconclusive"
+   },
+   "P6/c8/onehot/K4": {
+    "ci": [
+     0.056816948784722245,
+     0.11669023301866321
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.08530680338541669,
+    "recall": 0.7784016927083335,
+    "verdict": "exceeds"
+   },
+   "P6/c8/onehot/K64": {
+    "ci": [
+     -0.044916788736979185,
+     0.05864173041449652
+    ],
+    "config": "onehot/b16/f0.4",
+    "diff_vs_categorical": 0.005472819010416657,
+    "recall": 0.82208251953125,
+    "verdict": "inconclusive"
+   }
+  },
+  "chosen": {
+   "P6/c12/bias/K16": "bias/b16/f0.6",
+   "P6/c12/bias/K256": "bias/b16/f0.8",
+   "P6/c12/bias/K4": "bias/b16/f0.4",
+   "P6/c12/bias/K64": "bias/b16/f0.6",
+   "P6/c12/bias/eq": "bias/b16/f0.6",
+   "P6/c12/categorical/K16": "categorical/b8",
+   "P6/c12/categorical/K256": "categorical/b8",
+   "P6/c12/categorical/K4": "categorical/b4",
+   "P6/c12/categorical/K64": "categorical/b8",
+   "P6/c12/categorical/eq": "categorical/b16",
+   "P6/c12/domainwall/K16": "domainwall/b8/f0.1",
+   "P6/c12/domainwall/K256": "domainwall/b8/f0.1",
+   "P6/c12/domainwall/K4": "domainwall/b8/f0.1",
+   "P6/c12/domainwall/K64": "domainwall/b8/f0.1",
+   "P6/c12/domainwall/eq": "domainwall/b16/f1.6",
+   "P6/c12/hopfield/K16": "hopfield/b8",
+   "P6/c12/hopfield/K256": "hopfield/b16",
+   "P6/c12/hopfield/K4": "hopfield/b8",
+   "P6/c12/hopfield/K64": "hopfield/b8",
+   "P6/c12/hopfield/eq": "hopfield/b16",
+   "P6/c12/onehot/K16": "onehot/b16/f0.4",
+   "P6/c12/onehot/K256": "onehot/b16/f0.4",
+   "P6/c12/onehot/K4": "onehot/b16/f0.4",
+   "P6/c12/onehot/K64": "onehot/b16/f0.4",
+   "P6/c12/onehot/eq": "onehot/b16/f1.6",
+   "P6/c8/bias/K16": "bias/b16/f0.4",
+   "P6/c8/bias/K256": "bias/b8/f0.6",
+   "P6/c8/bias/K4": "bias/b16/f0.4",
+   "P6/c8/bias/K64": "bias/b16/f0.6",
+   "P6/c8/bias/eq": "bias/b16/f0.6",
+   "P6/c8/categorical/K16": "categorical/b4",
+   "P6/c8/categorical/K256": "categorical/b4",
+   "P6/c8/categorical/K4": "categorical/b4",
+   "P6/c8/categorical/K64": "categorical/b4",
+   "P6/c8/categorical/eq": "categorical/b16",
+   "P6/c8/domainwall/K16": "domainwall/b4/f0.1",
+   "P6/c8/domainwall/K256": "domainwall/b8/f0.1",
+   "P6/c8/domainwall/K4": "domainwall/b4/f0.1",
+   "P6/c8/domainwall/K64": "domainwall/b4/f0.1",
+   "P6/c8/domainwall/eq": "domainwall/b16/f1.6",
+   "P6/c8/hopfield/K16": "hopfield/b4",
+   "P6/c8/hopfield/K256": "hopfield/b4",
+   "P6/c8/hopfield/K4": "hopfield/b4",
+   "P6/c8/hopfield/K64": "hopfield/b4",
+   "P6/c8/hopfield/eq": "hopfield/b16",
+   "P6/c8/onehot/K16": "onehot/b16/f0.4",
+   "P6/c8/onehot/K256": "onehot/b16/f0.4",
+   "P6/c8/onehot/K4": "onehot/b16/f0.4",
+   "P6/c8/onehot/K64": "onehot/b16/f0.4",
+   "P6/c8/onehot/eq": "onehot/b16/f1.6"
+  },
+  "diagnostics": {
+   "P6/c12/domainwall/K16": {
+    "walls_per_chain": 2.3441840277777777
+   },
+   "P6/c12/domainwall/K256": {
+    "walls_per_chain": 2.3409288194444446
+   },
+   "P6/c12/domainwall/K4": {
+    "walls_per_chain": 2.421657986111111
+   },
+   "P6/c12/domainwall/K64": {
+    "walls_per_chain": 2.3229166666666665
+   },
+   "P6/c12/onehot/K16": {
+    "label_switches_per_chain": 0.8330078125,
+    "onehot_valid_fraction": 0.9070095486111112
+   },
+   "P6/c12/onehot/K256": {
+    "label_switches_per_chain": 1.7715928819444444,
+    "onehot_valid_fraction": 0.9109157986111112
+   },
+   "P6/c12/onehot/K4": {
+    "label_switches_per_chain": 0.7144097222222222,
+    "onehot_valid_fraction": 0.8617621527777778
+   },
+   "P6/c12/onehot/K64": {
+    "label_switches_per_chain": 1.0343967013888888,
+    "onehot_valid_fraction": 0.9087456597222222
+   },
+   "P6/c8/domainwall/K16": {
+    "walls_per_chain": 2.6499565972222223
+   },
+   "P6/c8/domainwall/K256": {
+    "walls_per_chain": 2.7862413194444446
+   },
+   "P6/c8/domainwall/K4": {
+    "walls_per_chain": 2.6421440972222223
+   },
+   "P6/c8/domainwall/K64": {
+    "walls_per_chain": 2.6723090277777777
+   },
+   "P6/c8/onehot/K16": {
+    "label_switches_per_chain": 0.6167534722222222,
+    "onehot_valid_fraction": 0.9188368055555556
+   },
+   "P6/c8/onehot/K256": {
+    "label_switches_per_chain": 1.4527994791666667,
+    "onehot_valid_fraction": 0.9106987847222222
+   },
+   "P6/c8/onehot/K4": {
+    "label_switches_per_chain": 0.4713541666666667,
+    "onehot_valid_fraction": 0.8608940972222222
+   },
+   "P6/c8/onehot/K64": {
+    "label_switches_per_chain": 0.8236762152777778,
+    "onehot_valid_fraction": 0.9174262152777778
+   }
+  },
+  "equilibrium": {
+   "P6/c12/bias": {
+    "config": "bias/b16/f0.6",
+    "recall": 0.9985457771493471
+   },
+   "P6/c12/categorical": {
+    "config": "categorical/b16",
+    "recall": 0.9985459079846847
+   },
+   "P6/c12/domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "recall": 0.9985459079846849
+   },
+   "P6/c12/hopfield": {
+    "config": "hopfield/b16",
+    "recall": 0.9582463206925492
+   },
+   "P6/c12/onehot": {
+    "config": "onehot/b16/f1.6",
+    "recall": 0.9985459079846847
+   },
+   "P6/c8/bias": {
+    "config": "bias/b16/f0.6",
+    "recall": 0.9984445106950789
+   },
+   "P6/c8/categorical": {
+    "config": "categorical/b16",
+    "recall": 0.9984447295385773
+   },
+   "P6/c8/domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "recall": 0.9984447295385775
+   },
+   "P6/c8/hopfield": {
+    "config": "hopfield/b16",
+    "recall": 0.895380309984002
+   },
+   "P6/c8/onehot": {
+    "config": "onehot/b16/f1.6",
+    "recall": 0.9984447295385773
+   }
+  }
+ },
+ "rows": {
+  "P128/c12/K16": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9516549638202969,
+   "fixed_domainwall_walls_per_chain": 13.561197916666666,
+   "one_wall_fraction": 0.0,
+   "per_set": [
+    0.6279296875,
+    0.5930989583333334,
+    0.6223958333333334,
+    0.5350477430555556,
+    0.6494140625,
+    0.5662977430555556,
+    0.6508246527777778,
+    0.5672743055555556,
+    0.5733506944444444,
+    0.5824652777777778,
+    0.5338541666666666,
+    0.6153428819444444
+   ],
+   "recall": 0.5931080005787038,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.27237277560763895,
+      -0.2240880895543982
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.2486888744212963,
+     "recall": 0.8417968749999999,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.19139765986689813,
+      -0.1466019241898148
+     ],
+     "config": "categorical/b4",
+     "diff": -0.16938838252314814,
+     "recall": 0.762496383101852,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.016245976200810183,
+      0.03662471064814815
+     ],
+     "config": "domainwall/b4/f0.4",
+     "diff": 0.02675600405092594,
+     "recall": 0.5663519965277777,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 13.59743923611111
+  },
+  "P128/c12/K256": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9516549638202969,
+   "fixed_domainwall_walls_per_chain": 9.114366319444445,
+   "one_wall_fraction": 0.001193576388888889,
+   "per_set": [
+    0.6911892361111112,
+    0.6736111111111112,
+    0.6655815972222222,
+    0.5610894097222222,
+    0.6872829861111112,
+    0.6195746527777778,
+    0.6840277777777778,
+    0.6062282986111112,
+    0.6144748263888888,
+    0.6069878472222222,
+    0.5476345486111112,
+    0.6392144097222222
+   ],
+   "recall": 0.6330747251157408,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.37103339301215277,
+      -0.3119748716001158
+     ],
+     "config": "bias/b16/f0.8",
+     "diff": -0.3390299479166666,
+     "recall": 0.9721046730324073,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.2709694191261574,
+      -0.2315626356336806
+     ],
+     "config": "categorical/b8",
+     "diff": -0.2508138020833333,
+     "recall": 0.8838885271990741,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.031429940682870396,
+      0.05808941876446762
+     ],
+     "config": "domainwall/b4/f0.4",
+     "diff": 0.04466869212962965,
+     "recall": 0.588406032986111,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 7.787543402777778
+  },
+  "P128/c12/K4": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.992573131638927,
+   "fixed_domainwall_walls_per_chain": 17.700086805555557,
+   "one_wall_fraction": 0.0,
+   "per_set": [
+    0.5723741319444444,
+    0.5498046875,
+    0.5709635416666666,
+    0.5272352430555556,
+    0.5903862847222222,
+    0.5365668402777778,
+    0.6003689236111112,
+    0.5393880208333334,
+    0.5465494791666666,
+    0.5519748263888888,
+    0.5295138888888888,
+    0.5614149305555556
+   ],
+   "recall": 0.5563783998842594,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.17873105649594906,
+      -0.1506788465711806
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.16548213252314817,
+     "recall": 0.7218605324074074,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.1291777434172454,
+      -0.09824173538773151
+     ],
+     "config": "categorical/b8",
+     "diff": -0.1143211082175926,
+     "recall": 0.670699508101852,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.0008407027633101789,
+      0.013409875940393539
+     ],
+     "config": "domainwall/b8/f0.4",
+     "diff": 0.006998697916666676,
+     "recall": 0.5493797019675926,
+     "verdict": "matches"
+    }
+   },
+   "walls_per_chain": 18.821180555555557
+  },
+  "P128/c12/K64": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9516549638202969,
+   "fixed_domainwall_walls_per_chain": 11.12890625,
+   "one_wall_fraction": 0.0,
+   "per_set": [
+    0.6700303819444444,
+    0.6416015625,
+    0.65234375,
+    0.5485026041666666,
+    0.6711154513888888,
+    0.5844184027777778,
+    0.6666666666666666,
+    0.5927734375,
+    0.5947265625,
+    0.6040581597222222,
+    0.544921875,
+    0.6389973958333334
+   ],
+   "recall": 0.6175130208333333,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.300730613425926,
+      -0.24914347330729167
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.2747486255787037,
+     "recall": 0.8922616464120369,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.21612187138310193,
+      -0.17287642867476857
+     ],
+     "config": "categorical/b8",
+     "diff": -0.19561089409722224,
+     "recall": 0.8131239149305555,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.026420762803819442,
+      0.051876265914351856
+     ],
+     "config": "domainwall/b4/f0.4",
+     "diff": 0.038899739583333336,
+     "recall": 0.57861328125,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 10.501519097222221
+  },
+  "P128/c12/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.8",
+    "per_set": [
+     0.997988655011728,
+     0.9982330522751707,
+     0.9982320828708081,
+     0.9982315124687157,
+     0.9979843143327,
+     0.9979513001686945,
+     0.9978705676054075,
+     0.9287910716008877,
+     0.9982318167718013,
+     0.9974692117756533,
+     0.9979904897427888,
+     0.9982321124870114
+    ],
+    "recall": 0.9922671822592806
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9983001779555764,
+     0.9985448616624949,
+     0.9985439180294722,
+     0.9985433336011851,
+     0.9983019962207522,
+     0.9982627823363619,
+     0.9981818886873756,
+     0.9290289729174545,
+     0.9985436258694866,
+     0.9977801056469758,
+     0.9983019958823149,
+     0.9985439208575406
+    ],
+    "recall": 0.9925731316389159
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "per_set": [
+     0.9983001779555831,
+     0.9985448616624962,
+     0.998543918029471,
+     0.9985433336011836,
+     0.9983019962207518,
+     0.9982627823363636,
+     0.9981818886873799,
+     0.929028972917572,
+     0.9985436258694885,
+     0.9977801056469778,
+     0.9983019958823167,
+     0.998543920857539
+    ],
+    "recall": 0.992573131638927
+   }
+  },
+  "P128/c8/K16": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.8035608450419046,
+   "fixed_domainwall_walls_per_chain": 13.684895833333334,
+   "one_wall_fraction": 0.0,
+   "per_set": [
+    0.6053059895833334,
+    0.5457356770833334,
+    0.5569661458333334,
+    0.525390625,
+    0.6368815104166666,
+    0.5555826822916666,
+    0.5973307291666666,
+    0.554443359375,
+    0.5795084635416666,
+    0.5659993489583334,
+    0.5365397135416666,
+    0.5645345052083334
+   ],
+   "recall": 0.5686848958333334,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.0663843790690104,
+      -0.031021626790364607
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.049038357204861105,
+     "recall": 0.6177232530381945,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.03960706922743056,
+      -0.008039516872829876
+     ],
+     "config": "categorical/b4",
+     "diff": -0.024888780381944458,
+     "recall": 0.5935736762152778,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.010985819498697936,
+      0.027562798394097216
+     ],
+     "config": "domainwall/b4/f1.6",
+     "diff": 0.01850043402777779,
+     "recall": 0.5501844618055556,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 13.634331597222221
+  },
+  "P128/c8/K256": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.8035608450419046,
+   "fixed_domainwall_walls_per_chain": 40.82508680555556,
+   "one_wall_fraction": 0.001953125,
+   "per_set": [
+    0.6422526041666666,
+    0.591796875,
+    0.58056640625,
+    0.5326334635416666,
+    0.652099609375,
+    0.5697428385416666,
+    0.638916015625,
+    0.5846354166666666,
+    0.5986328125,
+    0.5811360677083334,
+    0.5528971354166666,
+    0.5978190104166666
+   ],
+   "recall": 0.593594021267361,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.14729817708333334,
+      -0.08833923339843754
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.11774359809027779,
+     "recall": 0.711337619357639,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.06292775472005212,
+      -0.0236336602105035
+     ],
+     "config": "categorical/b8",
+     "diff": -0.043816460503472245,
+     "recall": 0.6374104817708333,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.006027391221788161,
+      0.022312588161892345
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.014275444878472196,
+     "recall": 0.579318576388889,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 7.767144097222222
+  },
+  "P128/c8/K4": {
+   "config": "ramp/penalty/b16",
+   "endpoint_exact": 0.8769904556581599,
+   "fixed_domainwall_walls_per_chain": 16.93988715277778,
+   "one_wall_fraction": 0.0,
+   "per_set": [
+    0.5489095052083334,
+    0.533203125,
+    0.536376953125,
+    0.5194498697916666,
+    0.5670572916666666,
+    0.5316569010416666,
+    0.5498860677083334,
+    0.5332845052083334,
+    0.5450032552083334,
+    0.5326334635416666,
+    0.514404296875,
+    0.5318196614583334
+   ],
+   "recall": 0.5369737413194444,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.037672763400607635,
+      -0.019415283203124998
+     ],
+     "config": "bias/b8/f0.4",
+     "diff": -0.028761121961805542,
+     "recall": 0.5657348632812501,
+     "verdict": "inconclusive"
+    },
+    "categorical": {
+     "ci": [
+      -0.020047336154513894,
+      -0.0044343736436631715
+     ],
+     "config": "categorical/b4",
+     "diff": -0.012200249565972201,
+     "recall": 0.5491739908854167,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      -0.006286790635850713,
+      0.001003689236111096
+     ],
+     "config": "domainwall/b4/f1.6",
+     "diff": -0.002760145399305571,
+     "recall": 0.53973388671875,
+     "verdict": "matches"
+    }
+   },
+   "walls_per_chain": 19.53515625
+  },
+  "P128/c8/K64": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.8035608450419046,
+   "fixed_domainwall_walls_per_chain": 40.220703125,
+   "one_wall_fraction": 0.0,
+   "per_set": [
+    0.6375325520833334,
+    0.5630696614583334,
+    0.5624186197916666,
+    0.52099609375,
+    0.6566569010416666,
+    0.5631510416666666,
+    0.61474609375,
+    0.580322265625,
+    0.6048990885416666,
+    0.5747884114583334,
+    0.541015625,
+    0.5918782552083334
+   ],
+   "recall": 0.5842895507812499,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.11021677652994794,
+      -0.06433715820312501
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.08762613932291667,
+     "recall": 0.6719156901041666,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.044013468424479146,
+      -0.005542839898003494
+     ],
+     "config": "categorical/b4",
+     "diff": -0.02549913194444443,
+     "recall": 0.6097886827256944,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.010992940266927077,
+      0.024476793077256944
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.01757134331597222,
+     "recall": 0.5667182074652777,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 10.526692708333334
+  },
+  "P128/c8/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.8",
+    "per_set": [
+     0.7515189233090931,
+     0.9912499396501646,
+     0.8121900307735584,
+     0.776292139287767,
+     0.9196198612027304,
+     0.9899036522051762,
+     0.9303819149214805,
+     0.7058813951868146,
+     0.8997568811232513,
+     0.7266887329118328,
+     0.9894668761156437,
+     0.9922240536871779
+    ],
+    "recall": 0.8737645333645575
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.753398583374385,
+     0.9961231460811937,
+     0.814451999927225,
+     0.7784234479817395,
+     0.9233214082547104,
+     0.9947566421819375,
+     0.9341285767538451,
+     0.7067989731697506,
+     0.9033595657951597,
+     0.7277112391437184,
+     0.9943020353103925,
+     0.9971098499230967
+    ],
+    "recall": 0.8769904556580963
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "per_set": [
+     0.7533985833748037,
+     0.9961231460812076,
+     0.8144519999273628,
+     0.7784234479819357,
+     0.92332140825502,
+     0.9947566421819318,
+     0.9341285767533091,
+     0.7067989731696537,
+     0.9033595657954939,
+     0.727711239143769,
+     0.994302035310401,
+     0.9971098499230963
+    ],
+    "recall": 0.8769904556581652
+   }
+  },
+  "P32/c12/K16": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9548016601198891,
+   "fixed_domainwall_walls_per_chain": 10.49826388888889,
+   "one_wall_fraction": 0.09505208333333333,
+   "per_set": [
+    0.6788194444444444,
+    0.6775173611111112,
+    0.595703125,
+    0.6715494791666666,
+    0.6373697916666666,
+    0.6420355902777778,
+    0.6388888888888888,
+    0.6320529513888888,
+    0.6343315972222222,
+    0.5514322916666666,
+    0.6380208333333334,
+    0.6082899305555556
+   ],
+   "recall": 0.6338342737268519,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.3370551215277778,
+      -0.29528220847800934
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.3159089265046296,
+     "recall": 0.9497432002314817,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.22197921187789355,
+      -0.1708979853877315
+     ],
+     "config": "categorical/b8",
+     "diff": -0.19506835937500003,
+     "recall": 0.8289026331018517,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.01884381329571761,
+      0.04192911783854166
+     ],
+     "config": "domainwall/b16/f0.1",
+     "diff": 0.03133138020833332,
+     "recall": 0.6025028935185185,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 3.7426215277777777
+  },
+  "P32/c12/K256": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9548016601198891,
+   "fixed_domainwall_walls_per_chain": 10.927083333333334,
+   "one_wall_fraction": 0.4627821180555556,
+   "per_set": [
+    0.755859375,
+    0.7240668402777778,
+    0.6554904513888888,
+    0.7127821180555556,
+    0.7277560763888888,
+    0.6805555555555556,
+    0.6629774305555556,
+    0.6480034722222222,
+    0.6858723958333334,
+    0.6102430555555556,
+    0.7046440972222222,
+    0.6476779513888888
+   ],
+   "recall": 0.6846607349537037,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.323748779296875,
+      -0.27259318033854174
+     ],
+     "config": "bias/b16/f0.8",
+     "diff": -0.2973904079861111,
+     "recall": 0.9820511429398145,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.26777117693865743,
+      -0.2110550491898148
+     ],
+     "config": "categorical/b8",
+     "diff": -0.2381456163194445,
+     "recall": 0.922806351273148,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.04247526945891203,
+      0.09284713179976853
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.06632486979166667,
+     "recall": 0.6183358651620371,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 2.1595052083333335
+  },
+  "P32/c12/K4": {
+   "config": "ramp/penalty/b16",
+   "endpoint_exact": 0.9915475359846536,
+   "fixed_domainwall_walls_per_chain": 10.60373263888889,
+   "one_wall_fraction": 0.018880208333333332,
+   "per_set": [
+    0.62109375,
+    0.6518012152777778,
+    0.5673828125,
+    0.6330295138888888,
+    0.5953776041666666,
+    0.6053602430555556,
+    0.6302083333333334,
+    0.6052517361111112,
+    0.6031901041666666,
+    0.5218098958333334,
+    0.5962456597222222,
+    0.5431857638888888
+   ],
+   "recall": 0.5978280526620371,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.2461843985098379,
+      -0.18902791341145833
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.21654369212962962,
+     "recall": 0.8143717447916666,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.1762385615596065,
+      -0.13134765625
+     ],
+     "config": "categorical/b8",
+     "diff": -0.15280490451388887,
+     "recall": 0.7506329571759259,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      -0.005452473958333352,
+      0.012976300274884237
+     ],
+     "config": "domainwall/b16/f0.1",
+     "diff": 0.004286024305555543,
+     "recall": 0.5935420283564815,
+     "verdict": "matches"
+    }
+   },
+   "walls_per_chain": 5.211371527777778
+  },
+  "P32/c12/K64": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9548016601198891,
+   "fixed_domainwall_walls_per_chain": 10.860894097222221,
+   "one_wall_fraction": 0.2353515625,
+   "per_set": [
+    0.7129991319444444,
+    0.6946614583333334,
+    0.625,
+    0.6891276041666666,
+    0.6829427083333334,
+    0.6564670138888888,
+    0.6491970486111112,
+    0.6243489583333334,
+    0.6630859375,
+    0.5760633680555556,
+    0.6784939236111112,
+    0.6267361111111112
+   ],
+   "recall": 0.656593605324074,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.32524120189525463,
+      -0.2837908709490741
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.30442527488425924,
+     "recall": 0.9610188802083334,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.25432648835358795,
+      -0.2007450810185185
+     ],
+     "config": "categorical/b8",
+     "diff": -0.22704173900462965,
+     "recall": 0.8836353443287036,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.019609917534722222,
+      0.06349939416956016
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.041467737268518524,
+     "recall": 0.6151258680555556,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 2.907986111111111
+  },
+  "P32/c12/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.8",
+    "per_set": [
+     0.9980330915535224,
+     0.9982338217570385,
+     0.9982331776678306,
+     0.9979521292256464,
+     0.998032680176629,
+     0.99803267997902,
+     0.9982334102134424,
+     0.9982341734131865,
+     0.9982335292954027,
+     0.9982338205589163,
+     0.9982341746141102,
+     0.9152211211395892
+    ],
+    "recall": 0.9912423174661945
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9983446256469305,
+     0.9985456320635429,
+     0.9985449873518744,
+     0.9982636123913523,
+     0.9983442137919082,
+     0.9983442136136791,
+     0.9985452200418342,
+     0.9985459841601566,
+     0.9985453391994196,
+     0.9985456308643615,
+     0.9985459853625814,
+     0.9154549873281658
+    ],
+    "recall": 0.9915475359846505
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f0.4",
+    "per_set": [
+     0.9983446256469305,
+     0.9985456320635432,
+     0.9985449873518744,
+     0.9982636123913521,
+     0.9983442137919084,
+     0.998344213613679,
+     0.9985452200418344,
+     0.9985459841601566,
+     0.9985453391994197,
+     0.9985456308643615,
+     0.9985459853625813,
+     0.9154549873281607
+    ],
+    "recall": 0.9915475359846502
+   }
+  },
+  "P32/c8/K16": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.929913376255208,
+   "fixed_domainwall_walls_per_chain": 3.868923611111111,
+   "one_wall_fraction": 0.091796875,
+   "per_set": [
+    0.5956217447916666,
+    0.6311848958333334,
+    0.5721842447916666,
+    0.6293131510416666,
+    0.6245930989583334,
+    0.60595703125,
+    0.600830078125,
+    0.6192220052083334,
+    0.613525390625,
+    0.5550130208333334,
+    0.6009928385416666,
+    0.5912272135416666
+   ],
+   "recall": 0.603305392795139,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.14628126356336804,
+      -0.12300533718532988
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.13448757595486113,
+     "recall": 0.7377929687500001,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.1150689019097222,
+      -0.08604295518663194
+     ],
+     "config": "categorical/b4",
+     "diff": -0.10023328993055554,
+     "recall": 0.7035386827256943,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.023986307779947928,
+      0.03634999593098958
+     ],
+     "config": "domainwall/b4/f0.4",
+     "diff": 0.030042860243055552,
+     "recall": 0.5732625325520834,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 3.783420138888889
+  },
+  "P32/c8/K256": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.929913376255208,
+   "fixed_domainwall_walls_per_chain": 2.6098090277777777,
+   "one_wall_fraction": 0.4968532986111111,
+   "per_set": [
+    0.6414388020833334,
+    0.667236328125,
+    0.609619140625,
+    0.6705729166666666,
+    0.689453125,
+    0.6389973958333334,
+    0.6321614583333334,
+    0.6299641927083334,
+    0.6512044270833334,
+    0.5775553385416666,
+    0.651611328125,
+    0.6068522135416666
+   ],
+   "recall": 0.638888888888889,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.28867628309461807,
+      -0.2321962144639757
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.2603420681423611,
+     "recall": 0.89923095703125,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.12915971544053814,
+      -0.09174448649088543
+     ],
+     "config": "categorical/b4",
+     "diff": -0.1099853515625,
+     "recall": 0.7488742404513888,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.03695322672526041,
+      0.052497016059027755
+     ],
+     "config": "domainwall/b4/f0.4",
+     "diff": 0.04492865668402778,
+     "recall": 0.5939602322048612,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 2.0718315972222223
+  },
+  "P32/c8/K4": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9747670559317712,
+   "fixed_domainwall_walls_per_chain": 4.928602430555555,
+   "one_wall_fraction": 0.018663194444444444,
+   "per_set": [
+    0.5812174479166666,
+    0.5990397135416666,
+    0.5596516927083334,
+    0.59814453125,
+    0.5828450520833334,
+    0.569091796875,
+    0.5771484375,
+    0.5982259114583334,
+    0.5887044270833334,
+    0.5255533854166666,
+    0.5645345052083334,
+    0.5680338541666666
+   ],
+   "recall": 0.5760158962673612,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.12699059380425345,
+      -0.09478064643012153
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.11058213975694443,
+     "recall": 0.6865980360243055,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.049957614474826405,
+      -0.026860894097222258
+     ],
+     "config": "categorical/b4",
+     "diff": -0.03803846571180556,
+     "recall": 0.6140543619791666,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.012132093641493058,
+      0.024299112955729178
+     ],
+     "config": "domainwall/b8/f0.4",
+     "diff": 0.018269856770833332,
+     "recall": 0.5577460394965278,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 5.128255208333333
+  },
+  "P32/c8/K64": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.929913376255208,
+   "fixed_domainwall_walls_per_chain": 3.22265625,
+   "one_wall_fraction": 0.2377387152777778,
+   "per_set": [
+    0.623779296875,
+    0.657958984375,
+    0.594482421875,
+    0.6356608072916666,
+    0.661865234375,
+    0.638427734375,
+    0.6172688802083334,
+    0.625,
+    0.6227213541666666,
+    0.5718587239583334,
+    0.6215006510416666,
+    0.6022135416666666
+   ],
+   "recall": 0.6227281358506945,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.2577395968967014,
+      -0.21678721110026045
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.2357652452256945,
+     "recall": 0.858493381076389,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.1422671847873264,
+      -0.10906778971354168
+     ],
+     "config": "categorical/b4",
+     "diff": -0.12546793619791666,
+     "recall": 0.748196072048611,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.03323635525173609,
+      0.046021355523003446
+     ],
+     "config": "domainwall/b4/f0.4",
+     "diff": 0.03942871093749999,
+     "recall": 0.5832994249131943,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 2.878689236111111
+  },
+  "P32/c8/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.6",
+    "per_set": [
+     0.9361493260002529,
+     0.9981151712869673,
+     0.9979350014624764,
+     0.9147683261646753,
+     0.9975179007734507,
+     0.9972376277090206,
+     0.9251581810151593,
+     0.9982387805122702,
+     0.9980888464414583,
+     0.9983299032350205,
+     0.9980304663234986,
+     0.828401314459939
+    ],
+    "recall": 0.9656642371153491
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9361482058462219,
+     0.9981202175231844,
+     0.9979373749975388,
+     0.9152121146918798,
+     0.9981484431051805,
+     0.9981179792946949,
+     0.9251755022298153,
+     0.9982404617751163,
+     0.9980907181903219,
+     0.998329924865526,
+     0.9980315444876772,
+     0.9356521841740274
+    ],
+    "recall": 0.9747670559317655
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f0.4",
+    "per_set": [
+     0.9361482058462257,
+     0.9981202175231846,
+     0.9979373749975392,
+     0.9152121146918796,
+     0.9981484431051809,
+     0.9981179792946949,
+     0.9251755022298114,
+     0.9982404617751163,
+     0.9980907181903224,
+     0.9983299248655261,
+     0.9980315444876768,
+     0.9356521841740237
+    ],
+    "recall": 0.9747670559317653
+   }
+  },
+  "P6/c12/K16": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985459079846849,
+   "fixed_domainwall_walls_per_chain": 2.3441840277777777,
+   "one_wall_fraction": 0.9077690972222222,
+   "per_set": [
+    0.9059244791666666,
+    0.8335503472222222,
+    0.9120008680555556,
+    0.9357638888888888,
+    0.8226996527777778,
+    0.8958333333333334,
+    0.9252387152777778,
+    0.9088541666666666,
+    0.8901909722222222,
+    0.8793402777777778,
+    0.8782552083333334,
+    0.9506293402777778
+   ],
+   "recall": 0.8948567708333335,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.10893238208912036,
+      -0.06797033239293977
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.08738425925925924,
+     "recall": 0.9822410300925926,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.03805926287615741,
+      0.011230920862268507
+     ],
+     "config": "categorical/b8",
+     "diff": -0.013925057870370369,
+     "recall": 0.9087818287037037,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.08107638888888886,
+      0.12429470486111106
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.10384114583333331,
+     "recall": 0.791015625,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.1844618055555556
+  },
+  "P6/c12/K256": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985459079846849,
+   "fixed_domainwall_walls_per_chain": 2.3409288194444446,
+   "one_wall_fraction": 0.9734157986111112,
+   "per_set": [
+    0.9895833333333334,
+    0.9404296875,
+    0.9392361111111112,
+    0.9887152777777778,
+    0.8772786458333334,
+    0.9914279513888888,
+    0.9915364583333334,
+    0.9756944444444444,
+    0.9856770833333334,
+    0.9899088541666666,
+    0.9273003472222222,
+    0.9977213541666666
+   ],
+   "recall": 0.9662091290509257,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.05023170753761568,
+      -0.010895227502893505
+     ],
+     "config": "bias/b16/f0.8",
+     "diff": -0.028989438657407385,
+     "recall": 0.9951985677083335,
+     "verdict": "inconclusive"
+    },
+    "categorical": {
+     "ci": [
+      -0.012596978081597225,
+      0.038812707971643524
+     ],
+     "config": "categorical/b8",
+     "diff": 0.013319227430555561,
+     "recall": 0.9528899016203706,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.1074551052517361,
+      0.17554728190104166
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.14214409722222224,
+     "recall": 0.8240650318287037,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.0531684027777777
+  },
+  "P6/c12/K4": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985459079846849,
+   "fixed_domainwall_walls_per_chain": 2.421657986111111,
+   "one_wall_fraction": 0.8889973958333334,
+   "per_set": [
+    0.8154296875,
+    0.7514105902777778,
+    0.8447265625,
+    0.8310546875,
+    0.7689887152777778,
+    0.8003472222222222,
+    0.8024088541666666,
+    0.806640625,
+    0.7115885416666666,
+    0.7541232638888888,
+    0.7648654513888888,
+    0.8528645833333334
+   ],
+   "recall": 0.792037398726852,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.1918414080584491,
+      -0.1352973090277779
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.1647044994212963,
+     "recall": 0.956741898148148,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.03372825339988426,
+      0.0017745406539351773
+     ],
+     "config": "categorical/b4",
+     "diff": -0.014711733217592587,
+     "recall": 0.8067491319444445,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.03906249999999998,
+      0.06598239474826387
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.05242693865740739,
+     "recall": 0.7396104600694445,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.2220052083333333
+  },
+  "P6/c12/K64": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985459079846849,
+   "fixed_domainwall_walls_per_chain": 2.3229166666666665,
+   "one_wall_fraction": 0.9490017361111112,
+   "per_set": [
+    0.9539930555555556,
+    0.9007161458333334,
+    0.9301215277777778,
+    0.9832899305555556,
+    0.8538411458333334,
+    0.9751519097222222,
+    0.9852430555555556,
+    0.9582248263888888,
+    0.9584418402777778,
+    0.9652777777777778,
+    0.9146050347222222,
+    0.9908854166666666
+   ],
+   "recall": 0.9474826388888888,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.06977154767071755,
+      -0.02019382052951393
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.044080946180555546,
+     "recall": 0.9915635850694445,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.018907787181712956,
+      0.0367668999565972
+     ],
+     "config": "categorical/b8",
+     "diff": 0.008101851851851841,
+     "recall": 0.9393807870370371,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.09805749963831016,
+      0.1618030689380787
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.13175455729166663,
+     "recall": 0.8157280815972223,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.1019965277777777
+  },
+  "P6/c12/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.6",
+    "per_set": [
+     0.9985459865949678,
+     0.9985459852299058,
+     0.9985459858763562,
+     0.9985459865995664,
+     0.9985454885621485,
+     0.9985459866018491,
+     0.9985459855597872,
+     0.9985459863283009,
+     0.998545986599205,
+     0.9985450469807228,
+     0.9985459843616283,
+     0.9985449164977269
+    ],
+    "recall": 0.9985457771493471
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9985459866487748,
+     0.9985459852810634,
+     0.9985459866502747,
+     0.9985459866491495,
+     0.9985459857943892,
+     0.998545986650767,
+     0.9985459856231151,
+     0.998545986650146,
+     0.998545986648775,
+     0.998545047030391,
+     0.998545986223205,
+     0.9985459859661652
+    ],
+    "recall": 0.9985459079846847
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "per_set": [
+     0.9985459866487751,
+     0.9985459852810635,
+     0.9985459866502747,
+     0.9985459866491494,
+     0.9985459857943889,
+     0.9985459866507673,
+     0.9985459856231151,
+     0.9985459866501465,
+     0.9985459866487753,
+     0.9985450470303915,
+     0.9985459862232053,
+     0.9985459859661651
+    ],
+    "recall": 0.9985459079846849
+   }
+  },
+  "P6/c8/K16": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9604876904515075,
+   "fixed_domainwall_walls_per_chain": 2.6499565972222223,
+   "one_wall_fraction": 0.9791666666666666,
+   "per_set": [
+    0.8209635416666666,
+    0.7991536458333334,
+    0.8140462239583334,
+    0.805419921875,
+    0.7852376302083334,
+    0.7916666666666666,
+    0.79345703125,
+    0.8207194010416666,
+    0.7393391927083334,
+    0.7373046875,
+    0.8074544270833334,
+    0.8600260416666666
+   ],
+   "recall": 0.7978990342881943,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.13088785807291667,
+      -0.09081997341579866
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.11192491319444443,
+     "recall": 0.909823947482639,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.0032960679796007306,
+      0.01921641031901035
+     ],
+     "config": "categorical/b4",
+     "diff": 0.007724338107638877,
+     "recall": 0.7901746961805555,
+     "verdict": "matches"
+    },
+    "domainwall": {
+     "ci": [
+      0.06718529595269096,
+      0.09816674126519094
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.08158365885416666,
+     "recall": 0.7163153754340278,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.0416666666666667
+  },
+  "P6/c8/K256": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9604876904515075,
+   "fixed_domainwall_walls_per_chain": 2.7862413194444446,
+   "one_wall_fraction": 0.9996744791666666,
+   "per_set": [
+    0.9009602864583334,
+    0.8866373697916666,
+    0.9093424479166666,
+    0.8770345052083334,
+    0.884765625,
+    0.8975423177083334,
+    0.8983561197916666,
+    0.8968098958333334,
+    0.8621419270833334,
+    0.8759765625,
+    0.8964029947916666,
+    0.94970703125
+   ],
+   "recall": 0.8946397569444445,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.06496327718098958,
+      -0.04330071343315969
+     ],
+     "config": "bias/b8/f0.6",
+     "diff": -0.05449761284722222,
+     "recall": 0.9491373697916666,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      0.0644649929470486,
+      0.08532765706380208
+     ],
+     "config": "categorical/b4",
+     "diff": 0.07368977864583333,
+     "recall": 0.820949978298611,
+     "verdict": "exceeds"
+    },
+    "domainwall": {
+     "ci": [
+      0.11771613226996529,
+      0.18637169731987846
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.15423583984375003,
+     "recall": 0.7404039171006945,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.0006510416666667
+  },
+  "P6/c8/K4": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9604876904515075,
+   "fixed_domainwall_walls_per_chain": 2.6421440972222223,
+   "one_wall_fraction": 0.931640625,
+   "per_set": [
+    0.71533203125,
+    0.7012532552083334,
+    0.7353515625,
+    0.7327473958333334,
+    0.710205078125,
+    0.7196451822916666,
+    0.68115234375,
+    0.7362467447916666,
+    0.668701171875,
+    0.6519368489583334,
+    0.7013346354166666,
+    0.7730305989583334
+   ],
+   "recall": 0.7105780707465278,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.12295905219184029,
+      -0.09565972222222223
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.11136881510416667,
+     "recall": 0.8219468858506945,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      0.006920878092447938,
+      0.027970377604166666
+     ],
+     "config": "categorical/b4",
+     "diff": 0.017483181423611133,
+     "recall": 0.6930948893229166,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.039508395724826374,
+      0.058283487955729164
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.04890272352430555,
+     "recall": 0.6616753472222222,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.13671875
+  },
+  "P6/c8/K64": {
+   "config": "ramp/penalty_beta/b8",
+   "endpoint_exact": 0.9604876904515075,
+   "fixed_domainwall_walls_per_chain": 2.6723090277777777,
+   "one_wall_fraction": 0.9956597222222222,
+   "per_set": [
+    0.8778483072916666,
+    0.8456217447916666,
+    0.8759765625,
+    0.842041015625,
+    0.847900390625,
+    0.8545735677083334,
+    0.854248046875,
+    0.8585611979166666,
+    0.8067220052083334,
+    0.8077799479166666,
+    0.8460286458333334,
+    0.92431640625
+   ],
+   "recall": 0.8534681532118055,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.1062557644314236,
+      -0.08206464979383683
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.09431287977430558,
+     "recall": 0.9477810329861112,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      0.02619747585720484,
+      0.04961869981553815
+     ],
+     "config": "categorical/b4",
+     "diff": 0.03685845269097221,
+     "recall": 0.8166097005208334,
+     "verdict": "exceeds"
+    },
+    "domainwall": {
+     "ci": [
+      0.10640428331163192,
+      0.15069037543402772
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.12784152560763887,
+     "recall": 0.7256266276041666,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.0086805555555556
+  },
+  "P6/c8/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.6",
+    "per_set": [
+     0.9985448381285429,
+     0.9985447962827726,
+     0.9985459831741043,
+     0.9985452362750694,
+     0.9985453066318613,
+     0.99854554356684,
+     0.998544662516815,
+     0.9985457163110117,
+     0.9978815000399246,
+     0.9980015229706728,
+     0.998545717783761,
+     0.9985433046595711
+    ],
+    "recall": 0.9984445106950789
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9985448389223149,
+     0.9985447970592105,
+     0.9985459853012352,
+     0.998545237051542,
+     0.9985456770508497,
+     0.9985455443405492,
+     0.9985446633205258,
+     0.9985457203294804,
+     0.9978815008145284,
+     0.9980015237484211,
+     0.9985457217974995,
+     0.99854554472677
+    ],
+    "recall": 0.9984447295385773
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "per_set": [
+     0.9985448389223152,
+     0.9985447970592113,
+     0.9985459853012356,
+     0.9985452370515416,
+     0.9985456770508496,
+     0.9985455443405492,
+     0.9985446633205258,
+     0.9985457203294809,
+     0.9978815008145286,
+     0.9980015237484215,
+     0.9985457217974997,
+     0.99854554472677
+    ],
+    "recall": 0.9984447295385775
+   }
+  },
+  "P8/c12/K16": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985055673070827,
+   "fixed_domainwall_walls_per_chain": 3.466579861111111,
+   "one_wall_fraction": 0.8275824652777778,
+   "per_set": [
+    0.8516710069444444,
+    0.8057725694444444,
+    0.7271050347222222,
+    0.8224826388888888,
+    0.8257378472222222,
+    0.8304036458333334,
+    0.8016493055555556,
+    0.8075086805555556,
+    0.8327907986111112,
+    0.8678385416666666,
+    0.8231336805555556,
+    0.7546657986111112
+   ],
+   "recall": 0.8125632957175926,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.18353135850694444,
+      -0.13420342339409724
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.15990306712962962,
+     "recall": 0.9724663628472222,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.07971711335358794,
+      -0.02439756040219912
+     ],
+     "config": "categorical/b8",
+     "diff": -0.05074508101851851,
+     "recall": 0.8633083767361112,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.08217547381365743,
+      0.11969174985532406
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.10084816261574076,
+     "recall": 0.711715133101852,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.3448350694444444
+  },
+  "P8/c12/K256": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985055673070827,
+   "fixed_domainwall_walls_per_chain": 3.4027777777777777,
+   "one_wall_fraction": 0.9194878472222222,
+   "per_set": [
+    0.9038628472222222,
+    0.9552951388888888,
+    0.8856336805555556,
+    0.9752604166666666,
+    0.7867838541666666,
+    0.9747178819444444,
+    0.8804253472222222,
+    0.9146050347222222,
+    0.9325086805555556,
+    0.9099392361111112,
+    0.9317491319444444,
+    0.9057074652777778
+   ],
+   "recall": 0.9130407262731483,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.10129643192997685,
+      -0.04794786241319445
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.07152416087962962,
+     "recall": 0.9845648871527777,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.05302010995370372,
+      0.008566171151620311
+     ],
+     "config": "categorical/b8",
+     "diff": -0.01801215277777778,
+     "recall": 0.9310528790509259,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.11876944082754631,
+      0.19217619719328696
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.15626808449074078,
+     "recall": 0.7567726417824074,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.1610243055555556
+  },
+  "P8/c12/K4": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985055673070827,
+   "fixed_domainwall_walls_per_chain": 3.4624565972222223,
+   "one_wall_fraction": 0.7847222222222222,
+   "per_set": [
+    0.7431640625,
+    0.69140625,
+    0.6642795138888888,
+    0.748046875,
+    0.7779947916666666,
+    0.7309027777777778,
+    0.7341579861111112,
+    0.7096354166666666,
+    0.6946614583333334,
+    0.7201605902777778,
+    0.7245008680555556,
+    0.6980251736111112
+   ],
+   "recall": 0.7197446469907406,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.22317459671585652,
+      -0.16872649016203708
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.1973922164351852,
+     "recall": 0.9171368634259259,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.07444638852719902,
+      -0.04368037471064815
+     ],
+     "config": "categorical/b4",
+     "diff": -0.0594437210648148,
+     "recall": 0.7791883680555557,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.021101661964699068,
+      0.060413953993055526
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.042263454861111105,
+     "recall": 0.6774811921296297,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.4305555555555556
+  },
+  "P8/c12/K64": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9985055673070827,
+   "fixed_domainwall_walls_per_chain": 3.4555121527777777,
+   "one_wall_fraction": 0.8751085069444444,
+   "per_set": [
+    0.8858506944444444,
+    0.9035373263888888,
+    0.8211805555555556,
+    0.9071180555555556,
+    0.7947048611111112,
+    0.9140625,
+    0.8274739583333334,
+    0.8490668402777778,
+    0.9041883680555556,
+    0.8866102430555556,
+    0.8706597222222222,
+    0.8358289930555556
+   ],
+   "recall": 0.8666901765046297,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.13944634331597222,
+      -0.09065348307291668
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.11574074074074074,
+     "recall": 0.9824309172453702,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.06916865596064817,
+      -0.008369728370949086
+     ],
+     "config": "categorical/b8",
+     "diff": -0.03700991030092591,
+     "recall": 0.9037000868055555,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.10433643482349537,
+      0.15272488064236112
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.12862594039351852,
+     "recall": 0.738064236111111,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.2497829861111112
+  },
+  "P8/c12/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.6",
+    "per_set": [
+     0.9980567654298819,
+     0.9985459843586154,
+     0.9985450462969109,
+     0.9985459865114259,
+     0.9985454437185138,
+     0.9985459865948738,
+     0.9985459843571304,
+     0.9985454871204048,
+     0.9985450182358115,
+     0.998545971469968,
+     0.9985457991661352,
+     0.9985459776387384
+    ],
+    "recall": 0.9985049542415342
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9980627245438373,
+     0.9985459862202118,
+     0.9985450463455373,
+     0.9985459866496447,
+     0.9985456342908847,
+     0.9985459866481503,
+     0.9985459862208339,
+     0.9985459843410389,
+     0.9985455157271601,
+     0.9985459866488968,
+     0.9985459851092872,
+     0.9985459849395055
+    ],
+    "recall": 0.9985055673070823
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "per_set": [
+     0.9980627245438368,
+     0.9985459862202117,
+     0.9985450463455369,
+     0.9985459866496452,
+     0.9985456342908853,
+     0.9985459866481503,
+     0.9985459862208345,
+     0.9985459843410386,
+     0.9985455157271609,
+     0.9985459866488973,
+     0.9985459851092876,
+     0.9985459849395052
+    ],
+    "recall": 0.9985055673070827
+   }
+  },
+  "P8/c8/K16": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9983565237858963,
+   "fixed_domainwall_walls_per_chain": 3.751736111111111,
+   "one_wall_fraction": 0.8205295138888888,
+   "per_set": [
+    0.7312825520833334,
+    0.7355143229166666,
+    0.6918131510416666,
+    0.7705078125,
+    0.806884765625,
+    0.7212727864583334,
+    0.7271321614583334,
+    0.6668294270833334,
+    0.7373860677083334,
+    0.727783203125,
+    0.7562662760416666,
+    0.7626953125
+   ],
+   "recall": 0.7362806532118055,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.14514872233072915,
+      -0.1018575032552083
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.1230672200520833,
+     "recall": 0.859347873263889,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.042684936523437515,
+      -0.02079213460286459
+     ],
+     "config": "categorical/b4",
+     "diff": -0.03160264756944445,
+     "recall": 0.76788330078125,
+     "verdict": "falls_short"
+    },
+    "domainwall": {
+     "ci": [
+      0.04677937825520835,
+      0.07614712185329861
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.061184353298611126,
+     "recall": 0.6750962999131945,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.3589409722222223
+  },
+  "P8/c8/K256": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9983565237858963,
+   "fixed_domainwall_walls_per_chain": 3.8758680555555554,
+   "one_wall_fraction": 0.9093967013888888,
+   "per_set": [
+    0.7996419270833334,
+    0.8873697916666666,
+    0.7762858072916666,
+    0.8592936197916666,
+    0.8270670572916666,
+    0.88330078125,
+    0.8165690104166666,
+    0.7530924479166666,
+    0.8610026041666666,
+    0.84619140625,
+    0.8646647135416666,
+    0.901611328125
+   ],
+   "recall": 0.8396742078993055,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.12296159532335074,
+      -0.08440687391493062
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.10327826605902779,
+     "recall": 0.9429524739583334,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      0.020645311143663175,
+      0.07476874457465274
+     ],
+     "config": "categorical/b8",
+     "diff": 0.04826524522569442,
+     "recall": 0.791408962673611,
+     "verdict": "exceeds"
+    },
+    "domainwall": {
+     "ci": [
+      0.12618391248914929,
+      0.18488956027560757
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.15825059678819442,
+     "recall": 0.681423611111111,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.1812065972222223
+  },
+  "P8/c8/K4": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9983565237858963,
+   "fixed_domainwall_walls_per_chain": 3.6723090277777777,
+   "one_wall_fraction": 0.7676866319444444,
+   "per_set": [
+    0.685546875,
+    0.6222330729166666,
+    0.6497395833333334,
+    0.7039388020833334,
+    0.719970703125,
+    0.63623046875,
+    0.6741536458333334,
+    0.64697265625,
+    0.6429850260416666,
+    0.6357421875,
+    0.6764322916666666,
+    0.6866048177083334
+   ],
+   "recall": 0.6650458441840278,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.14920416937934028,
+      -0.11440497504340279
+     ],
+     "config": "bias/b16/f0.4",
+     "diff": -0.13136800130208337,
+     "recall": 0.796413845486111,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.024530368381076365,
+      0.009806654188368073
+     ],
+     "config": "categorical/b4",
+     "diff": -0.006802029079861087,
+     "recall": 0.6718478732638888,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.017299567328559032,
+      0.05029991997612848
+     ],
+     "config": "domainwall/b4/f0.1",
+     "diff": 0.03350151909722223,
+     "recall": 0.6315443250868055,
+     "verdict": "inconclusive"
+    }
+   },
+   "walls_per_chain": 1.4646267361111112
+  },
+  "P8/c8/K64": {
+   "config": "ramp/penalty_beta/b16",
+   "endpoint_exact": 0.9983565237858963,
+   "fixed_domainwall_walls_per_chain": 3.868923611111111,
+   "one_wall_fraction": 0.8534071180555556,
+   "per_set": [
+    0.7652180989583334,
+    0.8477376302083334,
+    0.7415364583333334,
+    0.7860514322916666,
+    0.822265625,
+    0.7904459635416666,
+    0.764404296875,
+    0.7240397135416666,
+    0.8258463541666666,
+    0.813232421875,
+    0.8295084635416666,
+    0.8590494791666666
+   ],
+   "recall": 0.7974446614583334,
+   "versus": {
+    "bias": {
+     "ci": [
+      -0.1514031304253472,
+      -0.11489461263020838
+     ],
+     "config": "bias/b16/f0.6",
+     "diff": -0.13206651475694445,
+     "recall": 0.9295111762152778,
+     "verdict": "falls_short"
+    },
+    "categorical": {
+     "ci": [
+      -0.026374308268229188,
+      0.006983100043402733
+     ],
+     "config": "categorical/b4",
+     "diff": -0.009643554687500019,
+     "recall": 0.8070882161458335,
+     "verdict": "inconclusive"
+    },
+    "domainwall": {
+     "ci": [
+      0.10628916422526041,
+      0.16015150282118057
+     ],
+     "config": "domainwall/b8/f0.1",
+     "diff": 0.13128662109375,
+     "recall": 0.6661580403645834,
+     "verdict": "exceeds"
+    }
+   },
+   "walls_per_chain": 1.2931857638888888
+  },
+  "P8/c8/equilibrium": {
+   "bias": {
+    "config": "bias/b16/f0.6",
+    "per_set": [
+     0.9979675473966392,
+     0.9985449661395963,
+     0.9977300841048583,
+     0.9985455423399342,
+     0.9985447271665935,
+     0.9985443988268026,
+     0.9985452745123534,
+     0.9979403660432103,
+     0.9982733364181232,
+     0.998545360932071,
+     0.9985443347861275,
+     0.998545711046532
+    ],
+    "recall": 0.9983559708094035
+   },
+   "categorical": {
+    "config": "categorical/b16",
+    "per_set": [
+     0.9979719782664932,
+     0.9985449701533877,
+     0.9977300861609435,
+     0.9985455433126967,
+     0.9985451040850469,
+     0.9985443996252871,
+     0.9985452785327912,
+     0.9979412930497847,
+     0.9982737081701338,
+     0.998545499782474,
+     0.9985447051850039,
+     0.9985457191065228
+    ],
+    "recall": 0.9983565237858804
+   },
+   "domainwall": {
+    "config": "domainwall/b16/f1.6",
+    "per_set": [
+     0.9979719782664925,
+     0.9985449701533874,
+     0.9977300861609432,
+     0.9985455433126972,
+     0.9985451040850473,
+     0.9985443996252874,
+     0.9985452785327916,
+     0.9979412930497847,
+     0.9982737081701346,
+     0.9985454997824745,
+     0.9985447051850039,
+     0.9985457191065228
+    ],
+    "recall": 0.9983565237858807
+   }
+  }
+ },
+ "runtime_seconds": 796.2,
+ "schema": "am_domainwall_anneal_probe.v1",
+ "workers": 4
+}
