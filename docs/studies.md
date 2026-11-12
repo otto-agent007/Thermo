@@ -1060,7 +1060,9 @@ finds that binary hidden units with a negative bias and no inhibition come
 within 0.01 of the categorical memory's equilibrium recall at a coupling range
 of 14 to 26, and are the strongest binary design within budgets in most cells.
 One-hot needs a coupling range above 128 and P + 1 sequential blocks per sweep.
-Domain-wall is exact at equilibrium but does not mix. The finite-budget
+Domain-wall is exact at equilibrium but does not mix at a fixed penalty (a
+ramped penalty mixes on 5- and 7-spin chains; see the
+[2026-11-11 probe](research/2026-11-11-domainwall-anneal-probe.md)). The finite-budget
 comparison with the sampled categorical reference is confounded by that
 reference's update order. Sampling is `software_simulation`; enumeration is
 `exact_reference`. The
