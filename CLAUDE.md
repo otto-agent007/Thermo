@@ -34,7 +34,10 @@ work pointed at the right problem.
   queue keeps it `held` with the drop in its notes, and sampling adsorption
   again would be a new row, which D-0008 advises against on cost grounds.
   P-0009 and P-0010 (below) answered the precision question exactly; neither
-  unholds the allocation. The queue has no open row. Amendment 1's four-week
+  unholds the allocation. On 2026-11-12 the owner opened three mechanism
+  rows (`margin-budget-copies`, `aggregator-read-gain`,
+  `directed-relay-latent`; `docs/research/2026-11-12-mechanism-proposals.md`);
+  none names a task with digital headroom. Amendment 1's four-week
   evaluation falls due on 2026-11-11.
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
