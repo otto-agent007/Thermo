@@ -33,8 +33,10 @@ Fixed choices, declared before the run:
   (cap_probe's penalty objective), L-BFGS-B in the box, eps in
   {exp(-2 c r + 1), exp(-2 c r - 1)} (either side of the balanced point,
   eps < 0.5). Two independent search seeds (one for the hidden arm's
-  both-pair constraint, which the uncoupled bit bounds), 16 starts each,
-  alternating random corners and uniform points.
+  both-pair constraint, which the uncoupled bit bounds), 6 starts each,
+  alternating random corners and uniform points. (A first run at 16 starts
+  crashed in post-processing after 1,146 CPU-s and saved nothing; 6 starts
+  keep the probe under its 30 CPU-minute ceiling.)
   Best product = min over eps and seeds of L00 * max(L01, L10) at feasible
   points (occupied <= 1.01 eps). Resolution = |log10| ratio of the two seeds'
   best products. Local search gives upper bounds on the minimum.
@@ -74,7 +76,7 @@ H = np.array([-1.0, 1.0])
 CAPS = (1, 2, 3, 4)
 COPIES = (1, 2, 4)
 HORIZONS = (None, 4)
-STARTS = 16
+STARTS = 6
 SEEDS = (101, 202)
 N_EMPTY, N_OCC = 460, 40
 SURVIVAL_TARGET = 0.95
@@ -252,15 +254,14 @@ def control_task(task):
 
 def survival_bound(cr: float) -> float:
     """Max uniform-visitation survival allowed by the equilibrium tilt bound."""
-    E = math.exp(-4 * cr)
 
-    def neg_log_s(l00):
-        l01 = (1 - l00) * E / (l00 + (1 - l00) * E)
-        return -(N_EMPTY * math.log1p(-l00) + N_OCC * math.log1p(-l01))
+    def neg_log_s(z):
+        log_l00 = -np.logaddexp(0.0, -z)
+        log_q00 = -np.logaddexp(0.0, z)  # log(1 - L00)
+        log_q01 = log_l00 - np.logaddexp(log_l00, log_q00 - 4 * cr)  # log(1 - L01)
+        return -(N_EMPTY * log_q00 + N_OCC * log_q01)
 
-    res = minimize_scalar(
-        lambda z: neg_log_s(expit(z)), bounds=(-80, 5), method="bounded", options={"xatol": 1e-10}
-    )
+    res = minimize_scalar(neg_log_s, bounds=(-80, 5), method="bounded", options={"xatol": 1e-10})
     return math.exp(-res.fun)
 
 
@@ -384,11 +385,14 @@ def main() -> None:
         print("product done", round(time.time() - t_wall), flush=True)
         record["survival_search"] = pool.map(search_survival, surv, chunksize=1)
         print("survival done", round(time.time() - t_wall), flush=True)
+    out = HERE / "probe.json"
+    out.write_text(json.dumps(record, indent=1, default=lambda v: None) + "\n")  # partial
     for row in record["control"]:
         a = ARCHIVED[(row["cap"], row["K"])][0 if row["eps"] == 1e-2 else 1]
         row["archived"] = a
         row["ratio_to_archived"] = row["min_empty_leak"] / a
-    record["random_tilt_check"] = random_check(7, 2000)
+    t_main = time.process_time()
+    record["random_tilt_check"] = random_check(7, 500)
     sb = {f"{cr:g}": survival_bound(cr) for cr in (1, 2, 3, 4, 6, 8, 12, 16)}
     record["survival_bound_by_cr"] = sb
     record["cr_star_95"] = brentq(lambda cr: survival_bound(cr) - SURVIVAL_TARGET, 2, 10, xtol=1e-6)
@@ -397,8 +401,8 @@ def main() -> None:
         x["cpu_s"] for k in ("control", "product_search", "survival_search") for x in record[k]
     )
     record["cpu_s_workers"] = cpu
+    record["cpu_s_main_postprocess"] = time.process_time() - t_main
     record["wall_s"] = time.time() - t_wall
-    out = HERE / "probe.json"
     out.write_text(json.dumps(record, indent=1, default=lambda v: None) + "\n")
     print(
         "wrote", out, "worker cpu s", round(cpu), "wall s", round(record["wall_s"]), file=sys.stderr
