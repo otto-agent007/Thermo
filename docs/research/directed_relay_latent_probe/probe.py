@@ -83,6 +83,7 @@ TOL = 0.01
 IDEAL = 50.0
 CONV = 1e-9
 TMAX = 400
+LOGGED: dict = {}
 
 
 # ----------------------------------------------------------------------------
@@ -443,6 +444,13 @@ def tied_static(net, gq, ex):
 def cell(label, net, bits, phase, ex, start="random"):
     qn, caps = quantize(net, bits)
     gq = caps["g"] if caps else G
+    key = (label, bits, phase, start)
+    if key in LOGGED:
+        # computed by run 1 of this script (run1-screen.log) before it was stopped
+        # for the CPU ceiling; reused unchanged, not recomputed
+        out = dict(LOGGED[key])
+        out.update({"from_run1_log": True, **footprint(net)})
+        return out
     out = run_chain(qn, gq, phase, ex, start)
     out.update({"label": label, "bits": bits, "schedule": phase, "start": start, **footprint(net)})
     if caps:
@@ -474,7 +482,13 @@ def main():
     global YC
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="all")
-    ap.parse_args()
+    ap.add_argument("--run1-log", default=None)
+    args = ap.parse_args()
+    if args.run1_log:
+        for line in Path(args.run1_log).read_text().splitlines():
+            if line.startswith("{"):
+                rec = json.loads(line)
+                LOGGED[(rec["label"], rec["bits"], rec["schedule"], rec["start"])] = rec
     t0 = time.process_time()
     inst = choose_instance()
     par = instance_params(inst)
@@ -598,7 +612,7 @@ def main():
 
     # Stage C: relay losses without staleness (sequential order), float
     sc = []
-    for w_a in (1.0, 2.0, 3.0, 4.0, 6.0):
+    for w_a in (1.0, 2.0, 4.0):
         sc.append(
             cell(
                 f"fanin thermo w_a={w_a} (ideal fan-out)",
@@ -609,7 +623,7 @@ def main():
             )
         )
     for m in (1, 3):
-        for lam in (1.0, 1.5, 2.0):
+        for lam in (1.0, 2.0):
             sc.append(
                 cell(
                     f"fanin linear m={m} w_a=0.5 lam={lam} (ideal fan-out)",
@@ -620,7 +634,7 @@ def main():
                 )
             )
     for r in (1, 2):
-        for w_c in (1.0, 1.5, 2.0, 3.0):
+        for w_c in (1.0, 2.0, 3.0):
             sc.append(
                 cell(
                     f"fanout r={r} w_c={w_c} (ideal fan-in)",
@@ -636,7 +650,7 @@ def main():
     sd = []
     for bits in (None, 8):
         for r in (1, 2):
-            for w_a in (2.0, 4.0):
+            for w_a in (4.0,):
                 for w_c in (2.0, 3.0):
                     sd.append(
                         cell(
