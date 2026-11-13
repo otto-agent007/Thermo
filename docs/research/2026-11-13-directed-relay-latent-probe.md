@@ -159,12 +159,17 @@ aggregator per gap between block sums. For the full 64-pixel problem that is
 about one aggregator per differing pixel, not one per block. The sequential
 order itself is not a Z1 feature.
 
-**Design consequence.** On the supported machine, a one-way relay tree
-does not carry a global latent within 0.01 at any relay quality. The
-probe's best guess for a future design is a schedule that freezes
-the pixels while the relay loop settles; that would cost extra phases or
-clamp writes, which the sealed profile prices at a full write each. That is
-a new row for the owner, not part of this one.
+**Design consequence.** On this reduced instance, under the two-colour
+schedule, a one-way relay tree does not carry the global latent within 0.01
+at any relay quality, ideal relays included. The instance was chosen to
+couple the latent strongly to every pixel, which maximizes the staleness
+bias; a 64-pixel instance, with a weaker per-pixel coupling, was not
+computed, so this is not shown for full-size problems. The probe's best
+guess for a future design is a schedule that freezes the pixels while the
+relay loop settles; that would cost extra phases or clamp writes, which the
+sealed profile prices at a full write each. That would be a fourth
+construction on the closed global-latent line, so it is not proposed as a
+row.
 
 ## Controls and integrity
 
