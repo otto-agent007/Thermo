@@ -482,10 +482,10 @@ def main():
     global YC
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="all")
-    ap.add_argument("--run1-log", default=None)
+    ap.add_argument("--run1-log", action="append", default=[])
     args = ap.parse_args()
-    if args.run1_log:
-        for line in Path(args.run1_log).read_text().splitlines():
+    for log in args.run1_log:
+        for line in Path(log).read_text().splitlines():
             if line.startswith("{"):
                 rec = json.loads(line)
                 LOGGED[(rec["label"], rec["bits"], rec["schedule"], rec["start"])] = rec
@@ -661,7 +661,7 @@ def main():
                             ex,
                         )
                     )
-        for r in (1, 2):
+        for r in (1,):  # r = 2 chromatic dropped for the CPU ceiling (about 97 CPU-s each)
             sd.append(
                 cell(
                     f"combined thermo w_a=4.0 r={r} w_c=3.0 best colouring",
