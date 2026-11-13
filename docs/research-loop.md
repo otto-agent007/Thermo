@@ -45,6 +45,23 @@ other THERMES scheduled scripts, not in this repository.
    persistence plan, archive size estimate, gate) and opens a draft PR on
    `research/<row>`. No runner code yet.
 
+   Three probe rules (added 2026-11-12 after the
+   [mechanism-rows debrief](research/2026-11-12-loop-debrief-mechanism-rows.md)):
+
+   - **Control first.** When the row compares against an earlier failure or
+     baseline, the probe reproduces that failure or baseline on its own
+     instance before any main arm. If it cannot, the probe stops and reports
+     that; the comparison is not run.
+   - **Save as you go.** A probe writes each finished cell to disk when it
+     finishes and can reuse saved cells after a crash. It times one cell
+     before fixing its grid, and a cell cut to fit the 30 CPU-minute ceiling
+     is listed as cut. This is not the autosave contract, which still starts
+     at 30 minutes.
+   - **Owed reading before the result.** A source card the row owes is in the
+     probe's PR, or already on main, before a docs-only result PR opens. An
+     abstract-level card is acceptable if it says so. "Before any protocol"
+     in a row's notes is read as "before the row closes".
+
    A row whose deliverable is reusable code that later rows run through (a
    layer, adapter or tool), and that the probe shows can be tested bitwise
    against existing archives, is **engineering**, not a recorded study.

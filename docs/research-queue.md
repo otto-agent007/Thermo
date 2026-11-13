@@ -12,6 +12,20 @@ Statuses: `open` (the loop may take it), `held` (skip for now), `done`,
 `dropped`. Keep `|` out of the cells. A row the owner declined is skipped
 until its text changes.
 
+Standing rules for opening rows (drafted 2026-11-12 from the
+[mechanism-rows debrief](research/2026-11-12-loop-debrief-mechanism-rows.md);
+they take effect when the owner merges them):
+
+- A row that waits on an owner answer or on another row's result is `held`,
+  with the condition in its notes. `open` means the loop may spend a probe on
+  it now.
+- A row that owes a source card names it, and the card is due before the row
+  closes, not only before a protocol.
+- A row that compares against an earlier failure or baseline says which
+  result must be reproduced first.
+- A queue change that cites a new proposal note waits for CI and one second
+  read of that note (the review lane or the director) before it merges.
+
 Standing rules for task rows (owner, on direction review D-0003 in #120):
 
 - Headline reads and writes per sample. Report the projected joule only as a
