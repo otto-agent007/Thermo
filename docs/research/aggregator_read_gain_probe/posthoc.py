@@ -22,6 +22,7 @@ answer, none of which changes a declared verdict:
 from __future__ import annotations
 
 import argparse
+import gzip
 import importlib.util
 import json
 import time
@@ -81,7 +82,7 @@ def main() -> None:
     if Path(args.output).exists():
         raise SystemExit("refusing to overwrite")
     t0 = time.process_time()
-    rec = json.loads((HERE / "probe.json").read_text())
+    rec = json.loads(gzip.decompress((HERE / "probe.json.gz").read_bytes()))
     masks = probe.blocks("columns")
     out = {"label": "post-hoc exploration, not evidence", "combined_bias": [], "bias_caps": {}}
 
