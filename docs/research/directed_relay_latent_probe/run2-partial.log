@@ -1,0 +1,1 @@
+{"label": "staleness r=2 best cols copy1=0", "bits": null, "schedule": "chromatic", "start": "random", "M": 17, "error": 0.07927876428985337, "error_max_y": 0.13229268965441654, "reach_sweeps": null, "sweeps_run": 400, "cpu_s": 96.96}
