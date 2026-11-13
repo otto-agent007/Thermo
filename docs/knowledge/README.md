@@ -73,6 +73,9 @@ A card may give different statuses to different claims, for example a
 | [CN101 - A Digital Thermodynamic Computer for Generative AI](sources/normal-cn101.md) | Paper | `asserted`; fabricated digital chip, measured quality, no energy figures |
 | [A Blueprint for Equilibrium-Based Differentiable Continuous-Variable Thermodynamic Computing](sources/extropic-cv-blueprint.md) | Paper | `asserted`; superconducting Langevin line, not Z1; energy figures are projections |
 | [Programmable Probabilistic Computer with 1,000,000 p-bits](sources/aadit-million-pbits.md) | Paper | `asserted`; FPGA p-bits; communication-to-update ratio sets quality |
+| [Signal Propagation and Noisy Circuits](sources/noisy-gate-reliability.md) | Paper | `asserted`; noisy-gate reliability and bounded-weight gates, abstract level; context for P-0011 |
+| [Mean Estimation from One-Bit Measurements](sources/one-bit-mean-estimation.md) | Paper | `asserted`; the π/2 one-bit loss and stochastic computing, abstract level; the aggregator ceiling is this result |
+| [Ensuring Rapid Mixing and Low Bias for Asynchronous Gibbs Sampling](sources/asynchronous-gibbs-bias.md) | Paper | `asserted`; stale-read Gibbs bias and mixing under bounded influence, abstract level |
 
 ## Adding or updating a card
 
