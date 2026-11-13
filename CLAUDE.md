@@ -144,15 +144,19 @@ work pointed at the right problem.
   (`docs/experiment-reports/2026-10-06-potts-trapping-policy/`) is negative:
   a pilot-based switching policy detects trapping (AUC 0.81) but has regret
   8 against 3 for always-tempering, so default to tempering plus symmetry at
-  budgets of 1024 and above. It is the second adaptive policy (after the
-  changing-evidence restart policy) that fails to beat a simple baseline;
+  budgets of 1024 and above on these 12-site antiferromagnetic three-state
+  targets (a sweep-budget default; see the exchange cost projection below).
+    It is the second adaptive policy (after the changing-evidence restart
+  policy) that fails to beat a simple baseline;
   don't design a third without the owner.
 - **Associative memory** (charter track A) has its first study
   (`docs/experiment-reports/2026-10-07-am-binary-emulation/`). On pairwise
   binary units, ordinary binary hidden units with a negative bias stand in for
   a dense memory's categorical hidden unit: within 0.01 of its equilibrium recall
   at coupling range 14 to 26. One-hot inhibition is range-hungry, and
-  domain-wall chains don't mix. Stage A2
+  domain-wall chains don't mix at a fixed penalty; a ramped penalty mixes on
+  5- and 7-spin chains but not on 31 or more, and the bias design stays ahead
+  (`docs/research/2026-11-11-domainwall-anneal-probe.md`). Stage A2
   (`docs/experiment-reports/2026-10-07-am-categorical-reference/`) reran the
   sampled categorical reference label-first: it helps only at 4 to 16 sweeps.
   The reference barely mixes at the cold β (16) its equilibrium needs, and the
@@ -216,9 +220,10 @@ work pointed at the right problem.
   1e-3 per spin on all 64-spin targets, but the advantage shrinks from 4x to
   23x at 64 spins to 1.3x to 2.2x at 256 and 576, where no arm gets within
   1e-3 of the ground state within 65,536 sweeps (pre-registered negative).
-  Annealing to beta 8 or 16 makes no difference: the gap is trapping during
-  the ramp. The nine-replica ladder at cold beta 4 reports its own thermal
-  offset, not a search result. At equal p-bit updates the restarts win only
+  Annealing to beta 8 or 16 makes no difference, which points to trapping
+  during the ramp; only one schedule shape was tested. The nine-replica
+    ladder at cold beta 4 reports its own thermal offset, not a search result.
+  At equal p-bit updates the restarts win only
   at 64 spins or at the largest budget, so say which accounting (elapsed
   sweeps or updates) a restart claim uses. Its open follow-ups (schedule
   shape, a planar matching solver for L = 32, an N-scaled cold ladder) stay
@@ -252,8 +257,10 @@ work pointed at the right problem.
   loop P-0006): first task under the constraint layer. A two-step chained
   denoiser on the 16-offset lattice (L = 8, exact Ising-mixture images) keeps
   float quality at 4 bits and K = 64 (error 0.075, Bayes 0.067; 2.0e-8 J per
-  sample projected, 99 percent I/O); jitter is negligible. A 114-parameter
-  logistic is ahead in every seed (negative). At one step, continuation
+  sample projected at the write constant, 99 percent I/O, or 6.1e-10 J with
+  clamp loads at the read constant); static jitter is negligible. A
+    114-parameter logistic is ahead in every seed (negative). At one step,
+  continuation
   traps one of three seeds and nothing resolves. Its `completion.json`
   operating point (T = 1, K = 256) is that unresolved arm; use T = 2
   (lessons, 2026-10-15). Cite the quality result (94 percent of the
