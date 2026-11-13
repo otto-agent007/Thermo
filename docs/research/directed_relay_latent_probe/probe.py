@@ -538,6 +538,19 @@ def main():
     sb = []
     for code in itertools.product((0, 1), repeat=5):
         cols = dict(zip(("agg0", "agg1", "latent", "leaf0", "leaf1"), code, strict=True))
+        try:
+            schedule(directed(par, "thermo", 1, **ideal, cols=cols), "chromatic")
+        except ValueError:
+            # a same-colour loop pixel -> aggregator -> latent -> leaf -> pixel: every
+            # site in it reads stale values, so this colouring is skipped as infeasible
+            sb.append(
+                {
+                    "label": f"staleness r=1 cols={''.join(map(str, code))}",
+                    "skipped": "same-colour cycle",
+                    "cols": cols,
+                }
+            )
+            continue
         out = cell(
             f"staleness r=1 cols={''.join(map(str, code))}",
             directed(par, "thermo", 1, **ideal, cols=cols),
@@ -547,9 +560,17 @@ def main():
         )
         out["cols"] = cols
         sb.append(out)
-    best_b = min(sb, key=lambda x: x["error"])
+    best_b = min((x for x in sb if "error" in x), key=lambda x: x["error"])
     bcols = best_b["cols"]
+    r2 = []
     for c1 in (0, 1):
+        try:
+            schedule(directed(par, "thermo", 2, **ideal, cols={**bcols, "copy1": c1}), "chromatic")
+        except ValueError:
+            sb.append(
+                {"label": f"staleness r=2 best cols copy1={c1}", "skipped": "same-colour cycle"}
+            )
+            continue
         out = cell(
             f"staleness r=2 best cols copy1={c1}",
             directed(par, "thermo", 2, **ideal, cols={**bcols, "copy1": c1}),
@@ -559,6 +580,8 @@ def main():
         )
         out["cols"] = {**bcols, "copy1": c1}
         sb.append(out)
+        r2.append(out)
+    bcols2 = min(r2, key=lambda x: x["error"])["cols"]
     YC = YS
     chk = cell(
         "C0 best staleness cell on all 64 observations",
@@ -628,7 +651,7 @@ def main():
             sd.append(
                 cell(
                     f"combined thermo w_a=4.0 r={r} w_c=3.0 best colouring",
-                    directed(par, "thermo", r, 4.0, 3.0, cols=bcols),
+                    directed(par, "thermo", r, 4.0, 3.0, cols=bcols if r == 1 else bcols2),
                     bits,
                     "chromatic",
                     ex,
