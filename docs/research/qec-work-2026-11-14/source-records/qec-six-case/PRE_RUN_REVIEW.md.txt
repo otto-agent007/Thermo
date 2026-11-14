@@ -1,0 +1,71 @@
+# Independent pre-execution review
+
+## Decision
+
+Approved for the prespecified bounded six-case development diagnostic, after
+binding final sources, model/input hashes, model audit and authorization to a
+frozen manifest. No selected index32detector, observable, or prediction values
+were read by this reviewer. No larger efficacy study is approved by this review.
+
+## Selection and scientific interpretation
+
+PLAN fixes index32in each of six X/Z and noise-rate cells, excluding all prior
+pilot/development indices0through31. Selection precedes outcome inspection; there
+are no substitutions for inconvenient or numerically unresolved cases. Existing
+aggregate baseline results are known, so call this fresh per-case development
+evidence, not a pristine population-validation experiment. Retain all six planned
+cases in reporting, distinguishing executed, unresolved, stopped and unstarted.
+
+The4candidate portfolio is the prefix of the16candidate sequence. Every retained
+configuration is checked for parity and uniqueness. Feasible MILP incumbents are
+allowed, with status/gap logged; no top-k optimality guarantee is implied. Full
+physical fault probabilities are summed, retaining complete correlated DEM
+instructions. Reference winner and actually observed logical label are different
+comparisons and must remain separate.
+
+## Source and resource checks
+
+Reviewed runner.py, reference.py and imported reference/decoder helpers. The
+runner enforces one native thread,3GiBaddress space,3600processCPUseconds total,
+and default-actionSIGPROF600CPUseconds per case. Candidate setup, comparators and
+contraction consume that case allowance. Checkpoints retain candidates and fsynced
+slice terms. A hard signal cannot execute Python exception cleanup; absence of a
+completion marker plus process exit status must be classified as stopped/partial,
+even if the last progress file still says running. No silent restart or expansion.
+
+Source/input integrity and authorization are checked before selecting case data;
+manifest and authorization copies are retained. Tests use synthetic inputs, not
+index32shots. Timed candidate and new-comparator costs include their setup.
+Ordinary/correlated predictions are archived and their runtime is explicitly not
+measured. Do not infer a decoder runtime comparison from this diagnostic. Startup
+imports/hash checks are distinct from reported per-case timings.
+
+## Numerical review
+
+The platform guards require at least63explicit mantissa bits and exponent range
+down to-16382. Complete models have121constraints/397faults and p<=.25. The full
+mixture/fault correlations are unchanged. Actual sliced plans are counted and
+reject depth beyond the reviewed bound or products above2^24entries.
+
+Independent model-only audit passed all six cells. It verifies model hashes,
+shapes, pmax<=.0328, basis-specific sliced variables, largest longdouble product
+256MiB, and a depth upper bound2703including an extra addition per binary
+reduction plus conversion slack. This remains well below the conservative8192.
+See independent-model-audit.json and audit_models.py, neither of which reads shots.
+
+The conditional absolute-roundoff argument from qec-reference/NUMERICAL_REVIEW.md
+extends to these models: fault factors remain positive and>=.5, with conservative
+four-error construction bound. The same sign-removed expanded-sum bound<=1 and
+range/underflow argument applies. Each output saves the exact error-bound ratio
+and longdouble parameters. Candidate lower bounds and class/coverage endpoints
+will still need independent post-run rational checks. Overlapping intervals are
+inconclusive, not evidence of a tie or a reliable tiny-class point estimate.
+
+## Verification
+
+- Six-case runner/reference suite:8passed.
+- Shared reference/bounds suite:22passed.
+- Independent model-only checks:all6passed.
+
+No selected-case execution was performed during this review. Freeze all files
+after this review; changes require appropriate rechecking before execution.

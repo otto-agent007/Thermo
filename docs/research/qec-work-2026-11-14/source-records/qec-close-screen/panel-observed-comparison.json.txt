@@ -1,0 +1,2825 @@
+{
+  "summary": {
+    "random_panel": {
+      "n": 192,
+      "fallbacks": 58,
+      "errors": {
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "correlated": 1,
+        "list4": 1
+      },
+      "paired_vs": {
+        "tesseract": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "beliefmatching": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "correlated": {
+          "repairs": 0,
+          "harms": 0
+        }
+      }
+    },
+    "extra_only": {
+      "n": 4,
+      "fallbacks": 0,
+      "errors": {
+        "tesseract": 1,
+        "beliefmatching": 4,
+        "correlated": 2,
+        "list4": 1
+      },
+      "paired_vs": {
+        "tesseract": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "beliefmatching": {
+          "repairs": 3,
+          "harms": 0
+        },
+        "correlated": {
+          "repairs": 2,
+          "harms": 1
+        }
+      }
+    },
+    "all_admitted_disagreements": {
+      "n": 4,
+      "fallbacks": 0,
+      "errors": {
+        "tesseract": 1,
+        "beliefmatching": 4,
+        "correlated": 2,
+        "list4": 1
+      },
+      "paired_vs": {
+        "tesseract": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "beliefmatching": {
+          "repairs": 3,
+          "harms": 0
+        },
+        "correlated": {
+          "repairs": 2,
+          "harms": 1
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "cell": "x-p0.005",
+      "index": 293,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 301,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 302,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 305,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 318,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 342,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 379,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 417,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 428,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 439,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 467,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 469,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 472,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 477,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 478,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 486,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 495,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 496,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 522,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 536,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 567,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 594,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 614,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 618,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 635,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 642,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 659,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 671,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 674,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 742,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 779,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.005",
+      "index": 786,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 290,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 302,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 314,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 354,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 357,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 375,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 392,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 403,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 423,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 439,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 453,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 515,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 540,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 563,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 565,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 586,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 590,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 594,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 621,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 626,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 646,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 658,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 677,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 697,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 710,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 715,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 722,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 754,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 762,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 763,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 783,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 787,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 325,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 334,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 336,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 351,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 373,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 387,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 403,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 408,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 415,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 501,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 505,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 520,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 559,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 611,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 619,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 620,
+      "random_panel": false,
+      "admitted_disagreement": true,
+      "observed": 0,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 0,
+        "beliefmatching": 1,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 632,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 655,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 667,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 673,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 679,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 690,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 704,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 726,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 729,
+      "random_panel": false,
+      "admitted_disagreement": true,
+      "observed": 0,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 0,
+        "beliefmatching": 1,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 735,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 745,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 746,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 777,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 781,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 782,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 785,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 788,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 800,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 345,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 357,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 366,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 384,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 386,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 388,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 392,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 394,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 397,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 401,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 416,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 456,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 491,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 502,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 584,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 593,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 595,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 612,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 621,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 624,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 625,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 648,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 651,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 653,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 662,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 671,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 727,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 728,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 739,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 755,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 782,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 784,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 297,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 313,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 320,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 333,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 349,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 392,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 441,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 448,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 466,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 487,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 493,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 511,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 512,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 527,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 536,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 560,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 568,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 595,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 623,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 629,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 638,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 648,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 652,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 670,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 678,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 705,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 718,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 724,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 755,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 756,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 787,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 791,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 291,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 321,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 332,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 340,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 342,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 347,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 370,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 398,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 481,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 504,
+      "random_panel": false,
+      "admitted_disagreement": true,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 0,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 506,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 522,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 560,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 563,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 571,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 611,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 620,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 626,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 651,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 663,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 671,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 701,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 705,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 708,
+      "random_panel": false,
+      "admitted_disagreement": true,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 716,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": true
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 724,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 748,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 759,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 760,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 767,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 778,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 780,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 1,
+      "predictions": {
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 785,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 798,
+      "random_panel": true,
+      "admitted_disagreement": false,
+      "observed": 0,
+      "predictions": {
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "fallback": false
+    }
+  ],
+  "list_results_sha256": "ede482436da6d2ba70b264cffaa632ff6c9610357eeb77cacf1b66cef04a620a",
+  "selection_sha256": "718b92bf2775ca81c5126ad7659ec0fb9e48c8cbf0716d64c9de32521b020abb",
+  "limitations": "Random panel192 low power; disagreement enrichment not population efficacy; unmatched compute; model-MAP separate."
+}

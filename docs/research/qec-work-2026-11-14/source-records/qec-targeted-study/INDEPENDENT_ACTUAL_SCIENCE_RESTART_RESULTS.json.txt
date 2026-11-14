@@ -1,0 +1,16 @@
+[
+  {
+    "killed": "child",
+    "retry_return_verified": true,
+    "idempotent_ledger": true,
+    "matches_uninterrupted_terms": true,
+    "abandoned_attempt_charged": 21
+  },
+  {
+    "killed": "parent",
+    "retry_return_verified": true,
+    "idempotent_ledger": true,
+    "matches_uninterrupted_terms": true,
+    "abandoned_attempt_charged": 21
+  }
+]

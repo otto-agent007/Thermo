@@ -1,0 +1,13 @@
+{
+ "purpose":"six-case fresh saved-data reference/portfolio diagnostic, not efficacy or superiority",
+ "selection":[{"cell":"x-p0.005","index":32},{"cell":"x-p0.010","index":32},{"cell":"x-p0.020","index":32},{"cell":"z-p0.005","index":32},{"cell":"z-p0.010","index":32},{"cell":"z-p0.020","index":32}],
+ "selection_rationale":"first index after all prior development/pilot indices0through31; no selected detector/observable/prediction values inspected before freeze",
+ "candidate_portfolios":[4,16],"candidate_generator":"16 sequential binary-parity MILPs per class; no-good cuts exclude prior full configurations; 2seconds each; save status/gap; feasible incumbents allowed, no optimality claim; prefixes4and16 compared only when available",
+ "comparators":["saved ordinary matching","saved correlated matching","Tesseract det_beam5/pqlimit200000","beliefmatching20 product_sum iterations"],
+ "reference":"256serial8-variable slices percase, onecontraction perassignment reused for bothlogicalclasses; original completefault Bernoulli columns preserved",
+ "caps":{"native_threads":1,"address_space_bytes":3221225472,"total_process_cpu_seconds":3600,"percase_cpu_seconds":600,"paid_compute":false},
+ "stop":"hardglobal/percase limit or anyexception stops entire run; preservepartialoutputs; no automaticresume,expandedbudget,replacementcase ordrop",
+ "numeric_contract":"conditional correctlyrounded longdouble absoluteenvelopegamma8192eps+1e-4800; independentlycheckper-cell arithmeticdepth,pmax,inputhashes; rationalendpointintersections with verifiedcandidate bounds; reportinconclusive ifintervalsoverlap ornoninformative",
+ "metrics":"percase classmassintervals,logicalordering ifproved,portfolio4/16capturedmassintervals,decoderpredictions vsobservedlabel and certifiedordering separately,allcostsincludingcandidate/setup/reference,solverstatus andinconclusivecases",
+ "interpretation":"sixselectedsyndromes are developmentdiagnostics; no populationriskestimate,superiorityclaim or generalcoverageguarantee; originalbaselineaggregatesalreadyknown"
+}

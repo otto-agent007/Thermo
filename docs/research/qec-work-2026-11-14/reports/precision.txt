@@ -1,0 +1,97 @@
+# Bounded QEC precision and screen diagnostic
+
+## What this tested
+A research spike on 22 tiny synthetic binary-fault models: 10 numerical stress
+fixtures, 6 development fixtures and 6 frozen held-out fixtures. There were no
+new d5 runs, no Tesseract/BP neural training, no external changes and no edits to
+prior studies. Independent audit passed:976mass intervals and450posterior intervals were
+verified with separate exact rational enumeration. See `audit/`.
+
+The reference computes the full signed Fourier distribution using outward-rounded
+Decimal intervals. An independently formulated primal enumeration with exact
+rational probabilities supplies truth. This exercises the cancellation and
+normalization problem but is **not a high-precision implementation of the existing
+sliced tensor-contraction backend**. It therefore does not resolve the three
+unresolved d5 cases or establish a feasible d5 runtime.
+
+## Numerical finding
+Every saved joint-mass and possible-syndrome posterior interval enclosed exact
+rational truth across the fixed16/32/64/128-digit sweep in all22models.
+All22models met the posterior-width target1e-10 at a tested precision.
+
+- A rare syndrome with probability1e-40 required64digits for a narrow posterior.
+- A1e-100syndrome required128digits. At16/32/64digits the reference correctly
+  reported its posterior unknown rather than inventing a winner.
+- A class probability only1e-30away from1/2 was unresolved at16digits and
+  distinguished at32digits. The exact tie remained a tie.
+- Forced faults, impossible syndromes, dependent constraints, null columns and
+  exact binary64 input semantics were covered by stress fixtures.
+
+This supports directed high precision as a numerically reliable ingredient on
+these cases. It is not a general empirical proof of correct arithmetic, physical
+noise-model correctness, or scalable contraction performance. The implementation
+and arithmetic assumptions also require code review.
+
+The sweep evaluates every precision; the first successful precision is a
+hypothetical adaptive stopping point, **not a measured adaptive runtime**.
+
+## Fixed held-out screening comparison
+All48syndromes across6held-out generic parity-event models were evaluated. Two
+had exact class0 posterior in[.45,.55]. The score threshold was frozen at normalized
+class-mass gap<=.10. Top1/top4 explanations were extracted by exhaustive enumeration,
+not a practical solver. Disagreement means disagreement between those two surrogate
+decisions, **not Tesseract versus another decoder**.
+
+| Screen | True close flagged | False positives | Close missed | Precision | Recall |
+|---|---:|---:|---:|---:|---:|
+| Top1 gap |0|2|2|0/2|0/2|
+| Top4 gap |2|1|0|2/3|2/2|
+| Top1 versus top4 disagreement |1|0|1|1/1|1/2|
+
+The development set had4close syndromes among48; top4 flagged all4with no false
+positives, while disagreement flagged none. No threshold was retuned.
+
+Uniform syndrome counts overweight rare syndromes. Under each model's exact
+syndrome distribution and equal weighting of the6held-out models, close syndromes
+have total probability0.2782%. Top4 flags0.2782% true-close mass plus0.5307%
+false-positive mass; its probability-weighted precision is only about34.4%.
+Disagreement covers0.07694% true-close mass, or27.7% of close-syndrome mass.
+These tiny heterogeneous model counts do not support population confidence
+intervals or surface-code generalization.
+
+**Lesson:** A short list can improve a close-case proxy on some tiny models, but
+neither a favorable2/2count nor decoder disagreement justifies deploying a d5 gate.
+Our earlier d5 false positives remain the more relevant warning.
+
+## Execution
+22checkpointed jobs completed without failures or retries. Each job was bounded
+at10CPU seconds,30wall seconds and256MiB address space; total allowance300CPU
+seconds, case allowance33seconds. Interrupted jobs would retain full reservations;
+ordinary nonzero-exit failures retain measuredCPU costs. Prior executor's leases,
+source/input hashes and receipts were reused. Current source and saved job input
+hashes are validated before reusing outputs.
+
+Measured child CPU across22jobs was2.105seconds; charged jobCPU was24.115seconds
+including conservative supervisor accounting. Final aggregation and the independent completed-run replay bring total charged
+executionCPU to24.356seconds. That replay preserved all22output hashes and
+receipts without recomputing any scientific case. Maximum reported childRSS was41.125MiB.
+The initial execution loop took about6.4wall seconds. Test/audit/report overhead is
+separate from scientific worker time; no speed comparison with a practical decoder
+is claimed.
+
+## Conclusion
+The bounded numerical test passed on exact fixtures and demonstrates why precision
+must scale with cancellation. The screening test is informative but far too small
+and artificial to establish a useful deployed gate. Any next implementation should
+port validated interval operations to the actual bounded tensor backend and test
+its cost/accuracy on tiny matching fixtures before considering saved d5 cases.
+No such expansion is authorized or running in this artifact.
+
+## Reproduction
+Python3.12 standard library only. Frozen source hashes contain original absolute
+paths; use the original workspace for exact runner reuse. A relocated experiment
+requires a new manifest and must not overwrite this archived run. The archive
+includes the existing `qec-targeted-study/executor_v2.py` dependency. `python -m unittest discover -v` runs all8local
+unit tests. `python study.py` executes at most one frozen model job or collects
+already-completed results. Do not alter the manifest/source hashes to resume an
+existing run. `audit/independent_audit.py` supplies a separate primal verifier.

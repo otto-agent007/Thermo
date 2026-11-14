@@ -1,0 +1,847 @@
+{
+  "scope": "one saved syndrome; bounded counting not efficacy",
+  "rows_order": [
+    120,
+    0,
+    5,
+    9,
+    11,
+    19,
+    55,
+    68,
+    89,
+    92,
+    14,
+    62,
+    63,
+    60,
+    69,
+    64,
+    61,
+    65
+  ],
+  "caps": {
+    "cpu_seconds": 120,
+    "address_space_bytes": 2147483648,
+    "solver_seconds_per_candidate": 2,
+    "candidates_per_class": 16
+  },
+  "classes": [
+    {
+      "logical": 0,
+      "candidate_indices": [
+        [
+          2,
+          17,
+          28,
+          116,
+          260,
+          336
+        ],
+        [
+          2,
+          15,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          17,
+          28,
+          116,
+          257,
+          336,
+          346
+        ],
+        [
+          2,
+          15,
+          28,
+          208,
+          257,
+          336,
+          346
+        ],
+        [
+          2,
+          15,
+          28,
+          115,
+          116,
+          260,
+          336
+        ],
+        [
+          2,
+          15,
+          28,
+          209,
+          260,
+          299,
+          336
+        ],
+        [
+          2,
+          17,
+          28,
+          115,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          17,
+          28,
+          116,
+          246,
+          248,
+          260
+        ],
+        [
+          2,
+          15,
+          28,
+          208,
+          246,
+          248,
+          260
+        ],
+        [
+          2,
+          17,
+          28,
+          116,
+          260,
+          337,
+          353
+        ],
+        [
+          2,
+          17,
+          28,
+          116,
+          260,
+          316,
+          319
+        ],
+        [
+          2,
+          15,
+          28,
+          208,
+          260,
+          337,
+          353
+        ],
+        [
+          2,
+          15,
+          28,
+          208,
+          260,
+          316,
+          319
+        ],
+        [
+          2,
+          15,
+          28,
+          210,
+          211,
+          260,
+          336
+        ],
+        [
+          2,
+          15,
+          28,
+          204,
+          205,
+          260,
+          336
+        ],
+        [
+          2,
+          17,
+          28,
+          116,
+          260,
+          339,
+          340
+        ]
+      ],
+      "solver_logs": [
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.0247475639989716,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.02193753800020204,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.01717724999980419,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.018109078002453316,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.02521301900196704,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.026304998002160573,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.26079659800234367,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.09369968700048048,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.14644667500033393,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.3583934609996504,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.1290649750008015,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.1444356339998194,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.17746265099776792,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.2685953479995078,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.2595066189969657,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.19701415100280428,
+          "gap": 0.0
+        }
+      ],
+      "known_candidate_mass": {
+        "lower": "1.0451493972229852884e-14",
+        "upper": "1.0451493972229853991e-14",
+        "lower_exact_ratio": [
+          "6783407414875594015",
+          "649037107316853453566312041152512"
+        ],
+        "upper_exact_ratio": [
+          "13566814829751189467",
+          "1298074214633706907132624082305024"
+        ]
+      },
+      "projections": [
+        {
+          "checks": 12,
+          "projected_event_mass": {
+            "lower": "6.306696739384789339e-13",
+            "upper": "6.306696739384789586e-13",
+            "lower_exact_ratio": [
+              "6395750325710836367",
+              "10141204801825835211973625643008"
+            ],
+            "upper_exact_ratio": [
+              "12791500651421673235",
+              "20282409603651670423947251286016"
+            ]
+          },
+          "wall_seconds": 0.0482183329986583
+        },
+        {
+          "checks": 16,
+          "projected_event_mass": {
+            "lower": "5.871992128453667296e-13",
+            "upper": "5.8719921284536675664e-13",
+            "lower_exact_ratio": [
+              "5954907476935783735",
+              "10141204801825835211973625643008"
+            ],
+            "upper_exact_ratio": [
+              "11909814953871568019",
+              "20282409603651670423947251286016"
+            ]
+          },
+          "wall_seconds": 0.9382114260006347
+        },
+        {
+          "checks": 18,
+          "projected_event_mass": {
+            "lower": "4.33009998943868196e-13",
+            "upper": "4.3300999894386821633e-13",
+            "lower_exact_ratio": [
+              "4391243080528155983",
+              "10141204801825835211973625643008"
+            ],
+            "upper_exact_ratio": [
+              "17564972322112624757",
+              "40564819207303340847894502572032"
+            ]
+          },
+          "wall_seconds": 4.644861592998495
+        }
+      ],
+      "portfolio_coverage_bounds": [
+        {
+          "portfolio_size": 1,
+          "mass": {
+            "lower": "5.4521961173642893687e-15",
+            "upper": "5.45219611736428994e-15",
+            "lower_exact_ratio": [
+              "14154710386153192025",
+              "2596148429267413814265248164610048"
+            ],
+            "upper_exact_ratio": [
+              "3538677596538298377",
+              "649037107316853453566312041152512"
+            ]
+          },
+          "captured_fraction": {
+            "lower": "0.012591386181987604248",
+            "upper": "0.5216666757739180898",
+            "lower_exact_ratio": [
+              "3716321254917890823",
+              "295147905179352825856"
+            ],
+            "upper_exact_ratio": [
+              "2405762914946071411",
+              "4611686018427387904"
+            ]
+          }
+        },
+        {
+          "portfolio_size": 4,
+          "mass": {
+            "lower": "1.03396193872229402395e-14",
+            "upper": "1.0339619387222941324e-14",
+            "lower_exact_ratio": [
+              "13421593315680868017",
+              "1298074214633706907132624082305024"
+            ],
+            "upper_exact_ratio": [
+              "13421593315680869425",
+              "1298074214633706907132624082305024"
+            ]
+          },
+          "captured_fraction": {
+            "lower": "0.023878477200161102412",
+            "upper": "0.98929582839504400237",
+            "lower_exact_ratio": [
+              "14095365049000974805",
+              "590295810358705651712"
+            ],
+            "upper_exact_ratio": [
+              "18249286959591859507",
+              "18446744073709551616"
+            ]
+          }
+        },
+        {
+          "portfolio_size": 16,
+          "mass": {
+            "lower": "1.0451493972229852884e-14",
+            "upper": "1.0451493972229853991e-14",
+            "lower_exact_ratio": [
+              "6783407414875594015",
+              "649037107316853453566312041152512"
+            ],
+            "upper_exact_ratio": [
+              "13566814829751189467",
+              "1298074214633706907132624082305024"
+            ]
+          },
+          "captured_fraction": {
+            "lower": "0.024136842100001244734",
+            "upper": "1.0",
+            "lower_exact_ratio": [
+              "14247876766920357437",
+              "590295810358705651712"
+            ],
+            "upper_exact_ratio": [
+              "1",
+              "1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "logical": 1,
+      "candidate_indices": [
+        [
+          1,
+          10,
+          28,
+          44,
+          49,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          17,
+          18,
+          20,
+          25,
+          27,
+          116,
+          260,
+          336
+        ],
+        [
+          2,
+          15,
+          18,
+          20,
+          25,
+          27,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          17,
+          24,
+          25,
+          27,
+          31,
+          116,
+          260,
+          336
+        ],
+        [
+          2,
+          15,
+          24,
+          25,
+          27,
+          31,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          6,
+          8,
+          9,
+          10,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          16,
+          18,
+          20,
+          22,
+          25,
+          208,
+          260,
+          336
+        ],
+        [
+          0,
+          1,
+          2,
+          8,
+          10,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          16,
+          18,
+          20,
+          21,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          12,
+          13,
+          16,
+          20,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          6,
+          8,
+          13,
+          16,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          9,
+          10,
+          12,
+          20,
+          28,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          16,
+          21,
+          24,
+          28,
+          31,
+          208,
+          260,
+          336
+        ],
+        [
+          2,
+          16,
+          22,
+          24,
+          25,
+          31,
+          208,
+          260,
+          336
+        ],
+        [
+          1,
+          7,
+          8,
+          10,
+          28,
+          44,
+          208,
+          260,
+          336
+        ],
+        [
+          0,
+          8,
+          10,
+          11,
+          28,
+          68,
+          208,
+          260,
+          336
+        ]
+      ],
+      "solver_logs": [
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.19116806500096573,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.4475812539967592,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.3627401740013738,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.4623355680014356,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.9930250659999729,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.3211084340000525,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.32236316299895407,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.26333498200256145,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.2841800969981705,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.2926417339986074,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.5637563220006996,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.29979834600089816,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.3451741490025597,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.30123472799823503,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.4209045569987211,
+          "gap": 0.0
+        },
+        {
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "wall_seconds": 0.4248163820011541,
+          "gap": 0.0
+        }
+      ],
+      "known_candidate_mass": {
+        "lower": "1.29239011916445445776e-20",
+        "upper": "1.2923901191644545955e-20",
+        "lower_exact_ratio": [
+          "17591102749380571061",
+          "1361129467683753853853498429727072845824"
+        ],
+        "upper_exact_ratio": [
+          "2198887843672571617",
+          "170141183460469231731687303715884105728"
+        ]
+      },
+      "projections": [
+        {
+          "checks": 12,
+          "projected_event_mass": {
+            "lower": "1.4571197674290943882e-13",
+            "upper": "1.4571197674290944448e-13",
+            "lower_exact_ratio": [
+              "11821559985829820999",
+              "81129638414606681695789005144064"
+            ],
+            "upper_exact_ratio": [
+              "5910779992914910729",
+              "40564819207303340847894502572032"
+            ]
+          },
+          "wall_seconds": 0.05143710899938014
+        },
+        {
+          "checks": 16,
+          "projected_event_mass": {
+            "lower": "1.3192218852343894613e-13",
+            "upper": "1.319221885234389523e-13",
+            "lower_exact_ratio": [
+              "668924965860636065",
+              "5070602400912917605986812821504"
+            ],
+            "upper_exact_ratio": [
+              "10702799453770177541",
+              "81129638414606681695789005144064"
+            ]
+          },
+          "wall_seconds": 0.9550791309993656
+        },
+        {
+          "checks": 18,
+          "projected_event_mass": {
+            "lower": "1.1989957179473628459e-13",
+            "upper": "1.1989957179473629045e-13",
+            "lower_exact_ratio": [
+              "9727408905773128673",
+              "81129638414606681695789005144064"
+            ],
+            "upper_exact_ratio": [
+              "2431852226443282287",
+              "20282409603651670423947251286016"
+            ]
+          },
+          "wall_seconds": 4.814085383000929
+        }
+      ],
+      "portfolio_coverage_bounds": [
+        {
+          "portfolio_size": 1,
+          "mass": {
+            "lower": "8.9897160766049983176e-21",
+            "upper": "8.989716076604999274e-21",
+            "lower_exact_ratio": [
+              "6118083728988722771",
+              "680564733841876926926749214863536422912"
+            ],
+            "upper_exact_ratio": [
+              "3059041864494361711",
+              "340282366920938463463374607431768211456"
+            ]
+          },
+          "captured_fraction": {
+            "lower": "7.497704905898300903e-08",
+            "upper": "0.69558842514340463647",
+            "lower_exact_ratio": [
+              "2900534095549353449",
+              "38685626227668133590597632"
+            ],
+            "upper_exact_ratio": [
+              "1603917707406882443",
+              "2305843009213693952"
+            ]
+          }
+        },
+        {
+          "portfolio_size": 4,
+          "mass": {
+            "lower": "1.0936254582327331826e-20",
+            "upper": "1.0936254582327332992e-20",
+            "lower_exact_ratio": [
+              "14885658378097215005",
+              "1361129467683753853853498429727072845824"
+            ],
+            "upper_exact_ratio": [
+              "930353648631076037",
+              "85070591730234615865843651857942052864"
+            ]
+          },
+          "captured_fraction": {
+            "lower": "9.1211790155929849584e-08",
+            "upper": "0.84620382190771864647",
+            "lower_exact_ratio": [
+              "7057170443057603739",
+              "77371252455336267181195264"
+            ],
+            "upper_exact_ratio": [
+              "1951213167115822723",
+              "2305843009213693952"
+            ]
+          }
+        },
+        {
+          "portfolio_size": 16,
+          "mass": {
+            "lower": "1.29239011916445445776e-20",
+            "upper": "1.2923901191644545955e-20",
+            "lower_exact_ratio": [
+              "17591102749380571061",
+              "1361129467683753853853498429727072845824"
+            ],
+            "upper_exact_ratio": [
+              "2198887843672571617",
+              "170141183460469231731687303715884105728"
+            ]
+          },
+          "captured_fraction": {
+            "lower": "1.07789385718322612025e-07",
+            "upper": "1.0",
+            "lower_exact_ratio": [
+              "8339799774417956367",
+              "77371252455336267181195264"
+            ],
+            "upper_exact_ratio": [
+              "1",
+              "1"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "arithmetic": "Machine parameters for float128\n---------------------------------------------------------------\nprecision =  18   resolution = 1e-18\nmachep =    -63   eps =        1.084202172485504434e-19\nnegep =     -64   epsneg =     5.42101086242752217e-20\nminexp = -16382   tiny =       3.3621031431120935063e-4932\nmaxexp =  16384   max =        1.189731495357231765e+4932\nnexp =       15   min =        -max\nsmallest_normal = 3.3621031431120935063e-4932   smallest_subnormal = 4e-4951\n---------------------------------------------------------------\n",
+  "wall_seconds": 20.153912812998897,
+  "peak_rss_KiB": 121440
+}

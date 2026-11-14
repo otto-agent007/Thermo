@@ -1,0 +1,101 @@
+{
+  "x": [
+    {
+      "sliced_variables": [
+        120
+      ],
+      "num_slices": 2,
+      "width": 30,
+      "single_product_float64_bytes": 17179869184,
+      "all_slices_bucket_entries": 9077270844
+    },
+    {
+      "sliced_variables": [
+        120,
+        22
+      ],
+      "num_slices": 4,
+      "width": 29,
+      "single_product_float64_bytes": 8589934592,
+      "all_slices_bucket_entries": 9927581304
+    },
+    {
+      "sliced_variables": [
+        120,
+        22,
+        25,
+        45
+      ],
+      "num_slices": 16,
+      "width": 28,
+      "single_product_float64_bytes": 4294967296,
+      "all_slices_bucket_entries": 18699110880
+    },
+    {
+      "sliced_variables": [
+        120,
+        22,
+        25,
+        45,
+        46,
+        48,
+        49,
+        50
+      ],
+      "num_slices": 256,
+      "width": 23,
+      "single_product_float64_bytes": 134217728,
+      "all_slices_bucket_entries": 14232239616
+    }
+  ],
+  "z": [
+    {
+      "sliced_variables": [
+        120
+      ],
+      "num_slices": 2,
+      "width": 30,
+      "single_product_float64_bytes": 17179869184,
+      "all_slices_bucket_entries": 9077270844
+    },
+    {
+      "sliced_variables": [
+        120,
+        21
+      ],
+      "num_slices": 4,
+      "width": 29,
+      "single_product_float64_bytes": 8589934592,
+      "all_slices_bucket_entries": 9927581304
+    },
+    {
+      "sliced_variables": [
+        120,
+        21,
+        26,
+        39
+      ],
+      "num_slices": 16,
+      "width": 26,
+      "single_product_float64_bytes": 1073741824,
+      "all_slices_bucket_entries": 7009650656
+    },
+    {
+      "sliced_variables": [
+        120,
+        21,
+        26,
+        39,
+        45,
+        46,
+        49,
+        50
+      ],
+      "num_slices": 256,
+      "width": 23,
+      "single_product_float64_bytes": 134217728,
+      "all_slices_bucket_entries": 14232239616
+    }
+  ],
+  "wall_seconds": 0.3871860090002883
+}

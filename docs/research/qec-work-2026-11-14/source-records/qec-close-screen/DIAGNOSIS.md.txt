@@ -1,0 +1,15 @@
+# Close-case screening diagnosis
+
+The old frozen screen is preserved unchanged. Its global `isfinite(llrs).all()` guard rejected every nonzero syndrome because the full BP vector contains legitimate signed infinities. Across all 1,536 previously screened development shots, there are no NaNs; every infinity belongs to a degree-one parity-check-forced fault with sign consistent with that observed detector. All observable-participating LLRs are finite. This is a screening integration error, not demonstrated BP instability.
+
+The new `proxy.py` considers only observable-participating variables and treats signed infinities as point-mass limits. It returns missing for relevant NaN or deterministic/saturated parity, and preserves the predeclared zero-syndrome exclusion. It computes independent-marginal parity log odds stably. It does not compute a correlated logical-class posterior.
+
+Development replay: `old_pool_diagnosis.json` restores finite scores on all 1,327 nonzero syndromes; 209 zero syndromes remain excluded. CPU 7.94 seconds. The labels/observed array was not accessed. This is development replay, not held-out validation.
+
+Six local tests passed. Independent review tested 1,000 exhaustive independent Bernoulli examples; maximum log-odds discrepancy was 1.8e-13. See sibling `qec-close-review` independent artifacts.
+
+## Important remaining failure
+
+On previously studied reference cases, corrected proxy ranking has false closeness: Z/.010 index54 has proxy |log odds| about0.546 while reference |log odds| is14.8–15.3. The truly closer X/.020 index258 has proxy2.534 versus reference0.459. This demonstrates that restoring finite values alone does not establish a reliable close-case screen.
+
+Do not describe this as a calibrated margin, a confidence certificate, or a proven accuracy improvement. Use it as a rank-only candidate for out-of-sample validation, compare with decoder disagreement and candidate mass margin, and retain proxy failures in reports.

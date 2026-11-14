@@ -1327,3 +1327,23 @@ resumes a small run. The stage A archive must match the SHA-256 in its
 `completion.json`. CI replays the archive with `--light` (12-bit-cue exact
 references only) through the unit test; the full replay is a local gate.
 Spec numbers and verdicts are scientific results and do not gate.
+
+## Imported bounded QEC precision artifact
+
+This is an archive-integrity/replay gate for the retrospective
+[QEC research record](research/2026-11-14-qec-research-record.md), not acceptance
+of a production decoder or permission to run a new experiment.
+
+```bash
+uv run pytest tests/unit/test_qec_precision_archive.py
+```
+
+Require the original compressed archive SHA-256 to match its import manifest;
+independently enumerate all 22 tiny fixtures with exact rational arithmetic;
+verify every saved raw mass and available posterior enclosure (976 and 450);
+reconstruct top1/top4/disagreement predictions and all held-out confusion counts.
+Reject invalid evidence, not scientifically negative outcomes. No confidence
+interval is inferred from uniformly counted syndromes. This replay is read-only
+and cannot replace the archived runner/restart audit or validate the d5 tensor
+backend. There is no new `completion.json` because it imports an existing
+completed diagnostic rather than launching a Thermo study.

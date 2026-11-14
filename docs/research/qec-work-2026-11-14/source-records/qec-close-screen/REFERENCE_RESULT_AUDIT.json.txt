@@ -1,0 +1,407 @@
+{
+  "status": "terminal_audit",
+  "selection_sha256": "718b92bf2775ca81c5126ad7659ec0fb9e48c8cbf0716d64c9de32521b020abb",
+  "verified_completed": 14,
+  "selected": 14,
+  "charged_cpu_snapshot": 6892.738,
+  "results": [
+    {
+      "case": "x-p0.005-i671-ordinary",
+      "status": "independently_verified",
+      "stratum": "ordinary",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9999997725948094,
+        0.9999997729400352
+      ],
+      "charged_cpu_seconds": 488.00800000000004,
+      "slices": 256
+    },
+    {
+      "case": "x-p0.005-i635-list_close",
+      "status": "independently_verified",
+      "stratum": "list_close",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9999920646702048,
+        0.9999920653594102
+      ],
+      "charged_cpu_seconds": 488.7579999999999,
+      "slices": 256
+    },
+    {
+      "case": "x-p0.010-i453-ordinary",
+      "status": "independently_verified",
+      "stratum": "ordinary",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "unknown",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9999999991294752,
+        0.9999999991294943
+      ],
+      "charged_cpu_seconds": 489.91399999999993,
+      "slices": 256
+    },
+    {
+      "case": "x-p0.010-i540-list_close",
+      "status": "independently_verified",
+      "stratum": "list_close",
+      "winner_under_assumptions": 1,
+      "list_rank_status": "known",
+      "effective_list_prediction": 1,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.005625088907448566,
+        0.005625101967949669
+      ],
+      "charged_cpu_seconds": 490.91600000000005,
+      "slices": 256
+    },
+    {
+      "case": "x-p0.020-i745-ordinary",
+      "status": "independently_verified",
+      "stratum": "ordinary",
+      "winner_under_assumptions": 1,
+      "list_rank_status": "known",
+      "effective_list_prediction": 1,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.00035100753567650903,
+        0.01354758985129766
+      ],
+      "charged_cpu_seconds": 488.80400000000003,
+      "slices": 256
+    },
+    {
+      "case": "x-p0.020-i620-disagreement",
+      "status": "independently_verified",
+      "stratum": "disagreement",
+      "winner_under_assumptions": null,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 1,
+        "tesseract": 0,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 1,
+        "tesseract": 0,
+        "beliefmatching": 1,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.03585245633684802,
+        0.9815210721149283
+      ],
+      "charged_cpu_seconds": 491.497,
+      "slices": 256
+    },
+    {
+      "case": "x-p0.020-i785-list_close",
+      "status": "independently_verified",
+      "stratum": "list_close",
+      "winner_under_assumptions": 1,
+      "list_rank_status": "known",
+      "effective_list_prediction": 1,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.008718134599710738,
+        0.12710625051076854
+      ],
+      "charged_cpu_seconds": 486.715,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.005-i595-ordinary",
+      "status": "independently_verified",
+      "stratum": "ordinary",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9999999999736604,
+        0.9999999999736662
+      ],
+      "charged_cpu_seconds": 496.151,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.005-i401-list_close",
+      "status": "independently_verified",
+      "stratum": "list_close",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9999995472249538,
+        0.9999995475709543
+      ],
+      "charged_cpu_seconds": 499.97099999999995,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.010-i536-ordinary",
+      "status": "independently_verified",
+      "stratum": "ordinary",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9999650670607796,
+        0.9999677832369982
+      ],
+      "charged_cpu_seconds": 490.656,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.010-i512-list_close",
+      "status": "independently_verified",
+      "stratum": "list_close",
+      "winner_under_assumptions": 1,
+      "list_rank_status": "known",
+      "effective_list_prediction": 1,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.0010528074860375884,
+        0.0028517926550873556
+      ],
+      "charged_cpu_seconds": 491.12500000000017,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.020-i340-ordinary",
+      "status": "independently_verified",
+      "stratum": "ordinary",
+      "winner_under_assumptions": 0,
+      "list_rank_status": "known",
+      "effective_list_prediction": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.9992352756960615,
+        0.999783056598659
+      ],
+      "charged_cpu_seconds": 500.27199999999993,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.020-i708-disagreement",
+      "status": "independently_verified",
+      "stratum": "disagreement",
+      "winner_under_assumptions": null,
+      "list_rank_status": "known",
+      "effective_list_prediction": 1,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "list4": 1
+      },
+      "posterior0_interval": [
+        0.4825456964156265,
+        0.506277551567792
+      ],
+      "charged_cpu_seconds": 491.22600000000006,
+      "slices": 256
+    },
+    {
+      "case": "z-p0.020-i342-list_close",
+      "status": "independently_verified",
+      "stratum": "list_close",
+      "winner_under_assumptions": null,
+      "list_rank_status": "known",
+      "effective_list_prediction": 1,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "realized_errors": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0,
+        "list4": 0
+      },
+      "posterior0_interval": [
+        0.0018821419105409575,
+        0.8887133255954587
+      ],
+      "charged_cpu_seconds": 498.725,
+      "slices": 256
+    }
+  ],
+  "audit_cpu_seconds": 1.290930953,
+  "limitations": [
+    "conditional original DEM/float assumptions",
+    "selected diagnostic sample, no population efficacy claim",
+    "exact rational check validates candidate mass arithmetic; not independent full tensor recomputation"
+  ]
+}

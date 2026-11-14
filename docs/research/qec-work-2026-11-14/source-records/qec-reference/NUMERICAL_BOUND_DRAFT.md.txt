@@ -1,0 +1,13 @@
+# Proposed conditional absolute-roundoff envelope (pending independent acceptance)
+
+Do not treat this draft as an accepted certificate until reviewer signs off.
+
+For this exact saved binary64-input model all397fault probabilities lie in[.00166945,.0083]. Fourier fault factors are1 or1−2p, positive and≥.9834; all121unary factors are±1/2 exactly representable. Replacing signed unary factors by+1/2 gives the Fourier expression for the all-zero full detector/logical event, a probability≤1.
+
+Under correctly rounded elementary operations, a local fault factor construction has relative error≤gamma4(epsilon) with epsilon taken conservatively as np.finfo(longdouble).eps, not half epsilon. Arithmetic-circuit absolute error can be bounded against the sign-removed expanded polynomial. A bucket product's error depth is the sum of input depths plus number of multiplications; a binary eliminated-axis sum adds1. Exact unary input depths0; fault input depths4. Symbolic replay of actual ordering gives2332per-slice depth,2588after conservative sequential256slice aggregation. Allow8192for conversion/additional slack. Proposed envelope gamma8192(epsilon)×1, approximately8.88e-16 absolute.
+
+This argument tracks entire arithmetic-tree paths, not merely the final slice-sum condition number. Severe internal cancellation is included through the sign-removed polynomial envelope; no small relative error is promised when class mass is below the absolute envelope.
+
+Any overflow should be impossible because expanded intermediates are bounded by at most2^121in magnitude and platform range is much larger. For underflow, a deliberately excessive additive1e-4800is proposed: total basic operation count<2^43, error amplification<2^129, and normal-minimum≈3.4e-4932give a much smaller absolute bound. Need independent review of these counts/assumptions. No BLAS transcendental operations occur in contraction; elimination arithmetic consists of multiply/add/subtract and length-two sums.
+
+This is conditional numerical analysis, not a formal proof of NumPy/compiler/hardware behavior. It bounds exact saved binary64 parameters, not other physical parameterizations. Independent enumeration and sliced/direct tests validate algebra only; actual platform elementary-operation assumptions remain explicit.

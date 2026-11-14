@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "source_sha256": "9da18cc8fec850e19d80c2d9fdec1a3a821fe58c158f80d910402a678e9ab7fc",
+  "output_sha256": "bf78628bf18ca934b3152455d6eab336c22aa3bf3fff4c4f593eb09409a9db4d",
+  "reviewer": "independent screen_audit",
+  "checks": [
+    "frozen selection/panel/list and input hashes",
+    "all196 observed labels independently read after freeze",
+    "all predictions and fallback reassembled",
+    "paired errors recomputed with set differences"
+  ],
+  "limitations": [
+    "192 stratified random shots low power",
+    "4 disagreements enriched not population efficacy",
+    "no advantage over Tesseract observed",
+    "2repairs and1harm versus correlated in enriched cases",
+    "unmatched compute"
+  ]
+}

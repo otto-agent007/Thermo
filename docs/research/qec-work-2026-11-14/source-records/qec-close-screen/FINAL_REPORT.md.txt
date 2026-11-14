@@ -1,0 +1,43 @@
+# Thermo held-out close-case validation, 14 November 2026
+
+## Bottom line
+The study completed all 14 frozen reference cases with no execution crashes, no retries, and no dropped cases. It found no advantage over Tesseract. The four-candidate policy repaired some belief-matching decisions in an enriched disagreement sample, but neither corrected BP scores nor short-list mass gaps are established reliable ambiguity detectors.
+
+## Root cause fixed
+The earlier screen rejected any nonfinite BP LLR globally. Across all 1,536 development shots, every infinity was a valid degree-one hard constraint and none occurred on the logical observable; there were no NaNs. Rejecting these was a screening bug, not BP instability. The corrected independent-marginal parity score passes exact-enumeration tests but is not a calibrated logical posterior.
+
+## Prespecified held-out design
+Development: saved indices 0–288. Fresh shots: 289–800 inclusive in six X/Z × p=.005/.010/.020 cells, 3,072 total. Outcome labels were not accessed during screen, list scoring, or selection. Deterministic hash ranks fixed 32 random shots per cell and one reserved control before scoring. At most two hash-ranked decoder disagreements per cell were admitted, retaining/reporting excess. There were eight disagreements in the full screen; four admitted extras plus 192 random shots made the 196-shot list panel.
+
+Lists contained at most four distinct feasible configurations per logical class, with fixed two-second MILP solve limits and explicit optimality checks. 138 panel shots yielded valid list scores; 58 were unknown and retained belief-matching fallback. Repeated shots retain multiplicity; 24/196 shared a syndrome with development data, so these are held-out shots, not exclusively novel syndromes.
+
+Fourteen reference cases were selected without labels: six controls, six minimum valid list-margin cases excluding previously selected syndromes, and two disagreement cases. Missing strata were not replaced. Five low/noise list-close references were decisively outside the predeclared ambiguity region; the remaining list-close reference was numerically unresolved.
+
+## Observed paired performance (independently audited)
+| Sample | N | Tesseract errors | Belief-matching errors | Correlated-matching errors | List4 with fallback errors |
+|---|---:|---:|---:|---:|---:|
+| Prespecified random panel | 192 | 1 | 1 | 1 | 1 |
+| Additional disagreement shots | 4 | 1 | 4 | 2 | 1 |
+
+Random panel: zero repairs or harms relative to any comparator; 58 fallback shots. Enriched extras: list4 had three repairs and zero harms versus belief matching, but zero repairs versus Tesseract. Versus correlated matching it had two repairs and one harm. These four selected disagreements are not a population efficacy estimate. Costs were not matched.
+
+## Reference findings
+All 14 numerical evaluations passed independent artifact/receipt/arithmetic checks. Eleven yielded a secure winning class conditional on the original DEM and arithmetic assumptions; three did not. All 11 secure winners agreed with Tesseract/list4 and the observed outcome.
+
+- Z/.020 index708, selected for disagreement: P(class0) ∈ [.4825456964,.5062775516]. This certifies genuine ambiguity under the predeclared [.25,.75] region, but does NOT certify which class wins. Tesseract/list4/BM predicted1; observed0; ordinary/correlated matching predicted0.
+- X/.020 index620 disagreement: P(class0) ∈ [.03585246,.98152107]. Winner and ambiguity unresolved. List4/Tesseract/ordinary prediction0 matched the observed outcome, but no reference-MAP claim is justified.
+- Z/.020 index342 list-close: P(class0) ∈ [.00188214,.88871333]. Winner and ambiguity unresolved.
+- X/.020 index785 list-close: class1 probability at least87.29%, despite being its cell’s lowest eligible list-margin selection. Relative ranking does not imply absolute closeness; selected list-close margins ranged from4.06 to14.62.
+
+Full per-case intervals, predictions, costs and checks are in REFERENCE_RESULT_AUDIT.json. Reference intervals use the inherited absolute arithmetic envelope (about8.88178e-16), original DEM/floating-point assumptions, long-double evaluation and candidate lower bounds. Tiny syndrome masses can make posterior bounds wide. The audit rechecked every slice receipt/source identity, aggregation, exact rational candidate masses and interval arithmetic; it was NOT an independent full tensor recomputation. Do not call these unconditional mathematical certificates.
+
+## Cost and reliability
+Charged scientific execution CPU: screen93.840s; lists823.466s; references6,892.738s; total7,810.044s (about2.17CPUh). Reference case costs stayed below the600s cap; actual14-case total cap8,400s. List cap2,400s and screen cap600s were respected. Development diagnosis, synthetic/recovery tests, reviews and report/archive work are additional overhead, not production decoder runtime. Final independent audit alone measured about1.29CPU seconds; cumulative review/setup work is not fully measured by the scientific ledger.
+
+All execution receipts completed, with no interrupted reservations or retries in this held-out run. Prior failures remain preserved in older studies. Kernel leases, source hashes, short batches, per-case budgets, atomic receipts and tested recovery were retained. No new experiments beyond the frozen selection were launched.
+
+## What this supports next
+Do not scale this into an efficacy claim or call the list4 screen calibrated. The useful research direction is to quantify omitted logical-class mass and improve conditional numerical bounds on the difficult cases, then validate any revised method on a genuinely new prespecified sample against Tesseract. That is a recommendation, not authorization or a launched follow-up experiment.
+
+## Archive guide
+The bundle preserves study sources, protocols, independent gates, all ledgers/receipts, frozen inputs and per-case outputs, plus required source dependencies. Virtual environments and interpreter binaries are excluded; pinned dependency versions are included. Historical manifests intentionally retain original absolute paths/hashes; this is an evidence archive, not an automatically relocatable resumable job. Old development outputs are untouched.

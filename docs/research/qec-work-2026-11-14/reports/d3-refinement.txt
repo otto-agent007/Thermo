@@ -1,0 +1,62 @@
+# QEC selective probabilistic refinement: feasibility result
+
+**Completed, integrity checks passed. Mechanism works narrowly; practical advantage not established.**
+
+The approved development-only probe completed all 2,304 cells with persisted
+replay in 278.84 CPU seconds (4.65 minutes), using 83.1 MiB peak resident memory.
+Independent audit verified every cell, its source/receipt hashes, 4,128,768
+trajectory log weights, partition arithmetic, decisions, all-population risk
+and repair-minus-harm accounting. No held data or full study was run.
+
+## What we learned
+
+1. **Very little headroom exists here.** PyMatching already achieves exact
+   maximum-likelihood population risk in five of six development instances.
+   Only the p=0.05 checkerboard instance has a repairable degeneracy error,
+   at syndrome 15. Its risk can fall from 0.0401302868 to 0.0400021365:
+   an absolute improvement of 0.0001281503 (about 0.32% relative).
+2. **AIS can recover that correction.** At 16 transitions and 128 trajectory
+   pairs, both independent-class and common-random-number variants attained
+   exact population risk in all 32 observed complete-run replicates. This is
+   finite observed evidence, not an assurance about every future random run.
+3. **Insufficient refinement harms good answers.** At 16 transitions and eight
+   pairs, mean risk worsened by roughly 0.00030 across the six instances. A
+   gate must predict net repairs minus harms, not merely identify hard cases.
+4. **Common random numbers help variance, not uniformly decisions.** Aggregate
+   weighted log-ratio variance was lower in all tested grid settings, but the
+   lowest-budget paired variant had slightly worse mean decoding risk.
+
+Maximum possible equal-instance mean risk improvement is only 0.0000213584.
+All 12 configurations and their 32-replicate ranges are in the independent
+report. No confidence, coverage or generalization claim follows from selecting
+the best observed development configuration.
+
+## Decision and next step
+
+Do not automatically launch the full gate study on this tiny family. We now have
+validated estimator infrastructure and a useful repair-versus-harm example, but
+not a practical-cost result. Full coset-energy tables were precomputed, so exact
+summation remains cheap; matched-budget routing, deterministic postprocessing,
+the relevant Bethe/class-score comparator and held evaluation remain undone.
+
+My recommendation is to close this bounded probe as a successful mechanism
+check with insufficient practical headroom, then review whether a separately
+scoped benchmark offers genuine repairable headroom before spending on a full
+learned-gate study. No larger code, drift test or resource expansion is approved.
+
+## Evidence and reproduction
+
+- `evidence/`: immutable request, exact references, 2,304 cell files and replay
+  receipts, completion record.
+- `source/`: frozen source, dependency lock, tests and pre-run review.
+- `audit/`: independent read-only verification script, JSON, report and timing.
+- `AUTHORIZATION.md`: approval scope; `execution.log`: runner output.
+
+Exact reference quantities are `exact_reference`; AIS outputs are
+`software_simulation`. Neither is physical-hardware evidence. The runner's CPU
+includes its replay. Final independent audit added about 2.23 CPU seconds;
+variance analysis added 1.33 CPU seconds; earlier partial read-only audit CPU
+was not separately measured.
+
+Canonical approved request SHA256:
+`712bb54a9ab55cacff747409540b45c5b93a128b80ccba58b5ba2e0adbb03a81`.

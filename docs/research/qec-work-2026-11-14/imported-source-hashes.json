@@ -1,0 +1,492 @@
+[
+  {
+    "file": "reports/rounding.txt",
+    "source_member": "qec-rounding-completed-study/qec-report/REPORT.md",
+    "sha256": "d1c181b32bb87c8cd4588c5d05b2f8f36c0bf6af4022670a0bd070e639a28be2"
+  },
+  {
+    "file": "reports/d3-refinement.txt",
+    "source_member": "qec-refinement-completed-probe/qec-refinement-delivery/REPORT.md",
+    "sha256": "c8bc6c82a5513e752a6ea11359b0672e5705d2e2cda82fbbdc3011af1f2908e2"
+  },
+  {
+    "file": "reports/d3-full-pauli.txt",
+    "source_member": "qec-full-pauli-completed-study/qec-full-pauli-delivery/qec-full-pauli-report.md",
+    "sha256": "ceaed0d93b996baab99ba7c288fb179d24451a815ebcfd6a7be2b2e7433c0d51"
+  },
+  {
+    "file": "reports/d3-full-pauli-audit.txt",
+    "source_member": "qec-full-pauli-completed-study/qec-full-pauli-delivery/qec-full-pauli-final-audit.md",
+    "sha256": "621de29a1a72603a247fb48c1b2b4d22f738fba20204cec6a1ebc9868d6f86c8"
+  },
+  {
+    "file": "reports/d5-baseline.txt",
+    "source_member": "qec-d5-completed-study/qec-d5-delivery/REPORT.md",
+    "sha256": "92c7d7825f9cd1b10d37c47e93583fd9f166b0928bd8286c95174d4e9dd54c83"
+  },
+  {
+    "file": "reports/precision.txt",
+    "source_member": "Thermo-bounded-QEC-precision-diagnostic-2026-11-14/qec-precision-diagnostic/REPORT.md",
+    "sha256": "8a4a652fcc1e5f3af9cf1b7083b12ce3cc774d60b5407a5edea4401358f56756"
+  },
+  {
+    "file": "reports/precision-audit.txt",
+    "source_member": "Thermo-bounded-QEC-precision-diagnostic-2026-11-14/qec-precision-diagnostic/audit/REVIEW.md",
+    "sha256": "07c30fda285d3e2c1d962cc225321298d8152354429508cb3163198ab6c45fec"
+  },
+  {
+    "file": "plans/2026-11-13-observable-specific-sampler-reliability-plan.txt",
+    "source_member": "prior uncommitted planning clone:docs/research/2026-11-13-observable-specific-sampler-reliability-plan.md",
+    "sha256": "7facc4821ad982464addc544bbce1230e5680a9edd7ff593ecbdacc1e42993b7"
+  },
+  {
+    "file": "plans/2026-11-13-qec-decision-aware-rounding-plan.txt",
+    "source_member": "prior uncommitted planning clone:docs/research/2026-11-13-qec-decision-aware-rounding-plan.md",
+    "sha256": "fab056d6641b22d42d0212b85e5c5d5a6c8c9557ba9951939aca0ca96e8b77be"
+  },
+  {
+    "file": "plans/2026-11-13-qec-selective-probabilistic-refinement-plan.txt",
+    "source_member": "prior uncommitted planning clone:docs/research/2026-11-13-qec-selective-probabilistic-refinement-plan.md",
+    "sha256": "c7c4e6dae47ac0f49af79aa0caada4600014c8169d98113a6c900f6bc1a34d9c"
+  },
+  {
+    "file": "source-records/qec-extension/PILOT_REPORT.md.txt",
+    "source_member": "qec-extension/PILOT_REPORT.md",
+    "sha256": "1f3344ada03e74f2f8d6036a988896916a61649bc27d3f9d48ae2cc86b623c91"
+  },
+  {
+    "file": "source-records/qec-extension/REVIEW.md.txt",
+    "source_member": "qec-extension/REVIEW.md",
+    "sha256": "0be75b9421a0339f0b56dd38e80f70001161124020127dc3bd2c82d657de0f7d"
+  },
+  {
+    "file": "source-records/qec-extension/manifest.json.txt",
+    "source_member": "qec-extension/manifest.json",
+    "sha256": "0858368dc64ec90579b3db43d9c40dc9ef2f9d9854014362f6ee43f0cfbd2107"
+  },
+  {
+    "file": "source-records/qec-extension/README.md.txt",
+    "source_member": "qec-extension/README.md",
+    "sha256": "5c0965f7714e7b30ffda209294c5a9b98ee375e49000635be655e872693da100"
+  },
+  {
+    "file": "source-records/qec-extension/synthetic-smoke.json.txt",
+    "source_member": "qec-extension/synthetic-smoke.json",
+    "sha256": "401fec0447017474014605c808fdb16fed90024f49665c030e94d7bda9c5cf73"
+  },
+  {
+    "file": "source-records/qec-extension/OWNER_APPROVAL.json.txt",
+    "source_member": "qec-extension/OWNER_APPROVAL.json",
+    "sha256": "ee4b37cce0e47c3eaa4d8f401fc09692ef92c2d676da1b9ee9c120301a9d8d71"
+  },
+  {
+    "file": "source-records/qec-extension/RESULTS_REVIEW.md.txt",
+    "source_member": "qec-extension/RESULTS_REVIEW.md",
+    "sha256": "b18f6efdacca6ad071192c740d527ea9d0ec1ac41e93f68dc8e9209021ffb0c7"
+  },
+  {
+    "file": "source-records/qec-extension/PROTOCOL.md.txt",
+    "source_member": "qec-extension/PROTOCOL.md",
+    "sha256": "4300b478668131df4263b63bf8aa0c849bd2243c948443301bc994a098089b50"
+  },
+  {
+    "file": "source-records/qec-extension/STATUS.md.txt",
+    "source_member": "qec-extension/STATUS.md",
+    "sha256": "f87658a2743d440b05d29d13862836f3d024796afe58174a3ce7b63123568679"
+  },
+  {
+    "file": "source-records/qec-diagnostics/REPORT.md.txt",
+    "source_member": "qec-diagnostics/REPORT.md",
+    "sha256": "fcb82f05baab61133dc1671a0a4a74c2f9f4d2f1f0677beced4fc491f42ee628"
+  },
+  {
+    "file": "source-records/qec-diagnostics/harmful-case.json.txt",
+    "source_member": "qec-diagnostics/harmful-case.json",
+    "sha256": "388ce4b519f9fec6f049fe3fc0877e16fca9a227d2c9aa07c534c93a7ab8d199"
+  },
+  {
+    "file": "source-records/qec-diagnostics/centering-check.json.txt",
+    "source_member": "qec-diagnostics/centering-check.json",
+    "sha256": "96ba1cf523e4263e349af6372b6cf6d6351e09d75903f70c5a5d4517c748161e"
+  },
+  {
+    "file": "source-records/qec-diagnostics/INDEPENDENT_REVIEW.md.txt",
+    "source_member": "qec-diagnostics/INDEPENDENT_REVIEW.md",
+    "sha256": "3b6038b8c3c8e4de4884abfc0357344d2b6e2074b12f32c3c26151b0169ce8d6"
+  },
+  {
+    "file": "source-records/qec-prototype/REPORT.md.txt",
+    "source_member": "qec-prototype/REPORT.md",
+    "sha256": "638576bd8628d9574c0f6e99b6fd856697907419bf1752e7be05a9f7bb3f7198"
+  },
+  {
+    "file": "source-records/qec-prototype/REVIEW.md.txt",
+    "source_member": "qec-prototype/REVIEW.md",
+    "sha256": "2fa69988ed3be171642dcc82658de87ed26540c9af34749c1eaa274fe0698e28"
+  },
+  {
+    "file": "source-records/qec-prototype/saved-case-results.json.txt",
+    "source_member": "qec-prototype/saved-case-results.json",
+    "sha256": "637372fdace692e1838cfaddd41f8935b91c517522087253c689049fc7c95d9f"
+  },
+  {
+    "file": "source-records/qec-calibration/REPORT.md.txt",
+    "source_member": "qec-calibration/REPORT.md",
+    "sha256": "1270426ff9e69184231bf9581b195ebe5aa7675dbb56858700eaa5a5baf12752"
+  },
+  {
+    "file": "source-records/qec-calibration/REVIEW.md.txt",
+    "source_member": "qec-calibration/REVIEW.md",
+    "sha256": "fe233ad224861100afb51b51d8d0bdaf394cdd9aaeb475f18316e2fef177170d"
+  },
+  {
+    "file": "source-records/qec-calibration/independent-audit.json.txt",
+    "source_member": "qec-calibration/independent-audit.json",
+    "sha256": "c08e9b0bcd0787b3058ebd46ea848d80d6f8b812f0f2ab079185658ee2f47620"
+  },
+  {
+    "file": "source-records/qec-calibration/coverage-replay.json.txt",
+    "source_member": "qec-calibration/coverage-replay.json",
+    "sha256": "73c01ac1b8924f192fbcfbcaa66eff66a618348df2c04d93aca5957854abb203"
+  },
+  {
+    "file": "source-records/qec-calibration/PLAN.json.txt",
+    "source_member": "qec-calibration/PLAN.json",
+    "sha256": "9ed764ab952d5b9e9f5e3bde9dd20acbdca409ce418b836b618ab910648e8cc7"
+  },
+  {
+    "file": "source-records/qec-residual/REPORT.md.txt",
+    "source_member": "qec-residual/REPORT.md",
+    "sha256": "9452a9c1adfe87f504032253aa4342d74caff71e64193401709cd2af5d0b9fc9"
+  },
+  {
+    "file": "source-records/qec-residual/REVIEW.md.txt",
+    "source_member": "qec-residual/REVIEW.md",
+    "sha256": "4ea168b2213ab558e638d1e1ee1f48c8c8cd1b7f9372c92a0d440063e8fd3fdf"
+  },
+  {
+    "file": "source-records/qec-residual/independent-audit.json.txt",
+    "source_member": "qec-residual/independent-audit.json",
+    "sha256": "dffb7045169ed8e89f651daf00748da3b7bbec06fd97cc7142485b822acc699e"
+  },
+  {
+    "file": "source-records/qec-residual/PLAN.json.txt",
+    "source_member": "qec-residual/PLAN.json",
+    "sha256": "d5d1f4c458866254900d9062c752d19da13c4b58bc2ae46782d3c9199d1e810a"
+  },
+  {
+    "file": "source-records/qec-reference/tensor-cost.json.txt",
+    "source_member": "qec-reference/tensor-cost.json",
+    "sha256": "8a7054d733150614f43c3e72450bf5c4361314690ad31730ae092a9294e9cddb"
+  },
+  {
+    "file": "source-records/qec-reference/REPORT.md.txt",
+    "source_member": "qec-reference/REPORT.md",
+    "sha256": "bfad951b0112a40a2053735ec1a501476b5d8a777753670632c983119fbf9edd"
+  },
+  {
+    "file": "source-records/qec-reference/NUMERICAL_BOUND_DRAFT.md.txt",
+    "source_member": "qec-reference/NUMERICAL_BOUND_DRAFT.md",
+    "sha256": "d2a6ac25b50b217a4f0aa599ac1237de6ba924884a5b861fbe86fa858225a0d0"
+  },
+  {
+    "file": "source-records/qec-reference/RESOURCE_CHECK.md.txt",
+    "source_member": "qec-reference/RESOURCE_CHECK.md",
+    "sha256": "98aa7e1a6643481093b2b56fa07c50bd446607bb7fb2ce23fa519716f058a4ad"
+  },
+  {
+    "file": "source-records/qec-reference/feasibility-results.json.txt",
+    "source_member": "qec-reference/feasibility-results.json",
+    "sha256": "60965b4e5a18828f5414a8b57846a5c1aef175477df9ff668cecbc79fbb5ef8a"
+  },
+  {
+    "file": "source-records/qec-reference/TENSOR_FEASIBILITY.md.txt",
+    "source_member": "qec-reference/TENSOR_FEASIBILITY.md",
+    "sha256": "ec237c1fad5938931c1896d2ee2d440d7779874b6685cc3d4a7949ad37016d2b"
+  },
+  {
+    "file": "source-records/qec-reference/NUMERICAL_REVIEW.md.txt",
+    "source_member": "qec-reference/NUMERICAL_REVIEW.md",
+    "sha256": "4e12546385e9486c68c385abdbc5b6ce8f19b088ae6e2869041e1fd0aef0a266"
+  },
+  {
+    "file": "source-records/qec-reference/TENSOR_FULL_RUN_NOTES.md.txt",
+    "source_member": "qec-reference/TENSOR_FULL_RUN_NOTES.md",
+    "sha256": "75f8110dc3b62cae097ca385f4db8beae1e26e60373f4151ffaa1a6a070d29d5"
+  },
+  {
+    "file": "source-records/qec-reference/error-depth.json.txt",
+    "source_member": "qec-reference/error-depth.json",
+    "sha256": "78c79e764958a2aa95aebab458440c0da18fe84e6dfa63b7cc6022a4d9dfc780"
+  },
+  {
+    "file": "source-records/qec-reference/TENSOR_SLICE_PROBE.md.txt",
+    "source_member": "qec-reference/TENSOR_SLICE_PROBE.md",
+    "sha256": "744453ecdec790667a5b25a1c7d9cbcc61cbdce65cb39f8a448842ea43269f65"
+  },
+  {
+    "file": "source-records/qec-reference/tensor-slicing.json.txt",
+    "source_member": "qec-reference/tensor-slicing.json",
+    "sha256": "76a4ff1e2ee01331cf7dc9550f98775ccf89236a3cd8d0e4259f0db2a1072d1f"
+  },
+  {
+    "file": "source-records/qec-reference/FULL_REFERENCE_REPORT.md.txt",
+    "source_member": "qec-reference/FULL_REFERENCE_REPORT.md",
+    "sha256": "3b17d1c0bca171296c7f2df46b4862dc197e229dbcf2b00a235749b571a1aa7e"
+  },
+  {
+    "file": "source-records/qec-reference/tensor-one-slice.json.txt",
+    "source_member": "qec-reference/tensor-one-slice.json",
+    "sha256": "8dfa55be0980ef9160e0990369f2f8207d209233af2147109fa60d56895fe4e0"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/INDEPENDENT_RECOVERY_RESULTS.json.txt",
+    "source_member": "qec-six-case-recovery/INDEPENDENT_RECOVERY_RESULTS.json",
+    "sha256": "71e368088877542346b99d1402f759f12625ca8db9cd55b2ce3762387048328e"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/EXECUTOR_DESIGN.md.txt",
+    "source_member": "qec-six-case-recovery/EXECUTOR_DESIGN.md",
+    "sha256": "712949b2044fd06421624a82e53c9dd98ff5e9576d524ccc6749e866028b012b"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/RETRY_OUTCOME.md.txt",
+    "source_member": "qec-six-case-recovery/RETRY_OUTCOME.md",
+    "sha256": "e5ee478c6c9c52e948d26ec339b4295eeb85582a1403c51d68071e4c450a561c"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/INDEPENDENT_EXECUTOR_REVIEW.md.txt",
+    "source_member": "qec-six-case-recovery/INDEPENDENT_EXECUTOR_REVIEW.md",
+    "sha256": "418201cfcaa7d0101c18a0036c00a3924862944cc4597c2a1ed1322c6a8500d5"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/ARTIFACT_README.md.txt",
+    "source_member": "qec-six-case-recovery/ARTIFACT_README.md",
+    "sha256": "9e9c90fc006612d58aac6d2583cd9df4bb862dfbc0084a8c838a6870f901f035"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/PREPARED_RECOVERY.json.txt",
+    "source_member": "qec-six-case-recovery/PREPARED_RECOVERY.json",
+    "sha256": "7c248bee5f7c6a0bec995c2f1da59cdf3d3ebc47d94f48704692961f4b164a74"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/INDEPENDENT_RETRY_RESULTS.json.txt",
+    "source_member": "qec-six-case-recovery/INDEPENDENT_RETRY_RESULTS.json",
+    "sha256": "ff4d76f8c244757b43296429d7e3772ec264ec9aeb86f584c16abdb48722d02f"
+  },
+  {
+    "file": "source-records/qec-six-case-recovery/RECOVERY_OUTCOME.md.txt",
+    "source_member": "qec-six-case-recovery/RECOVERY_OUTCOME.md",
+    "sha256": "8608c9d7090ae48320697cba61ea6e76a400286e1043e1dac22b03ef0c2f4adf"
+  },
+  {
+    "file": "source-records/qec-targeted-study/DRAFT_PROTOCOL.md.txt",
+    "source_member": "qec-targeted-study/DRAFT_PROTOCOL.md",
+    "sha256": "89a61c7bfc1cdf0f8832469bf52b6c7cbe50c5f00203e3047b08e4649562f10d"
+  },
+  {
+    "file": "source-records/qec-targeted-study/FINAL_REPORT.md.txt",
+    "source_member": "qec-targeted-study/FINAL_REPORT.md",
+    "sha256": "ec958d65c6f7190641e4669b7fe854128b1956cf6a4c8d64ebab44d19caa951a"
+  },
+  {
+    "file": "source-records/qec-targeted-study/INDEPENDENT_TARGETED_RESULTS.json.txt",
+    "source_member": "qec-targeted-study/INDEPENDENT_TARGETED_RESULTS.json",
+    "sha256": "c07265bd06c6646ddf2cd8adce1c01353a321d24a36974242d6c91b360b349ae"
+  },
+  {
+    "file": "source-records/qec-targeted-study/EXECUTION_AMENDMENT_V2.md.txt",
+    "source_member": "qec-targeted-study/EXECUTION_AMENDMENT_V2.md",
+    "sha256": "209d2ff3f278ddbbf0882d65f7cbec35a9a09f4b7884c2a68fda3267c7b69ff0"
+  },
+  {
+    "file": "source-records/qec-targeted-study/PUBLICATION_WINDOW_TEST_RESULTS.json.txt",
+    "source_member": "qec-targeted-study/PUBLICATION_WINDOW_TEST_RESULTS.json",
+    "sha256": "64c65ea48f42812b694d7b3ac9c44328130a1f9d81d864680f781eae28ca3a80"
+  },
+  {
+    "file": "source-records/qec-targeted-study/INDEPENDENT_DESIGN_REVIEW.md.txt",
+    "source_member": "qec-targeted-study/INDEPENDENT_DESIGN_REVIEW.md",
+    "sha256": "e3a2ca0a86cf68142477e1dd2d1d65ed9e80872cd65ac9e1e0a6ccdc5fcf6053"
+  },
+  {
+    "file": "source-records/qec-targeted-study/WORKFLOW_CRASH_TEST_RESULTS.json.txt",
+    "source_member": "qec-targeted-study/WORKFLOW_CRASH_TEST_RESULTS.json",
+    "sha256": "886aea3d390099fd8d7d4bc6cc9d0033eb7993dc86382a442382530c2ac68965"
+  },
+  {
+    "file": "source-records/qec-targeted-study/INDEPENDENT_ACTUAL_SCIENCE_RESTART_RESULTS.json.txt",
+    "source_member": "qec-targeted-study/INDEPENDENT_ACTUAL_SCIENCE_RESTART_RESULTS.json",
+    "sha256": "4db5e97a785e08eece453b5bbc74814dfdc75603d66fcb829081e1a8ef86f80c"
+  },
+  {
+    "file": "source-records/qec-targeted-study/WORKFLOW_RECOVERY_V2_TEST_RESULTS.json.txt",
+    "source_member": "qec-targeted-study/WORKFLOW_RECOVERY_V2_TEST_RESULTS.json",
+    "sha256": "3a3cb9dd627f2ff7cbb6799982cf4b5eb34ff77e7af71f0b374a788ccc6baecd"
+  },
+  {
+    "file": "source-records/qec-targeted-study/PROTOCOL.md.txt",
+    "source_member": "qec-targeted-study/PROTOCOL.md",
+    "sha256": "02c16273a1d5b7887991fb2197339df9bbb456a3680f2114d8af6c91dc45034a"
+  },
+  {
+    "file": "source-records/qec-close-screen/FINAL_REPORT.md.txt",
+    "source_member": "qec-close-screen/FINAL_REPORT.md",
+    "sha256": "09f48f862c9c77184891c40fc9121f4cc0ac039b2f559eee09525068cbf68938"
+  },
+  {
+    "file": "source-records/qec-close-screen/AGGREGATE.json.txt",
+    "source_member": "qec-close-screen/AGGREGATE.json",
+    "sha256": "2a0bbd77807c5e6d2ef3f304313191b2a3cd3910fa5659948b902d4fe88396f7"
+  },
+  {
+    "file": "source-records/qec-close-screen/REFERENCE_RESTART_TEST_RESULTS.json.txt",
+    "source_member": "qec-close-screen/REFERENCE_RESTART_TEST_RESULTS.json",
+    "sha256": "4db5e97a785e08eece453b5bbc74814dfdc75603d66fcb829081e1a8ef86f80c"
+  },
+  {
+    "file": "source-records/qec-close-screen/INDEPENDENT_REFERENCE_REVIEW.md.txt",
+    "source_member": "qec-close-screen/INDEPENDENT_REFERENCE_REVIEW.md",
+    "sha256": "19ea24fc9d10eb262427563cc981365c8245364a3949956d5d18450a0c86e3e9"
+  },
+  {
+    "file": "source-records/qec-close-screen/panel-observed-comparison-review.json.txt",
+    "source_member": "qec-close-screen/panel-observed-comparison-review.json",
+    "sha256": "cf890d22c4d0455a4eea48da3b8ac4514690b78fdf141f4664dc4e77cb925f8e"
+  },
+  {
+    "file": "source-records/qec-close-screen/DIAGNOSIS.md.txt",
+    "source_member": "qec-close-screen/DIAGNOSIS.md",
+    "sha256": "2b73be6fb48d91f5c93989d102afe5f30b741b9c60ee295b56b407d00162f45c"
+  },
+  {
+    "file": "source-records/qec-close-screen/panel-observed-comparison.json.txt",
+    "source_member": "qec-close-screen/panel-observed-comparison.json",
+    "sha256": "bf78628bf18ca934b3152455d6eab336c22aa3bf3fff4c4f593eb09409a9db4d"
+  },
+  {
+    "file": "source-records/qec-close-screen/REFERENCE_RESULT_AUDIT.json.txt",
+    "source_member": "qec-close-screen/REFERENCE_RESULT_AUDIT.json",
+    "sha256": "1a792303067ac1bb44fc84cbb9880a3d54b8b73372b4f4907586ad60f13c325e"
+  },
+  {
+    "file": "source-records/qec-close-screen/PANEL_OUTCOME_AUDIT.json.txt",
+    "source_member": "qec-close-screen/PANEL_OUTCOME_AUDIT.json",
+    "sha256": "455a7c6e8612f55acc9b9fef233931dc93c7789795b3809affcf41bca50adbe4"
+  },
+  {
+    "file": "source-records/qec-close-screen/HELDOUT_PLAN_DRAFT.md.txt",
+    "source_member": "qec-close-screen/HELDOUT_PLAN_DRAFT.md",
+    "sha256": "2a929b7d1dc1b548e4c3203d4097058ea479d63f6a4fb1d3d812005395cc722a"
+  },
+  {
+    "file": "source-records/qec-close-screen/REFERENCE_REVIEW.json.txt",
+    "source_member": "qec-close-screen/REFERENCE_REVIEW.json",
+    "sha256": "dca9344a0f504689a3eb35d623c8a25c9a3053875f8c5b62e26bbcd060b40046"
+  },
+  {
+    "file": "source-records/qec-close-screen/SCREEN_REVIEW.json.txt",
+    "source_member": "qec-close-screen/SCREEN_REVIEW.json",
+    "sha256": "3bb4b83054e513ef8f5a34bcb0dc6b44013d669ce5578543ffb4994cec05a7c7"
+  },
+  {
+    "file": "source-records/qec-close-screen/LIST_REVIEW.json.txt",
+    "source_member": "qec-close-screen/LIST_REVIEW.json",
+    "sha256": "a309b3b74c3eefd0f69288a934074f5ccccd7b8bc72e1c5f5177f34fd1b4b3dd"
+  },
+  {
+    "file": "source-records/qec-close-screen/development-overlap.json.txt",
+    "source_member": "qec-close-screen/development-overlap.json",
+    "sha256": "a2497c61549c7c8177ca8524265ac55c101ff49c4d989357c5c96ff426996631"
+  },
+  {
+    "file": "source-records/qec-close-screen/PROTOCOL.md.txt",
+    "source_member": "qec-close-screen/PROTOCOL.md",
+    "sha256": "7ab8c120e0b63c9f25ffdecc8520ff5c4bf0ba1f6af9c60642c1dd091d18ac79"
+  },
+  {
+    "file": "source-records/qec-close-screen/REFERENCE_AGGREGATE_AUDIT.json.txt",
+    "source_member": "qec-close-screen/REFERENCE_AGGREGATE_AUDIT.json",
+    "sha256": "b185feb4f71c280d8da8caa31bf170740909441f71273c28815c350f0a4954ba"
+  },
+  {
+    "file": "source-records/qec-reference-review/audit_numerical_intervals.json.txt",
+    "source_member": "qec-reference-review/audit_numerical_intervals.json",
+    "sha256": "a56b978d47b937b5360703476d99377de559c081ad7a04cf8d682928f88336ba"
+  },
+  {
+    "file": "source-records/qec-reference-review/REVIEW.md.txt",
+    "source_member": "qec-reference-review/REVIEW.md",
+    "sha256": "2ab56681cab7775675d31afcca2c345c96ecfc7e9dfa18260efd9e0eb110c43a"
+  },
+  {
+    "file": "source-records/qec-reference-review/audit_saved_bounds.json.txt",
+    "source_member": "qec-reference-review/audit_saved_bounds.json",
+    "sha256": "7fe1a02dd11d3a6c902ace026b1425ed4350d909758519a26d3d4e709167cc3d"
+  },
+  {
+    "file": "source-records/qec-reference-review/external_fixture.json.txt",
+    "source_member": "qec-reference-review/external_fixture.json",
+    "sha256": "6d6b61d55a694d61078d7a47cf449f028ec907534274ad10527a3bed52ac98ab"
+  },
+  {
+    "file": "source-records/qec-reference-review/model_fidelity.json.txt",
+    "source_member": "qec-reference-review/model_fidelity.json",
+    "sha256": "035064dcf2cd4ed68d40f96b04fcd60203a39c6964da0bca1e839a36ec962613"
+  },
+  {
+    "file": "source-records/qec-close-review/REVIEW.md.txt",
+    "source_member": "qec-close-review/REVIEW.md",
+    "sha256": "00a26fbf92a31e9103419b5ca20ab131c3c777f5130ddf929cfc95a11a7ca198"
+  },
+  {
+    "file": "source-records/qec-close-review/old-pool-bp-audit.json.txt",
+    "source_member": "qec-close-review/old-pool-bp-audit.json",
+    "sha256": "00829fef65d3eae4bb4ed1dfbd7223933fa7c25b77add38becee1b6101d20499"
+  },
+  {
+    "file": "source-records/qec-close-review/list-development.json.txt",
+    "source_member": "qec-close-review/list-development.json",
+    "sha256": "0326b966039124105ab0effce45ef95ee2112843f9bc7698cd12f985a5d58dfc"
+  },
+  {
+    "file": "source-records/qec-close-review/development-score-vs-reference.json.txt",
+    "source_member": "qec-close-review/development-score-vs-reference.json",
+    "sha256": "0c05a5c269c6da37be4208298f307d3f62bc25e91143088ee2695e2005d8e848"
+  },
+  {
+    "file": "source-records/qec-six-case/independent-model-audit.json.txt",
+    "source_member": "qec-six-case/independent-model-audit.json",
+    "sha256": "51ade7f797a7fbe5d6719173cc79cba55fb911e70f6c0779e9d88ce2ada4d191"
+  },
+  {
+    "file": "source-records/qec-six-case/PRE_RUN_REVIEW.md.txt",
+    "source_member": "qec-six-case/PRE_RUN_REVIEW.md",
+    "sha256": "e56c0598730b9bb2e1c402361f0affe358134cde8c16ed009360cb28027b36d7"
+  },
+  {
+    "file": "source-records/qec-six-case/independent-results-audit.json.txt",
+    "source_member": "qec-six-case/independent-results-audit.json",
+    "sha256": "1f2b8590c00650a46a595cc108f780c7b120fd1638a2476ebe2cfd6f744af808"
+  },
+  {
+    "file": "source-records/qec-six-case/manifest.json.txt",
+    "source_member": "qec-six-case/manifest.json",
+    "sha256": "57769c855e0c62b69c186ea19f703f6086b5db98b25ebb7690152f6b037e3552"
+  },
+  {
+    "file": "source-records/qec-six-case/README.md.txt",
+    "source_member": "qec-six-case/README.md",
+    "sha256": "3b9a3f45258d30c03b5472243573edb0e63b73f16a5e5a75fa5f273002c5fc83"
+  },
+  {
+    "file": "source-records/qec-six-case/AUTHORIZATION.json.txt",
+    "source_member": "qec-six-case/AUTHORIZATION.json",
+    "sha256": "5605e6be867bbd43024a1f20cd959d06fe6f1799ccb39526fafa932f4a0739fc"
+  },
+  {
+    "file": "source-records/qec-six-case/PLAN.json.txt",
+    "source_member": "qec-six-case/PLAN.json",
+    "sha256": "a8c3f10e1fc5b83b43042edb64755db1a8da617aa7aa6ef74fdaa88017509e56"
+  }
+]

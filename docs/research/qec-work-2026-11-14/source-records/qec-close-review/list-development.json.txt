@@ -1,0 +1,142 @@
+[
+  {
+    "case": "x-p0.005-i273-ordinary",
+    "MAP_gap": 27.115945876822792,
+    "list_gaps": {
+      "4": 25.72965193768564,
+      "16": 24.706751483646148
+    },
+    "first4_solver_CPU_both_classes": 4.5035447390000005,
+    "first4_charged_CPU_both_classes": 7.798,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ]
+  },
+  {
+    "case": "x-p0.010-i148-ordinary",
+    "MAP_gap": 16.398110757067826,
+    "list_gaps": {
+      "4": 15.0330301343405,
+      "16": 14.994044432076128
+    },
+    "first4_solver_CPU_both_classes": 1.430284511,
+    "first4_charged_CPU_both_classes": 4.563,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "case": "x-p0.020-i112-ordinary",
+    "MAP_gap": 20.134396301651726,
+    "list_gaps": {
+      "4": 18.761527256928286,
+      "16": 17.55481463406138
+    },
+    "first4_solver_CPU_both_classes": 3.379256957,
+    "first4_charged_CPU_both_classes": 6.484,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "case": "x-p0.020-i258-disagreement",
+    "MAP_gap": 1.2996640198073628,
+    "list_gaps": {
+      "4": 0.5936947474958565,
+      "16": 0.5016476811400388
+    },
+    "first4_solver_CPU_both_classes": 0.899395,
+    "first4_charged_CPU_both_classes": 3.9139999999999997,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "case": "z-p0.005-i208-ordinary",
+    "MAP_gap": 22.515777047163596,
+    "list_gaps": {
+      "4": 21.13395244739197,
+      "16": 20.505356088355516
+    },
+    "first4_solver_CPU_both_classes": 2.91109372,
+    "first4_charged_CPU_both_classes": 5.991,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "case": "z-p0.010-i54-ordinary",
+    "MAP_gap": 16.39811075706783,
+    "list_gaps": {
+      "4": 15.34074629187672,
+      "16": 15.302797733334252
+    },
+    "first4_solver_CPU_both_classes": 3.882772097,
+    "first4_charged_CPU_both_classes": 6.845000000000001,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "case": "z-p0.020-i93-ordinary",
+    "MAP_gap": 16.93554058572566,
+    "list_gaps": {
+      "4": 15.56742938659322,
+      "16": 14.946077325366675
+    },
+    "first4_solver_CPU_both_classes": 3.048604942,
+    "first4_charged_CPU_both_classes": 6.175000000000001,
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]

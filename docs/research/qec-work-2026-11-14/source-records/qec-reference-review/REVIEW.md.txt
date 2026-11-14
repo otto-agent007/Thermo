@@ -1,0 +1,73 @@
+# Independent reference-feasibility review
+
+## Model fidelity
+
+`model_fidelity.py/json` verifies all six archived cells against their source
+circuits. Conversion with decomposition disabled, conversion with decomposition
+enabled, and saved DEMs have identical complete Bernoulli fault factors. Disjoint
+approximation is explicitly disabled. Every model has 397 distinct fault columns,
+120 detectors and one logical bit. The decomposed representation has 100 separator
+markers and complete faults can affect four detectors. These correlations remain
+intact when each whole error instruction is one variable.
+
+## External small exact reference
+
+Cheng and Pan, Appendix D of
+https://arxiv.org/html/2609.39556v1 supplies a nine-qubit independent-X fixture.
+`external_fixture.py/json` uses both a 512-state physical enumeration and two
+16-state stabilizer-coset enumerations, with exact integer arithmetic at p=1/10.
+Both give class masses 0.046268496 and 0.019431504. The four highest-probability
+configurations capture 96.4826% and 98.4580% of their respective class masses.
+This is an algebra/reference fixture, not evidence for noisy d5 performance.
+
+## Positive projected-event bounds
+
+Dropping parity constraints forms a superset of the desired event. The positive
+XOR-distribution dynamic program therefore gives a full-class upper bound without
+changing the noise model or splitting correlated faults. Outward elementary
+arithmetic also encloses numerical rounding, assuming correctly rounded platform
+operations and nextafter. The guarantee is for exact values of stored binary64
+probabilities, not uncertainty in physical noise parameters.
+
+Five independent tests in `qec-reference/test_bounds_independent.py` use exact
+Fraction arithmetic over stored binary64 values. They verify interval containment
+for all targets of small dependent-parity models, projected supersets, p=0/1,
+extreme probabilities, duplicate-candidate removal and the external fixture.
+The last distinguishes stored binary64 p=.1 from exact decimal p=1/10.
+
+`audit_saved_bounds.py/json` independently checks all 32 candidate assignments
+against complete DEM instruction supports, exactly computes their probabilities
+as rational numbers, verifies interval enclosure and checks captured-fraction
+interval arithmetic. All pass. The 32 solver runs report optimal status, though
+candidate mass validity does not rely on their order or optimality.
+
+## What the saved d5 result establishes
+
+For the known harmful case, the 16 class-0 candidates carry at least
+1.04514939722e-14, while its 18-check relaxed upper bound is 4.33009998944e-13.
+Class-1 has lower bound 1.29239011916e-20 and upper 1.19899571795e-13.
+The class intervals overlap: no winning-class certificate follows.
+
+The 16-candidate captured fraction is bounded only by [2.41368%,100%] in class0
+and approximately [0.00001078%,100%] in class1. The first four candidates account
+for nearly all of the *known 16-candidate* mass in class0, but this must not be
+mistaken for nearly all full-class mass. The bounds are useful and honest, but
+currently too loose to measure d5 coverage precisely.
+
+## Tensor/resource findings
+
+The existing minimum-fill order is a heuristic, not a lower bound on optimal
+contraction cost. Its dual width29 calls for an 8GiB float64 or16GiB longdouble
+largest product, before other live data. At inspection, visible memory was9.7GiB
+with9.1GiB available and no swap; cgroup memory limits were not exposed.
+Unsliced allocation is unsafe. The eight-variable sliced plan's largest
+longdouble product is256MiB; sequential slices and online accumulation offer a
+much safer memory path, with increased work. Actual timed slice/RSS measurement
+belongs to the implementation worker and was not repeated here.
+
+This platform's longdouble has64-bit significand, not IEEE binary128. The signed
+Fourier formulation can lose relative accuracy on tiny class masses. A completed
+untruncated contraction is not automatically a trustworthy mass reference:
+rounding/cancellation must be assessed separately. Higher memory does not remove
+that numerical issue. No claim that exact d5 computation is impossible is justified
+by this one heuristic plan.

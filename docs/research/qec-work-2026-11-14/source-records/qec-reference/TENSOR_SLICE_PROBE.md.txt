@@ -1,0 +1,19 @@
+# Authorized one-slice resource probe
+
+Executed only the all-zero assignment to eight fixed auxiliary variables [120,21,26,39,45,46,49,50] for the saved Z,p=.005,index7,logical-class0 instance. This is one of256signed Fourier contributions, NOT a full class probability. No full256slice run or efficacy study was launched.
+
+New sliced implementation preserves every complete original DEM fault factor, absorbs fixed-variable parity into its factor, and retains each fixed unary normalization/sign. Tests summed every slice against independent full fault enumeration for all8syndromes of a small correlated-hyperedge fixture, plus checked a fully fixed Fourier term. Aggregate qec-reference suite:18passed.
+
+Actual resource result:
+- Completed113remaining variable eliminations.
+-1.793wall seconds;1.784CPU seconds, excluding Python imports before measured start.
+- Peak process RSS574332KiB (~560.9MiB), includes process initialization memory.
+- Enforced RLIMIT_AS3GiB and RLIMIT_CPU60seconds; native numerical thread environment forced1.
+- Returned slice contribution5.1555377992055499292e-17, unvalidated numerically as a reference.
+- NumPy dtype displaysfloat128, but actual longdouble mantissa is63bits (epsilon1.0842e-19),16storage bytes. This is NOT IEEE quadruple precision.
+
+A linear256-times extrapolation suggests roughly7.6minutes serial for this plan, NOT a measured full-runtime guarantee. Other fixed assignments use the same array shapes but may have different numeric behavior. Memory appears manageable for one slice; no parallel slices were attempted or authorized here.
+
+Feasibility improved from planning alone: one real slice fits the resource envelope. Trustworthiness remains unestablished because signed contributions and floating-point cancellation need error bounds or independent precision checks. Completion of this resource probe does not authorize a full numerical reference or establish candidate class-mass coverage.
+
+Evidence: tensor-one-slice.json, tensor-one-slice.log, tensor_slice_run.py, test_tensor_slice.py, tensor-slice-validation.log.

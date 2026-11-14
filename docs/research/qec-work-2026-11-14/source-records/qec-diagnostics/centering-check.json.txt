@@ -1,0 +1,126 @@
+{
+  "status": "same-case development ablation only",
+  "budget": "16 calls,32particles,32temperatures,8moves; fixed2seeds",
+  "records": [
+    {
+      "centered_on_MAP": false,
+      "gamma": 1.0,
+      "logical": 0,
+      "estimates": [
+        {
+          "log_mass": -40.957844562200705,
+          "ess": 4.972449049298089
+        },
+        {
+          "log_mass": -57.33307420659824,
+          "ess": 1.0000774706068252
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": false,
+      "gamma": 1.0,
+      "logical": 1,
+      "estimates": [
+        {
+          "log_mass": -54.62479275493905,
+          "ess": 5.427992192183888
+        },
+        {
+          "log_mass": -59.32285014379059,
+          "ess": 2.059680884851474
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": false,
+      "gamma": 2.0,
+      "logical": 0,
+      "estimates": [
+        {
+          "log_mass": -48.34796760081391,
+          "ess": 1.0000000216744527
+        },
+        {
+          "log_mass": -73.64637128042882,
+          "ess": 31.116141855764425
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": false,
+      "gamma": 2.0,
+      "logical": 1,
+      "estimates": [
+        {
+          "log_mass": -53.948812238788754,
+          "ess": 11.001346801031504
+        },
+        {
+          "log_mass": -63.41614199993818,
+          "ess": 32.0000000000003
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": true,
+      "gamma": 1.0,
+      "logical": 0,
+      "estimates": [
+        {
+          "log_mass": -31.849438947505686,
+          "ess": 4.50327646567285
+        },
+        {
+          "log_mass": -32.80214942716862,
+          "ess": 4.77813362441217
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": true,
+      "gamma": 1.0,
+      "logical": 1,
+      "estimates": [
+        {
+          "log_mass": -46.12376263146951,
+          "ess": 19.04187133044532
+        },
+        {
+          "log_mass": -46.45172770237943,
+          "ess": 12.68162267152671
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": true,
+      "gamma": 2.0,
+      "logical": 0,
+      "estimates": [
+        {
+          "log_mass": -32.84144819039319,
+          "ess": 31.999999999999844
+        },
+        {
+          "log_mass": -32.84144819039319,
+          "ess": 31.999999999999844
+        }
+      ]
+    },
+    {
+      "centered_on_MAP": true,
+      "gamma": 2.0,
+      "logical": 1,
+      "estimates": [
+        {
+          "log_mass": -46.15689596733204,
+          "ess": 32.0000000000003
+        },
+        {
+          "log_mass": -46.15689596733204,
+          "ess": 32.0000000000003
+        }
+      ]
+    }
+  ]
+}

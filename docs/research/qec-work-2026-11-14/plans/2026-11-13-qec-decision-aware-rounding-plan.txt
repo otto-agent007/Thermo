@@ -1,0 +1,193 @@
+# QEC decision-aware coefficient rounding: research plan
+
+2026-11-13
+
+**Status: owner-selected planning work; held, not a frozen protocol.** Otto asked to
+queue these two ideas and create research plans. This document authorizes neither
+a probe nor a recorded run. No experiments or hardware purchases accompany it.
+Before unholding, the owner reviews the exact manifest, source versions, numeric
+thresholds, code, resource cap and stop rules through the existing research loop.
+
+## Question and decision
+
+Can a shared, finite-precision representation preserve logical-class decisions
+better than coefficient-wise nearest rounding, at the same coefficient codebook?
+The output is a bit requirement on a small specified decoding family, not a QEC
+threshold, hardware speedup or general-purpose rounding recommendation.
+
+This follows the negative transfer result in
+[the P-0010 probe](2026-11-05-rounding-rule-transfer-probe.md): error cancellation
+that helps one observable need not protect another. Test the relevant decision
+margin directly, rather than assume that mean coefficient error predicts it.
+
+**Primary endpoint:** smallest stable bit count in 2 through 8 for which excess
+logical risk over full-precision degenerate maximum-likelihood decoding is at
+most 0.001 on *every* frozen held-out noise instance. Stable means all tested
+higher precisions also pass; report individual nonmonotone errors, not a smoothed
+curve. The tolerance is a proposed mechanism-study resolution, not an acceptable
+logical error rate for a deployed quantum computer. A useful positive reduces
+this requirement by at least one bit versus nearest rounding without extra
+per-syndrome information. Report failures and results above the grid separately.
+
+## Exact benchmark and leakage boundary
+
+Start with the rotated distance-3 surface code, nine data qubits, one X-error
+sector, perfect syndrome measurements and independent code-capacity noise.
+Enumerate all 512 error patterns. Freeze the parity-check matrix H, logical
+operator L, independent stabilizer generators, coordinate ordering and canonical
+syndrome representatives in a hash-bound manifest. Check ranks and commutation.
+This is two logical classes per syndrome, not a circuit-level or full Pauli study.
+
+For error e, syndrome s and class l, compute
+W(s,l) = sum over matching e of product_i p_i^e_i (1-p_i)^(1-e_i).
+The Bayes decision maximizes W; the risk of any decision d is
+R(d) = sum_s [sum_l W(s,l) - W(s,d(s))]. Quantized decisions are evaluated
+under the *original* noise probabilities, not under their rounded surrogate.
+Use log-sum-exp for class sums and verify normalization. Exact ties are co-optimal;
+a deterministic smallest-index tie break supports replay, but disagreement among
+co-optimal classes is not an error. Report ties and near-ties separately with a
+predeclared numerical comparison tolerance and a high-precision cross-check.
+
+Noise instances use p_i = p * (1 + 0.5 m_i), where m_i is in {-1,0,1}.
+Development: p in {0.02,0.05,0.08}, homogeneous and checkerboard masks.
+Held-out: p in {0.035,0.065}, homogeneous, vertical-stripe and single-central-site
+high-noise masks. The central-site mask is +1 centrally and 0 elsewhere.
+Checkerboard and stripes alternate +1/-1 by fixed coordinates. Commit the literal
+arrays before computing results. This keeps p_i between 0.01 and 0.12. Include
+homogeneous noise as a diagnostic: common coefficient scaling can preserve
+minimum-energy decisions while changing degenerate class probabilities.
+No tuning to held-out syndrome outcomes or selecting only ambiguous syndromes.
+
+## Representation and proposed algorithm
+
+Quantize noise log-odds w_i = log((1-p_i)/p_i), **not BP messages or final class
+scores**. Use the same signed integer codebook in every arm: cap C=log(99),
+step C/(2^(b-1)-1), integer levels from -(2^(b-1)-1) through +(2^(b-1)-1).
+No clipping is expected; log any violation rather than enlarge the cap. Rounding
+may yield zero. Infer all classes exactly under rounded weights, isolating
+representation error from estimator error. A future physical embedding would
+need a separately approved codebook/placement study; this is not the archived
+constraint layer's native codebook or a claim of Z1 compatibility.
+
+Compare:
+1. nearest, with frozen midpoint policy;
+2. independent unbiased stochastic rounding, 32 compiler seeds;
+3. class error diffusion where equal-coefficient classes exist, frozen ordering;
+4. decision-aware correlated rounding with the same floor/ceiling choices.
+
+For arm 4, calculate development gradients g_s of each log class-weight ratio
+with respect to coefficients. Form a fixed positive-semidefinite sensitivity
+matrix A = mean over development instances of sum_s P(s) g_s g_s^T.
+Freeze A before held evaluation. For each input calibration vector, choose the
+floor/ceiling vector minimizing delta^T A delta, with lexicographic tie breaking.
+There are at most 512 choices at n=9, so this compiler is bounded and transparent.
+It uses calibration coefficients but never held-out exact class labels or
+syndrome-specific codebooks. Charge compilation separately; exhaustive search
+is not scalable novelty. The hypothesis is that shared sensitivity predicts
+margin damage outside its development instances. Assess predicted versus actual
+class-margin perturbation, with a coefficient-MSE matched diagnostic. An oracle
+A computed on held instances can only be labelled an exploratory upper bound,
+never the primary method or evidence of transfer.
+
+## Validation, analysis and falsifiers
+
+Before outcomes: independently implement direct error enumeration and stabilizer
+coset enumeration; compare every syndrome/class mass. Test identity rounding,
+normalization, syndrome correction, stabilizer-invariant logical labels, codebook
+bounds and deterministic replay. A deliberately corrupted logical label must
+fail validation. Use analytic derivative versus finite differences for g_s.
+
+Report exact risk and excess risk for every instance/bit/rule, tie-aware weighted
+disagreement, class-margin strata, compiler time and memory. Deterministic exact
+arms need numerical error checks, not shot-noise confidence intervals. Compiler
+randomness is summarized across independent seeds with intervals; no pooling
+individual syndromes as independent experimental replicates. Report per-instance
+and worst-case outcomes as well as aggregates. The deterministic candidate is
+judged directly, not cherry-picked from random seeds.
+
+Stop this candidate if no stable-bit reduction transfers, if it depends on oracle
+held-instance sensitivities, or if improvements disappear against class diffusion
+or stochastic rounding at equal representation cost. If all methods already have
+zero excess risk, report no headroom, not a success. A null result does not justify
+larger codes or a different tolerance without a new owner decision.
+
+## Delivery stages and budgets (proposed, not authorized)
+
+1. Literature/version pin and exact-manifest review, no experiments.
+2. Separately approved feasibility probe: CPU only, one worker, 30 CPU-minutes,
+   4 GiB RAM, 1 GiB artifacts; stop at cap, report incomplete rather than expand.
+3. Freeze protocol at `docs/experiments/qec-decision-aware-rounding.md`, runner,
+   replay and unit tests. Proposed recorded envelope: at most two CPU-hours,
+   one worker, 4 GiB RAM, 2 GiB artifacts, no downloads beyond pinned libraries.
+   Calibrate full-size work inside the probe before asking for a run.
+4. Report exact risk tables and bit requirements, mechanism diagnosis, seed and
+   request hashes, source versions, environment, actual resource use and stops.
+
+No sampling, training, beta jitter, circuit-level noise, threshold extrapolation
+or energy projection in this row. A positive motivates a new larger-code protocol;
+a negative closes the tested mechanism. Existing denoising and adsorption stops
+remain untouched. The companion [selective-refinement plan](2026-11-13-qec-selective-probabilistic-refinement-plan.md)
+can reuse verified reference code but must not conflate rounding with estimation.
+
+## Research grounding
+
+- [Diversity Methods for Improving Convergence and Accuracy of Quantum Error Correction Decoders Through Hardware Emulation](https://doi.org/10.22331/q-2026-04-16-2071):
+  quantization diversity is existing prior art. Its message-level quantization is
+  not the same object as this coefficient-level class-margin objective; include
+  it in the novelty review, not as an equivalent baseline without adaptation.
+- [Certified decoding of quantum LDPC codes](https://arxiv.org/abs/2608.25545):
+  class partition functions and probabilistic comparison already exist. We test
+  representational damage with exact sums before approximate estimators.
+- [PyMatching documentation](https://pymatching.readthedocs.io/en/stable/):
+  graphlike matching is useful later; matching is not generally degenerate MLD.
+
+External claims are `asserted`, not reproduced in Thermo. Record exact paper
+versions, implementation licenses and applicable code/noise regimes before a
+protocol; this plan makes no literature-exhaustiveness or novelty claim.
+
+## Follow-up: decision-preservation analysis
+
+Use dimensionless energies E (beta is already absorbed into log-odds). For
+identical class supports, if abs(E'_l(x)-E_l(x)) <= epsilon_l for every state,
+then exp(-epsilon_l) Z_l <= Z'_l <= exp(epsilon_l) Z_l. Consequently
+abs(log Z'_l-log Z_l) <= epsilon_l. An original unique winner a is preserved
+if log Z_a-log Z_b > epsilon_a+epsilon_b for every competitor b. This elementary
+sensitivity bound is an analysis tool, not a novelty claim. Non-strict comparisons
+do not resolve ties. Retain class-dependent offsets and state multiplicities;
+only class-independent offsets cancel from decisions.
+
+Compute classwise epsilon and original margins exactly in this tiny diagnostic.
+Report bound tightness, class flips versus margin-normalized perturbation and
+cases where the sufficient bound fails but the winner survives. Separate zero
+margins rather than dividing by zero. Exact margins and classwise maxima remain
+oracle diagnostics, never deployed features or evidence of transferable prediction.
+A later scalable precision allocator would need affordable bounds on differences
+in class-conditional sensitivity, not merely coefficient magnitude. Separate
+representation, estimator, mapping and noise-model errors. This analysis adds no
+sampling or new experiment family to the initial plan.
+
+Also report the P_true(s)-weighted mass of uncertified syndromes, not just their
+unweighted count. Stability relative to an assumed model is not correctness under
+noise mismatch. Distinguish cheap universal coefficient bounds from exact
+per-coset extrema and report their costs; worst-case bounds may be very loose.
+
+## Mechanism pass versus practical advantage
+
+A one-bit stable requirement reduction is representation headroom, not by itself
+an application win. This plan uses exact class inference from rounded log-odds;
+it does not establish that a deployed decoder computes the same decision with
+finite-width accumulators, BP messages, lookup tables or matching weights.
+The output is a logical-class decision, not a claim that rounding improves the
+physical noise or recovers the true error pattern. Exact MLD remains the risk floor.
+
+Before claiming practical benefit, a separately approved downstream study must
+name the actual decoder and its coefficient, intermediate and output precision,
+then verify the same held risk tolerance end to end. Compare against nearest,
+class diffusion, stochastic rounding and the strongest practical full-precision
+or alternative decoder, including coefficient calibration, sensitivity fitting,
+compiler search, storage, decoding and update/recompile cost. Report cost amortized
+across declared reuse counts and changes in calibration. Require a measured
+resource reduction at matched risk, with no hidden increase elsewhere, rather
+than infer memory, latency or energy savings from nominal bit count. If all bit
+widths use the same machine word or compiler overhead dominates, there may be no
+practical gain. No physical energy advantage can be claimed from this CPU study.
