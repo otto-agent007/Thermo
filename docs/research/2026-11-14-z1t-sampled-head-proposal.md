@@ -87,11 +87,15 @@ Two parametrisations were tried and dropped (same JSON):
   released head to rank 256 costs 1.70 nats before training and 1.14 after a
   short fit. The head is not low rank, so that choice would have capped the
   tree. Node vectors are full width instead.
-- **Unbalanced k-means clusters for a two-level head.** They scored 0.39
-  above dense after a shorter fit (48 steps, different windows), so the
-  balanced tree's groups may be worse than free clusters by 0.1 to 0.2 nats.
-  The tree is kept because it gives every depth from one fit and a bounded
-  group size. This is the fixed choice most likely to bound the result.
+- **Unbalanced k-means clusters for a two-level head.** With 256 clusters
+  they scored 0.70 above dense before training and 0.39 after 48 steps on
+  16k tokens. The tree's depth-8 groups under the same softmax scored 1.01
+  and 0.55 (150 steps, 51k tokens). The two runs used different test
+  windows, so this is a rough comparison, but it puts the balanced tree's
+  groups roughly 0.2 to 0.3 nats behind free clusters. The tree is kept
+  because it gives every depth from one fit and a bounded group size. This
+  is the fixed choice most likely to bound the result, and the run as
+  written does not measure it.
 
 Site probe, smoke scale only (released model, 2 windows of 32 tokens): the two
 sites that write into the residual stream have mean (1 - y^2) of 0.995, so
@@ -112,7 +116,7 @@ attention-free models would address about a fifth of it at this context.
 | Choice | Value | Bounds the metric? |
 | --- | --- | --- |
 | Body | released Z1T-0, frozen, noise-free, states stored as float16 | Yes for transfer: says nothing about a noisy or fine-tuned body |
-| Tree | balanced 2-means bisection of output vectors in 256 PCA dims | Yes: grouping is worth 0.7 to 0.9 nats; free clusters may be better |
+| Tree | balanced 2-means bisection of output vectors in 256 PCA dims | Yes: grouping is worth 0.7 to 0.9 nats; free clusters looked 0.2 to 0.3 nats better |
 | Node logit | linear in h, full width | Possibly: a branch's exact log-odds is not linear in h |
 | Within-group step | the dense model's own conditional | No, by construction; its V / 2^L rows are counted |
 | Depth | 12 bits (4,095 node vectors per tree, 50M parameters) | Memory bound on a 4 GB GPU; depths 13 to 16 are not measured |
@@ -137,20 +141,22 @@ MACs) and L = 12 (2,070x), with its SEM.
 
 ## Run steps
 
-Both scripts need `z1t_noise_finetune.py` beside them and the same files and
-packages as that run (nothing from `uv.lock`). Run them after the fine-tune
-finishes: the 4 GB card cannot hold two jobs.
+Both scripts import `z1t_noise_finetune.py` from their own directory, so run
+them from a checkout of this repository, with the same files and packages
+as that run (nothing from `uv.lock`). Run them after the fine-tune finishes:
+the 4 GB card cannot hold two jobs.
 
 ```bash
+S=/path/to/Thermo/docs/research
 cd /mnt/2TBHDD/z1t-finetune   # or wherever the inputs are
 IN="--repo sparse-transformers --weights model.eqx --config config.json \
     --tokenizer tokenizer.json --owt owt100k.parquet"
 
 # 1. site probe: evaluation only, reads run_n32/{noisy,control}/body_params.npz
-python z1t_site_probe.py $IN --run run_n32 --out run_n32/site_probe
+python $S/z1t_site_probe.py $IN --run run_n32 --out run_n32/site_probe
 
-# 2. sampled head: needs about 25 GB under --out
-python z1t_sampled_head.py $IN --wikitext wt103_test.parquet --out run_head
+# 2. sampled head: needs about 28 GB under --out (25 GB of training states)
+python $S/z1t_sampled_head.py $IN --wikitext wt103_test.parquet --out run_head
 ```
 
 Add `--smoke` to either for a CPU check first (about two minutes each here).

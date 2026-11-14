@@ -30,7 +30,8 @@ Stages (re-running the same command resumes; the cache is the long stage):
   3. train on the cached states, keep each head's best dev step, report on test
                                                           -> <out>/summary.json
 
-Disk: train windows x seq x d x 2 bytes (4,000 x 256 x 12,288 -> 25 GB). Put --out on a big disk.
+Disk: windows x seq x d x 2 bytes (4,000 train -> 25 GB, plus 2.4 GB of dev/test states).
+Put --out on a big disk.
 Run (same input files as z1t_noise_finetune.py, which must sit next to this script):
   python z1t_sampled_head.py --repo sparse-transformers --weights model.eqx \
       --config config.json --tokenizer tokenizer.json --owt owt100k.parquet \
