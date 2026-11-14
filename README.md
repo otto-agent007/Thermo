@@ -80,6 +80,7 @@ committed deliberately under `docs/experiment-reports/`.
 - [Evidence policy](docs/evidence-policy.md) and [Z1 hardware model](docs/z1-hardware-model.md)
 - [Study guide](docs/studies.md) and frozen protocols in [docs/experiments/](docs/experiments/)
 - [Experiment reports](docs/experiment-reports/) and [research notes](docs/research/)
+- [Research knowledge base](docs/knowledge/README.md): source cards, concepts and research cautions
 - [CI/CD runbook](docs/ci-cd.md) and the parked [improvement harness](docs/improvement-harness.md)
 - [Execution environments](docs/environments.md): local and Codex cloud limits, which gates fit where
 - [August 2026 release intake](docs/release-intelligence/extropic-2026-08.md)
