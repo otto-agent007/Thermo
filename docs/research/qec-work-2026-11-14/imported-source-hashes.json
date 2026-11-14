@@ -488,5 +488,15 @@
     "file": "source-records/qec-six-case/PLAN.json.txt",
     "source_member": "qec-six-case/PLAN.json",
     "sha256": "a8c3f10e1fc5b83b43042edb64755db1a8da617aa7aa6ef74fdaa88017509e56"
+  },
+  {
+    "file": "reports/tensor-precision.txt",
+    "source_member": "qec-tensor-precision/REPORT.md",
+    "sha256": "c5f67468ee1718a86882c8187700e9f1b4ddd6686744474d437570e76e09cee4"
+  },
+  {
+    "file": "reports/tensor-precision-audit.txt",
+    "source_member": "qec-tensor-precision/audit/REVIEW.md",
+    "sha256": "a0e5f7ceead4992d63ff91cd8333805926b8f1f411bd801df525394679b4a54a"
   }
 ]

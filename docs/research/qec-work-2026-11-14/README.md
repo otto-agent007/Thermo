@@ -82,3 +82,13 @@ and thinned-draw probes have dated research notes. THERMES deployed profile stat
 is external to this repository. `docs/research-loop.md` still mentions Fable 5.1
 despite an earlier request for 5.2; this is flagged as possible documentation or
 configuration drift, not verified deployed state. No profile setting was changed.
+
+## Tensor-path follow-up
+
+`archives/tensor-precision-feasibility.tar.gz` preserves the complete, unmodified
+65,229-byte ten-fixture feasibility artifact. Its adjacent JSON authenticates
+the archive; `reports/tensor-precision.txt` and `tensor-precision-audit.txt`
+preserve its report and independent review. This adds an actual tensor-algorithm
+interval port, not a production backend or a d5 result. Its absolute-path manifest
+must not be rewritten to imply relocated execution continuity. Original replay
+commands and limitations are in the report; no new study was run for this import.

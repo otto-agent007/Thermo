@@ -27,8 +27,9 @@ successful examples.
 - The latest d5 close-case selector failed its intended role. Of six list-selected
   cases, five were demonstrably not close and one remained numerically unresolved.
 - Outward-rounded high precision worked on the new tiny numerical fixtures. It
-  **has not been ported to the d5 sliced tensor backend** and does not resolve its
-  three numerically unresolved cases.
+  now also passes a tiny pure-Python port of the sliced tensor algorithm. This
+  **does not replace the production NumPy backend**, demonstrate d5 scaling or
+  resolve its three numerically unresolved cases.
 
 ## Model and evidence distinctions
 
@@ -70,6 +71,7 @@ arithmetic assumptions. They are not unconditional physical truth.
 | Seven-case targeted diagnostic | 6 random controls plus 1 decoder disagreement after a blind screen. Candidate lists agree with reference-MAP 7/7 but observed outcomes 6/7; 0 repairs and 1 harm versus correlated/belief matching. Tesseract makes identical choices. | MAP agreement is not realized correctness. Close-case screen produced no eligible cases due a software guard bug; one selected disagreement cannot estimate population benefit. |
 | Held-out screen and 14 references | 3,072 fresh shots screened; 192 random panel shots plus 4 enriched disagreements. All methods make 1 error on random192. In selected4, list/Tesseract make1, belief matching4, correlated2. Fourteen references yield11 secure winners and3 unresolved; five of6 list-close choices are unambiguous. | No list advantage over Tesseract. List repairs3 BM errors but introduces1 harm versus correlated matching in the enriched group. Fresh shots include repeated syndrome patterns; selection and fallbacks preclude a population claim. |
 | Tiny precision/screen diagnostic | 10 stress models plus6 development/6 held-out generic parity-event models;976 mass and450 posterior enclosures independently checked. Rare-syndrome fixtures require64 or128 decimal digits. On48 held-out syndromes, top4 flags both truly close syndromes plus1false positive. | Arithmetic mechanism passes tiny fixtures, not d5. Top4 probability-weighted precision is only34.4%; exact top-k surrogates are not Tesseract/BP or a practical solver. [Report](qec-work-2026-11-14/reports/precision.txt), [audit](qec-work-2026-11-14/reports/precision-audit.txt). |
+| Tensor-path precision feasibility | Ten preexisting fixtures, at most 3 rows and 5 faults, four precisions and three slicing layouts. Independent audit checks 624 mass, 1,456 signed-slice and 198 posterior enclosures; all pass. Four unit tests and ten checkpointed jobs pass without failures/retries. | Pure-Python port of actual factor construction/min-fill bucket elimination/slicing, not the earlier full-Fourier prototype or production NumPy replacement. No d5 inputs, efficacy or scaling test. [Report](qec-work-2026-11-14/reports/tensor-precision.txt), [audit](qec-work-2026-11-14/reports/tensor-precision-audit.txt). |
 
 ### Original middle-study records
 
@@ -140,6 +142,22 @@ latest tiny diagnostic charged **24.356 CPU seconds**, including conservative
 runner accounting and completed-run replay; its measured worker cost is much
 smaller. These are workflow costs, not per-shot tail latency or device energy.
 
+### Tensor feasibility follow-up
+
+Directed intervals survived the actual factor/slice algorithm on tiny fixtures.
+The 1e-30 near-tie winner resolves at 32 digits; exact ties remain unresolved.
+Rare syndrome probabilities 1e-40 and 1e-100 need 64 and 128 digits for narrow
+posteriors. Unknowns remain unknown when denominator positivity is not certified.
+A narrow posterior is still not necessarily a certified winning class.
+
+The fixed sweep charged 11.246 CPU seconds of its 300-second cap, with 0.969
+measured child CPU seconds and 40.875 MiB peak RSS. Audit CPU (0.099 seconds) and
+test/setup/report overhead are separate. No adaptive-runtime or speedup claim.
+The completed-run replay preserved all 20 output/receipt hashes. Finite fixture
+checks do not prove arbitrary tensors or physical models. CT-bMPS is noted in
+the report as approximate class-mass prior art, not a certified oracle or a
+validated improvement in this phenomenological setting.
+
 ## Reproducibility and coverage
 
 [Evidence inventory and replay instructions](qec-work-2026-11-14/README.md)
@@ -160,8 +178,9 @@ only. Stale draft queue/charter text was not copied over the current live queue.
 
 ## What remains unresolved
 
-1. Portability and cost of reliable interval arithmetic in the actual d5 tensor
-   backend. The three old unresolved cases were not rerun.
+1. Scaling the tiny tensor-algorithm port to production-sized factors and the
+   actual d5 backend within bounded resources. The three old unresolved cases
+   were not rerun.
 2. A held-out close-case or expected-benefit gate that generalizes beyond the
    generator/cases on which it was developed.
 3. Practical accuracy/cost superiority over tuned matching, Tesseract and other

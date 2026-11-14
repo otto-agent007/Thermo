@@ -1,0 +1,6 @@
+{
+  "original_filename": "Thermo-tensor-precision-feasibility-2026-11-14.tar.gz",
+  "sha256": "a717d416d13709f1c2b4824d25977ab45aeeef157fcf321cffb0866b21b82f4c",
+  "size_bytes": 65229,
+  "scope": "Ten tiny preexisting fixtures; pure-Python interval port of sliced tensor algorithm, not production NumPy replacement or d5 scaling."
+}

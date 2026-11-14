@@ -77,5 +77,10 @@
     "name": "Thermo-bounded-QEC-precision-diagnostic-2026-11-14.tar.gz",
     "size_bytes": 89036,
     "sha256": "5cc8b6cb323f48a2e0a9ad76eef704ea1627a32524e04a92e64ee303a8d5adff"
+  },
+  {
+    "name": "Thermo-tensor-precision-feasibility-2026-11-14.tar.gz",
+    "size_bytes": 65229,
+    "sha256": "a717d416d13709f1c2b4824d25977ab45aeeef157fcf321cffb0866b21b82f4c"
   }
 ]
