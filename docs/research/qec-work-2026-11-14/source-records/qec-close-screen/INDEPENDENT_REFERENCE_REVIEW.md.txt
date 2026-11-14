@@ -1,0 +1,19 @@
+# Independent held-out reference implementation review
+
+Reviewer: independent reference-review agent. Gate: approved for frozen, independently audited selection only; this is not approval of scientific results.
+
+Reviewed `evaluate.py`, inherited adapter_v3/executor_v2 contracts, numerical enclosure and protocol. Setup requires independent selection hash review, complete frozen list results bound to selection, unchanged screen manifest/source hashes, evaluator source review and protocol hash before accessing selected outcome labels. Selection is bounded to held-out indices 289–800 and at most18 unique case identities. No adaptive replacement or expanded model/settings.
+
+List seeds are imported, not rerun: distinct, bounded, physical-index and parity validity checks apply; four optimal solves/class are needed for known rank. Nonoptimal/empty lists retain unknown status and BM fallback. Zero-seed classes retain numerical reference intervals with zero candidate lower bounds, not a discarded case. Exact-rational enumeration of the tiny synthetic model independently confirmed both class mass intervals enclose exact masses.
+
+Reference contraction uses unchanged fixed slicing, pinned sources/dependencies, conditional long-double guard/enclosure and completeness checks. Only nonoverlapping class intervals certify a model winner, subject to original DEM and floating-point assumptions. This does not establish realized-error improvement. Final outputs still require independent result audit.
+
+Budget600 CPU/case, total600 times selected count (at most10800); bounded slice batches≤8, CPU20/wall25/3GiB, three attempts maximum, interrupted reservation charged fully. Durable receipts, kernel lock ownership and hash identity checks precede recovery. Exact cap/wall/retry-exhaustion conditions now record terminal-incomplete with costs and retained artifacts, then advance through the original selection without replacement. Other corruption/ownership/source exceptions fail closed.
+
+Independent verification run on final source:
+- test_reference.py: PASS (valid/invalid seeds, unknown fallback, missing-review gate, zero-seed import and finalization).
+- test_reference_terminal.py: PASS (CPU/wall/retry terminal outcomes, later-case advancement, no replacement, integrity failure remains fatal).
+- test_reference_restart.py: PASS, actual scientific adapter child killed and actual supervisor killed; each recovered result matches uninterrupted terms, repeat call leaves ledger unchanged, abandoned attempt charged21 CPU seconds.
+- Additional in-memory exact Fraction enumeration: PASS for synthetic zero-seed finalization intervals.
+
+Test-only mocks are used for terminal-controller transitions and synthetic comparator receipt; restart testing uses real subprocess interruption and actual reference contraction. These are not full-machine power-loss tests. Existing files, completed results, caps and ledger must be independently audited at final reporting; no new scientific experiment was launched by this reviewer.

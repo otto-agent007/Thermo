@@ -1,0 +1,46 @@
+# Independent affine/AIS mathematical review
+
+Reviewed `affine.py` reconstruction on 2026-11-13. Scope is generic algebra and synthetic distributions, not saved d5 noisy observations, scientific efficacy, DEM extraction fidelity, or pilot authorization.
+
+## Verdict
+
+Core algebra is mathematically consistent for finite, strictly interior probabilities and a numerically full-support proposal. This is **not** evidence the finite-budget sampler estimates d5 class masses accurately. The 8 independent tests in `test_independent.py` passed. The author's 4 tests additionally exhaust all binary 2-by-3 matrices/fibers and include a Monte Carlo synthetic check.
+
+- RREF with high-probability pivot preference yields one offset plus an injective null-space-coordinate map. Summing independent Bernoulli fault probabilities over that fiber gives the joint syndrome/logical mass, not a probability normalized within that fiber.
+- Product Bernoulli density on free coordinates has known normalizer 1. Do not add a `2**nullity` factor or assume uniform free coordinates when initializing from Bernoulli.
+- AIS weights are updated before the transition at each new beta, using `(log_target - log_base) / steps`. This is correct for a linear geometric bridge.
+- Coordinate toggles are symmetric proposals. Their Metropolis acceptance is correct for the bridge density; numerical density increments match direct product probabilities.
+- Final log mass is log-mean-exp of weights. The mean mass estimator is unbiased under exact initialization/invariant kernels; its logarithm generally is not unbiased.
+
+## Independent checks
+
+`OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -q test_independent.py`
+
+8 passed in 0.25 seconds at initial review:
+
+1. Exact finite-state detailed balance and stationarity at beta 0, .125, .5, .875, 1 (five tests).
+2. Exhaustive weighted path propagation through four bridge stages equals exact target mass.
+3. Actual production weights, log-mean-exp and ESS with transitions disabled match independently computed importance ratios for the same RNG samples.
+4. Every syndrome fiber mass matches brute-force full-state enumeration; all fiber masses sum to one.
+
+## Required robustness follow-up before freezing
+
+Reported to implementer: NaN probabilities evade the existing range predicate, and extreme probability/gamma combinations can round proposal q to 0 or 1 despite input probabilities being interior. Require finite probability/gamma validation and a stable full-support proposal guard, plus regression tests. Also reject nonbinary/malformed matrix inputs rather than silently converting unexpected floats if the public API is meant for arbitrary callers.
+
+## Scientific limitations and pilot implications
+
+- High importance-weight ESS does not prove mode coverage. All particles can miss a decisive region and still show high ESS. Low ESS triggers fallback, but acceptable ESS alone cannot certify an AIS-derived correction.
+- The same randomly selected coordinate is applied to all particles at each move. Individual chains have valid kernels, but shared random schedules can correlate particles. The usual weight ESS remains a diagnostic, not a calibrated independent-sample count or confidence interval.
+- The chosen product proposal ignores pivot-coordinate energetic effects and may be poor for nonzero syndromes. High-probability pivots and gamma sharpening are heuristics, not convergence arguments.
+- There is no budget-to-convergence guarantee. Metropolis one-coordinate mixing can be slow or effectively trapped on relevant time scales.
+- Proposal choices, seeds, fallback thresholds, schedules and actual sample IDs must be frozen before inspecting pilot outcomes. Report fallback frequency and both repairs and harms against correlated matching.
+- A 192-shot technical pilot is chiefly an engineering/feasibility check, especially at small failure rates. It cannot establish a practical advantage by itself.
+- No d5 efficacy experiment was run during this review.
+
+## Follow-up: guard fixes and pilot/replay review
+
+Finite probability/gamma validation and numerical proposal full-support guards have now been added with regression tests, resolving the primary numeric input concern above. Silent nonbinary input conversion remains an API limitation, not a demonstrated defect in the parsed binary-DEM path.
+
+Reviewed `pilot.py`, `PROTOCOL.md`, and `freeze.py`: first32 indices in all six cells are fixed without outcome selection; two repeats,32 particles,32 bridges,8 moves, ESS8 fallback agree with documentation. No scientific pilot execution was performed. Required finalization items communicated to implementer: preserve approval/manifest in run output; fail immediately on nonfinite masses or malformed/nonbinary decoder outputs. A final suite run must follow these edits before freezing.
+
+Added `replay.py` to audit persisted outputs independently, without rerunning AIS: input/request hashes; selected indices and all archived inputs; both matching modes and both established comparators; trajectory metadata; reconstructed class masses, ESS, repeat agreement and fallback decisions; errors, full denominators, repairs/harms and exact marginal95% binomial intervals. The standalone fixture tests cover reconstruction, tampering, paired counts, and interval endpoints. This replay has not been run on scientific d5 outputs because no approved run exists yet. The mathematical tests validate generic behavior, not scientific efficacy. Complete integration replay remains a post-approval requirement.

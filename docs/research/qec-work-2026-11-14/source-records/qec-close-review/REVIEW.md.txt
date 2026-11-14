@@ -1,0 +1,42 @@
+# Independent close-screen diagnosis and design review
+
+## Verified root cause
+
+The old `parity_proxy` checked `isfinite` on every BP fault variable before projecting to the logical row. Independent re-decoding of all 1,536 historical screening shots found:
+
+- no NaN LLRs;
+- all logical-row LLRs finite on every shot;
+- every infinite LLR belonged to a degree-one check's forced variable and had the correct sign;
+- the 209 zero-syndrome shots used an explicitly excluded, early-return BP state.
+
+Thus the missing proxy stratum was an overbroad validation bug, not demonstrated BP divergence. Frozen results must remain unchanged and the prior interpretation corrected.
+
+## Corrected mathematical proxy
+
+Reviewed `qec-close-screen/proxy.py`: projection before relevant-NaN rejection and analytic +/-infinity limits are sound for a product-of-independent-marginals parity score. Independently checked 1,000 random examples with exhaustive enumeration up to eight variables; maximum absolute logodds error 1.81e-13. This is not a syndrome-conditioned logical-class posterior because the conditioned variables are dependent. Saturated output remains explicit missingness, not artificial confidence. Keep zero-syndrome exclusion until BP early-return state has a separately specified treatment.
+
+## Development references expose ranking limits
+
+Saved `development-score-vs-reference.json` compares seven previously audited cases. BP ranks Z/.010 index54 near the boundary (absolute score .546), although reference absolute logodds is 14.8–15.3. The genuinely close X/.020 index258 has BP score2.534, versus reference .459. Restoring defined scores does not validate the ranking.
+
+Class-constrained candidate gaps are more promising on these same development cases:
+
+- X/.020 index258: best-error gap1.300, four-candidate gap.594, sixteen-candidate gap.502, reference.459.
+- Z/.010 index54: four-candidate gap15.341, reference14.8–15.3.
+
+This is post-hoc development evidence, not held-out validation. All first candidate solves on these seven reported optimal; a later solve on a zero-syndrome list timed out, so a feasible list is not universally guaranteed top-k.
+
+## Cost
+
+Two class lists of four configurations cost0.90–4.50 solver CPU-seconds,3.91–7.80 charged seconds including wrappers across the seven cases. Repeating that on1,536 shots would plausibly take1.7–3.3 CPU-hours at the observed charged rate, with unmeasured tail risk. Do not hide screening cost or count reference time as deployable decoding time.
+
+## Proposed held-out design principles
+
+1. Freeze new index pool, RNG, per-case/total limits and missing-score rules before decoding it; exclude all previous data as development.
+2. A bounded, outcome-blind random shortlist can receive class-constrained four-candidate gaps. If cheap BP is also used to enrich it, retain random coverage so BP misses remain visible.
+3. Freeze random controls first, then choose distinct-syndrome low-gap/disagreement cases; retain absent strata and failures without replacement.
+4. Obtain independent class-mass intervals on selected cases; report score rank versus interval-certified closeness, unresolved references and candidate decision errors. Do not label a case close merely because the proxy says so.
+5. Separate targeted diagnostic results from a random paired evaluation of observed logical errors. Current small selected sets cannot establish population advantage. Count total selection/generation/runtime and fallback costs.
+6. Never use the observed logical bit during selection. Reference class MAP and realized label remain different objects.
+
+No new held-out pool or efficacy experiment was run by this review. Old artifacts were not edited.

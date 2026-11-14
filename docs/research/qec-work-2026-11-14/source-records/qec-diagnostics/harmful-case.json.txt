@@ -1,0 +1,134 @@
+{
+  "case": "z-p0.005/index7",
+  "observed_logical": 0,
+  "detector_indices": [
+    0,
+    5,
+    9,
+    11,
+    19,
+    55,
+    68,
+    89,
+    92
+  ],
+  "classes": [
+    {
+      "logical": 0,
+      "base_expected_free_faults": 0.0013097129585232438,
+      "base_probability_all_free_zero": 0.9986911376152366,
+      "base_offset_faults": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        8,
+        17,
+        18,
+        20,
+        25,
+        27,
+        71,
+        74,
+        116,
+        169,
+        336,
+        346
+      ],
+      "base_offset_logmass": -91.22653359151955,
+      "solver_status": 0,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "solver_wall_seconds": 0.02621586900022521,
+      "feasible_fault_indices": [
+        2,
+        17,
+        28,
+        116,
+        260,
+        336
+      ],
+      "feasible_logmass": -32.842757910086476,
+      "valid": true,
+      "mip_gap": 0.0,
+      "objective_bound": 31.65682799967817,
+      "AIS_underestimate_vs_single_config_log_factors": [
+        32.51286584090812,
+        32.85076543055442
+      ],
+      "AIS": [
+        {
+          "log_mass": -65.3556237509946,
+          "ess": 32.0000000000003,
+          "logweight_min": -65.3556237509946,
+          "logweight_max": -65.3556237509946,
+          "unique_logweights_rounded8": 1
+        },
+        {
+          "log_mass": -65.6935233406409,
+          "ess": 29.998688965001016,
+          "logweight_min": -73.79826587469105,
+          "logweight_max": -65.62732907302653,
+          "unique_logweights_rounded8": 3
+        }
+      ]
+    },
+    {
+      "logical": 1,
+      "base_expected_free_faults": 0.0013097129585232438,
+      "base_probability_all_free_zero": 0.9986911376152366,
+      "base_offset_faults": [
+        2,
+        17,
+        18,
+        20,
+        25,
+        27,
+        71,
+        74,
+        116,
+        169,
+        336,
+        346
+      ],
+      "base_offset_logmass": -63.417451719631465,
+      "solver_status": 0,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "solver_wall_seconds": 0.19006365699988237,
+      "feasible_fault_indices": [
+        1,
+        10,
+        28,
+        44,
+        49,
+        208,
+        260,
+        336
+      ],
+      "feasible_logmass": -46.15820568702531,
+      "valid": true,
+      "mip_gap": 0.0,
+      "objective_bound": 44.972275776616996,
+      "AIS_underestimate_vs_single_config_log_factors": [
+        9.305984835115225,
+        12.024394175238811
+      ],
+      "AIS": [
+        {
+          "log_mass": -55.464190522140534,
+          "ess": 32.0000000000003,
+          "logweight_min": -55.464190522140534,
+          "logweight_max": -55.464190522140534,
+          "unique_logweights_rounded8": 1
+        },
+        {
+          "log_mass": -58.18259986226412,
+          "ess": 10.471723436178351,
+          "logweight_min": -58.644971113259594,
+          "logweight_max": -56.30265054882169,
+          "unique_logweights_rounded8": 2
+        }
+      ]
+    }
+  ]
+}

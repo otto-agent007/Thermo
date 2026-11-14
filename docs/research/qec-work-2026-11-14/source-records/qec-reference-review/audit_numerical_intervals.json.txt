@@ -1,0 +1,20 @@
+{
+  "status": "verified_conditional_on_arithmetic_analysis",
+  "error_bound_outward": true,
+  "intersection_and_ratios_outward": true,
+  "logical0_separated": true,
+  "classes": [
+    {
+      "logical": 0,
+      "lower": 1.0451493972229852e-14,
+      "upper": 1.1347711895651103e-14,
+      "ratios_verified": true
+    },
+    {
+      "logical": 1,
+      "lower": 1.2923901191644545e-20,
+      "upper": 8.881923808421762e-16,
+      "ratios_verified": true
+    }
+  ]
+}

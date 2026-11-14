@@ -1,0 +1,41 @@
+# Thermo targeted QEC diagnostic: final audited report
+
+Completed 2026-11-14. All seven frozen cases independently verified; no additional cases run. The audit rechecked exact-rational candidate masses and intervals, stored slice aggregation, source/receipt integrity and fresh comparator replay. It did not repeat the expensive contractions.
+
+## Main result
+The 4- and 16-candidate decisions and Tesseract agree with the conditional full-model MAP reference on all seven cases. All methods decode the six ordinary controls correctly. On the one disagreement, the candidate method and Tesseract choose0 while the realized logical label is1; ordinary matching, correlated matching and beliefmatching choose1 correctly. This is 0 repairs and1 actual-shot harm relative to each of those three baselines, and0 repairs/0 harms (one shared failure) relative to Tesseract. Model-MAP agreement is not observed-shot correctness. The disagreement has model posterior P(class0|syndrome) about61.2834%.
+
+## Selection and limitations
+The outcome-blind frozen screen covered1536 saved shots: X/Z, p=.005/.010/.020, indices33–288 per cell. It selected one ordinary shot per cell and one strong-decoder disagreement. No proxy-close cases were selected: the proposed BP LLR proxy was nonfinite for all1327 nonzero syndromes;209 zero syndromes were prespecified missing. This is a failed screening proxy, not evidence that close cases do not exist. Selection was independently reviewed before reference/label evaluation. No replacement or tuning was performed.
+
+These seven heterogeneous targeted/stratified cases are descriptive, not a powered logical-error-rate study. Do not pool them as IID trials, claim superiority, or extrapolate a repair rate. Exact model-MAP is optimal in model expectation, not guaranteed correct on every realized shot. No matched-cost, hardware-energy or real-time advantage was established.
+
+## Per-case verified results
+|Case|Stratum|Candidate/reference|Observed|16-candidate winning mass coverage|Charged CPU seconds|
+|---|---|---|---|---|---|
+|x-p0.005 / 273|ordinary|0|0|99.999593–99.999593%|549.034|
+|x-p0.010 / 148|ordinary|0|0|99.990997–99.990997%|523.770|
+|x-p0.020 / 112|ordinary|0|0|99.960971–99.960971%|531.327|
+|x-p0.020 / 258|disagreement|0|1|98.521607–98.530452%|525.351|
+|z-p0.005 / 208|ordinary|0|0|99.999507–99.999507%|528.723|
+|z-p0.010 / 54|ordinary|1|1|99.842091–99.842114%|540.272|
+|z-p0.020 / 93|ordinary|0|0|99.966041–99.966041%|528.139|
+
+## Cost and reliability
+Screen:48.081 charged CPU-sec. Evaluation:3726.616 charged CPU-sec of4200; each case below600. Evaluation includes the interrupted slice attempt charged21CPU-sec in full, all retries, and bookkeeping reservations. Screen plus evaluation3774.697CPU-sec; independent audit/test costs are outside this production ledger.
+Charged evaluation categories (include process startup and conservative reservations, not pure online decoder timings):
+- bookkeeping/other: 116.813 CPU-sec.
+- candidate: 241.033 CPU-sec.
+- comparators: 24.037 CPU-sec.
+- reference slices: 3344.733 CPU-sec.
+Detailed setup/decode and child wall/CPU measurements are preserved in screen/evaluation batch outputs and receipts; wall delays between externally scheduled bounded steps are not online algorithm latency. Candidate and full-reference costs are separate; reference is an offline diagnostic oracle, not the proposed decoder.
+One interruption occurred during the first case. V3 recovered under inherited kernel lock exclusion, retained the interrupted attempt, charged the full reservation and retried only the missing slice. Subsequent cases completed without duplicate completed slices. Final state has no active lease. Retry budget, fixed inputs and selection were preserved.
+
+## Numerical qualification
+The class-order certificates are conditional on exact saved binary64 model parameters, correctly rounded longdouble elementary operations/nextafter and the documented range/underflow assumptions. Here longdouble has64-significand-bit extended precision, not IEEE quadruple. The conservative absolute envelope8.881784197001260216e-16 covers internal signed contraction, not only final summation. This is not a formal verification of NumPy/compiler/hardware. Very small losing classes can have weak relative coverage enclosures despite well-separated winners. See included qec-reference/NUMERICAL_REVIEW.md and all per-class audit intervals.
+
+## Interpretation and next decision
+This study supports small-portfolio approximation of model-MAP on these cases but supplies no practical repair advantage over the strong baseline. The targeted disagreement instead illustrates a realized harm despite MAP agreement. Before any larger study, diagnose/replace the unusable close-decision screening proxy with an independently validated, outcome-blind measure and predeclare a genuinely informative comparison. That is a recommendation, not authorization or launch of further experiments.
+
+## Package
+Includes frozen protocols, screen selection/review, source code, source input data, detailed batch outputs/receipts/ledgers including interruption, final references, independent audit and descriptive report. Derived descriptive-results.json retains its original pending-review labels; authoritative verification status is INDEPENDENT_TARGETED_RESULTS.json. Environment binaries/venvs/caches are excluded. Absolute original paths in manifests are retained for provenance and need relocation-aware validation before reproduction.

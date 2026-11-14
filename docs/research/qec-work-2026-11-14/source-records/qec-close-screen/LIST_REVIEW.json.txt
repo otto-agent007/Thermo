@@ -1,0 +1,21 @@
+{
+  "approved": true,
+  "source_sha256": "beafb4c569072d04a0862fc8a5b2e3d28f6358474000ba74e2e50e21673671a9",
+  "protocol_sha256": "7ab8c120e0b63c9f25ffdecc8520ff5c4bf0ba1f6af9c60642c1dd091d18ac79",
+  "reviewer": "independent screen_audit",
+  "checks": [
+    "12 independently rerun tests",
+    "10 additional exhaustive 7-bit factor fixtures",
+    "source hashes and pinned packages",
+    "outcome-blind detector only access",
+    "round-robin SHA rank source review",
+    "interrupted receipt unknown with no rerun",
+    "global exhaustion finalizes unknown rows",
+    "5 CPU finalization reserve"
+  ],
+  "limitations": [
+    "truncated list mass not posterior",
+    "nonoptimal or incomplete class unknown",
+    "stop orchestration on completion"
+  ]
+}

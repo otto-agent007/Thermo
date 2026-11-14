@@ -1,0 +1,19 @@
+# d3 full-Pauli headroom screen
+
+Evidence: exhaustive numerical reference plus software decoder comparison. No hardware result and no probabilistic-refiner run.
+
+| Total Pauli error rate | Ordinary matching logical risk | Correlated matching logical risk | Exact MLD logical risk | Residual headroom vs better matching | Relative headroom | Frozen gate |
+|---|---:|---:|---:|---:|---:|---|
+| 2% | 0.00598370306701 | 0.00613909318277 | 0.00506815823670 | 0.000915544830315 | 15.3006% | fails absolute floor |
+| 5% | 0.0337823219761 | 0.0345720742570 | 0.0292614122449 | 0.00452090973124 | 13.3825% | passes |
+| 8% | 0.0780522421888 | 0.0796860564075 | 0.0689833940339 | 0.00906884815484 | 11.6189% | passes |
+
+The frozen gate passes at two of three rates. The next authorized action is only preparing a separately reviewed d5 protocol, not running d5. Ordinary matching is the stronger of these two baselines on this particular symmetric finite-code instance. Correlated matching is not guaranteed to improve every case.
+
+This establishes a materially larger oracle repair opportunity than the earlier X-only probe. It does not show that AIS, a learned gate, or any practical decoder can recover the gap efficiently. Exact enumeration remains very cheap at d3. The matched homogeneous depolarizing, perfect-measurement family does not establish performance under noisy measurements, circuit faults, bias, drift or larger codes.
+
+Reference calculation integrates all 262144 Pauli patterns across 256 syndromes and four logical classes. There is no Monte Carlo confidence interval for these exhaustive risks. There are 144 near-tied optimal-class syndromes under the frozen 1e-14 diagnostic tolerance; actual risks use maximum class mass without tolerance inflation. Full decisions and mass tables are persisted for audit.
+
+Recorded runner computation: 0.7004 CPU seconds, 0.7029 wall seconds, peak process RSS 100780 KiB (~98.4 MiB). Timer includes geometry validation, enumeration, high-precision and independent convolution checks, model construction, decoding and most artifact writes; excludes process startup/imports and subsequent external audit. These are workflow costs, not per-shot decoder latency or hardware estimates.
+
+The immutable request retains its pre-execution OWNER_REVIEW_REQUIRED label and scientific_grid_executed=false as historical requested inputs. A separate owner-approval record binds the exact request hash. Observed results and independent completion record establish actual execution state; the immutable request is not edited after approval.

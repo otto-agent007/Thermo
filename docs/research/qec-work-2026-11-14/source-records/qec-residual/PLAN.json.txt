@@ -1,0 +1,8 @@
+{
+ "scope":"exact synthetic paired diagnostic only",
+ "fixtures":"reuse all 12 frozen qec-calibration fixtures; exact same proposals, budgets and 768seeds",
+ "estimator":"known mass of unique fixed seed assignments plus AIS weight times final-endpoint-outside-seeds indicator averaged over particles",
+ "comparison":"paired ordinary/residual estimates from identical trajectories; no new parameter tuning",
+ "metrics":"perfixture empirical relative bias, coefficient of variation, relative MSE, pergroup mean absolute relative error, fraction groups exceeding10%error, residual zero-nonseed-weight frequency, seed target mass fraction",
+ "interpretation":"finite empirical bias not proof of estimator bias; no generic variance reduction, no calibrated confidence claim, no d5 efficacy expansion"
+}

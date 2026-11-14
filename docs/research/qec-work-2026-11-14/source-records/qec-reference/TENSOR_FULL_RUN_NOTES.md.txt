@@ -1,0 +1,20 @@
+# Authorized full256-slice one-case run
+
+Scope: saved Z-memory,p=.005,archive index7; original397independent DEM mechanisms with each complete correlated instruction preserved. One case only, no new sampled data. Both logical classes obtained by changing the sign on fixed Fourier variable120 rather than running another network.
+
+Resource contract: serial native threads1; longdouble; RLIMIT_AS3GiB; RLIMIT_CPU1200seconds. Every completed term fsynced to full-slices/terms.jsonl, progress in progress.json. Full aggregate is written only after all256slices complete. A partial file is not a complete class probability. PeakRSS includes process initialization; run timing begins after imports and limit setup.
+
+The implementation represents the exact binary-Fourier sum without tensor truncation, but floating-point evaluation is initially marked numerically unverified. Longdouble here has63mantissa bits, not IEEE quadruple. Absolute term sums measure final-sum cancellation only, not all internal contraction cancellation. Independent arithmetic-error analysis or interval computation is needed before numerical results become a trustworthy reference.
+
+Validation before launch: tiny hyperedge fixture sum-over-slices equals direct fault enumeration for every syndrome; fixedlogical sign recovers both exact logical classes; tests also check a fully fixed Fourier term and scalar sign aggregation. Aggregate qec-reference suite20tests passed. These tests support implementation mapping, not automatic d5 numerical accuracy.
+
+Files: tensor_full_slices.py, tensor_slice_run.py, test_tensor_full_slices.py, test_tensor_slice.py, full-slices/, tensor-full-slices.log, tensor-full-validation.log.
+
+## Completed result (still numerically unverified internally)
+All256terms completed:457.418wall/455.595CPU seconds; peakRSS582976KiB (~569.3MiB), under3GiB/1200CPU-sec. Single-term wall times1.63–2.79seconds. No additional cases or reruns.
+
+Numerical class0 sum:1.045953347595097695e-14. Numerical class1 sum:1.3961142050116040477e-20. All class0slice terms were positive; class1 is a signed difference of approximately5.22977e-15 and5.22976e-15. Final-sum condition ratios:1 forclass0 and749188.96 forclass1. These measure only final aggregation, not internal cancellation.
+
+An independent100decimal-digit re-sum of stored term strings gave class0=1.0459533475950976950151e-14 andclass1=1.3961142050116415e-20. Differences from recorded longdouble aggregation are1.51e-34 and3.74523e-34, respectively. All256unique assignments, sequential indices andlogical sign metadata verified. This confirms final bookkeeping, NOT accuracy of the underlying term contractions. See aggregate-audit.json for source/input hashes.
+
+No exact d5 MLD/classmass or portfolio coverage claim is established here until numerical error review completes. The existing positive mathematical bounds remain the trusted constraints.

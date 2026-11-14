@@ -1,0 +1,11 @@
+# Execution-only amendment before evaluation
+
+Owner explicitly requested interruption recovery and continued progress within approved scope. Completed outcome-blind screening and its immutable selection remain unchanged. No labels were read before selection freeze. Seven cases selected under the frozen rules; missing close-proxy strata are not replaced.
+
+New evaluation executor v2 passes the held kernel-flock file descriptor into its trusted single-process child. The child retains it for its lifetime. Acquiring that same lock establishes neither protected supervisor nor child remains, without relying on PID namespace visibility or timestamps. Never apply this proof to legacy leases.
+
+Reconciliation settles existing valid receipt/output without recomputing; missing receipt marks attempt interrupted, retains fullCPU reservation and25sec wall charge, and quarantines any uncommitted output. Same command/input may retry at most twice (three attempts total), charged against original per-case/global limits. Failed attempts and error records remain intact. No reset of budgets, expansion of selected cases, method change, or silent discarded failure. Exhaustion or third failure triggers explicit diagnosis rather than an unreported stale lease.
+
+Setup can resume from verified per-case configurations; incomplete preparation directories are archived rather than deleted. Small preparation/policy/finalization reservations protect bookkeeping windows. Actual short-child behavior is fault-injection tested through screen and evaluation coordinators, including killed parent/child, kill after output publication before receipt, and kill after receipt before ledger settlement. Historical completed screening usedv1; v2 screening coordinator is tested synthetically but no real screening shots are rerun.
+
+Guarantee is limited to trusted single-process commands retaining the inherited descriptor on this shared Linux filesystem. It is not a claim of progress during indefinite host suspension or storage destruction. The cloud check/restart mechanism remains necessary to issue the next bounded step.

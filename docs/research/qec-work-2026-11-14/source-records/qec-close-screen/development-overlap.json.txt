@@ -1,0 +1,38 @@
+{
+  "x-p0.005": {
+    "panel_shots": 32,
+    "panel_unique_syndromes": 23,
+    "shots_matching_development_syndrome": 10,
+    "random_shots_matching_development_syndrome": 10
+  },
+  "x-p0.010": {
+    "panel_shots": 32,
+    "panel_unique_syndromes": 31,
+    "shots_matching_development_syndrome": 2,
+    "random_shots_matching_development_syndrome": 2
+  },
+  "x-p0.020": {
+    "panel_shots": 34,
+    "panel_unique_syndromes": 34,
+    "shots_matching_development_syndrome": 0,
+    "random_shots_matching_development_syndrome": 0
+  },
+  "z-p0.005": {
+    "panel_shots": 32,
+    "panel_unique_syndromes": 28,
+    "shots_matching_development_syndrome": 7,
+    "random_shots_matching_development_syndrome": 7
+  },
+  "z-p0.010": {
+    "panel_shots": 32,
+    "panel_unique_syndromes": 30,
+    "shots_matching_development_syndrome": 4,
+    "random_shots_matching_development_syndrome": 4
+  },
+  "z-p0.020": {
+    "panel_shots": 34,
+    "panel_unique_syndromes": 34,
+    "shots_matching_development_syndrome": 1,
+    "random_shots_matching_development_syndrome": 1
+  }
+}

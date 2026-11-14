@@ -1,0 +1,30 @@
+# Tensor-network reference feasibility (saved d5 DEM)
+
+## Model fidelity and formulations
+Each complete DEM error instruction is one independent Bernoulli fault variable, including all separated `^` components. No independent splitting of correlated components. A is the121-by397 binary detector-plus-logical incidence matrix.
+
+Primal network: unary Bernoulli weights on397fault variables and121parity-check factors. Dual Fourier network: one binary auxiliary per constraint; each original fault yields factor (1-p_j)+p_j(-1)^(sum neighboring auxiliary bits), with unary (-1)^(b_i*t_i)/2. This algebra gives the exact event probability if contracted in exact arithmetic. Original fault correlations are preserved in either representation.
+
+## Measured planning results
+Deterministic minimum-fill variable elimination, both X/Z saved models:
+- Primal induced widths89/90; completely infeasible for dense direct contraction here.
+- Dual induced width29 for both; largest bucket product2^30entries,8GiB float64 or16GiB longdouble BEFORE additional workspace/factors. Sum of bucket entry counts2.77billion(X)/2.88billion(Z), a rough size-work proxy, not measured FLOPs.
+- Graph planning took19.94seconds, dominated by primal graph.
+
+These are heuristic order upper bounds, not minimal treewidth results and NOT a proof that exact reference computation is impossible. The three rates share structure; this assessment used p=.005X/Z files, not altered faults.
+
+A simple slicing-plan diagnostic fixed highest-degree auxiliary variables. Eight sliced variables yielded256subproblems, width23,128MiB float64 or256MiB longdouble for each largest bucket product, but14.23billion total bucket entries across slices, before multiplication counts and buffering. This illustrates a memory/time tradeoff, not a completed calculation or guaranteed60-second run. With4slices variables, X still4GiB per product; Z1GiB before buffers. Removing variables can worsen the chosen heuristic ordering, so reported widths are not monotone optimal-width claims.
+
+No numerical d5 contraction was launched: unsliced plans exceed the1GiB cap, while sliced work is not comfortably within the60-second diagnostic allowance and retains cancellation concerns.
+
+## Numerical trustworthiness
+The dual network includes signed unary factors. Very small syndrome/class masses can be differences of large terms; naive float64 or even longdouble contraction is not a certified relative-accuracy oracle. A successful execution would still need independent error control or a nonnegative formulation. `tensor_contract.py` is an untruncated longdouble prototype, NOT a rigorous interval solver. It refuses oversized planned allocation.
+
+Tests compare every syndrome of a four-fault/three-constraint hyperedge model against independent exhaustive fault enumeration, plus a memory-gate test:2tests passed,8exact mass comparisons. This validates small-fixture algebra and correlation handling, not d5 numeric accuracy.
+
+## Primary research context and next options
+Cheng and Pan, *Exact Maximum Likelihood Decoding beyond Treewidth via Rank-Decomposition Dynamic Programming*, arXiv:2609.39556, submitted30September2026: https://arxiv.org/abs/2609.39556 . Their abstract describes exact rank-width-based evaluation with independent local fault factors and a nonnegative realization with relative floating-point error bounds under stated assumptions. This makes rank-DP/nonnegative contraction a credible direction to inspect, but this work has NOT implemented their solver or established its complexity/accuracy for our397fault model.
+
+Practical next steps: better contraction-order search/slicing with explicit runtime estimates; original-paper rank-DP implementation suitability; or the parent task's conservative bounded counting. None should be called a trustworthy full d5 class-mass reference until model mapping and numeric bounds are verified.
+
+Files: tensor_cost.py/tensor-cost.json, tensor_slicing.py/tensor-slicing.json, tensor_contract.py, test_tensor.py. No new noisy samples or efficacy comparison.

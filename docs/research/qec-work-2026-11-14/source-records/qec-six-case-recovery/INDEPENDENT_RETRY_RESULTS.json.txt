@@ -1,0 +1,60 @@
+{
+  "scope": "Separate authorized retry, no contractions rerun; conditional numerical audit. Historical partial remains retained and fully charged. Old-process liveness remains unconfirmed.",
+  "case": {
+    "cell": "x-p0.010",
+    "index": 32,
+    "status": "independently_verified_conditional_numerics",
+    "classes": [
+      {
+        "logical": 0,
+        "mass_lower": 2.244431437587363e-08,
+        "mass_upper": 2.244431615223047e-08,
+        "portfolios": [
+          {
+            "size": 4,
+            "captured_lower": 0.9884313805888464,
+            "captured_upper": 0.9884314588183176
+          },
+          {
+            "size": 16,
+            "captured_lower": 0.9993436076631641,
+            "captured_upper": 0.9993436867562843
+          }
+        ]
+      },
+      {
+        "logical": 1,
+        "mass_lower": 6.8129365292051284e-15,
+        "mass_upper": 8.589293368605381e-15,
+        "portfolios": [
+          {
+            "size": 4,
+            "captured_lower": 0.3716046628646268,
+            "captured_upper": 0.46849423193707196
+          },
+          {
+            "size": 16,
+            "captured_lower": 0.7615705073330943,
+            "captured_upper": 0.9601370099839707
+          }
+        ]
+      }
+    ],
+    "winner": 0,
+    "observed": 0,
+    "predictions": {
+      "ordinary": 0,
+      "correlated": 0,
+      "tesseract": 0,
+      "beliefmatching": 0
+    },
+    "charged_cpu_seconds": 509.501
+  },
+  "retry_charged_cpu_seconds": 509.501,
+  "historical_charge": 3128.883,
+  "combined_charge": 3638.384,
+  "historical_prefix_comparison": {
+    "count": 104,
+    "exact_saved_value_and_assignment_match": true
+  }
+}

@@ -1,0 +1,57 @@
+# Independent review: exact-seed plus AIS residual
+
+## Mathematical result
+
+The implementation uses the correct **final endpoint** indicator, not whether a
+particle ever visited a seed. For a fixed normalized proposal, fixed seed set,
+and invariant intermediate kernels, the AIS identity is
+
+E[W 1{X_final=x}] = f(x).
+
+Thus the estimator Z_seed + mean(W 1{X_final outside seeds}) is unbiased for total
+mass. It is always at least Z_seed because its sampled residual is nonnegative.
+This is a different estimator, not clipping an ordinary estimate to a bound.
+The exact seed contribution sums unique valid fault assignments.
+
+Four independent tests in `test_endpoint_independent.py` passed:
+1. Exhaustive propagation checks the entire weighted terminal-state vector,
+   then the residual expectation identity, on a finite affine fixture.
+2. Independent direct-probability trajectory replay matches production endpoint
+   states, weights and residual with no moves.
+3. The same independent replay matches with three moves per temperature.
+4. An exact counterexample establishes that residual variance can increase.
+   With a proposal equal to the target, ordinary weights are constant; removing
+   the known random seed contribution makes the residual estimator nonconstant.
+
+## Saved-result audit
+
+`independent_audit.py` verified both plan/source hashes, all **768** saved paired
+weight arrays, final-state syndrome consistency, seed membership, nonseed
+counts, ordinary and residual masses, structural bounds, and reported metrics.
+Exact mass was independently recomputed by enumerating all 4,096 physical fault
+vectors and summing direct Bernoulli products over the appropriate syndrome.
+
+The empirical effect is mixed, not a blanket improvement:
+- Historical validation701/top4: group relative MSE improves from 0.0110459 to
+  3.03e-10, where the known seeds already account for almost all target mass.
+- Its omitted-top4 counterpart changes from 0.0396111 to 0.0396179; both have
+  9 of 16 group means more than 10% from exact mass.
+- Several other fixtures worsen in relative MSE despite some improvements
+  elsewhere. These finite sample differences are not proofs of population MSE.
+
+The names "calibration" and "validation" are inherited fixture labels. The
+residual investigation reuses already inspected fixtures and is a development
+comparison, not new held-out validation.
+
+## What this does not establish
+
+The structural lower bound does not certify approximation accuracy. Unseen
+important residual modes can still be missed. A run with no nonseed endpoints
+returns exactly the known seed mass; that is not evidence the residual is zero.
+No calibrated confidence interval follows from zero residual observations,
+high ESS, or repeated agreement.
+
+Known contribution removal does not guarantee lower total variance: covariance
+with the residual contribution matters. Exact-fixture empirical bias is sampling
+error, not evidence of asymptotic bias. No d5 efficacy conclusion or authorization
+for an expanded study follows from these results.

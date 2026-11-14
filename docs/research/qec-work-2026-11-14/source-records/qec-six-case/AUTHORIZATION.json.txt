@@ -1,0 +1,6 @@
+{
+  "approved": true,
+  "manifest_sha256": "57769c855e0c62b69c186ea19f703f6086b5db98b25ebb7690152f6b037e3552",
+  "source": "Otto approved six fresh saved d5 diagnostic cases; root explicitly instructed freeze and execute after independent pre-run review.",
+  "limits": "1CPU native thread,3GiBAS,3600CPU seconds total,600CPU seconds percase; no expansion"
+}

@@ -1,0 +1,15 @@
+# Independent completed-run audit
+
+PASS. Verified exact approved manifest SHA-256 `0ceb98868c6936af365ec606b0f6f24cacb519c44a4d242461ad8a3c090777a0`, the stored approval record and all eight frozen source hashes. Replayed all three persisted probability tables via independent long-double XOR convolution. Independently reconstructed each detector model and replayed ordinary and correlated PyMatching decisions for all 256 syndromes per rate. Verified oracle decisions, all risk values, diagnostic ties/disagreements, per-rate criteria and the final advance decision.
+
+| Total Pauli p | Ordinary risk | Correlated risk | Exact risk | Gate |
+|---|---:|---:|---:|---|
+| .02 | .005983703067010215 | .006139093182772090 | .005068158236695133 | fail absolute cutoff |
+| .05 | .033782321976121530 | .034572074256973020 | .029261412244881370 | pass |
+| .08 | .078052242188775430 | .079686056407480120 | .068983394033932530 | pass |
+
+Maximum class-mass discrepancy across independent implementations was 6.98e-16. There are 144 oracle near-tie syndromes and 112 ordinary/correlated decision disagreements at each rate. All are recorded rather than discarded. The correlated decoder is slightly worse here; the criterion correctly uses ordinary matching as the stronger comparator at all three rates. This does not invalidate correlated matching generally, nor prove a practical refinement algorithm.
+
+The frozen condition passes at two rates, authorizing preparation of a separately reviewed d5 protocol, not d5 execution. No d5 work was run by this audit. No frozen preparation or result file was modified. `completion.json` was written last after successful replay.
+
+Audit-only replay time was .01284 wall seconds / .01284 process CPU seconds after dependency imports, peak process RSS 83072 KiB; these are cloud-software integrity-check costs, not decoder latency or hardware measurements. The command's process wall time including startup/imports was approximately .446 seconds. See `qec-full-pauli-final-audit.json` for exact timings and evidence hashes and `qec-full-pauli-final-audit.py` for reproducible audit source.

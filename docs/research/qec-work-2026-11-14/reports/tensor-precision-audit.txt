@@ -1,0 +1,39 @@
+# Independent bounded tensor precision review
+
+Approved bounded feasibility gate passes on saved artifacts. Independently checked
+624 full mass enclosures, 1,456 individual signed slice enclosures, and 198
+available posterior enclosures. Truth uses separate Fraction primal fault
+enumeration and direct restricted dual enumeration, with no imports of the
+implementation, study oracle, or interval arithmetic. All ten unchanged stress
+fixtures, three slicing variants and four precisions were present.
+
+Code review found the tiny port preserves the original tensor backend's factor
+construction, fixed-variable scalar, unary signs, deterministic min-fill bucket
+order, multiplication, binary reduction and slice aggregation. Its least-
+significant-axis table representation is internally consistent. Directed Decimal
+input conversion, arithmetic and posterior endpoints enclose exact rational
+values on these fixtures. This is an algorithmic pure-Python interval port, NOT
+an in-place replacement or scalable benchmark of the original NumPy backend.
+
+Every possible-syndrome posterior reaches width <=1e-10 at a tested precision.
+All slicing variants agree on minimum required precision: 16 digits for seven
+models, 32 for rare_competing, 64 for rare40, and 128 for rare100. Narrowness is
+not a winning-class certificate: near_tie requires 32 digits for a winner even
+though narrow at 16; rare_competing's rare syndrome is narrow at 32 but its
+winner is unresolved until 64. Exact tie stays unresolved at every precision.
+Impossible syndromes have unknown posterior. Rare100's rare syndrome is unknown
+through 64 digits and becomes bounded at 128, not guessed.
+
+Source/input/manifest hashes, completed output receipts, preserved fixture
+scope, exact output/result equality, per-case CPU budget, global budget and
+absence of active lease all passed. The audit snapshot's charged scientific
+CPU was 11.246 seconds and measured receipt CPU 0.968631 seconds. Independent
+audit used approximately 0.10 CPU seconds and 40.33 MiB peak RSS. Later valid
+aggregation/replay bookkeeping may increase charged overhead without changing
+scientific results; re-audit if reporting final ledger totals.
+
+Limitations: empirical fixture checks do not prove all arithmetic paths or
+physical model correctness. No nontrivial high-treewidth scaling was tested;
+there are at most three rows and five faults. The full precision sweep is not
+a timed adaptive implementation. No d5 inputs were loaded, no unresolved d5
+case was rerun, and no decoder efficacy conclusion follows.

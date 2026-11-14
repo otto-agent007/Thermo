@@ -1,0 +1,86 @@
+[
+  {
+    "name": "qec-d5-pilot-completed.tar.gz",
+    "size_bytes": 2081555,
+    "sha256": "551589f6ae5ce278c4074bcf8016fdbb773a85e0e1328ebc2005197e59d14b87",
+    "source_directory": "qec-extension"
+  },
+  {
+    "name": "qec-d5-harm-diagnostics.tar.gz",
+    "size_bytes": 7214,
+    "sha256": "ccdf46b04a70d2aaa93a8bca7b4194d1b1cde8a8029dba85665613351b0a98e0",
+    "source_directory": "qec-diagnostics"
+  },
+  {
+    "name": "qec-multimode-prototype.tar.gz",
+    "size_bytes": 23929,
+    "sha256": "16c7940a90ec979b39771e93ff7601d627d2c90ceaa96015761143e69bb7416a",
+    "source_directory": "qec-prototype"
+  },
+  {
+    "name": "qec-exact-calibration.tar.gz",
+    "size_bytes": 440776,
+    "sha256": "cec5e2cd59166918d4e3eebc75e1d4708cbadf71358ffa7e0008ba7848f3d4c8",
+    "source_directory": "qec-calibration"
+  },
+  {
+    "name": "qec-residual-estimator-study.tar.gz",
+    "size_bytes": 1092496,
+    "sha256": "90aea310132c27751e8cc2e47c20ec3f2c3e5dc9298ed22c342d7978c5d09d29",
+    "source_directory": "qec-residual"
+  },
+  {
+    "name": "qec-d5-sliced-reference-completed.tar.gz",
+    "size_bytes": 1960107,
+    "sha256": "cbf2b26ba1dc2d358dedacd46bc2964c1bcf036ae2927635333319b174b13cfd",
+    "source_directory": "qec-reference"
+  },
+  {
+    "name": "qec-six-case-with-sixth-retry.tar.gz",
+    "size_bytes": 2159302,
+    "sha256": "cc281840d0b1d873652dfac02b1aeefe1e413011f78bbeab307fa347d09175e7",
+    "source_directory": "qec-six-case-recovery"
+  },
+  {
+    "name": "Thermo-targeted-QEC-seven-case-audited.tar.gz",
+    "size_bytes": 2812048,
+    "sha256": "ab6608dc76028946ab19965495a5f6f0da7a6966b026be5c65ee3225ece399ce",
+    "source_directory": "qec-targeted-study"
+  },
+  {
+    "name": "Thermo-heldout-QEC-2026-11-14.tar.gz",
+    "size_bytes": 3374245,
+    "sha256": "c86fbc0f98cda2765873b3e3713f9f0c508eb98b9bf67140f37b82480a8d0c9c",
+    "source_directory": "qec-close-screen"
+  },
+  {
+    "name": "qec-rounding-completed-study.tar.gz",
+    "size_bytes": 163370,
+    "sha256": "5fd392dba38aecd67035a2b87c9d62cd9c58a3a9c406bc05d332e628be72bac1"
+  },
+  {
+    "name": "qec-full-pauli-completed-study.tar.gz",
+    "size_bytes": 20792,
+    "sha256": "fd81ff3cbcda8c5720507153e1b347a7f1834d5ea903f56781d79331dbd518a3"
+  },
+  {
+    "name": "qec-refinement-completed-probe.tar.gz",
+    "size_bytes": 18261199,
+    "sha256": "f18cef7e1fae67cb1a09428c7b7df685234cb5c1164fcf6019f24c650248cc00"
+  },
+  {
+    "name": "qec-d5-completed-study.tar.gz",
+    "size_bytes": 1931549,
+    "sha256": "b3af8d40d71aad417edc4c5864e23d4abcdd906293fb46a7aab0b4bba939fdb8"
+  },
+  {
+    "name": "Thermo-bounded-QEC-precision-diagnostic-2026-11-14.tar.gz",
+    "size_bytes": 89036,
+    "sha256": "5cc8b6cb323f48a2e0a9ad76eef704ea1627a32524e04a92e64ee303a8d5adff"
+  },
+  {
+    "name": "Thermo-tensor-precision-feasibility-2026-11-14.tar.gz",
+    "size_bytes": 65229,
+    "sha256": "a717d416d13709f1c2b4824d25977ab45aeeef157fcf321cffb0866b21b82f4c"
+  }
+]

@@ -1,0 +1,35 @@
+# d5 reference feasibility and bounded candidate coverage
+
+Initial feasibility report. Superseded for this saved case by FULL_REFERENCE_REPORT.md after the separately authorized full sliced run and numerical audit.
+
+Scope: original saved d5 detector model, one saved harmful syndrome (Z,p=.005,index7), structural checks on all six models, and independently enumerable examples. No new noisy sampling or efficacy comparison.
+
+## Model fidelity and external reference check
+Each complete DEM error instruction is one independent Bernoulli fault, including all separator-linked components. Independent audit compared saved decomposed factors with undecomposed regenerated-circuit factors in all six cells:397unique columns,100separator-containing instructions per model, identical complete factors. No correlation-breaking edge split.
+
+Cheng/Pan's independent9-qubit surface-code appendix example was reproduced by exhaustive512physical assignments and separate2x16stabilizer-coset enumeration. At decimal p=.1 the two class masses are0.046268496 and0.019431504; top4 captured fractions approximately96.4826% and98.4580%. This validates a small external case, NOT our d5 model. Source: https://arxiv.org/html/2609.39556v1 . The paper proposes rank-decomposition DP and nonnegative arithmetic/error control; that solver has not been implemented here.
+
+## Conservative counting on actual d5
+Implemented positive dynamic programming on selected projected check events, retaining full correlated fault columns. Dropping checks creates a superset event, so its mass bounds the full class from above. Partial feasible configuration sums bound from below. Outward-rounded longdouble arithmetic applies nextafter to each elementary coefficient subtraction, product and sum. Exact rational representations of endpoints are saved. Numerical guarantee is conditional on correctly-rounded IEEE elementary arithmetic/nextafter on this platform, for exact BINARY64 probabilities supplied by Stim; it is not a formal platform-independent proof or a bound on hypothetical decimal-intended parameters. Independent Fraction.from_float exhaustive tests cover edge probabilities, dependent constraints and duplicates.
+
+Sixteen feasible configurations per class found with2-second per-solve limits; all32solver calls reported optimal/status0/gap0. Solver optimization is floating-point, not a rational optimality certificate. Lower mass bounds require only exact parity feasibility and enclosed probabilities, not global optimality. Portfolio sums are deduplicated.
+
+18selected constraints (logical row, all9triggered checks, eight adjacent checks chosen by deterministic coupling score) yield:
+- Class0 total mass between1.0451493972e-14 and4.3300999894e-13.
+- Class1 total mass between1.2923901192e-20 and1.1989957179e-13.
+
+Captured-fraction bounds for portfolios of1/4/16configurations:
+- Class0:1.259%–52.167%;2.388%–98.930%;2.414%–100%.
+- Class1:0.00000750%–69.559%;0.00000912%–84.620%;0.00001078%–100%.
+
+These are too loose to establish useful portfolio coverage or logical-class ordering. A bound's validity is not the same as usefulness. More constraints, better partitioning or another exact approach may tighten it.
+
+Run cost20.15wall seconds, peak RSS121440KiB (~118.6MiB), under120CPU-second/2GiB address-space caps. Projection sizes12/16/18and all solver logs recorded. Shape-validation guards were hardened after this run; arithmetic unchanged and exact tests pass.
+
+## Tensor route
+Deterministic minimum-fill ordering gives primal fault-variable inducedwidth89/90 and dual detector Fourier width29. Dual largest dense product has2^30entries:8GiB float64 or16GiB longdouble before retained factors/workspace. These are costs of a particular heuristic order, NOT proven inherent width or impossibility of exact d5 contraction.
+
+Slicing8dual variables yields256serial slices, width23,128MiB float64/256MiB longdouble largest product and roughly14.23billion summed bucket entries. This is a planning count, not a measured operation count or wall estimate. Signed Fourier cancellation is a separate accuracy issue: untruncated floating-point contraction is not automatically a trustworthy mass reference. See TENSOR_FEASIBILITY.md and the resource/slice follow-up for actual measured costs.
+
+## Conclusion
+We now have verified model mapping, an external exact small fixture and conservative but loose actual-d5 bounds. We do NOT yet have a trustworthy tight d5 reference for captured class mass. Hardware capacity alone will not resolve numerical cancellation. No practical decoding advantage or exact-d5 impossibility has been claimed.

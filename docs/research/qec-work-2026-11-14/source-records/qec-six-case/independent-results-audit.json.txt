@@ -1,0 +1,136 @@
+{
+  "manifest_sha256": "57769c855e0c62b69c186ea19f703f6086b5db98b25ebb7690152f6b037e3552",
+  "hashes_and_dependencies_verified": true,
+  "cases": [
+    {
+      "cell": "x-p0.005",
+      "index": 32,
+      "status": "independently_verified_conditional_on_arithmetic_assumptions",
+      "observed": 0,
+      "conditional_reference_winner": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 0.30546378328641133,
+          "mass_upper": 0.3054637832864131,
+          "candidate_count": 16,
+          "solver_statuses": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9999945679677933,
+              "captured_upper": 0.9999945679677993
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9999959319221184,
+              "captured_upper": 0.9999959319221244
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 8.044028754184383e-12,
+          "mass_upper": 8.045805111023784e-12,
+          "candidate_count": 16,
+          "solver_statuses": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1
+          ],
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.254180366008714,
+              "captured_upper": 0.25423649646838775
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.7069400980851552,
+              "captured_upper": 0.707096211137042
+            }
+          ]
+        }
+      ],
+      "cpu_seconds": 451.113061503,
+      "wall_seconds": 452.92026846099907,
+      "final_sums_exactly_recounted": true,
+      "comparators_redecoded": true
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 32,
+      "status": "incomplete_or_running",
+      "last_status": "running",
+      "reference_progress": {
+        "status": "running",
+        "completed_slices": 20,
+        "total_slices": 256,
+        "wall_seconds": 34.19483773600223,
+        "cpu_seconds": 34.07331734000002,
+        "cpu_absolute": 505.106809623,
+        "peak_rss_KiB": 721496
+      }
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 32,
+      "status": "unstarted"
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 32,
+      "status": "unstarted"
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 32,
+      "status": "unstarted"
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 32,
+      "status": "unstarted"
+    }
+  ],
+  "completed_cases_verified": 1,
+  "all_six_complete": false,
+  "audit_wall_seconds": 0.546288319001178,
+  "scope": "No reference contraction rerun. Partial status cannot distinguish live vs terminated process without external exit check."
+}

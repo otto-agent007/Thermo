@@ -1,0 +1,26 @@
+# Exact-fixture reliability calibration: candidate gate rejected
+
+## Prespecified diagnostic
+PLAN.json SHA256 9ed764ab952d5b9e9f5e3bde9dd20acbdca409ce418b836b618ab910648e8cc7 was saved before outcomes. Twelve exactly enumerable synthetic fibers: six calibration and six validation, each with12faults/four constraints, probabilities0.01/0.08/0.25, and either top4 feasible configurations seeded or those four excluded from seed selection. Each fixture had16groups of4 independent repetitions;64particles,16temperatures,4moves. Total768runs/192groups. No d5 samples, larger efficacy comparison or parameter tuning.
+
+Exact enumeration supplied truth and visited-target-mass diagnostics, never acceptance inputs. Candidate reliability rule used four-repetition mean and heuristic Student-t3 halfwidth; required min repetition ESS>=8, heuristic upper interval reaching known seed mass, and relative halfwidth<=0.10,0.25,or0.50. Accurate meant group-mean mass within10% of exact truth. Choose loosest candidate with zero inaccurate accepted calibration groups and>=20% acceptance; otherwise reject all.
+
+## Result
+**No candidate qualified. No calibrated deployment gate was obtained.**
+
+| Relative halfwidth limit | Calibration accepted /96 | Inaccurate among accepted | Validation accepted /96 | Inaccurate among accepted |
+|---|---:|---:|---:|---:|
+|0.10|32|5|28|1|
+|0.25|62|13|67|6|
+|0.50|80|21|81|12|
+
+Validation candidate results are descriptive because calibration selected none. No threshold was rescued or retuned after seeing validation. Pooled heterogeneous counts above are summaries, NOT iid-binomial population estimates. results.json provides per-fixture conditional false-accept counts and exact95% intervals; with at most16groups per fixture uncertainty is substantial even when zero errors occur.
+
+The nominal95% Student-t interval's pooled descriptive empirical coverage was89/96(92.7%) calibration and91/96(94.8%) validation. This does not validate95% coverage for d5 or other fixtures. Four heavy-tailed AIS replicates can underestimate uncertainty; ESS and known-seed bounds do not fix that.
+
+Visited states carried nearly all exact target mass for most groups/fixtures (mean about98.9%–100% by fixture). Nonetheless mass estimates could err by up to39%. Visiting important states sometime during annealing is insufficient: path weights and frequency must also be accurate. The current small fibers are easier to traverse than d5; high visited coverage does not establish adequate d5 mode coverage. Excluding the top4 seeds is not necessarily excluding an entire energetic basin, especially with tied energies.
+
+## Consequence
+Do not advance this gate or expand d5 efficacy. The revised proposal corrects the earlier catastrophic origin problem but practical reliability remains unresolved. Next design options include seed-mass plus separately estimated residual mass, richer independent replications and explicitly calibrated uncertainty on exact difficult fixtures. A seed-plus-residual estimator must be derived/tested, not clipping an estimate upward to its lower bound. No such additional arm was run here.
+
+Sources, full particle logweights, exact fixture definitions, fixed plan, replay checks and independent review are bundled. Wall time10.08seconds. Tests validate instrumentation against original estimator and a deliberately false-confidence fixture; they do not turn a rejected statistical rule into a passing one.

@@ -1,0 +1,122 @@
+[
+  {
+    "workflow": "screen",
+    "fault": "normal",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 1.05
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "parent",
+    "first_rc": -9,
+    "restart_rc": 1,
+    "restart_error": "RuntimeError: unsettled batch, no takeover",
+    "lease_remains": true,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "child",
+    "first_rc": 1,
+    "restart_rc": 1,
+    "restart_error": "RuntimeError: failed/altered screen batch",
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "receipt",
+    "first_rc": -9,
+    "restart_rc": 1,
+    "restart_error": "RuntimeError: unsettled lease; no automatic takeover",
+    "lease_remains": true,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "overlap",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 1.039
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "normal",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.096,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.366,
+      "candidate-0-0-4": 1.036
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "parent",
+    "first_rc": -9,
+    "restart_rc": 1,
+    "restart_error": "RuntimeError: cannot settle overhead during unsettled job",
+    "lease_remains": true,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.07,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.313,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "child",
+    "first_rc": 1,
+    "restart_rc": 1,
+    "restart_error": "RuntimeError: synthetic candidate failed",
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.094,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.363,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "receipt",
+    "first_rc": -9,
+    "restart_rc": 1,
+    "restart_error": "RuntimeError: cannot settle overhead during unsettled job",
+    "lease_remains": true,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.107,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.37,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "overlap",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.068,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.321,
+      "candidate-0-0-4": 1.042
+    }
+  }
+]

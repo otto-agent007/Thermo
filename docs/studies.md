@@ -1096,3 +1096,25 @@ and one full-scale cap needs 12 (both above the expectation). ±10% jitter is
 negligible in all six cells. The
 [gate](release-gates.md#associative-memory-coupling-bits-and-beta-jitter)
 covers run, resume and replay.
+
+## Foundational QEC research record (November 13–14, 2026)
+
+The [retrospective QEC record](research/2026-11-14-qec-research-record.md)
+consolidates owner-directed rounding, refinement, reference and numerical
+reliability work performed outside the live THERMES loop. It is not a new
+production study or scheduler authorization. It distinguishes d3 code-capacity
+references, d5 phenomenological-noise simulations, conditional numerical
+certificates and tiny generic parity-model diagnostics. No hardware or practical
+decoder advantage is claimed.
+
+The [inventory](research/qec-work-2026-11-14/README.md) identifies preserved
+reports/protocols and full original archive sources. The bundled tiny archive
+has a portable, read-only independent numerical replay:
+
+```bash
+uv run pytest tests/unit/test_qec_precision_archive.py
+```
+
+This test re-enumerates at most 10 faults per model, verifies 976 mass and
+450 posterior enclosures, and reconstructs held-out synthetic proxy counts. It
+does not run the original worker supervisor, modify saved results, or rerun d5.

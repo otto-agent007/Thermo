@@ -1,0 +1,30 @@
+# Why the harmful d5 decision passed diagnostics
+
+Scope: saved Z-memory p=0.005 case index7 only, with deterministic mathematical checks and16 fixed same-case development AIS calls. No new noisy samples, new evaluation cells, expanded efficacy study or frozen pilot edits.
+
+## Confirmed findings
+
+1. The two stored class0 mass estimates were logZ=-65.36 and-65.69. A valid six-fault configuration in the same detector+logical fiber has logprobability -32.84276. Consequently, each reported whole-class estimate is below ONE valid member's contribution by factors at least1.32e14 and1.85e14. This establishes catastrophic realized mass underestimation independently of the observed logical label. It does not imply AIS is biased in expectation.
+2. Class1 is underestimated too: a valid eight-fault configuration contributes logprobability -46.15821 versus estimates -55.46/-58.18 (factors1.10e4/1.67e5). These single-configuration lower bounds do not themselves order the exact class sums.
+3. The configurations were found by a parity-constrained binary/integer optimization. Solver reports optimal MAP energy with gap0, but the lower-bound conclusion requires only directly checked feasibility and probability, not trusting optimality. Independent reviewer recounted parity and probabilities directly from DEM instructions.
+4. The base places99.869% probability at all-zero free coordinates, giving about95.9% probability that all32 particles start there. That representative is a17-fault class0 configuration with logprobability -91.23, whereas the solver found6faults/-32.84. Gaussian elimination produced a valid but energetically very poor origin. Sharpening probabilities around that origin reinforced its concentration.
+5. In the first pilot repetition all32 logweights were identical in each class. The ESS formula therefore returns32 regardless of the common weight's accuracy. Coordinate proposals are shared across particles, which can further correlate movement. Repeat agreement only showed this heuristic repeatedly chose the same class; it was not independent evidence of mass coverage.
+
+## Bounded developmental ablation
+
+Keeping the same case and original32-particle/32-temperature/8-proposal budget, tested gamma1 or2, arbitrary origin or MAP-centered origin, with two fixed seeds each (16 class calls total). Sources and all results are saved.
+
+Arbitrary-origin estimates remained unstable/underestimated. MAP-centered gamma2 estimates became -32.84145 and-46.15690, near each seed configuration's contribution and selecting class0, the observed class. However, every weight again tied and ESS again equaled32: this looks like seed-dominated estimation, NOT validated exploration of class degeneracy. Gamma1 broadened sampling but remained variable, with class0 ESS approximately4.5–4.8. Centering addresses an identified defect, but this same-case result is not evidence of general efficacy or accurate logical masses.
+
+## Diagnosis and next design priorities
+
+The concrete failure is inadequate probability-mass coverage from a concentrated proposal around a poor affine representative. The ESS/repeat gate cannot detect shared systematic misses. Algebra and bridge normalization tests do not provide a convergence certificate.
+
+Recommended development steps before another efficacy proposal:
+- Start from valid low-energy representatives per logical class, retaining a correctly normalized full-support proposal. Include seed-search overhead in costs. Consider multiple structurally different seeds rather than one sharpened product mode.
+- Add known-configuration probability lower bounds as a diagnostic veto. Large violations are a clear red flag; passing is not proof of accuracy. Monte Carlo estimates can fall below true lower bounds by sampling variation, so this is a conservative engineering safeguard, not an exact estimator identity.
+- Use independently randomized particle coordinate schedules and stronger moves/multi-start checks. This addresses common-path correlation but not the missing-mode problem by itself.
+- Validate degeneracy/mode coverage on tractable exact fibers before accepting logical-class decisions. Require stronger uncertainty evidence than ESS and two agreeing runs.
+- Keep correlated matching as fallback; retain Tesseract/BM as approximate comparators, not class-mass oracles.
+
+No claim that class0 is exact degenerate MLD has been established. No expanded run is started. Existing192-case pilot is now development evidence; any tuned replacement needs a separately frozen evaluation.

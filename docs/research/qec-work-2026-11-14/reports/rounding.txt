@@ -1,0 +1,44 @@
+# QEC decision-aware coefficient rounding: completed study
+
+## Conclusion
+
+**Negative on the frozen mechanism criterion.** Decision-aware rounding requires 3 stable bits, exactly the same as ordinary nearest rounding. It therefore does not deliver the required one-bit reduction. Stop this candidate under the approved rule; no larger-code study, tolerance change or new hardware follows automatically.
+
+It beats diffusion and expected stochastic rounding on this tiny family, but beating weaker alternatives is not the required advantage over nearest. This is not evidence of practical latency, memory or energy savings.
+
+## Held-out result
+
+| Rule | Smallest stable bits | Worst excess at 2 bits | Worst excess at 3 bits |
+|---|---:|---:|---:|
+| nearest | 3 | 0.123078893 | 0.000000000 |
+| decision | 3 | 0.144113445 | 0.000000000 |
+| diffusion | 4 | 0.123078893 | 0.035727870 |
+| stochastic_expected | 4 | 0.108048523 | 0.031357791 |
+
+Stable means excess logical risk at most 0.001 on every held-out instance at that precision and every higher tested precision through 8 bits. At 3 bits, both nearest and decision-aware have zero excess risk on every held case. At 2 bits, decision-aware is worse in worst-case excess risk (0.144113445 vs 0.123078893). Tiny stochastic excess values around 7e-18 are floating-point summation residuals, not physical risk claims.
+
+## Design and separation
+
+Rotated distance 3 surface code,9 data qubits, X sector, perfect syndrome measurements, all 512 physical error patterns. Development: 6 noise cases at base rates .02,.05,.08, homogeneous/checkerboard masks. Held: 6 untouched cases at .035,.065, homogeneous/vertical-stripe/central masks. All 7 precisions 2–8 were evaluated,42 cells per stage. The single sensitivity matrix was fit only on development cases; identical sensitivity hashes appear in both receipts.
+
+Nearest, class diffusion, decision-aware floor/ceiling search and independent stochastic rounding share the same signed codebook capped at ln99. Stochastic comparison uses exact expectation over rounding vectors;32 fixed seeds describe variability, not best-seed selection. Quantized class decisions preserve common-step integer energies and are audited at 70 and 100 decimal digits. True-noise risks use rational probability products. Assumed-model bound certificates are explicitly separate from true-noise correctness.
+
+## Validation and resources
+
+34 targeted tests passed; Ruff lint/format and frozen dependency checks passed. Independent review identified and corrected codebook endpoints, near-tie handling, incomplete grids, exact common-step tie inference, diffusion endpoint membership and import provenance before study outcomes. Both stages independently refit development sensitivity and recomputed all 42 saved cells identically. Completion records were written last.
+
+Probe: 1012.324 CPU seconds (16.87 CPU minutes), peak RSS 30.95 MiB. Technical success projected full work at 33.74 CPU minutes with a twofold safety factor.
+Full: 1211.240 CPU seconds (20.19 CPU minutes), peak RSS 30.79 MiB. Limits:30 CPU minutes probe,2 CPU hours full,4 GiB memory and one process each. These timings include complete scientific replay; preparation/test time is separate. Hard Linux process limits were installed. No extra probes or workers ran.
+
+Full repository pytest is NOT green in the trimmed transfer: archived study evidence was excluded, and test_complete_study_replays_and_objectives_reconstruct fails because docs/experiment-reports/2026-09-16-context-weighted-conservation/study.json is missing. Targeted QEC tests and all numerical study integrity gates passed. This package does not claim a whole-repository release.
+
+## Provenance and artifacts
+
+Frozen manifest SHA256: `e626238dfa003623f142903150679c470fc81222c26cf784292aa15f41f17421`.
+Held result digest: `c3ce280786ab219b86f77e37ba98c21fedbf86d884ee75c8e93a11ed551a5184`.
+Probe result digest: `0f5acefbf2eb92c811ae9065ddde19c8522f302dead3f6d242ee36506769fefc`.
+Source commit 962bc1862077b4a6982eb1748ca5db443031d879 plus isolated uncommitted QEC implementation. Original checkout, live queue, branches and remote remained untouched. No push/merge. Evidence class: exact_reference (finite floating/high-precision enumeration), never physical hardware. No novelty claim; external paper versions were not independently revalidated for this run.
+
+Raw checkpoint envelopes contain all per-instance risks,32 seed outcomes, coefficient vectors, prediction/actual margin shifts, MSE-matched diagnostic, energy bounds, probability-weighted uncertified mass and separate compiler CPU timing. CSVs provide scan-friendly risk tables. Source, tests, manifest, runtime/package provenance, logs and receipts are included.
+
+Independent saved-result audit verified all source pins, every checkpoint/budget hash, both result/sensitivity hashes and the complete grids. Its recomputed aggregate agrees. At 2 bits, decision-aware is worse than nearest on five held instances and equal on one. This audit read saved evidence only; it did not launch another numerical replay.

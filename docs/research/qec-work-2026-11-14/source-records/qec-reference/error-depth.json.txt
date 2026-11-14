@@ -1,0 +1,10 @@
+{
+  "fault_factor_initial_depth": 4,
+  "p_max": 0.008300000000000026,
+  "min_fourier_factor": 0.9833999999999999,
+  "slice_depth": 2332,
+  "full_serial_sum_depth": 2588,
+  "conservative_requested_depth": 8192,
+  "unit_roundoff_upper_bound": "1.084202172485504434e-19",
+  "note": "symbolic depth only; correctness requires separate arithmetic-circuit bound and floating-point assumptions"
+}

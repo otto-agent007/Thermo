@@ -1,0 +1,7 @@
+# Separately authorized X p=.010 retry
+
+Otto requested retry of the previously interrupted selection (x-p0.010,index32). This fresh execution used the original frozen inputs, same candidate/comparator/reference methods, and repaired short-batch executor. Its256/256 reference slices and candidate/comparator phases completed successfully. All41 child batches succeeded; no active lease remains.
+
+New retry charge509.501 CPU-seconds against its separately authorized600-second allowance. Historical charge3128.883 remains unchanged; historical plus retry3638.384. This is not represented as fitting within the old3600-second plan. Peak address-space limit3GiB, one native thread, no other case added.
+
+The original104-slice partial remains preserved and labeled partial. New outputs live only in retry-x-p0.010-20261114. See the independent audit for numerical and prefix comparison results. No further experiments are scheduled by this executor.

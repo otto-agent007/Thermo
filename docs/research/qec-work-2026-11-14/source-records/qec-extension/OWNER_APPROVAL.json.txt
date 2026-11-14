@@ -1,0 +1,1 @@
+{"approved":true,"request_sha256":"1db6e33ca5af6432b870140ceae705d9ea451c60087caca859cf3da2e37200c1","source":"Owner Otto answered Yes to exact proposed 192-case pilot; authorization relayed by root task.","limits":"one CPU process, 1800 process CPU seconds, 4GiB address space, no automatic expansion"}

@@ -1,0 +1,28 @@
+{
+  "status": "completed",
+  "scope": "one all-zero slice of256; not class mass",
+  "cell": "z-p0.005",
+  "saved_index": 7,
+  "logical_class": 0,
+  "fixed": {
+    "120": 0,
+    "21": 0,
+    "26": 0,
+    "39": 0,
+    "45": 0,
+    "46": 0,
+    "49": 0,
+    "50": 0
+  },
+  "cpu_cap_seconds": 60,
+  "address_space_cap_bytes": 3221225472,
+  "dtype": "float128",
+  "eliminated": 113,
+  "total_variables": 113,
+  "last_product_rank": 1,
+  "wall_seconds": 1.7931542199985415,
+  "cpu_seconds": 1.78395956,
+  "peak_rss_KiB": 574332,
+  "slice_value_longdouble": "5.1555377992055499292e-17",
+  "is_full_class_mass": false
+}

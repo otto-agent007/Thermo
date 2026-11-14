@@ -1,0 +1,59 @@
+{
+  "status": "prepared_not_executed_liveness_gate_unresolved",
+  "original_manifest_sha256": "57769c855e0c62b69c186ea19f703f6086b5db98b25ebb7690152f6b037e3552",
+  "authorization": "Otto Continue following bounded recovery proposal, then We need to keep it moving",
+  "created_utc": "2026-11-14T00:55:56.494225+00:00",
+  "evidence": {
+    "original_session_id": 87702,
+    "session_lookup": "Unknown process id in root and recovery worker",
+    "checkpoint_cpu_absolute": 646.606338405,
+    "checkpoint_slices": 104,
+    "process_visibility": "PID-isolated even require_escalated; cannot establish absence",
+    "original_exit_status": "not available"
+  },
+  "budget": {
+    "original_cap": 3600,
+    "conservative_original_charge": 1052,
+    "explanation": "ceil first case451.116 plus full600 CPUsec interrupted case plus conservative startup margin",
+    "new_work_max": 2400,
+    "combined_max": 3452,
+    "percase_cap": 600,
+    "address_space_bytes": 3221225472,
+    "native_threads": 1
+  },
+  "retained_cases": {
+    "x-p0.005": "completed reviewed, do not rerun",
+    "x-p0.010": "104 slices retained partial; charge full600 due unknown unrecorded CPU; no additional compute under original percase cap"
+  },
+  "remaining_selection": [
+    {
+      "cell": "x-p0.020",
+      "index": 32
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 32
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 32
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 32
+    }
+  ],
+  "requirements": [
+    "authoritatively establish original execution stopped before launch",
+    "preserve all original source/checkpoint files unchanged",
+    "new output namespace",
+    "same scientific methods and selections, no replacements",
+    "new runtime manifest and PID/exit markers",
+    "independent prelaunch review and postrun audit"
+  ],
+  "changes_from_original": [
+    "allow bounded recovery after owner approval",
+    "retain interrupted case partial, do not drop",
+    "remaining cases run in fresh namespace, no expansion"
+  ]
+}

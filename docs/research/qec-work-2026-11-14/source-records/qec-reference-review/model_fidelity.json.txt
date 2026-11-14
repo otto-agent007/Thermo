@@ -1,0 +1,66 @@
+{
+  "status": "verified",
+  "stim_version": "1.15.0",
+  "reports": [
+    {
+      "cell": "x-p0.005",
+      "detectors": 120,
+      "observables": 1,
+      "distinct_complete_columns": 397,
+      "fault_instructions": 397,
+      "decomposed_separator_count": 100,
+      "largest_complete_detector_support": 4,
+      "raw_decomposed_saved_full_fault_factors_identical": true
+    },
+    {
+      "cell": "x-p0.010",
+      "detectors": 120,
+      "observables": 1,
+      "distinct_complete_columns": 397,
+      "fault_instructions": 397,
+      "decomposed_separator_count": 100,
+      "largest_complete_detector_support": 4,
+      "raw_decomposed_saved_full_fault_factors_identical": true
+    },
+    {
+      "cell": "x-p0.020",
+      "detectors": 120,
+      "observables": 1,
+      "distinct_complete_columns": 397,
+      "fault_instructions": 397,
+      "decomposed_separator_count": 100,
+      "largest_complete_detector_support": 4,
+      "raw_decomposed_saved_full_fault_factors_identical": true
+    },
+    {
+      "cell": "z-p0.005",
+      "detectors": 120,
+      "observables": 1,
+      "distinct_complete_columns": 397,
+      "fault_instructions": 397,
+      "decomposed_separator_count": 100,
+      "largest_complete_detector_support": 4,
+      "raw_decomposed_saved_full_fault_factors_identical": true
+    },
+    {
+      "cell": "z-p0.010",
+      "detectors": 120,
+      "observables": 1,
+      "distinct_complete_columns": 397,
+      "fault_instructions": 397,
+      "decomposed_separator_count": 100,
+      "largest_complete_detector_support": 4,
+      "raw_decomposed_saved_full_fault_factors_identical": true
+    },
+    {
+      "cell": "z-p0.020",
+      "detectors": 120,
+      "observables": 1,
+      "distinct_complete_columns": 397,
+      "fault_instructions": 397,
+      "decomposed_separator_count": 100,
+      "largest_complete_detector_support": 4,
+      "raw_decomposed_saved_full_fault_factors_identical": true
+    }
+  ]
+}

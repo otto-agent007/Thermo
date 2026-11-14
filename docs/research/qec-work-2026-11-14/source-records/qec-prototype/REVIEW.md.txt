@@ -1,0 +1,59 @@
+# Independent mathematical review
+
+## Scope and result
+
+Reviewed the development prototype only, without modifying the frozen pilot.
+Six independent tests added in `test_exact_independent.py`; aggregate prototype
+suite at review time: **10 passed**. No broader decoding efficacy study was run
+by this reviewer.
+
+The proposal is a normalized mixture over free coordinates of the affine fiber.
+Each center is validated against that fiber, duplicate fault configurations are
+removed, and the full overlapping mixture density (including uniform background)
+is used in both AIS weights and transitions. The mixture is fixed before retained
+AIS trajectories. Its positive background supplies mathematical full support,
+not a practical exploration guarantee in high dimensions.
+
+The implementation independently samples each particle's proposed coordinate and
+acceptance draw. Single-coordinate proposals are symmetric. The acceptance ratio
+therefore correctly uses beta times the target log-density difference plus
+(1-beta) times the complete proposal log-density difference. Weighting precedes
+transition at every temperature. The known mass bound sums probabilities of
+unique valid configurations only.
+
+## Independent evidence
+
+- A 9-fault affine fixture has 32 feasible states and two dominant low-weight
+  modes separated by three free-coordinate flips. Neither mode equals the
+  all-zero elimination offset. Direct probability products supply exact mass.
+- The full mixture normalizes, has positive support, and places substantial
+  mass on each of the two separated modes.
+- Exhaustive state-transition propagation verifies detailed balance and the
+  AIS expected-weight identity. This test validates the intended mathematical
+  kernel, independently of Monte Carlo fluctuation.
+- Actual no-transition AIS weights match direct target products divided by the
+  full mixture density.
+- A deterministic independent-particle replay recomputes target probabilities
+  from fault vectors at each proposal and agrees with production weights. This
+  would catch a return to common-coordinate particle proposals or erroneous
+  incremental density updates.
+- A fixed-seed synthetic test agrees with exact total mass within its declared
+  5% tolerance. This is a regression check, not a statistical convergence claim.
+
+## Limits and safeguards
+
+The lower-bound check is a one-sided alarm. A finite unbiased estimator can fall
+below a valid bound by sampling fluctuation; rejecting it is conservative, not
+proof of a software bug. Passing the bound provides no upper error bound, no
+certificate that important modes were covered, and no logical-class ordering
+certificate. Do not clamp an estimate up to the bound and treat it as validated.
+
+Likewise, ESS measures weight concentration, not correctness. Independent
+particles remove one source of dependence but cannot turn high ESS into a
+coverage guarantee. Distinct low-energy seeds need not belong to distinct modes.
+Seed selection/MILP cost must be included in future end-to-end cost comparisons.
+
+The harmful pilot case is now development data. Improving its answer is useful
+for debugging, but it cannot establish general superiority, exact class-mass
+accuracy, or held-out performance. Any revised efficacy comparison needs an
+explicitly frozen configuration and genuinely held-out saved indices.

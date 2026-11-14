@@ -1,0 +1,140 @@
+# Observable-specific sampler reliability: candidate research plan
+
+2026-11-13
+
+**Status: owner-selected planning work; held, not a frozen protocol.** This adds
+one foundational candidate, not a runnable experiment. No existing stopped study,
+archive or scheduler changes. Protocol, exact manifest, thresholds and resource
+caps require owner review before any probe or recorded study.
+
+## Decision and hypothesis
+
+Can an affordable vector of observable-specific diagnostics predict which
+estimates fail a fixed accuracy tolerance on unseen binary models better than
+coefficient MSE or a single global convergence statistic? The design number is
+the false-safe rate at a fixed useful acceptance coverage: which reported
+observables can be trusted without exact target information at inference?
+
+Proposed primary resolution: normalized absolute error at most 0.02; at least
+50% of held model/observable cases accepted; false-safe rate among accepted cases
+at most 5%, with a one-sided 95% upper interval at most 10%. Compare risk-coverage
+curves and calibration against baselines at matched diagnostic cost. These are
+planning choices for review, not scientifically established tolerances. Do not
+claim reliability from a point estimate when the interval is unresolved.
+
+Hypothesis: low-bit representation and finite mixing produce distinguishable
+observable error patterns that generalize beyond development instances. A useful
+negative is a counterexample to a universal diagnostic, not a reason to relax the
+tolerance. A successful calibrated predictor is not an exact certificate.
+
+## Bounded first family and exact decomposition
+
+Propose 12-spin open 3x4 nearest-neighbour Ising models, with 4096 states each.
+Freeze explicit fields/couplings and dimensionless energy conventions. Include
+ferromagnetic, weak-field and frustrated instances, but hold out entire model
+instances, not correlated states. Select 12 fitting, 12 calibration and 24 held
+instances, balanced across the three strata, before outcomes. This is an initial
+within-family transfer test, not evidence of transfer to larger graphs or tasks.
+No archived denoising or adsorption model is reopened.
+
+Use exact enumeration for original and rounded equilibrium references. Propose
+full precision and 4/6/8-bit nearest rounding under one declared signed codebook
+and cap; no cap optimization on held results. One single-site Gibbs kernel only,
+with fixed random-scan convention, independent starts and sweep budgets 4/16/64.
+No new sampler portfolio, learning pipeline, hardware mapping or energy claim.
+Exact finite-time propagation is allowed only if sparse transitions and all
+requested cases fit the separately approved probe cap; never construct an
+unbounded dense transition matrix. Otherwise report finite-time bias with
+replicated uncertainty, not as an exact decomposition.
+
+For each observable f, distinguish:
+- representation bias: E_pi_rounded[f] - E_pi_original[f];
+- finite-time bias at original coefficients: E_mu_t_original[f] - E_pi_original[f];
+- interaction: the difference between finite-time bias at rounded and original
+  coefficients, each measured relative to its own equilibrium;
+- sampling variance and autocorrelation around the corresponding estimator mean.
+
+The first three sum to total mean error relative to the original target. MSE
+additionally includes variance. Exact equilibrium and propagated distributions
+are `exact_reference`; sampled trajectories are `software_simulation`.
+
+Predeclare mean magnetization, susceptibility, nearest-neighbour correlation,
+domain-wall density and one local spin expectation as the task observable.
+Specify normalization, estimator and tolerance for each before execution.
+Susceptibility is a function of first/second moments, not a single raw-state
+observable: account for finite-sample plug-in bias separately. Domain walls and
+correlation are related; do not count them as independent replications. Avoid
+claiming a constraint-validity endpoint without actual constraints in this model.
+
+## Permitted information and controls
+
+Operational candidates may use replicated-start disagreement, blockwise estimate
+stability, observable-specific autocorrelation/ESS and between-chain diagnostics.
+Freeze a small feature set and simple calibrated predictor on fitting data, then
+choose thresholds on calibration data only. Include estimator history and all
+extra chains in diagnostic cost. A sample is one retained full spin state; an
+independently seeded run is the uncertainty unit, not each correlated state.
+Propose 32 independent run seeds, grouped by held model for performance intervals.
+
+Baselines: coefficient MSE, one predeclared scalar diagnostic, and observable-wise
+standard diagnostics without the combined predictor. Match total updates, reads
+and diagnostic processing. Exact target moments, total-variation errors and
+original-versus-rounded equilibrium discrepancies are oracle explanatory
+features only. Report their predictive ceiling separately, never as deployable
+features. Each feature table must state permitted inputs and computational cost.
+Global importance-weight ESS and MCMC autocorrelation ESS are different quantities;
+this study must not use criticism of one as a general invalidation of the other.
+
+The primary error endpoint is the absolute error of each independent run's
+reported estimator against the exact original target moment, not the error of
+its expectation over runs. A false-safe event is an accepted run/observable
+estimate whose normalized error exceeds 0.02; coverage counts accepted
+run/observable estimates among all eligible held estimates. The bias decomposition
+above concerns estimator means across runs and is a separate mechanism analysis,
+not a substitute for this realized-error endpoint. Weight held models equally,
+then observable/budget/precision cases and runs equally within each model.
+Resample whole model instances with all observables/runs together for uncertainty.
+Freeze interval construction and risk/coverage aggregation in the protocol. Report
+each stratum and observable, not only pooled averages. If 24 held models cannot
+resolve the criterion, report inconclusive rather than add samples automatically.
+
+## Falsifiers, stages and caps
+
+Stop if the combined diagnostic loses to the cheapest standard diagnostic at
+matched cost, fails held calibration/coverage, or needs exact target information
+to work. Also stop if there is no failure headroom or diagnostics cost essentially
+as much as exact solution. No larger graph or relaxed tolerance follows by default.
+
+1. Audit prior art and existing Thermo diagnostics; reuse helpers without editing
+   hash-bound sources. Freeze literal model arrays, observable definitions,
+   codebook, split, estimators and diagnostic costs before a probe.
+2. Separately approved feasibility probe: CPU only, one worker, 30 CPU-minutes,
+   4 GiB memory, 1 GiB artifacts. Check exact references and propagation feasibility.
+3. Owner-reviewed frozen protocol and tests before a recorded study. Proposed cap:
+   two CPU-hours, one worker, 4 GiB memory, 2 GiB artifacts. Runs over 30 minutes
+   require tested autosave/resume. Cap exhaustion means incomplete, not expansion.
+4. Deliver error decomposition, risk-coverage/calibration tables, cost accounting,
+   counterexamples, hashes and replay. No physical-hardware conclusion.
+
+## Prior art and novelty boundary
+
+- [Evaluating generative samplers for lattice field theory by scale](https://arxiv.org/abs/2611.11108v1)
+  motivates resolving errors by observable/scale rather than one global overlap
+  statistic. It is a lattice-field/importance-weight result, not validation of
+  this binary-model predictor. Its marginal correction needs target information;
+  finite local relaxation can retain bias. No free target-free certificate follows.
+- Existing observable-specific MCMC ESS, Monte Carlo standard errors, replicated
+  chains and convergence diagnostics are mandatory controls, not new inventions.
+  Before freezing, pin primary references and implementation conventions for
+  these diagnostics and assess what they already solve.
+- [Thermo rounding-transfer probe](2026-11-05-rounding-rule-transfer-probe.md)
+  motivates observable dependence but does not establish the proposed predictor.
+- [Time-varying rounding](https://arxiv.org/abs/2610.22621) and
+  [perfect sampling](https://arxiv.org/abs/2610.37300) are future alternatives to
+  audit, not extra arms. Averaging rounded kernels need not preserve the target
+  Gibbs law; perfect-sampling guarantees apply only in their stated regimes.
+
+External findings are `asserted`, not Thermo reproductions. Novelty remains open:
+first compare against standard observable-resolved diagnostics, then ask whether
+separating quantization and finite-time errors adds predictive value. No claim of
+new sampler, computational advantage or general certificate is made here.

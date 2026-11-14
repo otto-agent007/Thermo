@@ -1,0 +1,146 @@
+[
+  {
+    "workflow": "screen",
+    "fault": "normal",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 1.058
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "parent",
+    "first_rc": -9,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "child",
+    "first_rc": 1,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "output",
+    "first_rc": -9,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "receipt",
+    "first_rc": -9,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 5
+    }
+  },
+  {
+    "workflow": "screen",
+    "fault": "overlap",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "x-p0.005-33-97": 1.039
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "normal",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.106,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.362,
+      "candidate-0-0-4": 1.04
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "parent",
+    "first_rc": -9,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.128,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.404,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "child",
+    "first_rc": 1,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.088,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.33,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "output",
+    "first_rc": -9,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.11,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.353,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "receipt",
+    "first_rc": -9,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.072,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.312,
+      "candidate-0-0-4": 5
+    }
+  },
+  {
+    "workflow": "evaluation",
+    "fault": "overlap",
+    "first_rc": 0,
+    "restart_rc": 0,
+    "restart_error": null,
+    "lease_remains": false,
+    "initial_charges": {
+      "overhead:prepare:x-p0.005-i40-ordinary": 0.072,
+      "overhead:controller:x-p0.005-i40-ordinary:1": 0.35,
+      "candidate-0-0-4": 1.043
+    }
+  }
+]

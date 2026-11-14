@@ -1,0 +1,23 @@
+# Corrected multimode prototype: development checks, not efficacy
+
+Implemented separately from immutable pilot sources:
+- Syndrome-aware seeds: bounded MILP searches for four unique feasible low-energy configurations per logical class. No-good constraints exclude previous configurations; uniqueness does not guarantee different energetic basins. Search cost is recorded.
+- Normalized mixture of Bernoulli neighborhoods around those seeds plus5% uniform background. Uses the FULL mixture density for weights and transitions, not selected-component density. Flip probabilities are original free-coordinate probabilities clipped to[.002,.25]. Proposal is frozen before retained AIS paths.
+- Independent coordinate choice and acceptance randomness per particle.
+- Conservative safeguard: logmass estimate must not fall below the summed probability of unique verified seed configurations (numerical tolerance1e-8). This rejects clearly inconsistent outputs but can also reject valid Monte Carlo fluctuations. Passing does not certify coverage.
+
+## Exact tests
+10 tests passed, including independently written exhaustive32-state fixture with two dominant modes separated by3 free-coordinate flips, neither at free-zero; mixture normalization/full support; finite-state AIS weighted-path expectation and detailed balance; actual path/weight replay; distinct-seed lower bound; and fixed-seed Monte Carlo accuracy vs exact total mass. These establish specific algebra/fixture behavior, not general convergence.
+
+## Saved harmful case only
+Z,p=.005,index7, four seeds/class, four fixed independent AIS repetitions/class. Each run128particles,64temperatures,8moves. No new noisy shots or expanded efficacy study.
+
+Class0 estimates: -32.3315,-32.1344,-32.2555,-31.9865; known-seed logmass lower bound -32.2028. Two of four estimates fail the conservative bound.
+Class1 estimates: -46.3842,-45.8202,-45.5138,-45.7322; bound -45.9622. One of four estimates fails.
+All four comparisons favor logical0 (the observed value), versus the original harmful correction. The catastrophic ~1e14 underestimation relative to a known configuration no longer appears. ESS is no longer universally32 but remains only a diagnostic.
+
+Three of eight class estimates are vetoed, so ALL readiness checks do not pass. Bound shortfalls here are modest (largest about1.53x), consistent with finite Monte Carlo error rather than the original14-order miss, but the true d5 class masses remain unknown. Do not relax the safeguard after seeing this case merely to pass. The current conservative gate would retain baseline on two of the four paired repetitions. A future uncertainty-aware rule needs a predeclared design and exact-fixture calibration, not tuning this case.
+
+This case is now development data. Correcting it is not evidence of population advantage. No automatic larger study launched. Next decision should concern developing calibrated mass uncertainty/coverage checks, rather than claiming this proposal ready for efficacy testing.
+
+See saved-case-results.json for every logweight, seed locations, setup costs and total time; REVIEW.md for independent review. Run tests from qec-prototype with ../qec-extension/.venv/bin/python -m pytest -q. Supporting source/input subset accompanies the archive; recreate venv from qec-extension/requirements.lock if needed.

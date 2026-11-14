@@ -1,0 +1,30 @@
+# Independent methodological review
+
+Status: conditional pass as an exploratory targeted diagnostic, not an efficacy or matched-cost superiority study. No study computation was launched by this review.
+
+The revised protocol correctly draws a random shot before targeted selection, keeps its natural shot multiplicity, deduplicates only targeted syndrome groups, excludes development indices 0–32, freezes selection before reference/label access, retains failures and inconclusives, and separates realized logical labels from conditional reference class ordering. Descriptive targeted counts and numerical mass intervals are appropriate; population binomial intervals for deterministic minima or heterogeneous targeted pooling are not.
+
+Remaining prelaunch conditions:
+1. Use the installed BP decoder's merged-variable observable mapping aligned with its LLR vector, not the original DEM logical row. Installed beliefmatching computes p=1/(1+exp(LLR)), consistent with tanh(LLR/2). Its detector-set merging makes the proposed product an approximate merged-BP parity proxy, not the full logical-class posterior. Write the statistic as Eproxy[(-1)^L]. Check mapping/sign and per-shot state reset, including zero syndromes and nonconvergence, on synthetic fixtures.
+2. Reserve the next child's full wall allowance before launching if the aggregate wall limits are hard bounds. Stopping after accumulated time exceeds a limit permits overshoot. Process suspension/lost-session limits remain explicit; no automatic duplicate takeover.
+3. Independently test selection on synthetic cases, missing strata/proxies, duplicates, deterministic RNG, and ordinary-first exclusion. Verify the screening inputs cannot expose observed labels or reference results before selection freeze.
+4. Verify ledger budgets and existing repaired execution tests before production. Owner budget approval remains required through root.
+
+The proposed fixed candidate policy versus fixed comparator settings is a mechanistic comparison, not a matched-cost benchmark. Six random controls have inadequate rare-error power; the targeted sample cannot be pooled to estimate population efficacy. Any later optimized policy must be assessed on a new frozen holdout.
+
+## Screening implementation gate
+Independent review passed before screening setup. Reran 12 synthetic screen/proxy/policy tests successfully and separate duplicate-control/missing-stratum edge fixtures. Verified lazy NPZ loads access only detectors and saved correlated predictions, ordinary controls are frozen before screening, targeted groups exclude the control syndrome, mapped BP variables and fresh decoder state are used, helper/source hashes are bound, and setup/caller/selection CPU charges are recorded. Child CPU/wall and ledger admission limits are present. Cleared approved bounded screening only; evaluation remains gated by independent review of the frozen selection.
+
+## Integrated v2 interruption/restart review
+Initial actual-coordinator tests exposed permanent stale-lease blocks after parent kill and receipt publication. The v2 engine now inherits its kernel flock into the trusted scientific child, so reconciliation can prove both protected processes released the lock without PID guessing. Interrupted attempts retain full CPU/wall reservations; retries use distinct attempt IDs, a maximum of three attempts, frozen specifications, and the original case budget. Uncommitted output publication is quarantined before retry.
+
+Independently reran 12 actual screen/evaluation coordinator scenarios with synthetic child workloads: normal continuation, killed parent, killed child, output-rename-before-receipt kill, receipt-before-ledger kill, and concurrent launch rejection. All safely continued on restart; no lease remained. Also passed eight original scientific adapter tests against v2, including the tiny candidate/comparator/reference/finalizer pipeline; three-attempt ceiling, changed-spec rejection, and prelaunch budget rejection checks; and the partial-setup restart fixture (completed case preserved, incomplete preparation archived, repeat setup idempotent).
+
+Limits: single trusted child must preserve inherited lock; no claim of surviving lost filesystem or arbitrary suspension. Budget exhaustion or three failed attempts remains a legitimate stop requiring diagnosis, not unlimited retries. These tests exercise real coordination with synthetic workloads, not repeated production contractions. Historical v1 screen stays immutable; approved evaluation uses v2 only.
+
+## Actual scientific retry return-path correction
+An additional real-science interruption test exposed adapter v2 returning the base output path instead of the successful retry attempt path. This was not detected by mocked-child coordinator tests plus uninterrupted science tests. V3 changes return lookup to receipt['batch']; frozen v2 sources remain preserved.
+
+Independently killed both the real contraction child and its supervisor in isolated tiny models. Each retry returned successfully, retained the abandoned 21-second CPU reservation, reproduced uninterrupted slice strings exactly, and repeated calls left the ledger unchanged. Results: INDEPENDENT_ACTUAL_SCIENCE_RESTART_RESULTS.json.
+
+Production migration independently verified: seven input/DEM pairs unchanged; original and new configuration hashes checked; original completed candidate receipt unchanged; same shared 4200-second ledger with 600 seconds per case; no active lease. Existing four candidates are recognized, so the next prefix starts at four, not zero. Cleared continuation using evaluate_v3 only, not the retired v2 controller. No new production budget or cases introduced.

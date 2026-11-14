@@ -1,0 +1,65 @@
+{
+  "random": {
+    "n": 192,
+    "fallbacks": 58,
+    "known": 134,
+    "errors": {
+      "correlated": 1,
+      "tesseract": 1,
+      "beliefmatching": 1,
+      "ordinary": 1,
+      "list4_with_bm_fallback": 1
+    },
+    "paired_list4_vs_baseline": {
+      "beliefmatching": {
+        "repairs": 0,
+        "harms": 0
+      },
+      "tesseract": {
+        "repairs": 0,
+        "harms": 0
+      },
+      "correlated": {
+        "repairs": 0,
+        "harms": 0
+      },
+      "ordinary": {
+        "repairs": 0,
+        "harms": 0
+      }
+    }
+  },
+  "admitted_extras": {
+    "n": 4,
+    "fallbacks": 0,
+    "known": 4,
+    "errors": {
+      "correlated": 2,
+      "tesseract": 1,
+      "beliefmatching": 4,
+      "ordinary": 1,
+      "list4_with_bm_fallback": 1
+    },
+    "paired_list4_vs_baseline": {
+      "beliefmatching": {
+        "repairs": 3,
+        "harms": 0
+      },
+      "tesseract": {
+        "repairs": 0,
+        "harms": 0
+      },
+      "correlated": {
+        "repairs": 2,
+        "harms": 1
+      },
+      "ordinary": {
+        "repairs": 1,
+        "harms": 1
+      }
+    }
+  },
+  "selected_reference_cases": 14,
+  "selection_sha256": "718b92bf2775ca81c5126ad7659ec0fb9e48c8cbf0716d64c9de32521b020abb",
+  "limitation": "Observed panel only; exploratory rare-error uncertainty, disagreement extras selected and not population-representative. List4 includes BM fallback, not standalone efficacy."
+}

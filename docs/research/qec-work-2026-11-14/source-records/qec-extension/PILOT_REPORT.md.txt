@@ -1,0 +1,30 @@
+# Completed d5 technical pilot: reconstruction validated, refiner not ready
+
+Owner approved request SHA256 1db6e33ca5af6432b870140ceae705d9ea451c60087caca859cf3da2e37200c1. All192 fixed archived cases executed and independently replayed. No new samples, budget expansion or follow-on experiments.
+
+## Results
+
+| Cell | Correlated matching errors | Tesseract errors | Beliefmatching errors | AIS/refinement errors | Fallback /32 |
+|---|---:|---:|---:|---:|---:|
+| X,0.005 |0|0|0|0|24|
+| X,0.010 |0|0|0|0|27|
+| X,0.020 |0|0|0|0|32|
+| Z,0.005 |0|0|0|1|23|
+| Z,0.010 |0|0|0|0|27|
+| Z,0.020 |1|0|0|1|28|
+
+Ordinary matching also had1 error, the same selected error as correlated matching. Against correlated matching, each established approximate comparator repaired1 and harmed0. Refinement repaired0 and harmed1, resulting in2 errors rather than1. Aggregate counts describe these fixed heterogeneous cells only, not a pooled statistical superiority test.
+
+Fallback occurred on161/192 cases (83.85%). Of768 class/repetition mass estimates,344 had ESS<8. The other31 accepted cases are not a favorable selected endpoint; all192 remain denominators. The one harmful change, Z p=0.005 saved index7, passed the gate: per-class ESS approximately32,32 in repetition1, and30,10.47 in repetition2; both repetitions selected the wrong logical class. High ESS and repeated agreement were demonstrably insufficient safeguards in this pilot. This is compatible with missing important probability regions; it does not by itself establish the exact cause or prove a generic failure of AIS.
+
+## What we learned
+
+The reconstructed pipeline and saved-artifact replay work. This particular proposal/mixing budget and fallback rule are not ready to displace correlated matching. Do not scale this refiner unchanged. Tesseract and beliefmatching give promising comparator evidence on the single encountered baseline failure, but0 errors out of192 tiny heterogeneous cases does not establish general superiority or optimality. Their approximation labels remain unchanged.
+
+Noisy d5 class-mass accuracy remains unvalidated. Next work should diagnose this known harmful development case and improve proposal/mode-coverage validation on tractable exact fixtures before requesting any broader efficacy run. Retuning on these cases would make them development data and cannot be presented as new held-out evidence.
+
+## Cost and verification
+
+Runner reported9.8379 wall seconds and9.6668 CPU seconds, below1800CPU-second and4GiB address-space limits. No measured peak memory or hardware-energy result is available. Limits were enforced by the runner. Total runner timing excludes process startup/imports and the subsequent independent replay. Comparator timing includes setup, with first-cell import overhead. These are software batch measurements, not per-shot tail-latency or real-time guarantees.
+
+Independent replay verified all frozen hashes and192 source indices/inputs; re-decoded ordinary/correlated matching, Tesseract and beliefmatching; reconstructed AIS mass/ESS/fallback decisions from saved weights; and recounted full-denominator metrics with exact marginal95% binomial intervals. Raw data, every logweight, seeds and timing records are in pilot-run. No exact-MLD reference exists here. Runner warnings only concern Matplotlib's read-only default cache; it used a temporary cache successfully.

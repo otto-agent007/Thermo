@@ -1,0 +1,58 @@
+# Actual tensor-path precision feasibility
+
+## Result
+The bounded ten-fixture gate passed. Independent exact rational verification
+checked 624 joint-mass intervals, 1,456 individual slice intervals and 198
+available posterior intervals. All enclosed truth. All ten fixtures achieved
+posterior width <=1e-10 at a tested precision in every slicing layout.
+Four unit tests passed. Ten scientific jobs completed without crashes/retries.
+A completed-run replay preserved all 20 scientific output/receipt hashes.
+
+This is a pure-Python interval port of the actual sliced reference algorithm:
+prior/parity tensor construction, min-fill bucket elimination, fixed-variable
+slices and accumulation. It is not the previous full-Walsh prototype, but also
+not a replacement of the production NumPy kernels. It does not resolve d5 cases
+or demonstrate d5 runtime, memory feasibility or decoding advantage.
+
+## What changed our knowledge
+Directed high precision remained valid through the tensor factor/slice path,
+including independently checked signed individual slices, rather than just a
+whole Fourier transform. Exact tie stayed at 0.5. A 1e-30 near tie was unresolved
+at 16 decimal digits and its winner resolved at 32. A syndrome of probability
+1e-40 needed 64 digits for a narrow posterior; the 1e-100 fixture needed 128.
+Lower precision correctly returned unknown where denominator positivity could
+not be established. Rare competing explanations needed 32 digits for width
+<=1e-10. That rare competing winner needed 64 digits despite meeting the width target at 32. Other fixtures met the width target at 16. Width certification is not
+the same as winner certification, especially near a tie.
+
+## Cost and scope
+Four precisions and three slicing layouts were evaluated per tiny fixture.
+Measured receipt child CPU (including imports) was 0.969 seconds; scientific
+worker body CPU was 0.579 seconds; charged execution CPU including conservative
+supervisor accounting and replay was 11.246 seconds of the 300-second cap.
+Peak worker RSS was 40.875 MiB. Audit CPU was 0.099 seconds, separately reported;
+test/setup/report overhead is additional. No speedup or adaptive-runtime claim:
+this was a fixed sweep, not early-stopping execution.
+
+The protocol used ten preexisting exact fixtures, <=3 total rows and <=5 faults,
+not a fresh surface-code efficacy panel. Inputs certify their stated rational
+values (including exact saved binary64 in one fixture), not physical accuracy.
+All results remain conditional on interval implementation and Decimal semantics;
+finite fixtures are not proof for arbitrary tensors. Future scaling needs a
+separately bounded resource profile and independently checked cases before any
+d5 rerun. No d5 extension is authorized by passing this gate.
+
+## CT-bMPS prior art
+Manabe and Pan, arXiv:2610.06574v1, sections 5.1–5.3,
+https://arxiv.org/html/2610.06574, is relevant approximate class-mass prior art.
+Its circuit-level findings do not establish benefit in our phenomenological
+setting. Treat it as an approximate comparator, not a certified numerical oracle.
+Public implementation availability was not established. See the saved research
+lead for fixed-baseline and cost/repair/harm validation requirements.
+
+## Reproduction
+Run `python -m unittest discover -v` here. `python study.py` executes at most one
+frozen job or reuses hash-verified outputs; `python audit/independent_audit.py`
+rechecks exact truth, source/output hashes and execution limits. Manifest uses
+original absolute paths, so relocated archives are evidence bundles, not jobs
+that can silently resume under changed provenance. Original studies untouched.

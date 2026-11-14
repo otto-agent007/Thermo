@@ -1,0 +1,22 @@
+{
+  "approved": true,
+  "source_sha256": "24cda0dc98ad274815a3f0bec41e25b4571bc5852052bc77131e3ad3086d9f6d",
+  "protocol_sha256": "7ab8c120e0b63c9f25ffdecc8520ff5c4bf0ba1f6af9c60642c1dd091d18ac79",
+  "reviewer": "independent screen_audit",
+  "checks": [
+    "8 independently rerun proxy/selection tests",
+    "all-identical syndrome and absent-stratum fixture",
+    "source/input/version hashes",
+    "correct aligned merged BP mapping",
+    "fresh BP decoder per shot",
+    "labels not extracted; poisoned-label test",
+    "control-first stable SHA rank",
+    "bounded CPU/wall and inherited-lock recovery"
+  ],
+  "scope": "screening only; panel and list source separately gated",
+  "limitations": [
+    "rank proxy is not posterior",
+    "selected diagnostic not efficacy",
+    "restart limited by fixed budgets"
+  ]
+}

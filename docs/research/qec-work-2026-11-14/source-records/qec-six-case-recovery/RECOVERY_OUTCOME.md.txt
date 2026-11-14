@@ -1,0 +1,13 @@
+# Bounded QEC recovery outcome
+
+Four approved index-32 cases completed: X p=.020; Z p=.005,.010,.020. All 256 reference slices per case, 16 candidates per logical class, saved ordinary/correlated predictions and newly executed Tesseract/beliefmatching comparisons are preserved. See independent audit for scientific qualifications.
+
+The original X p=.005 result is preserved complete. Original X p=.010 remains partial at104/256 slices and is not silently replaced or excluded. Its full600 CPU-second allowance is charged. Total new charge2076.883; conservative combined charge3128.883/3600. Per-case charges507.928,513.456,522.284,533.215, all below600.
+
+Original run directory was atomically renamed to run-preserved-before-isolated-recovery-20261114, and its parent directory fsynced. All20 files were snapshotted by hash after rename. The old path remains absent, so the old runner cannot perform its next mandatory path-based write or advance through its normal control flow. This is not proof of termination and does not forbid a currently executing old slice from finishing. Owner explicitly accepted overlap uncertainty.
+
+New work used separate namespace, shared ledger, short synchronous commands, one scientific child at a time. All164 child batches completed successfully. No lease remains. Controller calls ended normally. No additional case or hardware experiment was run.
+
+Results are six diagnostic selections with one partial, not an estimated logical-error rate, hardware speedup or proof of practical decoder superiority. Numerical certificates retain the original model and floating-point assumptions. Solver timeouts do not establish globally optimal top16 candidates.
+
+Archive retains producer paths as provenance. Do not run setup again or recreate the historical run path; stage a new reviewed manifest for any additional experiment.

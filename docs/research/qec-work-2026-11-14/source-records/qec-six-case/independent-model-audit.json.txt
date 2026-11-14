@@ -1,0 +1,144 @@
+{
+  "status": "all_six_models_pass",
+  "selected_shot_data_read": false,
+  "models": [
+    {
+      "cell": "x-p0.005",
+      "model_sha256": "ec4e7e60d49036f6c2a3de6b6b352dc24a1cf7020796cd574c4d0617212de934",
+      "shape": [
+        121,
+        397
+      ],
+      "p_max": 0.008300000000000026,
+      "fixed_variables": [
+        120,
+        22,
+        25,
+        45,
+        46,
+        48,
+        49,
+        50
+      ],
+      "symbolic_depth_with_extra_sum_and_conversion_slack": 2703,
+      "largest_product_entries": 16777216,
+      "largest_longdouble_product_bytes": 268435456,
+      "passes_reviewed_envelope": true
+    },
+    {
+      "cell": "x-p0.010",
+      "model_sha256": "b1890f709c0e3534152e8dea631e41137e5eb927860cdab3676cc6a2cf727b5f",
+      "shape": [
+        121,
+        397
+      ],
+      "p_max": 0.016533333333333282,
+      "fixed_variables": [
+        120,
+        22,
+        25,
+        45,
+        46,
+        48,
+        49,
+        50
+      ],
+      "symbolic_depth_with_extra_sum_and_conversion_slack": 2703,
+      "largest_product_entries": 16777216,
+      "largest_longdouble_product_bytes": 268435456,
+      "passes_reviewed_envelope": true
+    },
+    {
+      "cell": "x-p0.020",
+      "model_sha256": "8ea3d75c5a3d148f634d138aa3bc3f2960f2cd55cd843726dc567da27b481274",
+      "shape": [
+        121,
+        397
+      ],
+      "p_max": 0.032799999999999996,
+      "fixed_variables": [
+        120,
+        22,
+        25,
+        45,
+        46,
+        48,
+        49,
+        50
+      ],
+      "symbolic_depth_with_extra_sum_and_conversion_slack": 2703,
+      "largest_product_entries": 16777216,
+      "largest_longdouble_product_bytes": 268435456,
+      "passes_reviewed_envelope": true
+    },
+    {
+      "cell": "z-p0.005",
+      "model_sha256": "23fda65abcf8d8ea559e49080e64722e1a282b866b72d1e44bc05e146eac207c",
+      "shape": [
+        121,
+        397
+      ],
+      "p_max": 0.008300000000000026,
+      "fixed_variables": [
+        120,
+        21,
+        26,
+        39,
+        45,
+        46,
+        49,
+        50
+      ],
+      "symbolic_depth_with_extra_sum_and_conversion_slack": 2703,
+      "largest_product_entries": 16777216,
+      "largest_longdouble_product_bytes": 268435456,
+      "passes_reviewed_envelope": true
+    },
+    {
+      "cell": "z-p0.010",
+      "model_sha256": "da516c4740c75f171aeb625f6937528f5bbedee6f597388ab81ff81e9ea83f95",
+      "shape": [
+        121,
+        397
+      ],
+      "p_max": 0.016533333333333282,
+      "fixed_variables": [
+        120,
+        21,
+        26,
+        39,
+        45,
+        46,
+        49,
+        50
+      ],
+      "symbolic_depth_with_extra_sum_and_conversion_slack": 2703,
+      "largest_product_entries": 16777216,
+      "largest_longdouble_product_bytes": 268435456,
+      "passes_reviewed_envelope": true
+    },
+    {
+      "cell": "z-p0.020",
+      "model_sha256": "6050d46861c310e9405ccf5b5a98deca2da6de8c58cb0b5b1e840d152c9f8206",
+      "shape": [
+        121,
+        397
+      ],
+      "p_max": 0.032799999999999996,
+      "fixed_variables": [
+        120,
+        21,
+        26,
+        39,
+        45,
+        46,
+        49,
+        50
+      ],
+      "symbolic_depth_with_extra_sum_and_conversion_slack": 2703,
+      "largest_product_entries": 16777216,
+      "largest_longdouble_product_bytes": 268435456,
+      "passes_reviewed_envelope": true
+    }
+  ]
+}
