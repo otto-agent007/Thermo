@@ -37,7 +37,11 @@ work pointed at the right problem.
   unholds the allocation. On 2026-11-12 the owner opened three mechanism
   rows (`margin-budget-copies`, `aggregator-read-gain`,
   `directed-relay-latent`; `docs/research/2026-11-12-mechanism-proposals.md`);
-  none names a task with digital headroom. Amendment 1's four-week
+  none names a task with digital headroom. All three closed by probe on
+  2026-11-13 (P-0011 to P-0013; D-0010): each result holds only with a
+  feature Z1 lacks or does not price, collected in
+  `docs/research/2026-11-13-z1-feature-requirements.md`. The queue has no
+  open row. Amendment 1's four-week
   evaluation falls due on 2026-11-11.
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
