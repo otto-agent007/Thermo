@@ -1,0 +1,88 @@
+{
+  "complete": true,
+  "selected": 14,
+  "audited": 14,
+  "certified_winners": 11,
+  "numerical_winner_unresolved": 3,
+  "certified_ambiguous": 1,
+  "costs_cpu_seconds": {
+    "screen-run": 93.84,
+    "list-run": 823.466,
+    "reference-run": 6892.738
+  },
+  "total_scientific_charged_cpu_seconds": 7810.044,
+  "observed_panel": {
+    "random_panel": {
+      "n": 192,
+      "fallbacks": 58,
+      "errors": {
+        "tesseract": 1,
+        "beliefmatching": 1,
+        "correlated": 1,
+        "list4": 1
+      },
+      "paired_vs": {
+        "tesseract": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "beliefmatching": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "correlated": {
+          "repairs": 0,
+          "harms": 0
+        }
+      }
+    },
+    "extra_only": {
+      "n": 4,
+      "fallbacks": 0,
+      "errors": {
+        "tesseract": 1,
+        "beliefmatching": 4,
+        "correlated": 2,
+        "list4": 1
+      },
+      "paired_vs": {
+        "tesseract": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "beliefmatching": {
+          "repairs": 3,
+          "harms": 0
+        },
+        "correlated": {
+          "repairs": 2,
+          "harms": 1
+        }
+      }
+    },
+    "all_admitted_disagreements": {
+      "n": 4,
+      "fallbacks": 0,
+      "errors": {
+        "tesseract": 1,
+        "beliefmatching": 4,
+        "correlated": 2,
+        "list4": 1
+      },
+      "paired_vs": {
+        "tesseract": {
+          "repairs": 0,
+          "harms": 0
+        },
+        "beliefmatching": {
+          "repairs": 3,
+          "harms": 0
+        },
+        "correlated": {
+          "repairs": 2,
+          "harms": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+# Short-batch execution amendment (not launched)
+
+The scientific functions and original run are untouched. `executor.py` is an isolated, generic single-process supervisor for short synchronous commands. Use 4–8 contraction slices per batch, target less than 20 seconds per command, not another long session. Scientific adapter integration is validated on a tiny synthetic fixture; production recovery remains pending.
+
+## Guarantees and limits
+
+* A kernel file lock excludes another supervisor using this ledger. It does not exclude the historical runner, which never acquired this lock.
+* CPU budget is reserved durably before subprocess creation. Missing receipts retain the full reserved allowance; never reset budget on retry.
+* Child has CPU and address-space hard limits and an independent wall alarm. Linux parent-death SIGKILL with a parent-PID race check prevents continued running after its supervisor exits. Trusted commands must remain a single process and must not reset their alarms or limits.
+* Supervisor additionally waits with a wall deadline and kills/reaps its process group on timeout.
+* Command, limits and supplied input/source hashes define batch identity. A production caller MUST supply all relevant source/input hashes, including executable/environment provenance. The generic synthetic tests may omit those hashes.
+* Only successful output is atomically published, with hash and exit receipt. Repeating the exact batch returns its verified receipt without recomputation. Receipt/ledger interrupted commits reconcile under the exclusive lock.
+* A persistent token lease prevents automatic takeover of an unreceipted batch. There is no assumption that a stale timestamp proves death. Arbitrarily suspended processes remain an external-state limitation; the wrapper does not pretend to solve that.
+* Parent-death and lock guarantees apply to the inspected Linux/POSIX environment, not every possible executor or remote filesystem.
+* Measured child CPU is not clipped to its reservation; unexpected overshoot is recorded honestly and consumes remaining budget. Reservation is not an exact hardware timing guarantee. The final version charges measured child CPU plus at least one second of caller/supervisor allowance per batch, and records preparation/aggregation overhead separately. Outer tool/review CPU is outside this numerical ledger.
+
+## Validation
+
+Synthetic tests cover normal success/idempotence, failed child, no output, wall timeout, budget rejection, persistent lease rejection, specification collision, output integrity, post-receipt reconciliation, and SIGKILL of supervisor before child completion.
+
+No remaining QEC case has run with this wrapper. Original process liveness remains unresolved. A separate authorization/exclusivity decision remains required before scientific execution.
+
+## Scientific adapter integration
+
+`adapter.py` stages and hashes the matrix, binary64 probabilities and syndrome. It retains caller-supplied seed/comparator files verbatim. Hashes cover the Python executable, frozen contraction and arithmetic-plan sources, adapter/supervisor, and relevant inputs; NumPy/SciPy versions are pinned in each staged config. No old frozen run source is changed.
+
+Candidate continuation carries every prior feasible seed and no-good constraint forward. Each short command performs at most four more two-second MILP solves. Prefixes are verified for parity, uniqueness and input identity. It makes no optimality claim beyond recorded solver statuses.
+
+Reference commands perform at most eight unchanged `contract_slice` calls. Complete aggregation rejects missing, duplicate, out-of-range and mismatched slice assignments. Its output remains a point estimate until the existing numerical interval/independent audit is applied. The adapter does NOT itself claim a certificate.
+
+Budget charging now includes measured child CPU plus at least one second of conservative orchestration allowance per executed batch (or the measured supervisor/caller CPU if larger). Setup and aggregate overhead are recorded separately. Linux interpreter/module startup inside each subprocess is included in child usage. Outer agent/tool/review CPU is not part of the numerical study ledger. Production orchestration must separately record initial interpreter setup, control-loop overhead and any interrupted unreceipted reservation. No fresh per-case budget may be granted to an interrupted historical case.
+
+Remaining production integration gates: original-process exclusivity decision; approved recovery manifest binding original selection/budgets; final independent audit application to actual production outputs. Comparator invocation and numerical interval finalization are now implemented and exercised synthetically. No d5 case has been launched through this adapter.
+
+## Final synthetic integration result
+
+Twenty-one unit/integration tests pass. A preserved synthetic run enumerates all 32 fault vectors with exact rational arithmetic: class masses are 0.012072 and approximately 0.088528 for the binary64 input probabilities. Both exact values lie inside the adapter final intervals. It exercises candidate continuation in two stages per class, both actual comparator adapters, two slice batches, finalization, receipt reuse, and metadata preservation. Synthetic baseline/observed bits are metadata test values, not a claim of independently executed ordinary/correlated matching. No actual remaining d5 case has run.

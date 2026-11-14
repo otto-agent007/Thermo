@@ -1,0 +1,31 @@
+# Independent execution reliability review
+
+Reviewed 2026-11-14. No QEC computation was launched or modified.
+
+## Original interruption evidence
+
+The six-case batch used a single long-lived command session. It had no durable supervisor exit record, wall deadline, or process lease, and explicitly refused checkpoint resume. The last saved second-case record is 104/256 slices, around 195.5 CPU seconds into that case and 646.6 total process CPU seconds, with peak RSS around 705 MiB. These are below the 600-second case, 3600-second overall, and 3 GiB address-space caps. No Python exception or resource-kill record is available. The reason for interruption cannot be identified from the preserved artifacts; repeated later status checks are not evidence of additional calculation crashes.
+
+SIGPROF uses SIG_DFL, so a case CPU-limit kill would bypass the Python exception handler and could leave status marked running. This is a logging defect, not evidence that the limit caused this interruption.
+
+## New short-batch executor
+
+Verified ten synthetic tests pass, including normal success/idempotency, failure/no publication, wall stop, budget refusal, stale lease refusal, changed spec rejection, output integrity, receipt reconciliation, and supervisor-death handling. Before the parent-death patch, an independent SIGKILL test showed a live orphan until its wall alarm; the Linux PR_SET_PDEATHSIG patch plus parent-PID race check addresses that direct-child case for trusted single-process commands.
+
+Positive properties: fsynced budget reservation precedes launch; kernel flock serializes cooperating executors; explicit CPU and wall bounds; pending output is published only with successful exit; output hashes and receipts are retained; completed receipts can reconcile interrupted ledger cleanup; input/source hashes can bind scientific content when supplied.
+
+Limits: this executor neither controls nor proves termination of the historical runner. It must not be advertised as doing so. An unresolved persistent lease intentionally blocks retry. A scientific caller must provide full input/source hashes, enumerate fixed slice identities, validate outputs, account for setup/supervisor CPU, and aggregate only complete unique slices. Linux-specific parent-death handling assumes a trusted single-process child; it is not a generic descendant supervisor or formal guarantee under arbitrary platform suspension.
+
+Remaining accounting correction sent to implementer: charge a signaled process the greater of reservation and measured rounded-up usage, to avoid clipping measurable CPU-limit overshoot. Supervisor CPU is outside RUSAGE_CHILDREN and needs separate inclusion or a documented conservative reserve.
+
+## Scientific adapter follow-up
+
+Final reviewed executor/adapter suite: **18 tests passed independently**. New tests cover exact exhaustive small-model class masses, idempotent slice output, candidate-prefix preservation and parity, source/input mutation, invalid fixed variables, and overlapping slice-range refusal before launch. The adapter calls the unchanged frozen contraction function and imports its reviewed arithmetic-plan checker, enforces the longdouble precision/range and fixed-variable limits, hashes relevant sources/inputs/interpreter, verifies unique slice identities and assignments, and refuses incomplete aggregation. Candidate continuation checks input and logical identity; ledger case identities are bound to input hashes.
+
+Measured child plus caller/supervisor CPU is charged with at least one second of conservative orchestration allowance per completed batch; interrupted reservations retain their full allowance. Preparation and aggregation CPU are recorded separately. This is not a claim to account for all tool/review work outside the scientific executor. Parent-death behavior still applies only to the new trusted single-process children, not the old historical runner.
+
+The later comparator/finalizer extension supersedes the missing-comparator limitation above: it invokes the unchanged Tesseract/beliefmatching adapter, verifies the staged DEM against the staged complete fault factors, carries archived baseline metadata, and applies the original conditional numerical envelope. Fresh production selection/staging, explicit recovery provenance and independent review of actual production results remain necessary. No production QEC case was run during this review.
+
+## Final comparator/finalizer audit
+
+Independently reran **21 tests: all passed**. Independently enumerated all 32 binary fault patterns in the preserved synthetic end-to-end input using exact rational values of the binary64 probabilities. The exact class masses are approximately 0.012072 and 0.088528; both are contained in the final rational numerical intervals. The actual Tesseract and beliefmatching stage returns class 1 on this fixture. Ordinary/correlated values in this synthetic fixture are supplied test metadata, not an independently benchmarked baseline. Production numerical accuracy remains conditional on the documented arithmetic assumptions.

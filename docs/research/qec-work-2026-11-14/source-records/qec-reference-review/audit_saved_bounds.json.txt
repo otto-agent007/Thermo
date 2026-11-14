@@ -1,0 +1,6 @@
+{
+  "status": "verified",
+  "unique_feasible_candidates_checked": 32,
+  "candidate_masses": "exact rational binary64 Bernoulli probabilities",
+  "captured_fraction_arithmetic": "verified relative to recorded projected upper and exact candidate lower; full class mass unknown"
+}

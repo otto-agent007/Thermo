@@ -1,0 +1,37 @@
+# Saved d5 case: sliced reference and conditional numerical bounds
+
+The authorized one-case256-slice computation completed in457.42wall/455.59CPU seconds (~7.6minutes), peak RSS582976KiB (~569MiB), within3GiB address-space and1200CPU-second caps. No new samples or broader efficacy comparison. Cloud RAM was sufficient with slicing; moving to local hardware was unnecessary for this case.
+
+## Trustworthy conclusions, with explicit arithmetic assumptions
+Independent review accepted a conservative absolute floating-point error envelope8.881784197001260216e-16, conditional on correctly rounded longdouble elementary operations/nextafter, stated range/underflow assumptions, and the exact saved binary64 model parameters. It bounds INTERNAL signed-contraction error, not merely final summation. NumPy's dtype name float128 here means extended precision with64significand bits, not IEEE quadruple.
+
+The bound derives from the sign-removed Fourier polynomial being≤1, audited arithmetic depth2588, conservative8192epsilon allowance, and negligible1e-4800underflow allowance. This is a conditional numerical certificate, not formal verification of the hardware/compiler. See qec-reference-review/NUMERICAL_REVIEW.md. Exact rational endpoints are stored.
+
+Intersecting those intervals with independently verified feasible-configuration bounds gives:
+
+| Logical class | Mass lower bound | Mass upper bound |
+|---|---:|---:|
+|0|1.0451493972e-14|1.1347711896e-14|
+|1|1.2923901192e-20|8.8819238084e-16|
+
+The intervals are disjoint. **Class0 has larger total mass for this saved model/syndrome under the stated arithmetic assumptions.** This is stronger than agreement with the observed logical label: it compares full logical-class probability, not just best fault configuration. It does not establish population decoding advantage.
+
+## Captured mass of the feasible candidate portfolio
+
+| Class0 portfolio | Captured-fraction interval |
+|---|---:|
+|1configuration|48.05%–52.17%|
+|4configurations|91.12%–98.93%|
+|16configurations|92.10%–100%|
+
+Thus a small candidate set captures most CLASS0 mass on this one known development case. This is not a generic four-candidate coverage guarantee. Configurations were obtained with floating-point MILP; lower-mass bounds use verified feasibility/probabilities, not assumed exact solver optimality.
+
+Class1 remains numerically unresolved in RELATIVE terms. Its16-candidate captured fraction is only bounded approximately0.00146%–100%. Do not report its tiny point estimate as a precise reference or infer complete coverage from a portfolio normalized by itself.
+
+## Numerical estimates versus guarantees
+Untruncated longdouble point estimates were1.0459533475951e-14(class0),1.3961142050e-20(class1). Class1 subtracts roughly5.22977e-15−5.22976e-15; final-term condition ratio~749189. The absolute error certificate is far larger than that class1 point estimate, so its digits are not certified.
+
+Independent100-digit re-summation of saved terms agrees within3.75e-34, verifying aggregation only. Internal-error control comes from the separate arithmetic-circuit analysis. All256term assignments, hashes, costs and checkpoint records are preserved. Small algebra/enumeration and bound tests pass; these tests alone would not have certified d5 floating-point accuracy.
+
+## Research implication
+We now have a useful reference for class ordering and class0 candidate coverage on the previously harmful case. This supports investigating candidate-focused mass accounting, while showing why estimator diagnostics alone were inadequate. Generality still needs a separately designed set of cases; none was added here. The prior development case must not be repackaged as held-out efficacy evidence.

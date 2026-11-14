@@ -1,0 +1,32 @@
+# Proposed held-out test, pending independent protocol review
+
+## Two separate questions
+1. Does the corrected rank-only proxy enrich genuinely ambiguous logical classes relative to randomly selected shots?
+2. Does an explicitly frozen selective list policy improve observed logical error relative to Tesseract or belief matching, at what total cost?
+
+A reference-MAP agreement result is not the same as lower realized error. One small selected diagnostic cannot estimate population superiority.
+
+## Development boundary
+All indices0–288 in the six saved cells are development-only, even where only syndromes or screening outputs were inspected. Do not call those shots held out again. Freeze code, seeds, selection and policies before accessing any outcome labels in later indices.
+
+## Proposed bounded scope
+Fresh pool: indices289–800 inclusive,512 per each of6cells (3,072shots). Read detectors and archived baseline predictions only during screening. Run unchanged pinned Tesseract and beliefmatching. Store corrected proxy and its missingness diagnostics. Use checkpointed short batches, source/input hashes and the reviewed v3 executor.
+
+Reserve one uniform random control percell before screening; preserve shot multiplicity. Then select one minimum finite proxy-margin unique syndrome percell, excluding the control syndrome. Select one decoder-disagreement syndrome percell if present; no replacements. This yields at most18reference cases. Reference eligibility and selection must be frozen before labels/reference values are accessed. Report duplicate syndromes and model-parameter differences across cells.
+
+## Candidate policy comparison
+Freeze candidate4 and candidate16 policies as separate alternatives, with insufficient-candidate fallback to beliefmatching and explicit tie-breaks. Generate both class lists before reference, preserve solver status and include candidate costs. Do not optimize thresholds after outcomes. Evaluate the selected cases descriptively, with repairs/harms separately in each stratum.
+
+For a population-level selective decoder result, a separate full-pool prediction policy is required: e.g. list refinement only on disagreement, otherwise unchanged beliefmatching. Every triggered case must be processed, or a deterministic predeclared budget/timeout fallback must be counted on the entire denominator. This is NOT automatically supplied by the18case reference diagnostic. Prefer freezing that separate policy after resource/power estimates; no superiority assertion from rare disagreements.
+
+## Gates and metrics
+- Fix true ambiguity threshold before evaluation, e.g. reference posterior in[.25,.75]. Report numerical interval certification, ambiguous/unresolved, not forced binary labels.
+- Perstratum: conditional reference class odds, candidate captured-mass intervals, observed repairs/harms, fallback, costs.
+- Score screening by enrichment of true ambiguity versus ordinary controls; with6controls these are exploratory counts, not calibrated efficacy.
+- Precision/cancellation and budgets can leave references unresolved; retain all selected rows, no outcome-driven replacement.
+- Report reference cost separately from production candidate/screen/comparator cost. Compare fixed implementations; do not call them matched-cost.
+
+## Resource proposal
+Screen cap600CPU seconds, short20CPU/25wall batches; at most18reference cases,600CPU seconds each (10,800 total). One thread,3GiB per child, immutable selection and recorded stage costs. Reuse only verified completed batches; retain full abandoned reservation, at most3attempts within unchanged cap. Stop and report unresolved if exhausted. Do not promise completion under filesystem loss or arbitrary suspension.
+
+Before substantive run, independently review this protocol and actual source implementation, including poisoned-label extraction, relevant infinity handling, frozen RNG, duplicate/empty strata, restart fault injection and budget admission. Parent should choose/approve final scale and whether to add a separate full-pool selective efficacy phase.

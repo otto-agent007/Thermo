@@ -1,0 +1,15 @@
+# Cloud resource and representative-slice check
+
+Historical preliminary checkpoint. The later authorized full run is reported in FULL_REFERENCE_REPORT.md.
+
+Owner authorized checking a larger safe memory cap before deciding whether a local run is useful. Observed machine:9967MiB total RAM,9304MiB available at inspection, no swap. /proc/self/cgroup says0::/ but cgroup memory.max/current files are not exposed. Therefore an8GiB container hard cap cannot be confirmed from available files.
+
+Unsliced dual plan's8GiB float64 largest product alone is unsafe with live tensors/intermediates; longdouble doubles that product to16GiB and cannot fit. No unsliced attempt was made.
+
+Measured one representative savedZ.005/index7/class0 Fourier slice with eightfixed dualvariables, all-zero slice assignment. Serial longdouble,3GiB process address-space cap,60CPU-second cap. Sliced implementation first passed small-model exact-enumeration tests.
+
+Result: completed1.793wall/1.784CPU seconds; peak RSS574332KiB (~561MiB);113remaining variables eliminated. Largest longdouble product planned256MiB. Detailed logs and result in tensor-one-slice.json. Value5.1555377992055499292e-17 is ONE SIGNED-FOURIER CONTRIBUTION, not a class mass.
+
+There are256slices. Simple256x extrapolation is about7.6minutes serial plus bookkeeping/startup, but only one slice was timed; this is not a runtime guarantee. Fixed dense shapes suggest similar workloads across assignments, while allocation/caching/system variation can change cost. A full run was NOT launched. Actual output would be an untruncated floating-point Fourier class-mass estimate, not an automatically certified answer; cancellation/numerical error control still required.
+
+The measured sliced approach fits comfortably in cloud memory. Local hardware is not necessary merely to solve the RAM issue. More RAM could allow fewer slices or a different plan but is not automatically faster or more accurate; inspect actual local resources before recommending a move. Any full reference attempt should retain a safe serial cap and numerical safeguards rather than parallelizing slices into an OOM.

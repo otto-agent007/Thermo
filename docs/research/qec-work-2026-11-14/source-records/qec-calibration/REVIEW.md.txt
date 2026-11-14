@@ -1,0 +1,55 @@
+# Independent review of exact-fixture reliability investigation
+
+## Verification
+
+`independent_audit.py` independently enumerates all 4,096 physical fault vectors
+per fixture, filters them by syndrome, and sums direct Bernoulli probability
+products. It does not use the production affine mass oracle. It verifies the
+frozen plan hash, 768 saved AIS weight arrays and ESS values, all 192 group
+statistics, seed-mass bounds, candidate accept/reject counts, per-fixture exact
+conditional binomial intervals, and the selected-threshold result.
+
+Audit passed. **No candidate qualifies under the predeclared selection rule.**
+The strictest candidate accepts 32 calibration groups, including five inaccurate
+ones; on validation it accepts 28, including one inaccurate one. These pooled
+counts describe the fixed heterogeneous fixtures, not an iid population rate.
+
+`replay_coverage.py` additionally independently replays two illustrative groups
+with direct recomputation of physical-state target probabilities at each move.
+All eight retained weight arrays and their visited-mass totals agree:
+
+- Calibration 601/top4/group1 visits states carrying 99.9946% of exact target mass,
+  yet estimates total mass 19.3734% too low and passes the strictest heuristic.
+- Validation 701/top4/group2 visits states carrying 99.9996% of exact target mass,
+  yet estimates total mass 15.2294% too high and passes that heuristic.
+
+Thus merely visiting important states is insufficient: occupation, trajectory
+weights, and variability still matter. These results do not prove an algebraic
+bias or a failure of AIS in general.
+
+## Statistical interpretation
+
+Four-replicate Student-t intervals are heuristic with these potentially skewed,
+heavy-tailed positive estimates. Their nominal 95% label is not a coverage
+certificate. Exact-fixture checks appropriately falsified the candidate rules;
+no parameter should be retuned against validation outcomes and presented as
+validated on those same outcomes.
+
+A point estimate below a known mass lower bound can be ordinary finite-sampling
+fluctuation. It is not a deterministic impossibility or, by itself, evidence of
+an implementation defect. Comparing the heuristic interval to the bound still
+does not establish accuracy. High ESS also does not certify correct mass.
+
+The omissions remove four highest-probability configurations, not necessarily
+an entire distinct mode or basin. Actual seed target-mass fractions are saved.
+The exact visited-mass measurement is an oracle diagnostic only, not a practical
+d5 acceptance feature. Per-fixture uncertainty is broad with only 16 groups.
+
+## Next decision
+
+Do not deploy or expand efficacy tests using these reliability gates. A separate
+predeclared investigation could analytically sum known seed mass and estimate
+only the residual, verifying the exact weighted-endpoint identity first. That
+would respect the lower bound structurally without clipping, but would not by
+itself guarantee lower variance, missing-mode detection, or valid confidence
+intervals. No such new method was implemented or run in this review.

@@ -1,0 +1,7 @@
+{
+  "original_filename": "Thermo-bounded-QEC-precision-diagnostic-2026-11-14.tar.gz",
+  "sha256": "5cc8b6cb323f48a2e0a9ad76eef704ea1627a32524e04a92e64ee303a8d5adff",
+  "size_bytes": 89036,
+  "scope": "Unmodified original tiny-model artifact, not production package or d5 backend",
+  "portable_replay": "uv run pytest tests/unit/test_qec_precision_archive.py"
+}

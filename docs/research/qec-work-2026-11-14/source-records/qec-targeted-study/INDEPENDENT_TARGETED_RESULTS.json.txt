@@ -1,0 +1,391 @@
+{
+  "scope": "Independent exact-rational candidate/interval audit, stored slice sums, source and receipt integrity, fresh comparator replay; no contractions rerun. Numerical winner conditional on documented arithmetic assumptions.",
+  "cases": [
+    {
+      "candidate_predictions": {
+        "4": 0,
+        "16": 0
+      },
+      "cell": "x-p0.005",
+      "index": 273,
+      "stratum": "ordinary",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 0.30546378328641133,
+          "mass_upper": 0.3054637832864131,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9999945679677933,
+              "captured_upper": 0.9999945679677993
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9999959319221184,
+              "captured_upper": 0.9999959319221244
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 8.044028754184383e-12,
+          "mass_upper": 8.045805111023784e-12,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.254180366008714,
+              "captured_upper": 0.25423649646838775
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.7069400980851552,
+              "captured_upper": 0.707096211137042
+            }
+          ]
+        }
+      ],
+      "winner": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "charged_cpu_seconds": 549.0340000000002
+    },
+    {
+      "candidate_predictions": {
+        "4": 0,
+        "16": 0
+      },
+      "cell": "x-p0.010",
+      "index": 148,
+      "stratum": "ordinary",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 3.215932992965693e-06,
+          "mass_upper": 3.21593299474205e-06,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9993209839310078,
+              "captured_upper": 0.9993209844829941
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.999909969818742,
+              "captured_upper": 0.9999099703710537
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 1.0213251120549224e-12,
+          "mass_upper": 1.0231014688943226e-12,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9296752228396711,
+              "captured_upper": 0.9312921760713306
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9672047565428468,
+              "captured_upper": 0.9688869836457608
+            }
+          ]
+        }
+      ],
+      "winner": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "charged_cpu_seconds": 523.77
+    },
+    {
+      "candidate_predictions": {
+        "4": 0,
+        "16": 0
+      },
+      "cell": "x-p0.020",
+      "index": 112,
+      "stratum": "ordinary",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 0.00023246070027699785,
+          "mass_upper": 0.0002324607002787742,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9990067990878967,
+              "captured_upper": 0.9990067990955308
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9996097055145959,
+              "captured_upper": 0.9996097055222346
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 1.0053450589696485e-11,
+          "mass_upper": 1.0055226946535885e-11,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.1642473415343837,
+              "captured_upper": 0.16427636260390455
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.5493245422075329,
+              "captured_upper": 0.5494216030523539
+            }
+          ]
+        }
+      ],
+      "winner": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "charged_cpu_seconds": 531.3269999999999
+    },
+    {
+      "candidate_predictions": {
+        "4": 0,
+        "16": 0
+      },
+      "cell": "x-p0.020",
+      "index": 258,
+      "stratum": "disagreement",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 1.978556340022178e-11,
+          "mass_upper": 1.978733975706118e-11,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9490361460207385,
+              "captured_upper": 0.9491213509155764
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9852160680849417,
+              "captured_upper": 0.9853045212295618
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 1.249945770967917e-11,
+          "mass_upper": 1.2501234066518571e-11,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.8296194495669156,
+              "captured_upper": 0.829737350696514
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9442852165295779,
+              "captured_upper": 0.9444194133516871
+            }
+          ]
+        }
+      ],
+      "winner": 0,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 0,
+        "beliefmatching": 1
+      },
+      "charged_cpu_seconds": 525.3510000000001
+    },
+    {
+      "candidate_predictions": {
+        "4": 0,
+        "16": 0
+      },
+      "cell": "z-p0.005",
+      "index": 208,
+      "stratum": "ordinary",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 0.0015418907850873707,
+          "mass_upper": 0.001541890785089147,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9999808595384052,
+              "captured_upper": 0.9999808595395574
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.999995070627531,
+              "captured_upper": 0.9999950706286831
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 1.998723575454985e-12,
+          "mass_upper": 2.0004999322943854e-12,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.5111493708055814,
+              "captured_upper": 0.5116036525741742
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9584069016537683,
+              "captured_upper": 0.9592586815975226
+            }
+          ]
+        }
+      ],
+      "winner": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "charged_cpu_seconds": 528.723
+    },
+    {
+      "candidate_predictions": {
+        "4": 1,
+        "16": 1
+      },
+      "cell": "z-p0.010",
+      "index": 54,
+      "stratum": "ordinary",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 1.6853216185120329e-15,
+          "mass_upper": 2.746513207656821e-15,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.5791202074259867,
+              "captured_upper": 0.9437731534712845
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.6136222515929058,
+              "captured_upper": 1.0
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 7.46946738778074e-09,
+          "mass_upper": 7.46946916413758e-09,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.9787282751281694,
+              "captured_upper": 0.9787285078851488
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9984209063084222,
+              "captured_upper": 0.9984211437486189
+            }
+          ]
+        }
+      ],
+      "winner": 1,
+      "observed": 1,
+      "predictions": {
+        "ordinary": 1,
+        "correlated": 1,
+        "tesseract": 1,
+        "beliefmatching": 1
+      },
+      "charged_cpu_seconds": 540.2719999999999
+    },
+    {
+      "candidate_predictions": {
+        "4": 0,
+        "16": 0
+      },
+      "cell": "z-p0.020",
+      "index": 93,
+      "stratum": "ordinary",
+      "status": "independently_verified_conditional_numerics",
+      "classes": [
+        {
+          "logical": 0,
+          "mass_lower": 0.00017543159564465153,
+          "mass_upper": 0.0001754315956464279,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.999371408258765,
+              "captured_upper": 0.9993714082688845
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.9996604141295751,
+              "captured_upper": 0.9996604141396974
+            }
+          ]
+        },
+        {
+          "logical": 1,
+          "mass_lower": 6.750321608793315e-11,
+          "mass_upper": 6.750499244477255e-11,
+          "portfolios": [
+            {
+              "size": 4,
+              "captured_lower": 0.4504537023131984,
+              "captured_upper": 0.4504655560671573
+            },
+            {
+              "size": 16,
+              "captured_lower": 0.8387364299676004,
+              "captured_upper": 0.8387585014373788
+            }
+          ]
+        }
+      ],
+      "winner": 0,
+      "observed": 0,
+      "predictions": {
+        "ordinary": 0,
+        "correlated": 0,
+        "tesseract": 0,
+        "beliefmatching": 0
+      },
+      "charged_cpu_seconds": 528.1389999999999
+    }
+  ],
+  "charged_cpu_seconds_at_audit": 3726.616
+}

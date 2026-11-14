@@ -1,0 +1,90 @@
+{
+  "status": "verified",
+  "estimates_recounted": 768,
+  "fixtures": [
+    {
+      "fixture": "calibration_601_top4",
+      "ordinary_bad_groups": 11,
+      "residual_bad_groups": 9,
+      "ordinary_MSE": 0.024819179987867927,
+      "residual_MSE": 0.025822709141998138
+    },
+    {
+      "fixture": "calibration_601_omit_top4_use_next4",
+      "ordinary_bad_groups": 9,
+      "residual_bad_groups": 7,
+      "ordinary_MSE": 0.022309204804586383,
+      "residual_MSE": 0.019530574321875153
+    },
+    {
+      "fixture": "calibration_602_top4",
+      "ordinary_bad_groups": 2,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.00442240076239717,
+      "residual_MSE": 0.00045292227304632516
+    },
+    {
+      "fixture": "calibration_602_omit_top4_use_next4",
+      "ordinary_bad_groups": 9,
+      "residual_bad_groups": 9,
+      "ordinary_MSE": 0.019225608981768214,
+      "residual_MSE": 0.018906915624899195
+    },
+    {
+      "fixture": "calibration_603_top4",
+      "ordinary_bad_groups": 0,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.000699093205791586,
+      "residual_MSE": 0.0008437620419460875
+    },
+    {
+      "fixture": "calibration_603_omit_top4_use_next4",
+      "ordinary_bad_groups": 0,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.0007229916218276298,
+      "residual_MSE": 0.001479592742729088
+    },
+    {
+      "fixture": "validation_701_top4",
+      "ordinary_bad_groups": 6,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.011045853198037005,
+      "residual_MSE": 3.028726776277685e-10
+    },
+    {
+      "fixture": "validation_701_omit_top4_use_next4",
+      "ordinary_bad_groups": 9,
+      "residual_bad_groups": 9,
+      "ordinary_MSE": 0.039611097186957475,
+      "residual_MSE": 0.039617921456922306
+    },
+    {
+      "fixture": "validation_702_top4",
+      "ordinary_bad_groups": 0,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.001456957025422206,
+      "residual_MSE": 0.0013650083906102057
+    },
+    {
+      "fixture": "validation_702_omit_top4_use_next4",
+      "ordinary_bad_groups": 4,
+      "residual_bad_groups": 3,
+      "ordinary_MSE": 0.008463849326560193,
+      "residual_MSE": 0.006810044136841435
+    },
+    {
+      "fixture": "validation_703_top4",
+      "ordinary_bad_groups": 0,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.0008456634801316061,
+      "residual_MSE": 0.0007739414652922699
+    },
+    {
+      "fixture": "validation_703_omit_top4_use_next4",
+      "ordinary_bad_groups": 0,
+      "residual_bad_groups": 0,
+      "ordinary_MSE": 0.001816357972106053,
+      "residual_MSE": 0.0017195306427602397
+    }
+  ]
+}

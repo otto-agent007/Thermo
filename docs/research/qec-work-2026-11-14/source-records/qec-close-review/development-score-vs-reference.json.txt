@@ -1,0 +1,65 @@
+[
+  {
+    "case": "x-p0.005-i273-ordinary",
+    "zero_syndrome": true,
+    "proxy_logodds0over1": 0.0,
+    "reference_logodds_interval": [
+      24.359946208162093,
+      24.360167013033237
+    ]
+  },
+  {
+    "case": "x-p0.010-i148-ordinary",
+    "zero_syndrome": false,
+    "proxy_logodds0over1": 5.697969727573592,
+    "reference_logodds_interval": [
+      14.960789403912605,
+      14.962527160472417
+    ]
+  },
+  {
+    "case": "x-p0.020-i112-ordinary",
+    "zero_syndrome": false,
+    "proxy_logodds0over1": 4.371615597304746,
+    "reference_logodds_interval": [
+      16.95613914415199,
+      16.956315819810314
+    ]
+  },
+  {
+    "case": "x-p0.020-i258-disagreement",
+    "zero_syndrome": false,
+    "proxy_logodds0over1": 2.5338438967544796,
+    "reference_logodds_interval": [
+      0.45912518580471395,
+      0.4593570668426182
+    ]
+  },
+  {
+    "case": "z-p0.005-i208-ordinary",
+    "zero_syndrome": false,
+    "proxy_logodds0over1": 7.097362401906414,
+    "reference_logodds_interval": [
+      20.46287816731682,
+      20.463766518245485
+    ]
+  },
+  {
+    "case": "z-p0.010-i54-ordinary",
+    "zero_syndrome": false,
+    "proxy_logodds0over1": -0.5461823825193405,
+    "reference_logodds_interval": [
+      -15.304378075108335,
+      -14.816002071710104
+    ]
+  },
+  {
+    "case": "z-p0.020-i93-ordinary",
+    "zero_syndrome": false,
+    "proxy_logodds0over1": 4.2850076303478986,
+    "reference_logodds_interval": [
+      14.770558199196003,
+      14.770584514003708
+    ]
+  }
+]

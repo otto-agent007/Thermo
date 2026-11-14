@@ -1,0 +1,92 @@
+# Independent review of the sliced contraction error envelope
+
+## Decision
+
+**Accept the proposed conservative absolute envelope conditionally on the stated
+correctly-rounded longdouble arithmetic assumptions.** This is forward-error
+analysis of this fixed implementation/model, not a hardware-level formal proof,
+a statistical interval, or a relative-accuracy certificate for the tiny class1
+mass. Keep the assumptions alongside any reported enclosure.
+
+## Checked argument
+
+I inspected `tensor_slice_run.py`, `tensor_full_slices.py`, the symbolic depth
+script and saved model. Each complete fault contributes a Fourier factor either
+1 or 1-2p; here p<=0.008300000000000026, so these factors are positive and at least
+0.9834. The local expression (1-p)+p*(+/-1) is well-conditioned: four conservative
+rounding units per initial factor cover its construction. Binary64 probabilities
+convert exactly to this platform's 64-significand-bit longdouble. Unary factors
++/-1/2 are exact.
+
+Every original factor is consumed exactly once by a bucket tree. Expanding that
+arithmetic circuit gives one monomial per complete assignment to the121Fourier
+variables. Replacing signed unaries by their absolute values bounds the sum of
+absolute exact monomials by1: there are2^121assignments, each has121factors1/2,
+and each fault factor lies in[0,1]. This controls INTERNAL cancellation as well
+as the final slice sum. It is not inferred from the observed slice-sum condition
+number.
+
+The recorded symbolic depth2332per slice and2588including a sequential256-term
+sum is consistent with summing child depths, charging each product, and one
+addition per two-entry eliminated axis. NumPy may use a different reduction
+order, but its binary sums need no greater sequential depth. Even allowing an
+extra addition per eliminated-axis reduction, decimal serialization/reparse,
+and final sign handling leaves substantial room below8192. Serialization must
+remain a faithful round-to-nearest representation; a conservative extra conversion
+rounding is covered rather than assuming perfect roundtrip.
+
+Use epsilon=2^-63 (NumPy longdouble eps), conservatively twice conventional unit
+roundoff, and delta=8192. For normal operations, absolute error is bounded by
+
+  gamma_delta = (delta*epsilon)/(1-delta*epsilon).
+
+The argument does not assume that intermediate signed results have small relative
+error with respect to the final answer. Each elementary addition is expanded into
+the original signed monomials, and their absolute sum supplies the envelope.
+
+## Range and underflow allowance
+
+There are at most518original factors,113eliminations per slice and256slices.
+The largest sliced bucket has2^24entries. Charging every possible factor-consumption
+multiplication and eliminated-axis addition at that largest size gives fewer
+than2^43elementary arithmetic operations, including setup and aggregation slack.
+An intermediate exact expanded magnitude is at most2^121, far below the
+longdouble overflow threshold; the small rounding allowance does not alter this.
+
+For underflow, charge an absolute error of the normal minimum at every operation,
+even though this is much larger than a correctly-rounded subnormal error. Each
+such perturbation's remaining algebraic amplification is bounded conservatively
+by2^129: the rest of the Fourier sum has at most2^121assignments and bounded
+positive factors, with ample rounding slack. The aggregate is then less than
+2^43*2^129*normal_minimum, below1e-4880 on this platform. Adding1e-4800 is therefore
+more than sufficient. This relies on the finite arithmetic/range assumptions;
+unchecked arbitrary compiler or hardware behavior is not certified.
+
+## Endpoint construction and meaning
+
+Form delta and epsilon as exact rationals, add the conservative underflow floor,
+and evaluate displayed endpoints exactly or round them outward. Do not obtain a
+certificate by rounding an error bar inward in binary64.
+
+The resulting roughly8.88e-16absolute envelope is large relative to the reported
+~1.4e-20class1 value. It cannot validate that tiny number's relative accuracy.
+It may nevertheless separate the two logical classes and give useful conservative
+class0candidate-coverage bounds. Those decisions must be made from the final
+outward endpoints, incorporating existing exact candidate lower bounds.
+
+## Final endpoint audit
+
+`qec-reference-review/audit_numerical_intervals.py/json` uses exact Fraction
+arithmetic to verify that the stored error exceeds8192/(2^63-8192)+10^-4800,
+that bound intersections are outward, and that every portfolio-ratio interval
+is outward. The stored longdouble rational endpoints, rather than abbreviated
+decimal displays, are the controlling values.
+
+After intersecting with independently verified candidate bounds:
+- Class0: approximately[1.0451493972e-14,1.1347711896e-14].
+- Class1: approximately[1.2923901192e-20,8.8819238084e-16].
+
+The intervals strictly separate class0 above class1 under the stated arithmetic
+assumptions. Four class0candidates capture approximately[91.1163%,98.9296%];
+sixteen capture[92.1022%,100%]. Abbreviated percentages are summaries, not exact
+outward decimal endpoints. No accurate relative class1mass claim is established.

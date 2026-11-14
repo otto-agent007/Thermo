@@ -1,0 +1,48 @@
+{
+  "scope": "exact synthetic diagnostics only; no d5 efficacy",
+  "fixture_generators": {
+    "calibration": [
+      601,
+      602,
+      603
+    ],
+    "validation": [
+      701,
+      702,
+      703
+    ]
+  },
+  "dimensions": {
+    "faults": 12,
+    "constraints": 4
+  },
+  "probabilities_by_generator_index": [
+    0.01,
+    0.08,
+    0.25
+  ],
+  "variants": [
+    "top4",
+    "omit_top4_use_next4"
+  ],
+  "groups_per_fixture": 16,
+  "independent_repetitions_per_group": 4,
+  "particles": 64,
+  "steps": 16,
+  "moves": 4,
+  "seed_formula": "900000 + fixture_index*10000 + group*10 + repetition",
+  "mode_coverage": "fraction of exact target mass carried by all visited states; diagnostic oracle only",
+  "reliability_candidates": {
+    "relative_95_t3_halfwidth": [
+      0.1,
+      0.25,
+      0.5
+    ],
+    "min_repetition_ESS": 8,
+    "mean_plus_halfwidth_at_least_known_seed_mass": true
+  },
+  "accurate_definition": "absolute relative error of group mean mass <=0.10",
+  "selection": "loosest threshold with zero inaccurate accepted groups and >=20% acceptance across calibration; if none, reject rule and report all fixed candidates on validation descriptively",
+  "validation": "No retuning. Per-fixture false-accept fractions and exact binomial intervals across random-seed groups; pooled heterogeneous counts descriptive only. Report empirical interval coverage and visited target mass.",
+  "interpretation": "t intervals are heuristic under heavy tails; empirical exact-fixture results give no d5 coverage guarantee; fixtures are synthetic not representative population"
+}

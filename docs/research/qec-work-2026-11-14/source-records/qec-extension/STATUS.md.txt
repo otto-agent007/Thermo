@@ -1,0 +1,6 @@
+# Prepared, not executed
+Reconstructed extension from verified completed baseline archives. No baseline resampling, no d5 noisy-shot decoding, no efficacy results. 33 tests pass, plus4776 deterministic comparator checks. Independent mathematical/protocol review completed; its requested finite/support guards, immediate result validation and output approval/manifest preservation are implemented.
+
+A frozen192-case technical-pilot candidate is included. Owner approval bound to manifest request SHA256 is required before running. Independent replay exists and has fixture tests, but has not yet been run on scientific outputs. No complete end-to-end scientific integration test is claimed. ESS and repeated agreement cannot certify logical-mass convergence.
+
+The synthetic-smoke.json fixture uses d5 algebra with mechanism probabilities scaled0.73, no sampled syndromes: zero and one manually injected mechanism only. It is NOT the lost implementation's earlier synthetic setup, and its numerical values do not reproduce or validate that lost run.

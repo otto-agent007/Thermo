@@ -1,0 +1,15 @@
+{
+  "approved": true,
+  "source_sha256": "528415612ce9670de7541b844c44a8ecf1133816b57d06e1c9532aae8d6b21bd",
+  "protocol_sha256": "7ab8c120e0b63c9f25ffdecc8520ff5c4bf0ba1f6af9c60642c1dd091d18ac79",
+  "review_sha256": "19ea24fc9d10eb262427563cc981365c8245364a3949956d5d18450a0c86e3e9",
+  "reviewer": "independent-reference-review",
+  "scope": "only independently audited frozen held-out selection; no replacements or budget expansion",
+  "tests": [
+    "test_reference.py PASS",
+    "test_reference_terminal.py PASS",
+    "test_reference_restart.py PASS",
+    "exact rational zero-seed interval enclosure PASS"
+  ],
+  "time": "2026-11-14T06:09:31.576822+00:00"
+}

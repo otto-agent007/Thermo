@@ -1,0 +1,62 @@
+{
+  "x-p0.005": {
+    "shots": 256,
+    "zero": 88,
+    "nan": 0,
+    "inf_relevant": 0,
+    "finite_relevant": 256,
+    "inf_outside_forced": 0,
+    "forced_sign_bad": 0,
+    "infinite_total": 2016
+  },
+  "x-p0.010": {
+    "shots": 256,
+    "zero": 16,
+    "nan": 0,
+    "inf_relevant": 0,
+    "finite_relevant": 256,
+    "inf_outside_forced": 0,
+    "forced_sign_bad": 0,
+    "infinite_total": 2880
+  },
+  "x-p0.020": {
+    "shots": 256,
+    "zero": 1,
+    "nan": 0,
+    "inf_relevant": 0,
+    "finite_relevant": 256,
+    "inf_outside_forced": 0,
+    "forced_sign_bad": 0,
+    "infinite_total": 3060
+  },
+  "z-p0.005": {
+    "shots": 256,
+    "zero": 82,
+    "nan": 0,
+    "inf_relevant": 0,
+    "finite_relevant": 256,
+    "inf_outside_forced": 0,
+    "forced_sign_bad": 0,
+    "infinite_total": 2088
+  },
+  "z-p0.010": {
+    "shots": 256,
+    "zero": 19,
+    "nan": 0,
+    "inf_relevant": 0,
+    "finite_relevant": 256,
+    "inf_outside_forced": 0,
+    "forced_sign_bad": 0,
+    "infinite_total": 2844
+  },
+  "z-p0.020": {
+    "shots": 256,
+    "zero": 3,
+    "nan": 0,
+    "inf_relevant": 0,
+    "finite_relevant": 256,
+    "inf_outside_forced": 0,
+    "forced_sign_bad": 0,
+    "infinite_total": 3036
+  }
+}

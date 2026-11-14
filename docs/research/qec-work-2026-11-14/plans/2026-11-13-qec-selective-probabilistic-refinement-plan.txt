@@ -1,0 +1,255 @@
+# QEC selective probabilistic refinement: research plan
+
+2026-11-13
+
+**Status: owner-selected planning work; held, not a frozen protocol.** Otto asked to
+queue these two ideas and create research plans. This document authorizes neither
+a probe nor a recorded run. No experiments or hardware purchases accompany it.
+Before unholding, the owner reviews the exact manifest, source versions, numeric
+thresholds, code, resource cap and stop rules through the existing research loop.
+
+## Question and primary decision
+
+Does calibrated **expected refinement benefit**, rather than failure confidence
+alone, allocate a bounded probabilistic decoder more effectively than existing
+confidence routing at matched full-pipeline cost? Routing hard syndromes is not
+new. The possible contribution is a transferable benefit-per-cost gate with an
+explicit no-benefit fallback and honest stopping calibration.
+
+Primary metric: full-population logical error probability at a fixed mean
+operation budget, including fast decoding, routing and refinement. Compare
+against the strongest budget-feasible deterministic baseline and existing
+confidence routing, not only a deliberately weak fast decoder. Require at least
+10% relative reduction in *excess risk above exact MLD* over the best comparator,
+with a paired 95% interval excluding zero improvement on the aggregate held set
+and no held noise instance worsened by more than 0.001 absolute risk. These are
+proposed scientific resolution thresholds, not deployment requirements. Report
+absolute risk too; if comparator excess risk is zero, there is no improvement
+headroom and the relative metric is undefined, not infinite or a success.
+
+## Shared benchmark, independent question
+
+Use the exact distance-3, single-sector, code-capacity surface-code manifest,
+noise masks, development/held split and tie policy in the
+[rounding plan](2026-11-13-qec-decision-aware-rounding-plan.md).
+Freeze full-precision coefficients for every arm: no quantization in this row.
+All syndrome probabilities and both class masses are known from enumeration,
+allowing full-population risk without conditioning on selected errors. Validation
+must precede performance work. This tiny family is a mechanism falsifier, not a
+credible demonstration of useful runtime advantage over cheap enumeration.
+Exact enumeration is expected to be highly competitive at this size. Distinguish
+a correct/calibrated estimator or gate mechanism from a useful-cost pass: the
+former alone cannot satisfy the primary superiority endpoint. Dominance here
+closes this tiny-family cost claim, not every larger-code research possibility.
+Circuit-level surface codes and qLDPC/BP are separately approved extensions,
+not silently mixed into this row. Baselines must change appropriately for them.
+
+## Stage A: establish repairable headroom before learning a gate
+
+Fast decoder: pinned PyMatching minimum-weight decoding on the graphlike model,
+with documented boundary handling and correction-to-logical-class conversion.
+Compare its decision to exact degenerate MLD for every syndrome. Strong controls
+include exact enumeration (reference and actual runtime comparator) and a
+fixed bounded deterministic coset summation/postprocessor, ordered by candidate
+weight with a frozen tie rule. Also assess the applicable Bethe/class-score
+approximation identified in the certified-decoding paper before calling this
+baseline set adequate. If an implementation is unavailable, report the missing
+baseline and block a superiority claim rather than quietly omit it.
+
+Run all-refine as a counterfactual first. A fast decoder's failure probability is
+not expected *repair benefit*: a refiner can repeat or reverse a correct decision.
+If refinement cannot improve full-population risk within the budget, stop. Do
+not manufacture headroom by degrading the fast decoder or selecting hard shots.
+
+## Stage B: bounded probabilistic refinement
+
+Proposed refiner: annealed importance sampling (AIS) of each logical coset's
+partition function. At beta=0 draw uniform stabilizer-generator coefficients,
+whose independent basis yields a uniform state in that coset and known initial
+partition function. Anneal to the target coefficient energy, using single-generator
+Metropolis flips that leave each intermediate distribution invariant. Validate
+irreducibility on the tiny coset and state-count normalization. Define
+E(e)=sum_i w_i e_i including all class-dependent offsets. For r independent
+stabilizer generators, estimate Z_l = 2^r * mean(exp(log_weight_l)), evaluating
+the mean with log-sum-exp minus log N. The common product_i(1-p_i) cancels
+between classes. Do not average log weights, self-normalize weights separately
+inside each class, or drop class-dependent offsets. Freeze the order
+of weight update and transition, beta schedule and energy convention in tests.
+
+Development grid only: 16 or 64 linearly spaced annealing transitions, one full
+random-permutation generator sweep per transition, and 8, 32 or 128 independent
+trajectory pairs. Choose one fixed-work configuration before held evaluation.
+Use log weights and retain individual trajectories. Estimate class mass ratios;
+never equate a high single-trajectory weight or effective-sample-size heuristic
+with a certified error bound. Compare independent class randomness against
+paired common random numbers at identical marginal transitions and work. Common
+random numbers can hurt: measure the variance, do not assume improvement.
+
+Initial primary study uses fixed batches, not repeated confidence peeking.
+Bootstrap entire independent trajectory pairs (or independent run replicates),
+never successive Markov states. Heavy-tailed weights can make asymptotic intervals
+unreliable, so check coverage against exact class probabilities on development
+and held instances and show failures. No certification or ML-optimality guarantee
+is claimed. Sequential stopping is a possible follow-up only after an anytime-valid
+bound or separately validated finite-look policy is frozen; a bootstrap threshold
+at repeatedly inspected times is not a valid certificate.
+
+## Stage C: gate ablations and cost matching
+
+Inputs available at inference may include fast-decoder weight, syndrome weight,
+runner-up approximate class-score gap, and disagreement with the deterministic
+postprocessor. No true error pattern, exact held class posterior, or future
+refiner output may enter a gate. Freeze how each feature is computed and charge
+its cost, including any second decoder. Train a small table or linear
+calibrated gate on development cases only; no flexible model search.
+
+Compare fast-only, all-refine, random routing, failure-risk/confidence routing,
+existing decoder-disagreement routing, and proposed expected net-benefit routing.
+Estimate development benefit from paired full-pipeline decisions, including both
+repairs and newly broken decisions; fit expected risk reduction per measured
+operation cost. Gate to refinement only when estimated benefit is positive and
+the chosen threshold meets the budget. Freeze feature normalization, model,
+threshold and tie policy before held evaluation. A failure-risk-only gate is an
+ablation, not a substitute for the benefit gate.
+
+Before choosing a budget, freeze a scalar work unit: one energy-term evaluation
+equivalent, with integer, comparison, matching and feature-extraction work
+converted using development-only single-worker microtimings. Retain the raw
+operation vector and measured CPU time so this conversion can be audited; a
+conclusion that reverses under actual full-pipeline timing is not a cost pass.
+Choose the primary budget on development as fast-only cost plus 25% of the
+all-refine incremental mean work, including gate overhead. Match random
+and confidence controls to this same budget; also show curves at 10% and 50% as
+secondary endpoints. Held budget overruns are failures of the budget criterion,
+not permission to retune on held results. Count generator proposals, energy
+terms evaluated, class-score work, feature extraction, reads/writes and host
+transfers explicitly; operations are not all interchangeable. Report measured
+single-worker CPU time alongside the operation vector. No projection of this
+software algorithm onto physical energy without a separate mapped-hardware row.
+
+## Analysis and rejection rules
+
+Compute population risk by summing exact P(s) times the empirical conditional
+risk of the randomized decoder, using the *same independent replicate seeds*
+across matched arms. Freeze 32 independent complete-run seeds; preserve seeds
+for compiler, gate fitting and trajectories separately. Confidence intervals
+resample complete paired runs, weighted over the full syndrome population.
+Report all noise instances, aggregate using equal instance weights, and separate
+rare-syndrome strata without using them as the headline population. No rare-event
+or low-logical-error claims from an underpowered sample.
+
+Report repairs, breaks, net improvement, fraction refined, calibration curves,
+mean/p95/p99 population-weighted latency, timeout rate, memory and throughput.
+Measure tail timing separately from nominal operation counts, with warmup and
+batching declared; the tiny-code result is not a real-time hardware claim.
+Price preprocessing/compilation/training both separately and amortized over
+explicit 1, 1,000 and 1,000,000-syndrome workloads.
+
+Reject if all-refine lacks headroom; if the gate loses to matched random or
+confidence routing; if improvements require exact held labels; if overhead erases
+the cost benefit; if the stronger deterministic comparator dominates; or if
+coverage fails when a confidence claim is needed. A positive is evidence for this
+bounded allocation mechanism only, not newness of selective decoding or useful
+QEC advantage. Owner review decides any code-family extension.
+
+## Delivery stages and caps (proposed, not authorized)
+
+1. Pin literature, dependency versions/licenses and matrix manifest. Reuse the
+   exact-reference tests, but maintain separate immutable requests and outcomes.
+2. Request an exploratory feasibility probe: 30 CPU-minutes, one worker, 4 GiB RAM,
+   1 GiB artifacts. Validate reference/AIS contracts and all-refine headroom first.
+   If a complete schedule does not fit, stop and return a sizing report.
+3. Freeze `docs/experiments/qec-selective-probabilistic-refinement.md`, runner,
+   replay, tests and the development-selected gate/schedule, then seek approval.
+   Proposed recorded cap: four CPU-hours, one worker, 4 GiB RAM, 2 GiB artifacts.
+   Cap exhaustion yields incomplete evidence, never an automatic continuation.
+4. Deliver separate mechanism-validation and useful-cost verdicts, paired outcome
+   tables, risk-cost frontier, coverage and tail failures,
+   frozen hashes/versions, independent seeds and replay instructions. Exact sums
+   are `exact_reference`; stochastic runs are `software_simulation`. Neither is
+   a hardware measurement. No live scheduler modification, run or hardware spend.
+
+## Prior art that constrains the contribution
+
+- [Adaptive decoding of quantum LDPC codes through decoder disagreement](https://arxiv.org/abs/2609.37629):
+  BP/OSD disagreement routing, including matched-budget/random controls on a
+  circuit-level bivariate-bicycle code. Reimplement applicable routing concepts;
+  do not transfer its qLDPC conclusions to surface-code matching by assertion.
+- [Certified decoding of quantum LDPC codes](https://arxiv.org/abs/2608.25545):
+  coset partition functions, AIS and common random numbers already exist.
+  Statistical confidence, exact guarantees and actual decoding success differ.
+- [Adaptive Window Decoding based on Spatiotemporal Complementary Gap](https://arxiv.org/abs/2605.14637): confidence-triggered
+  buffer expansion is existing adaptive resource allocation, not this refiner.
+- [PyMatching](https://pymatching.readthedocs.io/en/stable/),
+  [LDPC](https://software.roffe.eu/ldpc/) and
+  [Stim](https://github.com/quantumlib/Stim): baseline/simulation tooling. Only
+  PyMatching is proposed for the first graphlike case; BP+OSD/LSD and circuit
+  simulation belong to later appropriately scoped families.
+
+All external performance claims remain `asserted`, not Thermo reproductions.
+Before a protocol, pin paper versions and source cards, audit released code,
+clarify missing comparisons and narrow or reject the novelty claim accordingly.
+
+## Follow-up: explicit net-benefit target and calibration boundary
+
+Record four paired outcomes: both right, repaired (fast wrong/refined right),
+harmed (fast right/refined wrong), and both wrong. The target is
+[P(repaired given features) - P(harmed given features)] divided by the conditional expected positive
+incremental refinement cost given those same features. For variable-cost refinement,
+estimate that expectation from fitting data; do not average noisy per-shot
+benefit/cost ratios. Define zero-incremental-cost cases separately rather than
+dividing by zero. Charge gate overhead in the complete pipeline.
+This is a proposed objective, not an established transferable algorithm. Labels
+may use simulated ground truth for fitting, never at inference. Tiny exact
+posteriors can integrate outcomes for analysis but remain oracle-only information.
+
+Partition development instances into disjoint fitting and calibration groups,
+with literal membership frozen before fitting. Use fitting data for the gate and
+calibration data for the threshold; held instances stay untouched. Do not impose
+monotonicity in failure risk on net benefit: use the table or linear option above,
+not a monotonic failure-risk assumption. Freeze timeout and fallback rules. Return the
+fast answer on timeout or invalid estimates, charging all incurred cost. Include
+all four outcomes, failures and fallbacks in the same all-shot denominator.
+
+## Follow-up: separately gated noise-model mismatch stress test
+
+Keep the initial independent-noise study unchanged. Only after its headroom and
+fixed-work mechanism checks, propose an owner-reviewed mismatch manifest:
+stationary matched control, spatial bias, correlated/burst errors and gradual
+drift, reported separately. Define P_true(error) independently of P_assumed(error).
+All risk, repairability and headroom are evaluated under P_true, not the decoder's
+assumed model. For correlated noise enumerate a normalized joint distribution
+over all 512 errors, such as a frozen latent mixture; a product of marginals is
+not an exact reference. If that contract cannot be validated, defer the arm.
+
+Use chronological fitting/calibration/test splits for drift, with no future
+information in a gate and independent simulation seeds. Compare gap-only against
+gap plus model-compatibility features (e.g. normalized minimum matching weight),
+and against the existing disagreement gate. Test prediction of net refinability,
+not just failure risk. A refiner sharing a wrong model can confidently increase
+error; distinguish compute-only refinement from model adaptation. No automatic
+retraining is included. Keep every shot in the primary denominator: compatibility
+research based on postselection does not establish an all-shot refinement benefit.
+Report calibration shift, repairs, harms and budget overruns per mismatch family.
+This extension needs separate sizes, thresholds, caps and approval; it is outside
+the initial run budget, not permission to expand after a negative result.
+
+## Additional prior art and reuse checks
+
+- [Confidence-gated hybrid decoding, July 2026 preprint](https://arxiv.org/abs/2607.05814v2):
+  neural fast path with matching fallback constrains the confidence-routing
+  novelty claim; batched CPU throughput is not demonstrated real-time hardware.
+- [Noise-model compatibility, September 2026 preprint](https://arxiv.org/abs/2609.29018v1):
+  motivates compatibility features under drift/correlation; its intervention is
+  postselection, not the all-shot refinement objective proposed here.
+- [PriorTilt, November 2026 preprint](https://arxiv.org/abs/2611.13373):
+  sparse BP-prior perturbation is a candidate baseline for a later qLDPC study,
+  not another arm for this surface-code study. Released implementation and
+  independent reproduction must be checked before relying on performance claims.
+- [decoder-bench](https://github.com/satvikmaurya/decoder-bench) and
+  [Sinter](https://github.com/quantumlib/Stim/blob/main/glue/sample/README.md):
+  assess reusable syndrome/observable formats before building infrastructure.
+  Pin versions, data hashes, conventions and licenses; compare identical held
+  shots. Circuit-level datasets do not replace this code-capacity benchmark.
+
+These are research leads, not Thermo reproductions or exhaustive novelty review.

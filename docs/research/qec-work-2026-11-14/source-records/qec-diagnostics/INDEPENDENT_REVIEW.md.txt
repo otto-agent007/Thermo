@@ -1,0 +1,28 @@
+# Independent review: saved harmful case Z,p=0.005,index7
+
+Scope: read saved outputs, review MILP formulation, independently verify returned fault configurations against raw Stim DEM instructions. No new efficacy shots or AIS reruns.
+
+## Verified mathematical/implementation facts
+
+The MILP uses binary fault indicators e and integer auxiliary parity counts k, with A e - 2 k = b. Bounds e in[0,1], k in[0,floor(row_weight/2)] do not exclude any valid parity solution. Minimizing sum[-log(p/(1-p))*e] maximizes a single configuration's independent Bernoulli probability; the omitted sum log(1-p) is constant. This is maximum-probability fault configuration, not degenerate class mass.
+
+Both class solves report optimal status and zero solver gap. Independently, without using the affine Coset mapping or its log_target method, I XORed targets directly from selected DEM error instructions (ignoring separators while keeping whole instructions correlated) and summed log(p) for selected mechanisms and log(1-p) for unselected ones. Both match the requested detector syndrome/logical class and reported log probabilities to floating precision. Thus the lower-bound conclusions require only valid configurations, not trust in solver optimality.
+
+- Class0 valid six-fault configuration log probability: -32.8427579100866. AIS estimates -65.3556237509946 and -65.6935233406409 are below this ONE configuration by factors at least1.3187e14 and1.8489e14.
+- Class1 valid eight-fault configuration log probability: -46.1582056870253. AIS estimates are too small by at least1.1004e4 and1.6677e5.
+
+True class mass sums all valid nonnegative configuration probabilities, so both finite AIS estimates are demonstrably severe underestimates on this case. This is stronger evidence than a mere observed wrong decision. It does not contradict generic unbiasedness in expectation for correctly normalized finite AIS: realized estimates may be grossly low when rare high-weight paths are missed.
+
+## Why the ESS/repeat gate passed
+
+The product proposal has expected free-fault count0.0013097 and probability0.998691 of the all-zero free vector. Therefore each32-particle initialization has probability about0.958955 of all particles starting at the same free-zero vector. For this syndrome, that affine offset contains17 faults in class0 and12 in class1, with very poor target mass. The proposal's free-coordinate prior ignores the pivot-coordinate cost and conditioning effects; its concentration is not evidence that this offset is plausible under the conditional target.
+
+First repetition has identical32 saved logweights in EACH class. Weight ESS=(sum w)^2/sum w^2 is then exactly32 by algebra, however wrong their common scale. ESS measures relative observed-weight dispersion, not omitted mass. Shared coordinate schedules also couple trajectories and can sustain similar behavior. Saved weights alone do not prove every entire trajectory was identical, because full paths were not saved.
+
+Both repeats preferred class1 and all ESS exceeded8, so the implemented gate behaved exactly as specified. Repetition agreement cannot reject a shared proposal/mixing failure. These observations establish insufficient protection from missing mass in this case, not a coding error in the already-reviewed AIS weight formula.
+
+## Limits and next diagnostic priorities
+
+The valid class0 configuration is far more probable than the best class1 configuration found, consistent with all established comparators choosing class0. Comparing maxima does not prove the ordering of complete class masses: class1 degeneracy is not bounded tightly here. No exact-MLD claim or population superiority/inferiority claim is justified.
+
+A necessary safeguard is to compare any estimated class mass against independently known feasible-configuration lower bounds; this case must be rejected immediately by such a check. Such a floor is necessary, not sufficient for calibrated class masses, and clipping estimates to the floor does not repair the estimator. A defensible next development direction is a normalized conditional proposal centered on good feasible configurations, independent chain schedules and exact tractable mass-validation fixtures before any broader efficacy study. Do not tune on this case then call it held-out evidence.

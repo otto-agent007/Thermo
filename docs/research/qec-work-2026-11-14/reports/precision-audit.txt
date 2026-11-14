@@ -1,0 +1,67 @@
+# Independent bounded-diagnostic audit
+
+## Verdict
+
+Passed for the stated tiny synthetic scope. All 22 model outputs were independently
+recomputed by primal fault-vector enumeration with exact Fraction arithmetic, without
+importing the production interval implementation or its oracle. All 976 raw mass
+intervals and 450 available posterior intervals enclose their exact values. Impossible
+syndromes have no posterior. All frozen source hashes, output hashes, 22 successful
+receipts, memory/CPU limits and the aggregate manifest identity were checked.
+
+Eight unit tests pass. A completed-run replay reused all 22 outputs unchanged and
+created no new scientific receipt. No active lease remained. This tests completed
+checkpoint reuse, not fresh process-kill injection; the inherited executor's earlier
+fault-injection tests are separate evidence.
+
+## Numerical findings
+
+The first tested precision meeting posterior width <= 1e-10 was 16 digits for 19
+models, 32 for rare competing explanations, 64 for a syndrome with probability
+1e-40, and 128 for the 1e-100 rare-syndrome model. These are fixed-sweep results,
+not measured adaptive-precision runtimes.
+
+Width and winner certification are different. The 1e-30 near tie meets the width
+criterion at 16 digits but does not certify its winner until 32. The rare competing
+case is narrow at 32 but certifies its rare-syndrome winner only at 64. The exact tie
+remains a tie at every precision; it must not be reported as a unique winner.
+
+This validates the prototype's numerical mechanism on checked models, not the old
+d5 sliced tensor implementation. It does not prove that its Python full Fourier
+sum will scale to d5, or that input probabilities equal physical noise accurately.
+
+## Fixed proxy results
+
+Truth is posterior class-0 probability in [0.45, 0.55]. Proxy closeness is normalized
+absolute top-k class mass gap <= 0.10. Uniform syndrome counts:
+
+| Split/method | TP | FP | FN | TN |
+|---|---:|---:|---:|---:|
+| Development top1 | 4 | 1 | 0 | 43 |
+| Development top4 | 4 | 0 | 0 | 44 |
+| Development disagreement | 0 | 0 | 4 | 44 |
+| Held-out top1 | 0 | 2 | 2 | 44 |
+| Held-out top4 | 2 | 1 | 0 | 45 |
+| Held-out disagreement | 1 | 0 | 1 | 46 |
+
+Only two of the 48 held-out syndromes are truly close. Top4 finds both but admits
+one false positive; disagreement finds one and misses the other. Top1 misses both.
+This is too little support for robust recall or superiority claims. The held-out
+close syndromes carry only 0.2782% probability under a uniform mixture of the six
+held-out models. Top4's false-positive mass is 0.5307%, larger than its true-positive
+mass. Weighted confusion data are in SUMMARY.json.
+
+These are synthetic MLE/list surrogates with exact top-k extraction by exhaustive
+enumeration, not runs of Tesseract, belief matching, or a practical list decoder.
+The models are new fixed seeds within the same synthetic generator, not fresh
+physical device conditions. Thresholds were not fitted to the development data.
+Uniform syndrome observations are not independent sampled shots, so ordinary
+binomial population confidence claims would be inappropriate.
+
+## Resource accounting and limits
+
+Saved workers report 1.160 CPU-seconds of in-worker work and peak RSS 42,112 KiB.
+The executor ledger conservatively charges 24.356 CPU-seconds including the
+completed-run reuse check, under the 300-second bound. Independent audit execution
+is reported separately in RESULT.json and is subsecond; this is not decoder latency.
+No scientific expansion or d5 rerun was performed.

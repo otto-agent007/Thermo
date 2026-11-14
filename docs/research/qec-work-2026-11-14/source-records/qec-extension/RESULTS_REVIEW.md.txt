@@ -1,0 +1,36 @@
+# Independent results review: fixed 192-case pilot
+
+Reviewed persisted NPZ outputs and trajectory weights on 2026-11-13. No decoder, AIS, or sampling experiment was rerun. Recount used a separate direct NumPy script, not the production reporting functions.
+
+## Verified counts
+
+| Method | Errors / 192 | Repairs vs correlated | Harms vs correlated |
+|---|---:|---:|---:|
+| Ordinary matching | 1 | 0 | 0 |
+| Correlated matching | 1 | 0 | 0 |
+| Tesseract | 0 | 1 | 0 |
+| Beliefmatching | 0 | 1 | 0 |
+| AIS refinement with fallback | 2 | 0 | 1 |
+
+Fallback occurred on **161/192** cases (83.85%). Per cell, in order X .005/.010/.020, Z .005/.010/.020: 24,27,32,23,27,28. All cases remain in denominators; no fallback cases are excluded. The sole correlated error was in Z .020; both established comparators repaired it, whereas refinement retained it.
+
+The added refinement error is Z .005, original shot index7. Both matching methods were correct, and fallback was false. The two repeats favored logical1. Stored class logmasses and ESS independently reconstructed from the logweights:
+
+- Repeat1: class0 logmass -65.355624, ESS32; class1 logmass -55.464191, ESS32.
+- Repeat2: class0 logmass -65.693523, ESS29.998689; class1 logmass -58.182600, ESS10.471723.
+
+Thus the harmful change genuinely passes the frozen repeat-agreement/ESS8 gate; it is not a recount or gate-implementation mistake. This demonstrates that the gate did not prevent harm on this pilot. It does **not**, from one realized outcome alone, prove the mass estimate wrong or establish that refinement has worse population risk. Even exact Bayesian decoding can disagree with a realized ground-truth class.
+
+## Integrity and timing
+
+Independently recomputed canonical manifest request hash and checked equality across persisted manifest, approval, and runner record, including `approved: true`:
+
+`1db6e33ca5af6432b870140ceae705d9ea451c60087caca859cf3da2e37200c1`
+
+Recorded total runner cost is 9.666780 CPU seconds and9.837867 wall seconds. This review does not reinterpret those totals as hardware energy or production decoder latency. The separate completed replay artifact contains input/decoder/trajectory integrity validation; the runner status intentionally remains `executed_requires_independent_replay`, while the replay supplies its own completion status.
+
+## Interpretation
+
+No statistical superiority or inferiority is established by192 development cases and one paired disagreement per comparison. Per-cell exact intervals remain broad; zero observed errors does not imply zero risk. The nominal pooled counts are descriptive across six different cells, not an estimate of a single homogeneous operating condition.
+
+The pilot provides no demonstrated practical advantage for this AIS refiner. High fallback and the additional harmful correction argue against scaling this frozen configuration as-is. Tesseract/BM are useful approximate comparators here, not oracles; their one repair does not establish general superiority. Any further study needs a separately approved plan, with proposal/mixing diagnostics and stronger small-case calibration before efficacy claims.

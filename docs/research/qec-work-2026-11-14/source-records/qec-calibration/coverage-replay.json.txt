@@ -1,0 +1,14 @@
+[
+  {
+    "fixture": "calibration_601_top4",
+    "group": 1,
+    "visited_target_mass": 0.9999461910808325,
+    "mass_estimate_ratio": 0.806266362367655
+  },
+  {
+    "fixture": "validation_701_top4",
+    "group": 2,
+    "visited_target_mass": 0.9999957717194936,
+    "mass_estimate_ratio": 1.1522943397540457
+  }
+]

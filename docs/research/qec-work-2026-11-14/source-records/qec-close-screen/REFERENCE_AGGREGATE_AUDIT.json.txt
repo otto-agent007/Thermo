@@ -1,0 +1,153 @@
+{
+  "complete": true,
+  "independent_verified_references": 14,
+  "all_slices_verified": 3584,
+  "certified_winners": 11,
+  "unresolved_winners": [
+    "x-p0.020-i620-disagreement",
+    "z-p0.020-i708-disagreement",
+    "z-p0.020-i342-list_close"
+  ],
+  "ambiguity_groups": {
+    "certified_ambiguous": [
+      "z-p0.020-i708-disagreement"
+    ],
+    "certified_not_ambiguous": [
+      "x-p0.005-i671-ordinary",
+      "x-p0.005-i635-list_close",
+      "x-p0.010-i453-ordinary",
+      "x-p0.010-i540-list_close",
+      "x-p0.020-i745-ordinary",
+      "x-p0.020-i785-list_close",
+      "z-p0.005-i595-ordinary",
+      "z-p0.005-i401-list_close",
+      "z-p0.010-i536-ordinary",
+      "z-p0.010-i512-list_close",
+      "z-p0.020-i340-ordinary"
+    ],
+    "unresolved_ambiguity": [
+      "x-p0.020-i620-disagreement",
+      "z-p0.020-i342-list_close"
+    ]
+  },
+  "reference_realized_errors": {
+    "ordinary": 0,
+    "correlated": 1,
+    "tesseract": 1,
+    "beliefmatching": 2,
+    "list4": 1
+  },
+  "list4_paired_vs_reference_baselines": {
+    "ordinary": {
+      "repairs": 0,
+      "harms": 1
+    },
+    "correlated": {
+      "repairs": 1,
+      "harms": 1
+    },
+    "tesseract": {
+      "repairs": 0,
+      "harms": 0
+    },
+    "beliefmatching": {
+      "repairs": 1,
+      "harms": 0
+    }
+  },
+  "unknown_list_fallback_references": [
+    "x-p0.010-i453-ordinary"
+  ],
+  "stage_charged_cpu_seconds": {
+    "screen": 93.84,
+    "list": 823.466,
+    "reference": 6892.738
+  },
+  "all_stages_cpu_seconds": 7810.044,
+  "reference_case_cpu_range": [
+    486.715,
+    500.27199999999993
+  ],
+  "receipt_statuses": {
+    "screen": {
+      "completed": 48
+    },
+    "list": {
+      "completed": 196
+    },
+    "reference": {
+      "completed": 504
+    }
+  },
+  "list_close_margin_table": [
+    {
+      "cell": "x-p0.005",
+      "index": 635,
+      "list4_absolute_log_mass_margin": 11.792063119674944,
+      "posterior0_interval": [
+        0.9999920646702048,
+        0.9999920653594102
+      ],
+      "ambiguity_status": "certified_not_ambiguous"
+    },
+    {
+      "cell": "x-p0.010",
+      "index": 540,
+      "list4_absolute_log_mass_margin": 5.172258110254273,
+      "posterior0_interval": [
+        0.005625088907448566,
+        0.005625101967949669
+      ],
+      "ambiguity_status": "certified_not_ambiguous"
+    },
+    {
+      "cell": "x-p0.020",
+      "index": 785,
+      "list4_absolute_log_mass_margin": 4.527210645216293,
+      "posterior0_interval": [
+        0.008718134599710738,
+        0.12710625051076854
+      ],
+      "ambiguity_status": "certified_not_ambiguous"
+    },
+    {
+      "cell": "z-p0.005",
+      "index": 401,
+      "list4_absolute_log_mass_margin": 14.616477709342343,
+      "posterior0_interval": [
+        0.9999995472249538,
+        0.9999995475709543
+      ],
+      "ambiguity_status": "certified_not_ambiguous"
+    },
+    {
+      "cell": "z-p0.010",
+      "index": 512,
+      "list4_absolute_log_mass_margin": 6.781494913781788,
+      "posterior0_interval": [
+        0.0010528074860375884,
+        0.0028517926550873556
+      ],
+      "ambiguity_status": "certified_not_ambiguous"
+    },
+    {
+      "cell": "z-p0.020",
+      "index": 342,
+      "list4_absolute_log_mass_margin": 4.062930902990921,
+      "posterior0_interval": [
+        0.0018821419105409575,
+        0.8887133255954587
+      ],
+      "ambiguity_status": "unresolved_ambiguity"
+    }
+  ],
+  "selection_sha256": "718b92bf2775ca81c5126ad7659ec0fb9e48c8cbf0716d64c9de32521b020abb",
+  "interpretation": [
+    "14 selected references are diagnostic, not population estimates",
+    "One certified ambiguous case is disagreement selected, not list-close selected",
+    "Five list-close cases provably not ambiguous; sixth is numerically unresolved, not proof of ambiguity",
+    "List4+BM fallback shows no repairs or harms versus Tesseract in this reference set or random192 panel",
+    "Three unresolved MAP winners must not be counted as model disagreements or treated as exact posterior estimates",
+    "600 CPU/case and8400 selected-case cap respected, no scientific batch crashes or incomplete cases"
+  ]
+}

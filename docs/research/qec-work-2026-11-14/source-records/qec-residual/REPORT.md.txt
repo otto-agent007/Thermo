@@ -1,0 +1,28 @@
+# Exact-seed residual estimator: useful selectively, not a reliability certificate
+
+## Implemented method
+For a fixed deduplicated feasible seed set S chosen before retained AIS paths, compute its exact target mass Z_S. Estimate the remainder using AIS weights W times indicator(final endpoint not in S):
+
+Z_residual = Z_S + mean[W * 1{X_final outside S}].
+
+This is NOT clipping an ordinary estimate to a bound and NOT using whether a state was ever visited. The finite-state weighted AIS endpoint identity implies unbiasedness under valid normalized starting density and invariant kernels. Replacing a sampled contribution with its known mean does not guarantee variance reduction because component covariance matters.
+
+Independent tests verify the complete weighted final-state vector, residual expectation, actual production endpoint/weight replay, and a counterexample: with a perfect proposal ordinary importance weights are constant (zero variance), while replacing seed contributions this way introduces variance. Six tests passed overall.
+
+## Paired fixed diagnostic
+PLAN.json SHA256 d5d1f4c458866254900d9062c752d19da13c4b58bc2ae46782d3c9199d1e810a. Reused all12exact fixtures,64runs per fixture, same768seeds/proposals/budgets from previous calibration. Every produced AIS logweight was verified against its original counterpart. Both estimators use identical trajectories, giving a fair paired cost/variability comparison. No d5 or additional efficacy samples; no parameter tuning. Fixture names retain historical calibration/validation labels, but all are now reused development diagnostics for the residual idea, NOT a fresh held-out validation.
+
+Group-mean relative MSE improved on8/12fixtures and worsened on4/12(one negligibly). Groups with >10% mass error fell from50/192 to37/192. These heterogeneous pooled counts are descriptive, not a general-population significance claim. Empirical bias, coefficient of variation, individual/group MSE and every endpoint are in results.json.
+
+Examples:
+- Calibration602 seeded92.11% of exact mass: group MSE about0.102x ordinary; inaccurate groups2→0.
+- Validation701 seeded99.9985%: MSE nearly vanished; inaccurate groups6→0. The unknown residual is tiny here, so this is an especially favorable case, not generic performance.
+- The same validation701 fiber with dominant seeds omitted had only0.000412% known mass: MSE essentially unchanged, inaccurate groups9→9. Exact contribution accounting does not discover unseen dominant mass.
+- Calibration603 omitted-top4 variant: MSE increased about2.05x despite all group errors remaining below10%. Another fixture increased about1.21x.
+
+The estimator satisfies the known-seed lower bound automatically, but that is now built into its formula and no longer evidence that the unseeded mass was estimated correctly. Some runs have zero nonseed endpoints; on the favorable near-complete-seed fixture this can be harmless, while for other problems it could conceal missing mass. No confidence calibration was established for residual estimates; the previous failed t/ESS rule cannot be assumed repaired by changing estimator.
+
+## Conclusion
+The residual estimator is mathematically sound and useful when known seeds account for substantial probability, but neither uniformly lower variance nor unknown-mode protection follows. Keep it as an experimental option, retain ordinary estimates for comparison, and investigate residual-specific uncertainty/coverage before considering a d5 efficacy expansion. No larger run launched.
+
+Wall time8.61seconds for paired replay/estimation; exact enumeration/seeding remain diagnostic overhead rather than production claims. Read REVIEW.md and independent audit for verification. Run tests from qec-residual with ../qec-extension/.venv/bin/python -m pytest -q.
