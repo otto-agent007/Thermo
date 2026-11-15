@@ -69,10 +69,19 @@ control's; an interrupted run resumes to bit-identical weights.
 
 Outputs in --out:
   summary.json                              final paired comparison (read this first)
-  <arm>/log.json, <arm>/body_params.npz     eval history and fine-tuned weights
+  <arm>/log.json, <arm>/body_params.npz     eval history and the latest fine-tuned weights
        (DyT gains are stored as 'la' = log(alpha))
+  <arm>/archive/step_NNNNNN/                research record, one per evaluation, never
+       overwritten: body_params.npz (weights at that step), record.json (that step's
+       evaluation, per-window losses, settings and the provenance of the invocation that
+       wrote it) and manifest.json (SHA-256 of both files and of the weight arrays)
   provenance.json                           device, driver, package builds, input file hashes
-  start.json, <arm>/final.json, <arm>/ckpt.npz   caches used for resuming
+  start.json, <arm>/final.json, <arm>/ckpt.npz   caches used for resuming (ckpt.npz is the
+       single latest snapshot for crash recovery; it is replaced at every evaluation)
+Recovery and research history are separate: ckpt.npz lets the run resume, the archive keeps
+every evaluated model. Every save is written to a temporary file, forced to disk, read back
+and compared with what is in memory before it takes its final name; a save that fails this
+stops the run with an error (it can be resumed from the last verified checkpoint).
 
 Evidence class: software_simulation. Exploration under docs/research/, not a recorded study.
 It runs in its own virtual environment; it needs packages that are not in this repository's
@@ -80,10 +89,16 @@ uv.lock (optax, tokenizers, pyarrow, a CUDA build of jax) and must not be added 
 """
 
 import argparse
+import contextlib
+import fcntl
+import hashlib
 import json
 import os
+import shutil
 import sys
 import time
+import uuid
+from pathlib import Path
 
 os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 
@@ -513,7 +528,7 @@ def sha256_file(path):
 
 def provenance(args):
     """Runtime provenance (docs/environments.md, GPU use): device, driver, builds, input hashes.
-    Never part of any hashed request; written once per invocation to <out>/provenance.json."""
+    Runtime is not hashed as scientific input; retained immutably per invocation."""
     import platform
     import subprocess
 
@@ -562,22 +577,319 @@ def provenance(args):
     }
 
 
+def canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def sync_directory(path):
+    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
 def write_json(path, obj):
-    tmp = path + ".tmp"
-    json.dump(obj, open(tmp, "w"), indent=2)
-    os.replace(tmp, path)
+    """Verify the serialized object before atomic publication; preserve the old file on error."""
+    tmp = str(path) + ".tmp"
+    try:
+        expected = canonical(obj)
+        with open(tmp, "w") as f:
+            json.dump(obj, f, indent=2, allow_nan=False)
+            f.flush()
+            os.fsync(f.fileno())
+        with open(tmp) as f:
+            if canonical(json.load(f)) != expected:
+                raise ValueError("JSON readback differs")
+        os.replace(tmp, path)
+        sync_directory(os.path.dirname(os.path.abspath(path)))
+    except Exception as exc:
+        raise RuntimeError(f"SAVE FAILED: {path}: {exc}") from exc
+
+
+def scientific_identity(args, script):
+    """Content identity, not path or timestamp identity. Includes dirty upstream Python code."""
+    settings = {
+        k: v
+        for k, v in vars(args).items()
+        if k
+        not in {
+            "out",
+            "arms",
+            "debug_stop_at",
+            "repo",
+            "weights",
+            "config",
+            "tokenizer",
+            "owt",
+            "wikitext",
+            "run",
+        }
+    }
+    inputs = {
+        k: sha256_file(v)
+        for k in ("weights", "config", "tokenizer", "owt", "wikitext")
+        if (v := getattr(args, k, None))
+    }
+    source = Path(script).resolve()
+    code = {source.name: sha256_file(source)}
+    for sibling in source.parent.glob("z1t_*.py"):
+        code[sibling.name] = sha256_file(sibling)
+    upstream = {
+        str(f.relative_to(args.repo)): sha256_file(f)
+        for f in sorted(Path(args.repo).rglob("*.py"))
+        if not any(x in {".git", ".venv", "venv", "__pycache__"} for x in f.parts)
+    }
+    # A probe may import trained weights from another run: bind their bytes too.
+    if getattr(args, "run", None):
+        selected = []
+        for arm in ("noisy", "control"):
+            base = Path(args.run) / arm
+            selected.extend([base / "body_params.npz", base / "log.json"])
+            for step in [int(x) for x in getattr(args, "steps", "").split(",") if x]:
+                selected.extend((base / "archive" / f"step_{step:06d}").glob("*"))
+        inputs["trained_run"] = {
+            str(f.relative_to(args.run)): sha256_file(f) for f in sorted(selected) if f.is_file()
+        }
+    return {
+        "schema": 1,
+        "settings": settings,
+        "inputs": inputs,
+        "code": code,
+        "upstream_python": upstream,
+    }
+
+
+@contextlib.contextmanager
+def run_session(out, identity, prov):
+    """One writer, immutable identity and invocation provenance. Legacy runs are read-only."""
+    root = Path(out)
+    root.mkdir(parents=True, exist_ok=True)
+    with open(root / ".writer.lock", "a+") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError("another writer owns this output directory") from exc
+        try:
+            path = root / "run-manifest.json"
+            run_id = hashlib.sha256(canonical(identity).encode()).hexdigest()
+            # Runtime compatibility is checked separately, never hashed as scientific input.
+            runtime = {
+                k: prov.get(k)
+                for k in (
+                    "versions",
+                    "dtype",
+                    "jax_enable_x64",
+                    "default_matmul_precision",
+                    "devices",
+                    "python",
+                    "platform",
+                    "gpu",
+                    "JAX_PLATFORMS",
+                )
+            }
+            if path.exists():
+                with open(path) as f:
+                    manifest = json.load(f)
+                if manifest.get("identity") != identity or manifest.get("run_id") != run_id:
+                    raise RuntimeError("run identity mismatch; use a fresh output directory")
+                if manifest.get("runtime") != runtime:
+                    raise RuntimeError("runtime compatibility mismatch; use a fresh directory")
+            else:
+                if any(f.name != ".writer.lock" for f in root.iterdir()):
+                    raise RuntimeError("legacy/unbound output directory; use a fresh directory")
+                manifest = {
+                    "schema": 1,
+                    "run_id": run_id,
+                    "identity": identity,
+                    "runtime": runtime,
+                    "initial_provenance": prov,
+                }
+                write_json(str(path), manifest)
+                os.chmod(path, 0o444)
+            initial = root / "provenance.json"
+            if not initial.exists():
+                write_json(str(initial), manifest["initial_provenance"])
+                os.chmod(initial, 0o444)
+            invocations = root / "invocations"
+            invocations.mkdir(exist_ok=True)
+            invocation = uuid.uuid4().hex
+            ipath = invocations / (invocation + ".json")
+            write_json(str(ipath), {"run_id": run_id, "provenance": prov})
+            os.chmod(ipath, 0o444)
+            yield {"run_id": run_id, "invocation": invocation, "provenance": prov}
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
+
+
+def require_identity(record, sig, label):
+    if record.get("sig") != sig:
+        raise RuntimeError(f"{label} identity mismatch; refusing cached evidence")
+
+
+def checkpoint_final(meta, sig, arm, steps):
+    """Recover the completed evaluation when interrupted between checkpoint and final JSON."""
+    require_identity(meta, sig, "checkpoint")
+    if meta.get("arm") != arm:
+        raise RuntimeError("checkpoint arm mismatch")
+    if meta["step"] > steps:
+        raise RuntimeError("checkpoint step exceeds run budget")
+    if meta["step"] != steps:
+        return None
+    result = meta.get("final_result")
+    if not result:
+        raise RuntimeError("completed checkpoint missing final result")
+    require_identity(result, sig, "checkpoint final result")
+    if result.get("arm") != arm or result["row"]["step"] != steps:
+        raise RuntimeError("checkpoint final result arm/step mismatch")
+    return result
+
+
+def recover_completed(adir, meta, sig, arm, steps, args, mode):
+    """Idempotent final publication using already-computed checkpoint evidence."""
+    result = checkpoint_final(meta, sig, arm, steps)
+    if result is not None:
+        write_json(
+            os.path.join(adir, "log.json"),
+            {"args": args, "arm": arm, "train_mode": mode, "log": meta["log"]},
+        )
+        write_json(os.path.join(adir, "final.json"), result)
+    return result
+
+
+def arrays_digest(arrays):
+    """SHA-256 of named arrays by content (name, dtype, shape, bytes); independent of the file."""
+    h = hashlib.sha256()
+    for k in sorted(arrays):
+        a = np.ascontiguousarray(arrays[k])
+        h.update(f"{k}|{a.dtype.str}|{a.shape}|".encode())
+        h.update(a.tobytes())
+    return h.hexdigest()
+
+
+def save_npz_verified(path, arrays):
+    """Write arrays to `path` atomically and prove the bytes on disk hold them: the temporary
+    file is forced to disk, read back and compared array by array before it replaces `path`.
+    Returns the file's SHA-256. Raises RuntimeError (and leaves `path` untouched) otherwise."""
+    arrays = {k: np.asarray(v) for k, v in arrays.items()}
+    tmp = path + ".tmp.npz"
+    try:
+        with open(tmp, "wb") as f:
+            np.savez(f, **arrays)
+            f.flush()
+            os.fsync(f.fileno())
+        with np.load(tmp) as z:
+            if set(z.files) != set(arrays):
+                raise RuntimeError("array names differ")
+            for k, a in arrays.items():
+                b = z[k]
+                same = b.dtype == a.dtype and b.shape == a.shape
+                if not (same and np.array_equal(a, b, equal_nan=a.dtype.kind in "fc")):
+                    raise RuntimeError(f"array {k!r} read back differently")
+        digest = sha256_file(tmp)
+        os.replace(tmp, path)
+        sync_directory(os.path.dirname(os.path.abspath(path)))
+    except Exception as e:  # any failure here means the save cannot be trusted
+        raise RuntimeError(f"SAVE FAILED, not verified on disk: {path}: {e!r}") from e
+    return digest
+
+
+def check_snapshot(folder):
+    """Manifest of an archived snapshot if every listed file still matches its SHA-256."""
+    man = read_json(os.path.join(folder, "manifest.json"))
+    if not man or "sha256" not in man:
+        return None
+    for name, digest in man["sha256"].items():
+        f = os.path.join(folder, name)
+        if not os.path.exists(f) or sha256_file(f) != digest:
+            return None
+    return man
+
+
+def archive_step(root, step, arrays, record, weights_name="body_params.npz", extra=None):
+    """Immutable research snapshot <root>/step_NNNNNN/: the weights, record.json and a
+    manifest. Built in a temporary folder, verified, then renamed into place and made
+    read-only. An existing snapshot is never replaced: identical weights AND record are kept;
+    different weights or records for the same step are written beside it as
+    step_NNNNNN_v2, _v3, ..., and a snapshot that fails its manifest is an error."""
+    arrays = {k: np.asarray(v) for k, v in arrays.items()}
+    base = os.path.join(root, f"step_{step:06d}")
+    content = arrays_digest(arrays)
+    final, version = base, 1
+    while os.path.isdir(final):  # never replace and never drop: differing weights go alongside
+        man = check_snapshot(final)
+        if man is None:
+            raise RuntimeError(f"SAVE FAILED: archived snapshot {final} fails its manifest")
+        if man["arrays_sha256"] == content and canonical(
+            read_json(os.path.join(final, "record.json"))
+        ) == canonical(record):
+            print(f"archive: {final} already holds these weights; kept", flush=True)
+            return man
+        version += 1
+        final = f"{base}_v{version}"
+    if version > 1:
+        print(f"archive: {base} holds DIFFERENT weights; writing this run's to {final}", flush=True)
+    tmp = final + ".tmp"
+    shutil.rmtree(tmp, ignore_errors=True)
+    os.makedirs(tmp)
+    try:
+        digest = save_npz_verified(os.path.join(tmp, weights_name), arrays)
+        write_json(os.path.join(tmp, "record.json"), record)
+        man = {
+            "step": step,
+            "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "arrays_sha256": content,
+            "sha256": {
+                weights_name: digest,
+                "record.json": sha256_file(os.path.join(tmp, "record.json")),
+            },
+            **(extra or {}),
+        }
+        write_json(os.path.join(tmp, "manifest.json"), man)
+        for name in os.listdir(tmp):
+            os.chmod(os.path.join(tmp, name), 0o444)
+        sync_directory(tmp)
+        os.rename(tmp, final)
+        sync_directory(root)
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(f"SAVE FAILED: could not archive step {step} in {root}: {e!r}") from e
+    if check_snapshot(final) is None:
+        raise RuntimeError(f"SAVE FAILED: archived snapshot {final} fails its manifest")
+    print(f"archive: wrote {final} ({content[:12]})", flush=True)
+    return man
+
+
+def list_archive(root):
+    """Steps archived under root with whether each still verifies: {step: {...}}."""
+    out = {}
+    for name in sorted(os.listdir(root)) if os.path.isdir(root) else []:
+        if name.startswith("step_") and not name.endswith(".tmp"):
+            man = check_snapshot(os.path.join(root, name))
+            out[name] = {
+                "verified": man is not None,
+                "arrays_sha256": (man or {}).get("arrays_sha256"),
+            }
+    return out
 
 
 def read_json(path):
     try:
-        return json.load(open(path))
-    except (OSError, ValueError):
+        with open(path) as f:
+            value = json.load(f)
+        canonical(value)  # reject NaN/Infinity accepted by Python
+        if not isinstance(value, dict) or not value:
+            raise ValueError("expected nonempty JSON object")
+        return value
+    except FileNotFoundError:
         return None
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"corrupt/unreadable JSON: {path}") from exc
 
 
 # ----------------------------------------------------------------------------- main
-def main():
-    args = parse()
+def execute(args, session):
     import jax
     import jax.numpy as jnp
     import optax
@@ -610,6 +922,10 @@ def main():
         ev["wt103"] = windows(wt_ids, args.eval_windows, T, 2)
 
     eval_sig = {
+        "run_id": session["run_id"],
+        "windows": {
+            name: arrays_digest({str(i): w for i, w in enumerate(ws)}) for name, ws in ev.items()
+        },
         "N": args.N,
         "T": T,
         "eval_docs": args.eval_docs,
@@ -708,9 +1024,12 @@ def main():
         return float(max(args.N, round(args.n_start * (args.N / args.n_start) ** frac)))
 
     os.makedirs(args.out, exist_ok=True)
-    write_json(os.path.join(args.out, "provenance.json"), provenance(args))
+    prov = session["provenance"]
+    prov = dict(prov, invocation=session["invocation"], run_id=session["run_id"])
     cached = read_json(os.path.join(args.out, "start.json"))
-    if cached and cached.get("sig") == eval_sig:
+    if cached:
+        require_identity(cached, eval_sig, "start")
+    if cached:
         start_row, start_per = cached["row"], cached["per"]
         print("EVAL (cached start)", json.dumps(start_row), flush=True)
     else:
@@ -735,7 +1054,11 @@ def main():
         adir = os.path.join(args.out, arm)
         os.makedirs(adir, exist_ok=True)
         fin = read_json(os.path.join(adir, "final.json"))
-        if fin and fin.get("sig") == train_sig:
+        if fin:
+            require_identity(fin, train_sig, f"{arm} final")
+            if fin.get("arm") != arm:
+                raise RuntimeError("final result arm mismatch")
+        if fin:
             print(f"=== arm {arm}: already finished, skipping", flush=True)
             results[arm] = fin
             continue
@@ -767,16 +1090,15 @@ def main():
         if os.path.exists(ckpt_path):
             z = np.load(ckpt_path)
             meta = json.loads(str(z["meta"]))
-            if meta["sig"] == train_sig:
-                params, ost = jax.tree.unflatten(
-                    state_def, [jnp.asarray(z[f"leaf{i}"]) for i in range(meta["n"])]
-                )
-                log, first = meta["log"], meta["step"] + 1
-                print(f"resuming arm {arm} from step {meta['step']}", flush=True)
-            else:
-                print(
-                    "checkpoint has different settings; starting this arm from scratch", flush=True
-                )
+            recovered = recover_completed(adir, meta, train_sig, arm, args.steps, vars(args), mode)
+            if recovered is not None:
+                results[arm] = recovered
+                continue
+            params, ost = jax.tree.unflatten(
+                state_def, [jnp.asarray(z[f"leaf{i}"]) for i in range(meta["n"])]
+            )
+            log, first = meta["log"], meta["step"] + 1
+            print(f"resuming arm {arm} from step {meta['step']}", flush=True)
         t0 = time.time()
         for step in range(first, args.steps + 1):
             rng = np.random.default_rng(
@@ -809,26 +1131,27 @@ def main():
                 last = step == args.steps
                 row, per = evaluate(params, step, curve=last)
                 log.append(row)
+                flat = jax.tree_util.tree_flatten_with_path(params)[0]
+                weights = {jax.tree_util.keystr(path): np.asarray(v) for path, v in flat}
+                # 1. research record: this step's model and evaluation, never overwritten
+                record = {"arm": arm, "train_mode": mode, "step": step, "N_at_step": float(n_now)}
+                record.update(eval=row, per_window=per, settings=train_sig, provenance=prov)
+                archive_step(os.path.join(adir, "archive"), step, weights, record)
+                # 2. latest weights and the single crash-recovery snapshot, each verified
+                save_npz_verified(os.path.join(adir, "body_params.npz"), weights)
+                leaves = [np.asarray(x) for x in jax.tree.leaves((params, ost))]
+                meta = {"sig": train_sig, "arm": arm, "step": step, "log": log, "n": len(leaves)}
+                final_result = {"sig": train_sig, "arm": arm, "row": row, "per": per}
+                if last:
+                    meta["final_result"] = final_result
+                ck = {f"leaf{i}": x for i, x in enumerate(leaves)}
+                save_npz_verified(ckpt_path, dict(ck, meta=np.array(json.dumps(meta))))
                 write_json(
                     os.path.join(adir, "log.json"),
                     {"args": vars(args), "arm": arm, "train_mode": mode, "log": log},
                 )
-                flat = jax.tree_util.tree_flatten_with_path(params)[0]
-                np.savez(
-                    os.path.join(adir, "body_params.npz"),
-                    **{jax.tree_util.keystr(path): np.asarray(v) for path, v in flat},
-                )
-                leaves = [np.asarray(x) for x in jax.tree.leaves((params, ost))]
-                meta = {"sig": train_sig, "step": step, "log": log, "n": len(leaves)}
-                tmp = ckpt_path + ".tmp.npz"
-                np.savez(
-                    tmp,
-                    meta=np.array(json.dumps(meta)),
-                    **{f"leaf{i}": x for i, x in enumerate(leaves)},
-                )
-                os.replace(tmp, ckpt_path)
                 if last:
-                    results[arm] = {"sig": train_sig, "row": row, "per": per}
+                    results[arm] = final_result
                     write_json(os.path.join(adir, "final.json"), results[arm])
                 if args.debug_stop_at and step == args.debug_stop_at:
                     raise SystemExit("debug stop")
@@ -836,11 +1159,16 @@ def main():
     # also pick up arms finished in earlier invocations with identical settings
     for arm in ("noisy", "control"):
         fin = read_json(os.path.join(args.out, arm, "final.json"))
-        if arm not in results and fin and fin.get("sig") == train_sig:
+        if fin:
+            require_identity(fin, train_sig, f"{arm} final")
+            if fin.get("arm") != arm:
+                raise RuntimeError("final result arm mismatch")
+        if arm not in results and fin:
             results[arm] = fin
 
     summary = {
         "settings": train_sig,
+        "archive": {a: list_archive(os.path.join(args.out, a, "archive")) for a in results},
         "start": start_row,
         "final": {a: r["row"] for a, r in results.items()},
         "paired": {},
@@ -876,6 +1204,13 @@ def main():
         "noise-induced loss increase that was removed (1 = back to the released clean loss).",
         flush=True,
     )
+
+
+def main():
+    args = parse()
+    identity = scientific_identity(args, __file__)
+    with run_session(args.out, identity, provenance(args)) as session:
+        execute(args, session)
 
 
 if __name__ == "__main__":
