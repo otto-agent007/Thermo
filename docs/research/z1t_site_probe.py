@@ -77,8 +77,7 @@ def load_body(template, path):
     return jax.tree.unflatten(treedef, [z[jax.tree_util.keystr(p)] for p, _ in flat])
 
 
-def main():
-    args = parse()
+def execute(args, session):
     import jax
     import jax.numpy as jnp
 
@@ -92,7 +91,7 @@ def main():
     d, h = cfg["n_embed"], fz["heads"]
     hd = d // h
     M = ft.build_model(cfg, idx, h, args.chunk)
-    prov = ft.provenance(args)
+    prov = dict(session["provenance"], run_id=session["run_id"], invocation=session["invocation"])
     prov["sha256"]["site_probe_script"] = ft.sha256_file(os.path.abspath(__file__))
 
     models = {"start": train0}
@@ -110,7 +109,7 @@ def main():
                     raise SystemExit(f"archived snapshot {snap} is missing or fails its manifest")
                 models[f"{arm}@{step}"] = load_body(train0, os.path.join(snap, "body_params.npz"))
                 prov["sha256"][f"archive_{arm}@{step}"] = man["arrays_sha256"]
-    ft.write_json(os.path.join(args.out, "provenance.json"), prov)
+    # Immutable initial and per-invocation provenance were saved by run_session.
     print("models:", list(models), flush=True)
     units = {s: int(idx[0][s].shape[0]) for s in SITES}
     nblocks = len(idx)
@@ -300,6 +299,14 @@ def main():
         json.dumps({"models": brief, "vs_start": result["vs_start"]}, indent=1),
         flush=True,
     )
+
+
+def main():
+    args = parse()
+    with ft.run_session(
+        args.out, ft.scientific_identity(args, __file__), ft.provenance(args)
+    ) as session:
+        execute(args, session)
 
 
 if __name__ == "__main__":

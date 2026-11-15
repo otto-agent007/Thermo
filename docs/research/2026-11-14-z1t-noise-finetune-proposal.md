@@ -164,10 +164,10 @@ The script now keeps both, and so does `z1t_sampled_head.py`:
 - **Research record:** `<arm>/archive/step_NNNNNN/` at every evaluation, never
   overwritten and made read-only: the weights, `record.json` (that step's
   evaluation, per-window losses, settings, and the provenance of the
-  invocation that wrote it, since a resumed run rewrites `provenance.json`)
+  invocation that wrote it; the initial `provenance.json` and per-invocation records are retained)
   and `manifest.json` with SHA-256 digests. Weights for a step that is already
-  archived are left alone if identical and written beside it as `_v2` if they
-  differ, so a rerun with other settings cannot replace or drop anything.
+  archived are left alone only if weights and records are both identical,
+  and written beside it as `_v2` if either differs, so a rerun with other settings cannot replace or drop anything.
 - **Verification:** every save is written to a temporary file, forced to
   disk, read back and compared with memory before it takes its final name.
   A save that fails stops the run with `SAVE FAILED`; it can be resumed from
@@ -177,7 +177,45 @@ The script now keeps both, and so does `z1t_sampled_head.py`:
 Checked on CPU at smoke scale: a write that alters or truncates the data is
 caught and the previous file is left in place; a damaged snapshot is
 reported, not replaced; an interrupted and resumed run archives the same
-weights, digest for digest, as an uninterrupted one. The checkpoint format is
-unchanged, so a run started with the first version resumes under this one and
-archives from then on. `z1t_site_probe.py --steps 500,1000` reads archived
+weights, digest for digest, as an uninterrupted one. That archive-only version preserved the checkpoint format and accepted older
+runs. The identity-hardened version below deliberately rejects legacy run
+directories instead of silently assigning them new provenance. `z1t_site_probe.py --steps 500,1000` reads archived
 steps, to follow saturation through training.
+
+
+## Fail-closed identity hardening (2026-11-15)
+
+Future invocations of the three Z1T scripts acquire an OS advisory single-writer
+lock before using the output directory. A fresh run writes an immutable
+`run-manifest.json` binding scientific settings, actual input-file hashes,
+runner/helper source hashes and upstream Python-source hashes (including dirty
+source). Runtime compatibility is compared separately, not hashed as scientific
+input. Changes to data, code, settings or recorded runtime compatibility fail
+closed; a fresh output directory is required. Selecting a different arm or a
+debug interruption point does not change scientific identity.
+
+The initial provenance is retained, and each invocation gets a separate immutable
+record. Fine-tune start/final/checkpoint records and sampled-head cache signatures
+carry run identity; evaluation signatures also hash the actual token windows.
+An arm-mismatched checkpoint or final record cannot enter a paired comparison.
+A completed fine-tune checkpoint includes its final evaluation so interruption
+between checkpoint publication and final JSON publication does not lose the arm.
+JSON and NPZ saves are read back before replacement; corrupt JSON is not treated
+as a missing cache. Archive deduplication compares records as well as weights.
+
+**Legacy run directories are not automatically adopted or resumed by this
+version.** They remain readable as historical evidence. Their original provenance
+cannot be recovered by assigning a new manifest. Use a fresh directory for a new
+run; no new run is authorized by this change. External control checkpoints rescued
+from the first run remain documented above, not regenerated.
+
+The focused tests use tiny arrays, temporary directories and synthetic metadata:
+no Z1T inference or training. They cover identity changes, unchanged sessions,
+writer exclusion, interrupted-session release, corrupted saves, changed archive
+records and final-checkpoint publication recovery. These are not an end-to-end
+GPU determinism test. Files must remain unchanged externally during a run;
+locking is cooperative and Linux/POSIX-specific, and read-only bits/hashes are not
+protection against a malicious filesystem owner. The sampled-head hidden-state
+cache still uses its existing incremental memmap storage; this change binds its
+identity but does not claim per-block crash-atomic memmap recovery or resumable
+head optimizer state.

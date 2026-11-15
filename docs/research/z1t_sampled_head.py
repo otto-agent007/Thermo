@@ -220,8 +220,7 @@ def build_structures(W, hb, args, path):
 
 
 # ----------------------------------------------------------------------------- main
-def main():
-    args = parse()
+def execute(args, session):
     import jax
     import jax.numpy as jnp
     import optax
@@ -245,9 +244,9 @@ def main():
     T = 32 if args.smoke else min(args.seq, cfg["sequence"])
     d, V = cfg["n_embed"], fz["head_w"].shape[0]
     M = ft.build_model(cfg, idx, fz["heads"], args.chunk)
-    prov = ft.provenance(args)
+    prov = dict(session["provenance"], run_id=session["run_id"], invocation=session["invocation"])
     prov["sha256"]["sampled_head_script"] = ft.sha256_file(os.path.abspath(__file__))
-    ft.write_json(os.path.join(args.out, "provenance.json"), prov)
+    # Immutable initial and per-invocation provenance were saved by run_session.
     S = build_structures(fz["head_w"], fz["head_b"], args, os.path.join(args.out, "structures.npz"))
 
     # ---- cache -------------------------------------------------------------------------
@@ -260,8 +259,16 @@ def main():
     }
     if wt_ids is not None:
         splits["wt103"] = ft.windows(wt_ids, args.test_windows, T, 2)
-    sig = {"T": T, "key": [int(v) for v in S["key"]], "docs": [args.train_docs, args.eval_docs]}
+    sig = {
+        "run_id": session["run_id"],
+        "T": T,
+        "key": [int(v) for v in S["key"]],
+        "docs": [args.train_docs, args.eval_docs],
+    }
     sig.update({f"n_{k}": len(v) for k, v in splits.items()})
+    sig["windows"] = {
+        name: ft.arrays_digest({str(i): w for i, w in enumerate(ws)}) for name, ws in splits.items()
+    }
     body = jax.jit(lambda p, x0: M.body(p, x0, jax.random.key(0), "clean"))
     params = jax.tree.map(jnp.asarray, train0)
     K = 2 * L + 1
@@ -306,7 +313,9 @@ def main():
     for name, ws in splits.items():
         base = os.path.join(args.out, f"h_{name}")
         meta = ft.read_json(base + ".json") or {}
-        fresh = meta.get("sig") != sig
+        if meta:
+            ft.require_identity(meta, sig, f"{name} hidden cache")
+        fresh = not meta
         hm = np.lib.format.open_memmap(
             base + ".npy", mode="w+" if fresh else "r+", dtype=np.float16, shape=(len(ws), T, d)
         )
@@ -555,6 +564,14 @@ def main():
     ft.write_json(os.path.join(args.out, "summary.json"), summary)
     keys = ("macs_reduction", "selected_step", "paired")
     print("SUMMARY", json.dumps({k: summary[k] for k in keys}, indent=2), flush=True)
+
+
+def main():
+    args = parse()
+    with ft.run_session(
+        args.out, ft.scientific_identity(args, __file__), ft.provenance(args)
+    ) as session:
+        execute(args, session)
 
 
 if __name__ == "__main__":
