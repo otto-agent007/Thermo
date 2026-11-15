@@ -2,7 +2,8 @@
 only; exploration; fits a 4 GB GPU).
 
 Reads the released Z1T-0 and, with --run, the fine-tuned bodies written by
-z1t_noise_finetune.py (<run>/<arm>/body_params.npz). No training.
+z1t_noise_finetune.py (<run>/<arm>/body_params.npz, and with --steps the archived
+<run>/<arm>/archive/step_NNNNNN/ snapshots, to follow a quantity through training). No training.
 
 Part A, saturation. A unit's N-sample mean has variance (1 - y^2)/N, so a noise-trained
 body can lower the noise it writes into the residual stream in two ways: push the written
@@ -49,6 +50,7 @@ def parse():
         p.add_argument(a, required=True)
     p.add_argument("--wikitext", default=None, help="unused; accepted so commands can be copied")
     p.add_argument("--run", default=None, help="z1t_noise_finetune.py output directory")
+    p.add_argument("--steps", default="", help="also probe these archived steps, e.g. 500,1000")
     p.add_argument("--out", default="site_probe")
     p.add_argument("--N", type=int, default=32)
     p.add_argument("--internal-Ns", default="1,4,32")
@@ -101,6 +103,13 @@ def main():
             prov["sha256"][f"body_params_{arm}"] = ft.sha256_file(path)
             log = ft.read_json(os.path.join(args.run, arm, "log.json"))
             prov[f"{arm}_last_logged_step"] = log["log"][-1]["step"] if log else None
+            for step in [int(v) for v in args.steps.split(",") if v]:
+                snap = os.path.join(args.run, arm, "archive", f"step_{step:06d}")
+                man = ft.check_snapshot(snap)
+                if man is None:
+                    raise SystemExit(f"archived snapshot {snap} is missing or fails its manifest")
+                models[f"{arm}@{step}"] = load_body(train0, os.path.join(snap, "body_params.npz"))
+                prov["sha256"][f"archive_{arm}@{step}"] = man["arrays_sha256"]
     ft.write_json(os.path.join(args.out, "provenance.json"), prov)
     print("models:", list(models), flush=True)
     units = {s: int(idx[0][s].shape[0]) for s in SITES}

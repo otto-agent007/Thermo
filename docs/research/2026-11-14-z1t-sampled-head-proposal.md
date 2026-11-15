@@ -159,7 +159,8 @@ IN="--repo sparse-transformers --weights model.eqx --config config.json \
 # 1. site probe: evaluation only, reads run_n32/{noisy,control}/body_params.npz
 python $S/z1t_site_probe.py $IN --run run_n32 --out run_n32/site_probe
 
-# 2. sampled head: needs about 28 GB under --out (25 GB of training states)
+# 2. sampled head: needs about 32 GB under --out (25 GB of training states,
+#    3.6 GB for the archived heads of each evaluation)
 python $S/z1t_sampled_head.py $IN --wikitext wt103_test.parquet --out run_head
 ```
 

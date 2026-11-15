@@ -143,3 +143,39 @@ The owner posts `summary.json` and `provenance.json`. A result note under
 `docs/research/` then records the outcome with its evidence class and closes
 or drops the row. No protocol, runner or gate follows from this note, and a
 positive result would not open a Z1-priced study by itself.
+
+## Checkpoints: recovery and research history are separate (added 2026-11-14)
+
+The first version of the script, which the first full run used, wrote
+`ckpt.npz` and `body_params.npz` at every evaluation under the same names. That
+is right for a crash-recovery snapshot and wrong as the only copy: it kept
+the run restartable and discarded the models at the intermediate evaluations.
+Nothing in this note justified that; "restartable" was treated as if it meant
+"all the work is preserved". From that run the per-evaluation losses survive
+in `<arm>/log.json` and the final weights of each arm in `body_params.npz`.
+The weights at the intermediate evaluations (steps 500, 1,000 and 1,500 of
+each arm) do not.
+
+The script now keeps both, and so does `z1t_sampled_head.py`:
+
+- **Recovery:** `<arm>/ckpt.npz`, one latest snapshot, replaced atomically.
+- **Research record:** `<arm>/archive/step_NNNNNN/` at every evaluation, never
+  overwritten and made read-only: the weights, `record.json` (that step's
+  evaluation, per-window losses, settings, and the provenance of the
+  invocation that wrote it, since a resumed run rewrites `provenance.json`)
+  and `manifest.json` with SHA-256 digests. Weights for a step that is already
+  archived are left alone if identical and written beside it as `_v2` if they
+  differ, so a rerun with other settings cannot replace or drop anything.
+- **Verification:** every save is written to a temporary file, forced to
+  disk, read back and compared with memory before it takes its final name.
+  A save that fails stops the run with `SAVE FAILED`; it can be resumed from
+  the last verified checkpoint. `summary.json` lists each archived step and
+  whether it still matches its manifest.
+
+Checked on CPU at smoke scale: a write that alters or truncates the data is
+caught and the previous file is left in place; a damaged snapshot is
+reported, not replaced; an interrupted and resumed run archives the same
+weights, digest for digest, as an uninterrupted one. The checkpoint format is
+unchanged, so a run started with the first version resumes under this one and
+archives from then on. `z1t_site_probe.py --steps 500,1000` reads archived
+steps, to follow saturation through training.

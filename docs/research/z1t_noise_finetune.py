@@ -69,10 +69,19 @@ control's; an interrupted run resumes to bit-identical weights.
 
 Outputs in --out:
   summary.json                              final paired comparison (read this first)
-  <arm>/log.json, <arm>/body_params.npz     eval history and fine-tuned weights
+  <arm>/log.json, <arm>/body_params.npz     eval history and the latest fine-tuned weights
        (DyT gains are stored as 'la' = log(alpha))
+  <arm>/archive/step_NNNNNN/                research record, one per evaluation, never
+       overwritten: body_params.npz (weights at that step), record.json (that step's
+       evaluation, per-window losses, settings and the provenance of the invocation that
+       wrote it) and manifest.json (SHA-256 of both files and of the weight arrays)
   provenance.json                           device, driver, package builds, input file hashes
-  start.json, <arm>/final.json, <arm>/ckpt.npz   caches used for resuming
+  start.json, <arm>/final.json, <arm>/ckpt.npz   caches used for resuming (ckpt.npz is the
+       single latest snapshot for crash recovery; it is replaced at every evaluation)
+Recovery and research history are separate: ckpt.npz lets the run resume, the archive keeps
+every evaluated model. Every save is written to a temporary file, forced to disk, read back
+and compared with what is in memory before it takes its final name; a save that fails this
+stops the run with an error (it can be resumed from the last verified checkpoint).
 
 Evidence class: software_simulation. Exploration under docs/research/, not a recorded study.
 It runs in its own virtual environment; it needs packages that are not in this repository's
@@ -80,8 +89,10 @@ uv.lock (optax, tokenizers, pyarrow, a CUDA build of jax) and must not be added 
 """
 
 import argparse
+import hashlib
 import json
 import os
+import shutil
 import sys
 import time
 
@@ -564,8 +575,123 @@ def provenance(args):
 
 def write_json(path, obj):
     tmp = path + ".tmp"
-    json.dump(obj, open(tmp, "w"), indent=2)
+    with open(tmp, "w") as f:
+        json.dump(obj, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, path)
+
+
+def arrays_digest(arrays):
+    """SHA-256 of named arrays by content (name, dtype, shape, bytes); independent of the file."""
+    h = hashlib.sha256()
+    for k in sorted(arrays):
+        a = np.ascontiguousarray(arrays[k])
+        h.update(f"{k}|{a.dtype.str}|{a.shape}|".encode())
+        h.update(a.tobytes())
+    return h.hexdigest()
+
+
+def save_npz_verified(path, arrays):
+    """Write arrays to `path` atomically and prove the bytes on disk hold them: the temporary
+    file is forced to disk, read back and compared array by array before it replaces `path`.
+    Returns the file's SHA-256. Raises RuntimeError (and leaves `path` untouched) otherwise."""
+    arrays = {k: np.asarray(v) for k, v in arrays.items()}
+    tmp = path + ".tmp.npz"
+    try:
+        with open(tmp, "wb") as f:
+            np.savez(f, **arrays)
+            f.flush()
+            os.fsync(f.fileno())
+        with np.load(tmp) as z:
+            if set(z.files) != set(arrays):
+                raise RuntimeError("array names differ")
+            for k, a in arrays.items():
+                b = z[k]
+                same = b.dtype == a.dtype and b.shape == a.shape
+                if not (same and np.array_equal(a, b, equal_nan=a.dtype.kind in "fc")):
+                    raise RuntimeError(f"array {k!r} read back differently")
+        digest = sha256_file(tmp)
+        os.replace(tmp, path)
+    except Exception as e:  # any failure here means the save cannot be trusted
+        raise RuntimeError(f"SAVE FAILED, not verified on disk: {path}: {e!r}") from e
+    return digest
+
+
+def check_snapshot(folder):
+    """Manifest of an archived snapshot if every listed file still matches its SHA-256."""
+    man = read_json(os.path.join(folder, "manifest.json"))
+    if not man or "sha256" not in man:
+        return None
+    for name, digest in man["sha256"].items():
+        f = os.path.join(folder, name)
+        if not os.path.exists(f) or sha256_file(f) != digest:
+            return None
+    return man
+
+
+def archive_step(root, step, arrays, record, weights_name="body_params.npz", extra=None):
+    """Immutable research snapshot <root>/step_NNNNNN/: the weights, record.json and a
+    manifest. Built in a temporary folder, verified, then renamed into place and made
+    read-only. An existing snapshot is never replaced: the same weights are left as they are,
+    different weights for the same step (a rerun with other settings) are written beside it as
+    step_NNNNNN_v2, _v3, ..., and a snapshot that fails its manifest is an error."""
+    arrays = {k: np.asarray(v) for k, v in arrays.items()}
+    base = os.path.join(root, f"step_{step:06d}")
+    content = arrays_digest(arrays)
+    final, version = base, 1
+    while os.path.isdir(final):  # never replace and never drop: differing weights go alongside
+        man = check_snapshot(final)
+        if man is None:
+            raise RuntimeError(f"SAVE FAILED: archived snapshot {final} fails its manifest")
+        if man["arrays_sha256"] == content:
+            print(f"archive: {final} already holds these weights; kept", flush=True)
+            return man
+        version += 1
+        final = f"{base}_v{version}"
+    if version > 1:
+        print(f"archive: {base} holds DIFFERENT weights; writing this run's to {final}", flush=True)
+    tmp = final + ".tmp"
+    shutil.rmtree(tmp, ignore_errors=True)
+    os.makedirs(tmp)
+    try:
+        digest = save_npz_verified(os.path.join(tmp, weights_name), arrays)
+        write_json(os.path.join(tmp, "record.json"), record)
+        man = {
+            "step": step,
+            "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "arrays_sha256": content,
+            "sha256": {
+                weights_name: digest,
+                "record.json": sha256_file(os.path.join(tmp, "record.json")),
+            },
+            **(extra or {}),
+        }
+        write_json(os.path.join(tmp, "manifest.json"), man)
+        for name in os.listdir(tmp):
+            os.chmod(os.path.join(tmp, name), 0o444)
+        os.rename(tmp, final)
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(f"SAVE FAILED: could not archive step {step} in {root}: {e!r}") from e
+    if check_snapshot(final) is None:
+        raise RuntimeError(f"SAVE FAILED: archived snapshot {final} fails its manifest")
+    print(f"archive: wrote {final} ({content[:12]})", flush=True)
+    return man
+
+
+def list_archive(root):
+    """Steps archived under root with whether each still verifies: {step: {...}}."""
+    out = {}
+    for name in sorted(os.listdir(root)) if os.path.isdir(root) else []:
+        if name.startswith("step_") and not name.endswith(".tmp"):
+            man = check_snapshot(os.path.join(root, name))
+            out[name] = {
+                "verified": man is not None,
+                "arrays_sha256": (man or {}).get("arrays_sha256"),
+            }
+    return out
 
 
 def read_json(path):
@@ -708,7 +834,8 @@ def main():
         return float(max(args.N, round(args.n_start * (args.N / args.n_start) ** frac)))
 
     os.makedirs(args.out, exist_ok=True)
-    write_json(os.path.join(args.out, "provenance.json"), provenance(args))
+    prov = provenance(args)  # also copied into every archived snapshot: a resumed run rewrites it
+    write_json(os.path.join(args.out, "provenance.json"), prov)
     cached = read_json(os.path.join(args.out, "start.json"))
     if cached and cached.get("sig") == eval_sig:
         start_row, start_per = cached["row"], cached["per"]
@@ -809,24 +936,22 @@ def main():
                 last = step == args.steps
                 row, per = evaluate(params, step, curve=last)
                 log.append(row)
+                flat = jax.tree_util.tree_flatten_with_path(params)[0]
+                weights = {jax.tree_util.keystr(path): np.asarray(v) for path, v in flat}
+                # 1. research record: this step's model and evaluation, never overwritten
+                record = {"arm": arm, "train_mode": mode, "step": step, "N_at_step": float(n_now)}
+                record.update(eval=row, per_window=per, settings=train_sig, provenance=prov)
+                archive_step(os.path.join(adir, "archive"), step, weights, record)
+                # 2. latest weights and the single crash-recovery snapshot, each verified
+                save_npz_verified(os.path.join(adir, "body_params.npz"), weights)
+                leaves = [np.asarray(x) for x in jax.tree.leaves((params, ost))]
+                meta = {"sig": train_sig, "step": step, "log": log, "n": len(leaves)}
+                ck = {f"leaf{i}": x for i, x in enumerate(leaves)}
+                save_npz_verified(ckpt_path, dict(ck, meta=np.array(json.dumps(meta))))
                 write_json(
                     os.path.join(adir, "log.json"),
                     {"args": vars(args), "arm": arm, "train_mode": mode, "log": log},
                 )
-                flat = jax.tree_util.tree_flatten_with_path(params)[0]
-                np.savez(
-                    os.path.join(adir, "body_params.npz"),
-                    **{jax.tree_util.keystr(path): np.asarray(v) for path, v in flat},
-                )
-                leaves = [np.asarray(x) for x in jax.tree.leaves((params, ost))]
-                meta = {"sig": train_sig, "step": step, "log": log, "n": len(leaves)}
-                tmp = ckpt_path + ".tmp.npz"
-                np.savez(
-                    tmp,
-                    meta=np.array(json.dumps(meta)),
-                    **{f"leaf{i}": x for i, x in enumerate(leaves)},
-                )
-                os.replace(tmp, ckpt_path)
                 if last:
                     results[arm] = {"sig": train_sig, "row": row, "per": per}
                     write_json(os.path.join(adir, "final.json"), results[arm])
@@ -841,6 +966,7 @@ def main():
 
     summary = {
         "settings": train_sig,
+        "archive": {a: list_archive(os.path.join(args.out, a, "archive")) for a in results},
         "start": start_row,
         "final": {a: r["row"] for a, r in results.items()},
         "paired": {},

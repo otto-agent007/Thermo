@@ -32,8 +32,11 @@ Stages (re-running the same command resumes; the cache is the long stage):
                                                           -> <out>/h_<split>.npy etc.
   3. train on the cached states, keep each head's best dev step, report on test
                                                           -> <out>/summary.json
+     Every evaluated set of heads is also kept, never overwritten, with its dev results
+     and provenance, each save read back and verified   -> <out>/archive/step_NNNNNN/
 
-Disk: windows x seq x d x 2 bytes (4,000 train -> 25 GB, plus 2.4 GB of dev/test states).
+Disk: windows x seq x d x 2 bytes (4,000 train -> 25 GB, plus 2.4 GB of dev/test states),
+and about 0.45 GB per archived evaluation at the default depth (8 evaluations -> 3.6 GB).
 Put --out on a big disk.
 Run (same input files as z1t_noise_finetune.py, which must sit next to this script):
   python z1t_sampled_head.py --repo sparse-transformers --weights model.eqx \
@@ -326,7 +329,11 @@ def main():
                 sc[wi] = np.asarray(st)
             if (wi + 1) % 50 == 0 or wi + 1 == len(ws):
                 hm.flush()
-                np.save(base + "_dense.npy", sc)
+                with open(base + "_dense.tmp", "wb") as f:  # atomic: a crash cannot truncate it
+                    np.save(f, sc)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(base + "_dense.tmp", base + "_dense.npy")
                 ft.write_json(base + ".json", {"sig": sig, "done": wi + 1})
                 rate = (time.time() - t0) / (wi + 1 - done)
                 print(f"cache {name} {wi + 1}/{len(ws)} {rate:.2f}s/window", flush=True)
@@ -483,6 +490,10 @@ def main():
             per, _ = evaluate(hp, "dev")
             log.append({"step": step, "dev": row(per)})
             print("DEV", json.dumps(log[-1]), flush=True)
+            # research record: every evaluated set of heads is kept, never overwritten
+            weights = {f"{t}/{k}": np.asarray(v) for t in hp for k, v in hp[t].items()}
+            record = dict(log[-1], settings=sig, lr=args.lr, epochs=args.epochs, provenance=prov)
+            ft.archive_step(os.path.join(args.out, "archive"), step, weights, record, "heads.npz")
             for t in TREES:
                 tr, sm = score(per, t)
                 if tr < best[t]["tree"][0]:
@@ -497,9 +508,9 @@ def main():
         for t in TREES
     }
     final_p["km"] = {"U": best["km"][2], "a": best["km"][3]}
-    np.savez(
+    ft.save_npz_verified(
         os.path.join(args.out, "heads_best.npz"),
-        **{f"{t}/{k}": v for t in final_p for k, v in final_p[t].items()},
+        {f"{t}/{k}": v for t in final_p for k, v in final_p[t].items()},
     )
     final_p = jax.tree.map(jnp.asarray, final_p)
 
@@ -511,6 +522,7 @@ def main():
     summary = {
         "evidence_class": "software_simulation",
         "settings": dict(sig, epochs=args.epochs, lr=args.lr, batch_windows=args.batch_windows),
+        "archive": ft.list_archive(os.path.join(args.out, "archive")),
         "selected_step": dict(
             {t: {k: best[t][k][1] for k in ("tree", "soft")} for t in TREES}, km=best["km"][1]
         ),
