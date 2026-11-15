@@ -1,0 +1,47 @@
+{
+  "captured_utc": "2026-11-15T06:57:19.780033+00:00",
+  "source_directory": "/mnt/2TBHDD/z1t-finetune/run_n32",
+  "evidence_class": "software_simulation",
+  "verification": "Read-only arithmetic replay from persisted per-window values; not model rerun or proof of historical cache identity. All paired means/SEMs, row means/SEMs and recovery fractions agree within 1e-12. Settings agree, 64 windows per metric, both final steps 2000.",
+  "files_sha256": {
+    "summary.json": "1e347790c2ddb5a1a44bf4532caafdf2334932fe15490d750d48ad34db23b55b",
+    "start.json": "69fb2838cdfd1685a82903324dce7e7df7f799e966ebcbc536e72289cc166860",
+    "provenance.json": "d5580062aadfe5392098314c56f045cb55f3f41e50f7fe4d0531d560f2e8ab8f",
+    "noisy/final.json": "7212a6e520121ad298ce2eceedfe20514f97569ea13ce0796256081f0fae1229",
+    "noisy/log.json": "13c2f6f78d7926e5f404baeac647d6f68b3d86a1166064bed63367580f8cac76",
+    "control/final.json": "94225a13d9ed9a29cba14ebbd54783229028d6c9dd522f3cc06aaee3eb295d49",
+    "control/log.json": "65ae6d3fecf91867c84338b2657e44657dabe0d91ce1141aff64677b500e7f58"
+  },
+  "control_checkpoint_archives_verified": [
+    {
+      "file": "control-step-2000-20261115T065510028471Z.npz",
+      "step": 2000,
+      "sha256": "48607e4071ef1a6368e125269cfdd267bfbafd00ffa9f1f60da9221263cf3a94",
+      "bytes": 26308534
+    },
+    {
+      "file": "control-step-1000-20261115T044532727602Z.npz",
+      "step": 1000,
+      "sha256": "2d87b5edda9507aafc97a3c95935d85a8a3320cc9d8970ba85b184ba1f600f4b",
+      "bytes": 26304434
+    },
+    {
+      "file": "control-step-500-20261115T041528Z.npz",
+      "step": 500,
+      "sha256": "16aebc74b043bd920b3a8cb0b343c78ae36c940bcaa76ec592afe32b9bce01e6",
+      "bytes": 26302806
+    },
+    {
+      "file": "control-step-500-20261115T042818055613Z.npz",
+      "step": 500,
+      "sha256": "16aebc74b043bd920b3a8cb0b343c78ae36c940bcaa76ec592afe32b9bce01e6",
+      "bytes": 26302806
+    },
+    {
+      "file": "control-step-1500-20261115T054729777362Z.npz",
+      "step": 1500,
+      "sha256": "f7503cb6da1b1592250601dab6db21af070ed466b9e521e64b1cd0ae0d9080f5",
+      "bytes": 26306070
+    }
+  ]
+}
