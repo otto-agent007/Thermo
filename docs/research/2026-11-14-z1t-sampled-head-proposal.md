@@ -53,7 +53,10 @@ gives every depth at once and the loss splits exactly by level. The script
 reports each level's excess over the dense model. `softmax_S` chooses the same
 depth-S groups with one 2^S-way softmax (same parameter count) and prices the
 binary factorisation. `*_random` puts tokens at random leaves and prices the
-grouping. Each head is a normalised distribution, so losses are exact nats.
+grouping against no grouping. `softmax_km` is one softmax over 256 free
+k-means clusters of the same vectors, with the released rows inside the
+cluster; `softmax_L8 - softmax_km` prices the balanced tree's grouping
+against an unconstrained one. Each head is a normalised distribution, so losses are exact nats.
 The script first checks that a tree with exact branch probabilities
 reproduces the dense loss (agreement to 4e-6 nats in the runs below).
 
@@ -70,6 +73,7 @@ in nats (mean, SEM over windows); dense is 3.764.
 | `tree_L8` | 246x | +1.009 | +0.616 (0.061) | +1.360 |
 | `tree_L10` | 851x | +1.373 | +0.896 (0.084) | +1.844 |
 | `softmax_L8` | 111x | +1.005 | +0.551 (0.060) | +1.274 |
+| `softmax_km` | 116x | +0.831 | +0.466 (0.044) | n/a |
 
 - Each sampled level costs 0.03 to 0.15 nats here, least at the top of the
   tree (0.030 and 0.028 for the first two bits).
@@ -77,25 +81,22 @@ in nats (mean, SEM over windows); dense is 3.764.
   the same groups.
 - The grouping is worth 0.7 to 0.9 nats against a random tree, in line with
   the published hierarchical-softmax results.
+- Forcing balanced halves costs 0.085 (0.026) against free k-means clusters
+  under the same softmax, on the same windows and fit. The k-means clusters
+  hold 31 to 472 tokens; the head's expected cluster size is 178.
 - This run is small and data-limited: 51k tokens against 12.6M node
   parameters. Its dev loss had flattened by step 150, which says the data
   ran out, not that the head converged. The full run has 20 times the data.
 
-Two parametrisations were tried and dropped (same JSON):
+One parametrisation was tried and dropped (same JSON): a shared rank-256
+projection for the node logits. Truncating the released head to rank 256
+costs 1.70 nats before training and 1.14 after a short fit. The head is not
+low rank, so that choice would have capped the tree. Node vectors are full
+width instead.
 
-- **A shared rank-256 projection for the node logits.** Truncating the
-  released head to rank 256 costs 1.70 nats before training and 1.14 after a
-  short fit. The head is not low rank, so that choice would have capped the
-  tree. Node vectors are full width instead.
-- **Unbalanced k-means clusters for a two-level head.** With 256 clusters
-  they scored 0.70 above dense before training and 0.39 after 48 steps on
-  16k tokens. The tree's depth-8 groups under the same softmax scored 1.01
-  and 0.55 (150 steps, 51k tokens). The two runs used different test
-  windows, so this is a rough comparison, but it puts the balanced tree's
-  groups roughly 0.2 to 0.3 nats behind free clusters. The tree is kept
-  because it gives every depth from one fit and a bounded group size. This
-  is the fixed choice most likely to bound the result, and the run as
-  written does not measure it.
+Unbalanced k-means clusters were first tried as the main two-level head. The
+tree is the main construction because it gives every depth from one fit and
+a bounded group size, and the clusters stay in the run as `softmax_km`.
 
 Site probe, smoke scale only (released model, 2 windows of 32 tokens): the two
 sites that write into the residual stream have mean (1 - y^2) of 0.995, so
@@ -116,7 +117,7 @@ attention-free models would address about a fifth of it at this context.
 | Choice | Value | Bounds the metric? |
 | --- | --- | --- |
 | Body | released Z1T-0, frozen, noise-free, states stored as float16 | Yes for transfer: says nothing about a noisy or fine-tuned body |
-| Tree | balanced 2-means bisection of output vectors in 256 PCA dims | Yes: grouping is worth 0.7 to 0.9 nats; free clusters looked 0.2 to 0.3 nats better |
+| Tree | balanced 2-means bisection of output vectors in 256 PCA dims | Yes: worth 0.7 to 0.9 nats against a random tree, and 0.085 behind free clusters in the exploration; `softmax_km` measures this in the run |
 | Node logit | linear in h, full width | Possibly: a branch's exact log-odds is not linear in h |
 | Within-group step | the dense model's own conditional | No, by construction; its V / 2^L rows are counted |
 | Depth | 12 bits (4,095 node vectors per tree, 50M parameters) | Memory bound on a 4 GB GPU; depths 13 to 16 are not measured |
@@ -133,6 +134,9 @@ MACs) and L = 12 (2,070x), with its SEM.
 - The grouping matters if `tree_L - tree_L_random` is below zero by more
   than 2 SEM.
 - `tree_L8 - softmax_L8` is the cost of binary draws against one softmax.
+- `softmax_L8 - softmax_km` is the cost of the balanced grouping. If it is
+  more than half of `tree_L8 - dense`, say that the grouping bounded the
+  result.
 - If the dev loss is still falling by more than 0.01 nats per evaluation at
   the last step, report "not converged in this budget" and do not quote the
   number as a floor.

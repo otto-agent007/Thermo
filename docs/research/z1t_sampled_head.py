@@ -14,6 +14,9 @@ each group's main direction), giving a binary tree whose depth-L groups hold V /
   softmax_S   the same depth-S groups, chosen by one 2^S-way softmax instead of S binary
               draws (same parameter count; the reference for what binary draws cost)
   *_random    same tree shape with tokens at random leaves (control for the grouping)
+  softmax_km  one softmax over 2^S free k-means clusters of the output vectors (unbalanced),
+              then the released rows inside the cluster. It prices the balanced tree's
+              grouping: softmax_S minus softmax_km is what forcing equal halves costs.
   dense       the released readout
 A node's loss depends only on its own vector, so one set of node vectors gives every depth
 up to --levels at once, and the loss splits exactly by level:
@@ -127,17 +130,32 @@ def bisect_tree(Z):
     return order.astype(np.int32)
 
 
+def kmeans(Z, C, seed, iters=25):
+    """Plain Lloyd k-means labels (V,); an emptied cluster restarts at the worst-fitted point."""
+    rng = np.random.default_rng(seed)
+    cen = Z[rng.choice(len(Z), C, replace=False)].copy()
+    z2 = (Z * Z).sum(1)
+    for _ in range(iters):
+        d2 = z2[:, None] - 2.0 * Z @ cen.T + (cen * cen).sum(1)[None]
+        lab = d2.argmin(1)
+        for c in range(C):
+            m = lab == c
+            cen[c] = Z[m].mean(0) if m.any() else Z[d2.min(1).argmax()]
+    return lab.astype(np.int32)
+
+
 def build_structures(W, hb, args, path):
     """Tree, per-token paths/bits/group ids for both trees, and stage-0 parameters."""
     L = args.levels
-    key = np.array([L, args.softmax_level, args.pca, args.seed])
+    key = np.array([L, args.softmax_level, args.pca, args.seed, 2])  # last entry: layout version
     if os.path.exists(path):
         z = np.load(path)
         if np.array_equal(z["key"], key):
             return dict(z)
     t0 = time.time()
     V, d = W.shape
-    order = bisect_tree(rank_basis(W, args.pca, args.seed)[1])
+    Z = rank_basis(W, args.pca, args.seed)[1]
+    order = bisect_tree(Z)
     rng = np.random.default_rng(args.seed + 1)
     S = {"key": key, "order": np.stack([order, rng.permutation(V).astype(np.int32)])}
     bits = np.zeros((V, L), np.int64)  # by leaf position: the same balanced shape for both trees
@@ -182,6 +200,15 @@ def build_structures(W, hb, args, path):
         E0.append(E), b0.append(bn)
     S.update(paths=np.stack(paths), dirs=np.stack(dirs), gid=np.stack(gid))
     S.update(E0=np.stack(E0), b0=np.stack(b0), U0=np.stack(U0), a0=np.stack(a0))
+    C = 1 << args.softmax_level  # free k-means clusters: the reference for the tree's grouping
+    km = kmeans(Z, C, args.seed)
+    G = np.zeros((C, d), np.float64)
+    for i in range(0, V, 2048):
+        np.add.at(G, km[i : i + 2048], np.asarray(W[i : i + 2048], np.float32))
+    lb = np.full(C, -np.inf)
+    np.logaddexp.at(lb, km, hb.astype(np.float64))
+    n = np.maximum(np.bincount(km, minlength=C), 1)[:, None]
+    S.update(km=km, Ukm=(G / n).astype(np.float32), akm=lb.astype(np.float32))
     tmp = path + ".tmp.npz"
     np.savez(tmp, **S)
     os.replace(tmp, path)
@@ -234,13 +261,14 @@ def main():
     sig.update({f"n_{k}": len(v) for k, v in splits.items()})
     body = jax.jit(lambda p, x0: M.body(p, x0, jax.random.key(0), "clean"))
     params = jax.tree.map(jnp.asarray, train0)
-    K = 2 * L
-    gid_dev = jnp.asarray(S["gid"].reshape(K, V))  # row k * L + (depth - 1)
+    K = 2 * L + 1
+    # row k * L + (depth - 1) for tree k; the last row is the k-means cluster of each token
+    gid_dev = jnp.asarray(np.concatenate([S["gid"].reshape(2 * L, V), S["km"][None]]))
 
     @jax.jit
     def dense_stats(hid, W16, b, tgt):
         """Streaming over vocab chunks: dense nll, and the nll within the target's group at
-        every depth of both trees (fp16 head, fp32 math)."""
+        every depth of both trees and within its k-means cluster (fp16 head, fp32 math)."""
         nc = V // args.chunk
         ct = gid_dev[:, tgt]  # (K, T)
         xs = (
@@ -280,7 +308,8 @@ def main():
             base + ".npy", mode="w+" if fresh else "r+", dtype=np.float16, shape=(len(ws), T, d)
         )
         tg = np.stack([w[1:] for w in ws]).astype(np.int32)
-        # sc[w, 0] dense nll; sc[w, 1 + k * L + (depth - 1)] within-group nll, tree k
+        # sc[w, 0] dense nll; sc[w, 1 + k * L + (depth - 1)] within-group nll, tree k;
+        # sc[w, 2 * L + 1] within-cluster nll for the k-means clusters
         sc = np.zeros((len(ws), 1 + K, T), np.float32) if fresh else np.load(base + "_dense.npy")
         done = 0 if fresh else int(meta["done"])
         t0 = time.time()
@@ -332,6 +361,10 @@ def main():
         for depth in (SL, L):
             oracle = lv[:, :depth].sum(1) + sc[0, 1 + k * L + depth - 1]
             err = max(err, float(np.abs(oracle - sc[0, 0]).max()))
+    mass = np.zeros((T, 1 << SL))
+    np.add.at(mass.T, S["km"], pr.T)
+    two = -np.log(mass[np.arange(T), S["km"][tg[0]]]) + sc[0, 2 * L + 1]
+    err = max(err, float(np.abs(two - sc[0, 0]).max()))
     assert err < 2e-2, f"tree bookkeeping check failed: {err}"
     print(f"self-check passed ({err:.1e} nats)", flush=True)
 
@@ -342,6 +375,9 @@ def main():
         t: {"E": S["E0"][k], "b": S["b0"][k], "U": S["U0"][k], "a": S["a0"][k]}
         for k, t in enumerate(TREES)
     }
+    hp["km"] = {"U": S["Ukm"], "a": S["akm"]}
+    A["km"] = jnp.asarray(S["km"])
+    A["km_size"] = jnp.asarray(np.bincount(S["km"], minlength=1 << SL).astype(np.float32))
     hp = jax.tree.map(jnp.asarray, hp)
 
     def head_out(p, h16, tgt):
@@ -354,12 +390,15 @@ def main():
             lp = jax.nn.log_softmax(h @ p[t]["U"].T + p[t]["a"])
             ce = -jnp.take_along_axis(lp, A["gs"][k][tgt][:, None], 1)[:, 0]
             out[t] = (jax.nn.softplus(-A["dirs"][k][tgt] * z), ce)
-        return out
+        lp = jax.nn.log_softmax(h @ p["km"]["U"].T + p["km"]["a"])
+        ce = -jnp.take_along_axis(lp, A["km"][tgt][:, None], 1)[:, 0]
+        return out, (ce, (jnp.exp(lp) * A["km_size"]).sum(-1))  # km: loss, expected cluster size
 
     eval_fn = jax.jit(head_out)
 
     def loss_fn(p, h16, tgt):
-        return sum(lv.sum(-1).mean() + ce.mean() for lv, ce in head_out(p, h16, tgt).values())
+        out, km = head_out(p, h16, tgt)
+        return sum(lv.sum(-1).mean() + ce.mean() for lv, ce in out.values()) + km[0].mean()
 
     n_train = len(data["train"][0])
     steps = max(1, int(args.epochs * n_train / args.batch_windows))
@@ -377,15 +416,20 @@ def main():
 
     depths = sorted({x for x in (1, 2, 4, 6, 8, 10, 12, 14, SL, L) if x <= L})
     sfx = {"learned": "", "random": "_random"}
+    km_size = {}  # mean expected k-means cluster size under the head, per split (last evaluation)
 
     def evaluate(p, name):
         """Per-window mean nll of every head, and the per-level excess over the dense model."""
         hm, tg, sc = data[name]
         per = {"dense": []}
         excess = {t: np.zeros(L) for t in TREES}
+        sizes = []
         for wi in range(len(hm)):
-            out = eval_fn(p, jnp.asarray(hm[wi]), jnp.asarray(tg[wi]))
+            out, km = eval_fn(p, jnp.asarray(hm[wi]), jnp.asarray(tg[wi]))
             per["dense"].append(float(sc[wi, 0].mean()))
+            v = np.asarray(km[0], np.float64) + sc[wi, 2 * L + 1]
+            per.setdefault("softmax_km", []).append(float(v.mean()))
+            sizes.append(float(np.asarray(km[1]).mean()))
             for k, t in enumerate(TREES):
                 lv, ce = (np.asarray(v, np.float64) for v in out[t])
                 within = sc[wi, 1 + k * L : 1 + (k + 1) * L].astype(np.float64)  # (L, T)
@@ -396,6 +440,7 @@ def main():
                 per.setdefault(f"softmax_L{SL}{sfx[t]}", []).append(float(v))
                 prev = np.concatenate([sc[wi, :1].astype(np.float64), within[:-1]])
                 excess[t] += (lv.mean(0) - (prev - within).mean(1)) / len(hm)
+        km_size[name] = float(np.mean(sizes))
         return per, {t: [float(v) for v in e] for t, e in excess.items()}
 
     def row(per):
@@ -416,6 +461,12 @@ def main():
             "tree": (tr, 0, host[t]["E"], host[t]["b"]),
             "soft": (sm, 0, host[t]["U"], host[t]["a"]),
         }
+    best["km"] = (
+        float(np.mean(stage0["dev"][0]["softmax_km"])),
+        0,
+        host["km"]["U"],
+        host["km"]["a"],
+    )
     log, t0 = [{"step": 0, "dev": row(stage0["dev"][0])}], time.time()
     for step in range(1, steps + 1):
         rng = np.random.default_rng([args.seed, step])
@@ -438,13 +489,17 @@ def main():
                     best[t]["tree"] = (tr, step, np.asarray(hp[t]["E"]), np.asarray(hp[t]["b"]))
                 if sm < best[t]["soft"][0]:
                     best[t]["soft"] = (sm, step, np.asarray(hp[t]["U"]), np.asarray(hp[t]["a"]))
+            sm = float(np.mean(per["softmax_km"]))
+            if sm < best["km"][0]:
+                best["km"] = (sm, step, np.asarray(hp["km"]["U"]), np.asarray(hp["km"]["a"]))
     final_p = {
         t: dict(zip("EbUa", (*best[t]["tree"][2:], *best[t]["soft"][2:]), strict=True))
         for t in TREES
     }
+    final_p["km"] = {"U": best["km"][2], "a": best["km"][3]}
     np.savez(
         os.path.join(args.out, "heads_best.npz"),
-        **{f"{t}/{k}": v for t in TREES for k, v in final_p[t].items()},
+        **{f"{t}/{k}": v for t in final_p for k, v in final_p[t].items()},
     )
     final_p = jax.tree.map(jnp.asarray, final_p)
 
@@ -452,10 +507,14 @@ def main():
     final = {n: evaluate(final_p, n) for n in data if n != "train"}
     macs = {"dense": V * d, f"softmax_L{SL}": ((1 << SL) + V / (1 << SL)) * d}
     macs.update({f"tree_L{dp}": (dp + V / (1 << dp)) * d for dp in depths})
+    macs["softmax_km"] = ((1 << SL) + km_size["test"]) * d  # expected cluster size under the head
     summary = {
         "evidence_class": "software_simulation",
         "settings": dict(sig, epochs=args.epochs, lr=args.lr, batch_windows=args.batch_windows),
-        "selected_step": {t: {k: best[t][k][1] for k in ("tree", "soft")} for t in TREES},
+        "selected_step": dict(
+            {t: {k: best[t][k][1] for k in ("tree", "soft")} for t in TREES}, km=best["km"][1]
+        ),
+        "kmeans_expected_cluster_size_test": km_size["test"],
         "macs_per_token": macs,
         "macs_reduction": {a: V * d / m for a, m in macs.items()},
         "stage0": {n: row(v[0]) for n, v in stage0.items()},
@@ -479,6 +538,8 @@ def main():
             summary["paired"][f"{n}: {a} - {a}_random"] = ft.mean_sem(diff)
         diff = np.array(per[f"tree_L{SL}"]) - np.array(per[f"softmax_L{SL}"])
         summary["paired"][f"{n}: tree_L{SL} - softmax_L{SL}"] = ft.mean_sem(diff)
+        diff = np.array(per[f"softmax_L{SL}"]) - np.array(per["softmax_km"])
+        summary["paired"][f"{n}: softmax_L{SL} - softmax_km"] = ft.mean_sem(diff)
     ft.write_json(os.path.join(args.out, "summary.json"), summary)
     keys = ("macs_reduction", "selected_step", "paired")
     print("SUMMARY", json.dumps({k: summary[k] for k in keys}, indent=2), flush=True)
