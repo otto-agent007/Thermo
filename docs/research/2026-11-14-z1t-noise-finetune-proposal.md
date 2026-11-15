@@ -155,8 +155,8 @@ Nothing in this note justified that; "restartable" was treated as if it meant
 in `<arm>/log.json` and the final weights of each arm in `body_params.npz`.
 The noisy arm's weights at steps 500, 1,000 and 1,500 do not. The control
 arm's intermediate checkpoints survive only because they were copied by hand
-outside the run directory while it ran (see the
-[results note](2026-11-15-z1t-noise-finetune-results.md), in PR #169).
+outside the run directory while it ran (recorded in the results note,
+`2026-11-15-z1t-noise-finetune-results.md`, which arrives with PR #169).
 
 The script now keeps both, and so does `z1t_sampled_head.py`:
 
