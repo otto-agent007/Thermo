@@ -153,8 +153,10 @@ the run restartable and discarded the models at the intermediate evaluations.
 Nothing in this note justified that; "restartable" was treated as if it meant
 "all the work is preserved". From that run the per-evaluation losses survive
 in `<arm>/log.json` and the final weights of each arm in `body_params.npz`.
-The weights at the intermediate evaluations (steps 500, 1,000 and 1,500 of
-each arm) do not.
+The noisy arm's weights at steps 500, 1,000 and 1,500 do not. The control
+arm's intermediate checkpoints survive only because they were copied by hand
+outside the run directory while it ran (see the
+[results note](2026-11-15-z1t-noise-finetune-results.md), in PR #169).
 
 The script now keeps both, and so does `z1t_sampled_head.py`:
 
