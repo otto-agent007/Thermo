@@ -87,8 +87,8 @@ No matching runner process was observed at inspection.
 The runner overwrites `ckpt.npz` and `body_params.npz` at each evaluation.
 The original run directories contain final noisy and control weights and
 checkpoints. Independent control checkpoint copies at steps 500, 1000,
-1500 and 2000 are retained outside git in
-`/home/user1/thermo-z1t-checkpoint-archive`; step 500 has two identical copies.
+1500 and 2000 are retained outside git, in a checkpoint archive folder on
+the owner's machine; step 500 has two identical copies.
 Their manifest SHA-256s and ZIP-member CRC checks passed during this review.
 Their inventory is included in the artifact manifest; large checkpoint
 binaries are not copied into this documentation directory.
