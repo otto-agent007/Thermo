@@ -13,7 +13,7 @@ Numbers: [exploration JSON](2026-11-14-z1t-sampled-head-exploration.json).
 ## Where this sits
 
 Neither piece is a task row and neither names a task with digital headroom.
-Both follow the held row `z1t-noise-recovery`
+Both follow the row `z1t-noise-recovery`
 ([note](2026-11-14-z1t-noise-finetune-proposal.md)) on Extropic's released
 Z1T-0.
 
