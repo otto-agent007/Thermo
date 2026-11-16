@@ -40,6 +40,8 @@ These need no new runs. Each lists the archived results that move.
 | 6 | **One-way fan-in of at least 16 model sites per node, w ≥ 0.5, bias range about 8 in the pore's field units** (the pore's cap is 1.99) | Loading reads on the pore fall 5.2x | On the archived map a node reaches 5 sites and the gain is 1.1 to 2.7 | [P-0012](2026-11-13-aggregator-read-gain-probe.md), exact. Reads are about 16 nJ against about 44 nJ of writes per pore trajectory, so this moves the smaller term |
 | 7 | **An update schedule other than two colours** (sequential phases, or freezing a block while relays settle) | A one-way relay tree carries a global latent: 0.0052 at 8 bits, 8 extra sites | 0.065 to 0.079 even with ideal relays (staleness) | [P-0013](2026-11-13-directed-relay-latent-probe.md), exact, one 2 × 3 instance. Extra phases would cost writes. Not a proposed row |
 | 8 | **Degree above 16** | The bias-design associative memory (hidden degree 24, visible degree up to 128) and the E0 kernel (degree 17) place natively | Both run with placement relaxed and flagged | [Constraint-layer plan](2026-10-13-constraint-layer-plan.md) |
+| 9 | **Enough samples per averaged unit, or a model trained with the sampling noise** (added 2026-11-15) | The released Z1T-0 nears its noise-free loss of 4.002 nats: 4.916 at 2,048 samples per unit | 10.746 nats at 32 samples per unit, the count the Z1T post's latency estimate assumes (an assumption of that projection, not a reported quality measurement; [source card](../knowledge/sources/extropic-z1t.md), claim C6); a 2,000-update retrofit recovers 70 percent of that gap and costs 1.42 nats noise-free | [Z1T noise fine-tune results](2026-11-15-z1t-noise-finetune-results.md); `software_simulation` exploration, output sampling noise only, one released checkpoint, embedding and output layer frozen in the retrofit |
+| 10 | **An output step that does not score every token off the chip** (added 2026-11-15) | Exploration only: drawing the first 8 bits of the next token as samples removes 246 times the readout arithmetic for 0.62 nats, on a frozen body in a small, data-limited run | The dense readout is 617.6M multiply-accumulates per token at width 12,288, runs off the chip and is outside the Z1T post's energy ratio | [sampled-head proposal](2026-11-14-z1t-sampled-head-proposal.md); held row `z1t-sampled-head`, not run at full size |
 
 **Already tolerated, not a requirement:** static ±10 percent per-site beta
 jitter was negligible in the three studies that isolated it: the L = 8
@@ -70,6 +72,8 @@ one. Features 4 to 8 matter only once a program needs them.
 ## Not done
 
 No run, no queue row, and no change to any archive or frozen source. The
-numbers were checked against the linked sources on 2026-11-13. The joule
+numbers were checked against the linked sources on 2026-11-13. Rows 9 and 10
+were added on 2026-11-15 from the Z1T notes and checked against them then;
+they quote no joule. The joule
 arithmetic that this note quotes from D-0010, the domain-wall probe and the
 codon card is analysis in those sources, and is labelled that way here.

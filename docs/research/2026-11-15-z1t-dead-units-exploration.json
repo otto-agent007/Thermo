@@ -1,0 +1,104 @@
+{
+ "note": "Exploration only, CPU, owner session 2026-11-15. Reported counts for the released Z1T-0 checkpoint use a threshold: every incoming weight and its bias are below 1e-6 in magnitude. These are near-zero units under that threshold, not proven exact-zero units; their deterministic output is not asserted to equal tanh(0).",
+ "units_dead_of_total": {
+  "block0": {
+   "qkv": [
+    17981,
+    24580
+   ],
+   "out": [
+    0,
+    12288
+   ],
+   "p1": [
+    18039,
+    49152
+   ],
+   "p2": [
+    0,
+    12288
+   ]
+  },
+  "block1": {
+   "qkv": [
+    10591,
+    24580
+   ],
+   "out": [
+    0,
+    12288
+   ],
+   "p1": [
+    18127,
+    49152
+   ],
+   "p2": [
+    0,
+    12288
+   ]
+  },
+  "block2": {
+   "qkv": [
+    2966,
+    24580
+   ],
+   "out": [
+    0,
+    12288
+   ],
+   "p1": [
+    18040,
+    49152
+   ],
+   "p2": [
+    0,
+    12288
+   ]
+  },
+  "block3": {
+   "qkv": [
+    1737,
+    24580
+   ],
+   "out": [
+    0,
+    12288
+   ],
+   "p1": [
+    17961,
+    49152
+   ],
+   "p2": [
+    0,
+    12288
+   ]
+  }
+ },
+ "qkv_dead_fraction_by_part": {
+  "block0": {
+   "Q": 0.7319,
+   "V": 0.7314,
+   "K": 0.0
+  },
+  "block1": {
+   "Q": 0.4311,
+   "V": 0.4308,
+   "K": 0.0
+  },
+  "block2": {
+   "Q": 0.1207,
+   "V": 0.1207,
+   "K": 0.0
+  },
+  "block3": {
+   "Q": 0.0707,
+   "V": 0.0706,
+   "K": 0.0
+  }
+ },
+ "total": [
+  105442,
+  393232
+ ],
+ "under_sampling_noise": "Not established. Even a unit with exactly zero mean has nonzero variance under finite-sample output noise, so replacing it by deterministic zero changes the stochastic model. A quick check on two OpenWebText windows found no difference at three decimals between sampling these units and gating them to zero at 32, 512 and 2,048 samples; too small to report as a result."
+}

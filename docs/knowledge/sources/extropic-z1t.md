@@ -5,14 +5,14 @@ id = "extropic-z1t"
 title = "Z1T: sparse transformer-like models for probabilistic hardware"
 kind = "blog_post"
 status = "asserted"
-last_checked = 2026-10-01
+last_checked = 2026-11-15
 
 [source]
 url = "https://extropic.ai/writing/z1t/"
 version = "read 2026-10-01; SHA-256 of the extracted page text begins fa554291f7b35f6f"
 released = 2026-09-04
 authors = "Verdon, Neagoe, Lockwood and Morton (Extropic)"
-note = "Blog post. Open weights at huggingface.co/extropic-ai; training recipe at github.com/extropic-ai/sparse-transformers."
+note = "Blog post. Open weights at huggingface.co/extropic-ai; training recipe at github.com/extropic-ai/sparse-transformers. Re-read on 2026-11-15 through an automated page reader that returns a summary of the page, not its raw text: C1 to C5 matched, C6 was confirmed and C7 to C9 were added. The page hash in `version` is from the 2026-10-01 read and was not recomputed."
 
 [[claims]]
 id = "C1"
@@ -38,6 +38,26 @@ text = "The sparse tanh layers that run on Z1 alone are about 468x to 4,680x mor
 id = "C5"
 status = "asserted"
 text = "Serial latency is 58.8 us per token (about 17,000 tokens/s), against 102 us for a batch-1 torch.compile H100 run at 0.006% MFU. The authors say batching would make the H100 substantially more efficient and recommend Z1 for decode, not prefill."
+
+[[claims]]
+id = "C6"
+status = "asserted"
+text = "The latency estimate assumes 25 sequential sampling layers of 32 samples each at 50 MHz, 16.0 us per token, with the samples averaged to estimate each scalar tanh-linear output. The post calls this conservative because it does not count samples drawn in parallel. It is an assumption of the projected latency: the post does not report model quality at 32 samples, and the estimate excludes the final vocabulary-logit computation."
+
+[[claims]]
+id = "C7"
+status = "asserted"
+text = "The 58.8 us breaks down as 38.0 us of FPGA orchestration (38 operations at 1 us), 16.0 us of Z1 sampling, 3.2 us of reads, 1.3 us of writes and about 0.3 us of averaging, pooling, positional encoding and residual adds. Per token there are 8 FPGA-to-Z1 write steps and 5 Z1-to-FPGA read steps at 25.6 Gbit/s."
+
+[[claims]]
+id = "C8"
+status = "asserted"
+text = "The energy and latency model is for L = 4, D = 512, context 1,024, 4 heads, kernel size 4 and fan-in 4. Each output node reads 4 input values of 4 p-bits each (dy4p: four +/-1 p-bits weighted 1/4 to 1/32, 16 levels per sample), which uses all 16 couplings of a Z1 p-bit; a value is recovered as the mean over N samples. Constants: 1.3e-14 J per Z1 sample, 0.2 pJ per FPGA matmul operation, 3.0 pJ per FPGA scalar operation, 1.5 W FPGA static power, 0.177 pJ per H100 FP32 FLOP."
+
+[[claims]]
+id = "C9"
+status = "asserted"
+text = "Not stated in the post: whether the reported losses were evaluated with sampling noise, whether training was noise-aware, step counts and optimizer settings, and whether the scaling figure used quantized weights. The post does not name a Z1T-0 model; it says the open weights are from one of the larger Z1T training runs."
 ```
 
 ## Claim
@@ -61,6 +81,13 @@ extra variable.
   M5c's synthetic offset lattice. M5c's complete execution costs remain open.
 - The training recipe and weights are public, so the scaling claim (C2) is
   checkable in software, unlike the energy claims.
+- C6 is why Thermo's Z1T noise runs use 32 samples per unit. Together with C2
+  and C9 it frames their result: the released checkpoint was scored at the
+  sample count the latency estimate assumes, a condition the post's reported
+  losses do not cover
+  ([results](../../research/2026-11-15-z1t-noise-finetune-results.md)). Those
+  runs model output sampling noise only. Under C8 a unit's inputs are also
+  sampled 16-level values, which the runs do not model.
 
 ## Cautions
 
@@ -71,6 +98,11 @@ extra variable.
   not measured.
 - The FPGA accounts for over 95% of the projected energy. The post's "up to
   1000x" is a hypothetical for a future chip without it.
+- If more samples come from parallel p-bits, as C6 allows, the cost moves from
+  time to p-bit count, and chip count is not modelled (C3).
+- The scaling figure's caption says body parameters exclude the final
+  vocabulary matmul, while the connectivity section says its counts include
+  it (2026-11-15 read).
 - The die figure gives 215,904 coupling parameters, while the text gives
   2,135,904 coupling edges. C1 uses the text's number; treat the figure as a
   likely typo.
