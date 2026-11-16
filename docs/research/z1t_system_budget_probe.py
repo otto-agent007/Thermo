@@ -270,12 +270,232 @@ def h100_side() -> dict[str, Any]:
     return {"flops_per_token": flops, "rows": rows}
 
 
+# ---- part 2: the budget (owner option 1, 2026-11-16) -------------------------------
+# Z1 side anchored on the reproduced 8.74 nJ accounting: one priced sample per sampled
+# output per sample step. Off-chip work priced only at 0.1 / 1 / 10 pJ per MAC. The
+# post's 285.78 nJ FPGA figure is unreproduced and unused.
+PBITS_PER_CHIP = 269_568  # C1 and the sealed profile
+E_UPDATE_SEALED_J = 7.09e-15  # sealed profile: per p-bit per Gibbs cycle
+E_READ_J = 1.692e-12  # sealed profile: per node read (one bit)
+E_WRITE_J = 153.6e-12  # sealed profile: per node full SRAM write
+MAC_PJ = (0.1, 1.0, 10.0)
+N_GRID = (32, 64, 128, 256, 512, 1024, 2048)
+DY4P = 4  # p-bits per encoded input value (C8)
+DEAD_UNITS_RELEASED = 105_442  # of 393,232 projection units (exploration JSON)
+LOSS_RELEASED = {32: 10.746, 128: 9.184, 512: 6.901, 2048: 4.916}  # software_simulation
+LOSS_NOISE_FREE = 4.002
+CONFIGS = {
+    "post_512": {"D": 512, "H": 4, "L": 4, "ksize": 4, "V": VOCAB, "checkpoint": False},
+    "released_12288": {"D": 12_288, "H": 4, "L": 4, "ksize": 4, "V": VOCAB, "checkpoint": True},
+}
+
+
+def sites(D: int, H: int, L: int) -> list[dict[str, Any]]:
+    """Sampled sites per token with unit count, fan-in and distinct input values."""
+
+    block = [
+        ("dyt1", D, 1, D, True),
+        ("qkv", 2 * D + H, 4, D, False),
+        ("out", D, 4, D, False),
+        ("dyt2", D, 1, D, True),
+        ("p1", 4 * D, 4, D, False),
+        ("p2", D, 4, 4 * D, False),
+    ]
+    rows = []
+    for name, units, fan_in, inputs, is_dyt in block:
+        rows.append(
+            {
+                "site": name,
+                "units": units * L,
+                "fan_in": fan_in,
+                "input_values": inputs * L,
+                "dyt": is_dyt,
+                "layers": L,
+            }
+        )
+    rows.append(
+        {"site": "final_dyt", "units": D, "fan_in": 1, "input_values": D, "dyt": True, "layers": 1}
+    )
+    return rows
+
+
+def counts(cfg: dict[str, Any], unit_set: str, gated: bool) -> dict[str, Any]:
+    """N-independent structure counts for one configuration and accounting."""
+
+    D, H, L, V, ks = cfg["D"], cfg["H"], cfg["L"], cfg["V"], cfg["ksize"]
+    rows = [r for r in sites(D, H, L) if unit_set == "with_dyt" or not r["dyt"]]
+    units = sum(r["units"] for r in rows)
+    in_shared = DY4P * sum(r["input_values"] for r in rows)
+    in_copied = DY4P * sum(r["units"] * r["fan_in"] for r in rows)
+    removed = 0
+    if gated:
+        # Hypothetical: drop the near-zero projection units (all fan-in 4). Their output
+        # p-bit, samples, reads and copied inputs go; shared input registers stay.
+        removed = DEAD_UNITS_RELEASED
+        units -= removed
+        in_copied -= removed * 4 * DY4P
+    seq_layers = sum(r["layers"] for r in rows)
+    # Co-processor work per token that does not depend on N (ops, each priced as one MAC).
+    pool_mac = L * (D * ks + H * ks)  # causal depthwise conv taps, decode step
+    pool_elem = L * (6 * D + 5 * H)  # exp(tanh K), eK*V, cumsums, adds, divide, tanh Q, gate
+    mlp_act = L * 4 * D
+    residual = L * 2 * D
+    positional = D
+    dyt_affine = (2 * L + 1) * D if unit_set == "with_dyt" else 0
+    fixed_ops = pool_mac + pool_elem + mlp_act + residual + positional + dyt_affine
+    return {
+        "unit_set": unit_set,
+        "gated": gated,
+        "sampled_units": units,
+        "gated_units_removed": removed,
+        "sequential_sampling_layers": seq_layers,
+        "input_pbits_shared": in_shared,
+        "input_pbits_copied": in_copied,
+        "post_write_values": POST["write_steps"] * D,
+        "post_read_values": POST["read_steps"] * D,
+        "readout_macs": D * V + V,  # dense D x V logits plus bias adds
+        "coprocessor_fixed_ops": {
+            "pool_conv_macs": pool_mac,
+            "pool_elementwise": pool_elem,
+            "mlp_activation": mlp_act,
+            "residual_adds": residual,
+            "positional_add": positional,
+            "dyt_affine": dyt_affine,
+            "total": fixed_ops,
+        },
+        "sparse_body_macs_reference": sum(r["units"] * r["fan_in"] for r in rows) - removed * 4,
+    }
+
+
+def per_n(c: dict[str, Any], D: int, n: int) -> dict[str, Any]:
+    """Counts and projected joules per token at N samples per unit (all bands low..high)."""
+
+    U = c["sampled_units"]
+    i_lo, i_hi = c["input_pbits_shared"], c["input_pbits_copied"]
+    # p-bits resident: one output p-bit per unit plus its dy4p input p-bits.
+    pbits = {"shared_inputs": U + i_lo, "copied_inputs": U + i_hi}
+    reps = {"serial_C6": 1, "latency_held_N_over_32": max(1, n // 32), "fully_parallel": n}
+    chips = {
+        f"{p}/{r}": math.ceil(pb * k / PBITS_PER_CHIP)
+        for p, pb in pbits.items()
+        for r, k in reps.items()
+    }
+    out_samples = U * n
+    in_samples_free = (i_lo * n, i_hi * n)  # only if dy4p inputs are free biased p-bits
+    ungated_updates = (U * n * c["sequential_sampling_layers"],)
+    read_bits = {
+        "post_steps_5xDxN": c["post_read_values"] * n,
+        "every_output_every_step": U * n,
+    }
+    count_bits = U * math.ceil(math.log2(n + 1))  # counterfactual on-chip counter
+    writes = {
+        "post_steps_8xDx4": c["post_write_values"] * DY4P,
+        "shared_inputs": i_lo,
+        "copied_inputs": i_hi,
+    }
+    avg_ops = {
+        "post_read_values": c["post_read_values"] * (n + 1),
+        "every_output": U * (n + 1),
+    }
+    fixed = c["coprocessor_fixed_ops"]["total"]
+    cop_ops = (avg_ops["post_read_values"] + fixed, avg_ops["every_output"] + fixed)
+    # ---- joules (calibrated_projection) ----
+    samp_lo = out_samples * E_UPDATE_SEALED_J
+    samp_post = out_samples * E_Z1_SAMPLE_J
+    samp_hi = (out_samples + in_samples_free[1]) * E_Z1_SAMPLE_J
+    read_lo = min(read_bits.values()) * E_READ_J
+    read_hi = max(read_bits.values()) * E_READ_J
+    write_lo = min(writes.values()) * E_READ_J  # clamp loads at the read constant
+    write_hi = max(writes.values()) * E_WRITE_J  # full SRAM write constant
+    z1_lo = samp_lo + read_lo + write_lo
+    z1_hi = samp_hi + read_hi + write_hi
+    off = {}
+    for p in MAC_PJ:
+        ro = c["readout_macs"] * p * 1e-12
+        off[f"{p}_pJ"] = {
+            "readout_J": ro,
+            "coprocessor_J": [cop_ops[0] * p * 1e-12, cop_ops[1] * p * 1e-12],
+            "total_low_J": z1_lo + ro + cop_ops[0] * p * 1e-12,
+            "total_high_J": z1_hi + ro + cop_ops[1] * p * 1e-12,
+            "total_without_readout_J": [
+                z1_lo + cop_ops[0] * p * 1e-12,
+                z1_hi + cop_ops[1] * p * 1e-12,
+            ],
+            "sparse_body_macs_at_this_price_J": c["sparse_body_macs_reference"] * p * 1e-12,
+        }
+    return {
+        "N": n,
+        "pbits": pbits,
+        "chips_at_100pct_packing": chips,
+        "output_samples": out_samples,
+        "input_pbit_samples_if_free": list(in_samples_free),
+        "updates_if_idle_layers_clocked": ungated_updates[0],
+        "read_bits": read_bits,
+        "counterfactual_onchip_count_read_bits": count_bits,
+        "node_writes_serial": writes,
+        "node_writes_latency_held": {
+            k: v * reps["latency_held_N_over_32"] for k, v in writes.items()
+        },
+        "coprocessor_ops": list(cop_ops),
+        "readout_macs": c["readout_macs"],
+        "sampling_cycles_serial": c["sequential_sampling_layers"] * n,
+        "sampling_time_us_serial": c["sequential_sampling_layers"] * n / CLOCK_HZ * 1e6,
+        "read_time_us_at_25.6Gbps": [v / IO_BITS_PER_S * 1e6 for v in sorted(read_bits.values())],
+        "z1_J": {
+            "sampling_sealed_7.09fJ": samp_lo,
+            "sampling_post_13fJ": samp_post,
+            "sampling_post_13fJ_plus_free_inputs_copied": samp_hi,
+            "sampling_idle_layers_clocked_13fJ": ungated_updates[0] * E_Z1_SAMPLE_J,
+            "reads": [read_lo, read_hi],
+            "writes_read_const_to_write_const": [write_lo, write_hi],
+            "z1_band": [z1_lo, z1_hi],
+        },
+        "off_chip": off,
+        "loss_nats_software_simulation": LOSS_RELEASED.get(n),
+    }
+
+
+def budget() -> dict[str, Any]:
+    out: dict[str, Any] = {
+        "evidence_class": "calibrated_projection (counts are exact arithmetic on stated designs)",
+        "constants": {
+            "pbits_per_chip": PBITS_PER_CHIP,
+            "sample_J_post": E_Z1_SAMPLE_J,
+            "update_J_sealed": E_UPDATE_SEALED_J,
+            "read_J_sealed": E_READ_J,
+            "write_J_sealed": E_WRITE_J,
+            "mac_pJ": list(MAC_PJ),
+        },
+        "loss_noise_free": LOSS_NOISE_FREE,
+        "configs": {},
+    }
+    for name, cfg in CONFIGS.items():
+        variants = {}
+        for unit_set in ("with_dyt", "projections_only"):
+            for gated in (False, True) if cfg["checkpoint"] else (False,):
+                c = counts(cfg, unit_set, gated)
+                key = f"{unit_set}/{'gated' if gated else 'full'}"
+                variants[key] = {
+                    "structure": c,
+                    "per_N": [per_n(c, cfg["D"], n) for n in N_GRID],
+                }
+        out["configs"][name] = {"config": cfg, "variants": variants}
+    return out
+
+
+def anchor_check(b: dict[str, Any]) -> bool:
+    row = b["configs"]["post_512"]["variants"]["with_dyt/full"]["per_N"][0]
+    return abs(row["z1_J"]["sampling_post_13fJ"] * 1e9 - POST["z1_sampling_nj"]) <= HALF_ULP_NJ
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     z1 = z1_side()
     fpga = fpga_candidates()
+    bud = budget()
+    bud["anchor_8.74nJ_reproduced"] = anchor_check(bud)
     result = {
         "row": "z1t-system-budget",
         "proposal": "P-0014",
@@ -286,12 +506,15 @@ def main() -> None:
         "fpga": fpga,
         "readout": readout_side(),
         "h100": h100_side(),
+        "budget": bud,
         "verdict": {
             "z1_sampling_reproduced": z1["variants"]["all_sampled_outputs_one_draw_each"][
                 "matches_8.74_within_rounding"
             ],
             "fpga_split_reproduced": len(fpga["matches_within_rounding"]) == 1,
             "fpga_matches": len(fpga["matches_within_rounding"]),
+            "budget_anchor_8.74nJ_reproduced": bud["anchor_8.74nJ_reproduced"],
+            "fpga_285.78nJ_used_in_budget": False,
         },
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
