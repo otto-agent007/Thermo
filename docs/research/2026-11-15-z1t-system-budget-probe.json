@@ -1,0 +1,4972 @@
+{
+ "row": "z1t-system-budget",
+ "proposal": "P-0014",
+ "evidence_class": "exploration (re-derivation of Extropic calibrated_projection figures)",
+ "post": {
+  "total_nj": 294.52,
+  "z1_sampling_nj": 8.74,
+  "fpga_nj": 285.78,
+  "with_readout_uj": 136.4,
+  "h100_uj": {
+   "0.10": 40.9,
+   "0.50": 8.17,
+   "1.00": 4.09
+  },
+  "latency_us": 58.8,
+  "latency_parts_us": {
+   "orchestration": 38.0,
+   "z1_sampling": 16.0,
+   "reads": 3.2,
+   "writes": 1.3,
+   "averaging": 0.13,
+   "pool_positional_residual": 0.16
+  },
+  "sequential_sampling_layers": 25,
+  "write_steps": 8,
+  "read_steps": 5
+ },
+ "z1_sampling": {
+  "units_by_site": {
+   "block_dyt1": 2048,
+   "block_qkv": 4112,
+   "block_out": 2048,
+   "block_dyt2": 2048,
+   "block_p1": 8192,
+   "block_p2": 2048,
+   "final_dyt": 512
+  },
+  "variants": {
+   "all_sampled_outputs_one_draw_each": {
+    "units": 21008,
+    "samples": 672256,
+    "nj": 8.739328,
+    "matches_8.74_within_rounding": true
+   },
+   "projections_only_no_dyt": {
+    "units": 16400,
+    "samples": 524800,
+    "nj": 6.8224,
+    "matches_8.74_within_rounding": false
+   },
+   "projections_and_block_dyt_no_final_dyt": {
+    "units": 20496,
+    "samples": 655872,
+    "nj": 8.526336,
+    "matches_8.74_within_rounding": false
+   },
+   "all_outputs_times_4_dy4p_pbits": {
+    "units": 84032,
+    "samples": 2689024,
+    "nj": 34.957312,
+    "matches_8.74_within_rounding": false
+   },
+   "all_outputs_plus_16_input_pbits_each": {
+    "units": 357136,
+    "samples": 11428352,
+    "nj": 148.568576,
+    "matches_8.74_within_rounding": false
+   }
+  },
+  "sequential_sampling_layers": 25,
+  "matches_25_layers": true,
+  "sampling_time_us": 16.0
+ },
+ "latency": {
+  "assumed_read_bits": 81920,
+  "assumed_write_bits": 32768,
+  "assumption": "read = 5 x D x 32 bits and write = 8 x D x 8 bits are inferred, not stated; the averaging and pool times are taken from the post, not derived",
+  "parts_us": {
+   "orchestration": 38.0,
+   "z1_sampling": 16.0,
+   "reads": 3.2,
+   "writes": 1.28,
+   "averaging": 0.13,
+   "pool_positional_residual": 0.16
+  },
+  "total_us": 58.77,
+  "matches_58.8_within_rounding": true,
+  "write_bits_range_consistent_with_1.3us": [
+   32000,
+   34560
+  ]
+ },
+ "fpga": {
+  "combinations_tested": 2048,
+  "matches_within_rounding": [],
+  "nearest": {
+   "averaging_scope": "read_back_values_5xD",
+   "averaging_ops": "N_adds_plus_divide",
+   "averaging_price": "scalar_3.0",
+   "pool": "elementwise_only",
+   "ops_per_mac": "1",
+   "conv_price": "matmul_0.2",
+   "residual": "excluded",
+   "positional": "included",
+   "nj": 285.84
+  },
+  "nearest_gap_nj": 0.06,
+  "post_fpga_nj_over_scalar_price": 95259.99999999999,
+  "post_fpga_nj_over_matmul_price": 1428899.9999999998,
+  "static_energy_over_latency_nj": 88199.99999999999,
+  "page_statement": "the trace figure's source says 'Totals exact ... per-stage pacing and split are illustrative' and divides the FPGA total evenly over 9 stages"
+ },
+ "readout": {
+  "readout_macs": 25731584,
+  "readout_prices_uj": {
+   "1_op_per_mac_matmul_0.2": 5.1463,
+   "1_op_per_mac_scalar_3.0": 77.1948,
+   "2_op_per_mac_matmul_0.2": 10.2926,
+   "2_op_per_mac_scalar_3.0": 154.3895
+  },
+  "implied": {
+   "pj_per_mac_if_no_static": 5.2894,
+   "pj_per_mac_if_static_over_58.8us": 1.8617,
+   "static_seconds_us_if_1_op_per_mac_at_0.2": 87.306,
+   "static_seconds_us_if_2_op_per_mac_at_0.2": 83.875
+  },
+  "matches_any_stated_price": false
+ },
+ "h100": {
+  "flops_per_token": 23100000.0,
+  "rows": {
+   "0.10": {
+    "derived_uj": 40.887,
+    "post_uj": 40.9
+   },
+   "0.50": {
+    "derived_uj": 8.1774,
+    "post_uj": 8.17
+   },
+   "1.00": {
+    "derived_uj": 4.0887,
+    "post_uj": 4.09
+   }
+  }
+ },
+ "budget": {
+  "evidence_class": "calibrated_projection (counts are exact arithmetic on stated designs)",
+  "constants": {
+   "pbits_per_chip": 269568,
+   "sample_J_post": 1.3e-14,
+   "update_J_sealed": 7.09e-15,
+   "read_J_sealed": 1.692e-12,
+   "write_J_sealed": 1.536e-10,
+   "mac_pJ": [
+    0.1,
+    1.0,
+    10.0
+   ]
+  },
+  "loss_noise_free": 4.002,
+  "configs": {
+   "post_512": {
+    "config": {
+     "D": 512,
+     "H": 4,
+     "L": 4,
+     "ksize": 4,
+     "V": 50257,
+     "checkpoint": false
+    },
+    "variants": {
+     "with_dyt/full": {
+      "structure": {
+       "unit_set": "with_dyt",
+       "gated": false,
+       "sampled_units": 21008,
+       "gated_units_removed": 0,
+       "sequential_sampling_layers": 25,
+       "input_pbits_shared": 75776,
+       "input_pbits_copied": 280832,
+       "post_write_values": 4096,
+       "post_read_values": 2560,
+       "readout_macs": 25781841,
+       "coprocessor_fixed_ops": {
+        "pool_conv_macs": 8256,
+        "pool_elementwise": 12368,
+        "mlp_activation": 8192,
+        "residual_adds": 4096,
+        "positional_add": 512,
+        "dyt_affine": 4608,
+        "total": 38032
+       },
+       "sparse_body_macs_reference": 70208
+      },
+      "per_N": [
+       {
+        "N": 32,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 1,
+         "shared_inputs/fully_parallel": 12,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 2,
+         "copied_inputs/fully_parallel": 36
+        },
+        "output_samples": 672256,
+        "input_pbit_samples_if_free": [
+         2424832,
+         8986624
+        ],
+        "updates_if_idle_layers_clocked": 16806400,
+        "read_bits": {
+         "post_steps_5xDxN": 81920,
+         "every_output_every_step": 672256
+        },
+        "counterfactual_onchip_count_read_bits": 126048,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "coprocessor_ops": [
+         122512,
+         731296
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 800,
+        "sampling_time_us_serial": 16.0,
+        "read_time_us_at_25.6Gbps": [
+         3.1999999999999997,
+         26.259999999999998
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 4.766295039999999e-09,
+         "sampling_post_13fJ": 8.739328e-09,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.2556544e-07,
+         "sampling_idle_layers_clocked_13fJ": 2.184832e-07,
+         "reads": [
+          1.3860864e-07,
+          1.1374571520000001e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          1.7109666304000003e-07,
+          4.4398817791999996e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           1.2251200000000001e-08,
+           7.31296e-08
+          ],
+          "total_low_J": 2.76153196304e-06,
+          "total_high_J": 4.7050131492e-05,
+          "total_without_readout_J": [
+           1.8334786304000003e-07,
+           4.4471947391999996e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           1.22512e-07,
+           7.31296e-07
+          ],
+          "total_low_J": 2.607544966304e-05,
+          "total_high_J": 7.091195479199999e-05,
+          "total_without_readout_J": [
+           2.9360866304000003e-07,
+           4.5130113791999996e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           1.22512e-06,
+           7.31296e-06
+          ],
+          "total_low_J": 0.00025921462666304,
+          "total_high_J": 0.00030953018779199997,
+          "total_without_readout_J": [
+           1.3962166630400001e-06,
+           5.1711777791999996e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": 10.746
+       },
+       {
+        "N": 64,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 1,
+         "shared_inputs/fully_parallel": 23,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 3,
+         "copied_inputs/fully_parallel": 72
+        },
+        "output_samples": 1344512,
+        "input_pbit_samples_if_free": [
+         4849664,
+         17973248
+        ],
+        "updates_if_idle_layers_clocked": 33612800,
+        "read_bits": {
+         "post_steps_5xDxN": 163840,
+         "every_output_every_step": 1344512
+        },
+        "counterfactual_onchip_count_read_bits": 147056,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 32768,
+         "shared_inputs": 151552,
+         "copied_inputs": 561664
+        },
+        "coprocessor_ops": [
+         204432,
+         1403552
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 1600,
+        "sampling_time_us_serial": 32.0,
+        "read_time_us_at_25.6Gbps": [
+         6.3999999999999995,
+         52.519999999999996
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 9.532590079999999e-09,
+         "sampling_post_13fJ": 1.7478656e-08,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.5113088e-07,
+         "sampling_idle_layers_clocked_13fJ": 4.369664e-07,
+         "reads": [
+          2.7721728e-07,
+          2.2749143040000002e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          3.1447159808000005e-07,
+          4.5661840384e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           2.04432e-08,
+           1.403552e-07
+          ],
+          "total_low_J": 2.91309889808e-06,
+          "total_high_J": 4.838037968400001e-05,
+          "total_without_readout_J": [
+           3.3491479808000005e-07,
+           4.5802195584000004e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           2.04432e-07,
+           1.403552e-06
+          ],
+          "total_low_J": 2.6300744598079997e-05,
+          "total_high_J": 7.284723338400001e-05,
+          "total_without_readout_J": [
+           5.189035980800001e-07,
+           4.7065392384000005e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           2.0443199999999998e-06,
+           1.403552e-05
+          ],
+          "total_low_J": 0.00026017720159807997,
+          "total_high_J": 0.00031751577038399996,
+          "total_without_readout_J": [
+           2.3587915980799997e-06,
+           5.9697360384e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 128,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 2,
+         "shared_inputs/fully_parallel": 46,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 5,
+         "copied_inputs/fully_parallel": 144
+        },
+        "output_samples": 2689024,
+        "input_pbit_samples_if_free": [
+         9699328,
+         35946496
+        ],
+        "updates_if_idle_layers_clocked": 67225600,
+        "read_bits": {
+         "post_steps_5xDxN": 327680,
+         "every_output_every_step": 2689024
+        },
+        "counterfactual_onchip_count_read_bits": 168064,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 65536,
+         "shared_inputs": 303104,
+         "copied_inputs": 1123328
+        },
+        "coprocessor_ops": [
+         368272,
+         2748064
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 3200,
+        "sampling_time_us_serial": 64.0,
+        "read_time_us_at_25.6Gbps": [
+         12.799999999999999,
+         105.03999999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.9065180159999998e-08,
+         "sampling_post_13fJ": 3.4957312e-08,
+         "sampling_post_13fJ_plus_free_inputs_copied": 5.0226176e-07,
+         "sampling_idle_layers_clocked_13fJ": 8.739328e-07,
+         "reads": [
+          5.5443456e-07,
+          4.5498286080000005e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          6.012214681600001e-07,
+          4.8187885568e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           3.68272e-08,
+           2.7480640000000003e-07
+          ],
+          "total_low_J": 3.2162327681600004e-06,
+          "total_high_J": 5.1040876068000004e-05,
+          "total_without_readout_J": [
+           6.380486681600001e-07,
+           4.8462691968e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           3.68272e-07,
+           2.748064e-06
+          ],
+          "total_low_J": 2.675133446816e-05,
+          "total_high_J": 7.6717790568e-05,
+          "total_without_readout_J": [
+           9.6949346816e-07,
+           5.0935949567999995e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           3.68272e-06,
+           2.748064e-05
+          ],
+          "total_low_J": 0.00026210235146816,
+          "total_high_J": 0.000333486935568,
+          "total_without_readout_J": [
+           4.28394146816e-06,
+           7.566852556799999e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": 9.184
+       },
+       {
+        "N": 256,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 3,
+         "shared_inputs/fully_parallel": 92,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 9,
+         "copied_inputs/fully_parallel": 287
+        },
+        "output_samples": 5378048,
+        "input_pbit_samples_if_free": [
+         19398656,
+         71892992
+        ],
+        "updates_if_idle_layers_clocked": 134451200,
+        "read_bits": {
+         "post_steps_5xDxN": 655360,
+         "every_output_every_step": 5378048
+        },
+        "counterfactual_onchip_count_read_bits": 189072,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 131072,
+         "shared_inputs": 606208,
+         "copied_inputs": 2246656
+        },
+        "coprocessor_ops": [
+         695952,
+         5437088
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 6400,
+        "sampling_time_us_serial": 128.0,
+        "read_time_us_at_25.6Gbps": [
+         25.599999999999998,
+         210.07999999999998
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 3.8130360319999995e-08,
+         "sampling_post_13fJ": 6.9914624e-08,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.00452352e-06,
+         "sampling_idle_layers_clocked_13fJ": 1.7478656e-06,
+         "reads": [
+          1.10886912e-06,
+          9.099657216000001e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          1.1747212083200002e-06,
+          5.3239975936e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           6.959519999999999e-08,
+           5.437088e-07
+          ],
+          "total_low_J": 3.82250050832e-06,
+          "total_high_J": 5.6361868836e-05,
+          "total_without_readout_J": [
+           1.24431640832e-06,
+           5.3783684736e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           6.95952e-07,
+           5.437088e-06
+          ],
+          "total_low_J": 2.765251420832e-05,
+          "total_high_J": 8.445890493599999e-05,
+          "total_without_readout_J": [
+           1.87067320832e-06,
+           5.8677063936e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           6.95952e-06,
+           5.437088e-05
+          ],
+          "total_low_J": 0.00026595265120832,
+          "total_high_J": 0.00036542926593599996,
+          "total_without_readout_J": [
+           8.13424120832e-06,
+           0.000107610855936
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 512,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 6,
+         "shared_inputs/fully_parallel": 184,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 18,
+         "copied_inputs/fully_parallel": 574
+        },
+        "output_samples": 10756096,
+        "input_pbit_samples_if_free": [
+         38797312,
+         143785984
+        ],
+        "updates_if_idle_layers_clocked": 268902400,
+        "read_bits": {
+         "post_steps_5xDxN": 1310720,
+         "every_output_every_step": 10756096
+        },
+        "counterfactual_onchip_count_read_bits": 210080,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 262144,
+         "shared_inputs": 1212416,
+         "copied_inputs": 4493312
+        },
+        "coprocessor_ops": [
+         1351312,
+         10815136
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 12800,
+        "sampling_time_us_serial": 256.0,
+        "read_time_us_at_25.6Gbps": [
+         51.199999999999996,
+         420.15999999999997
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 7.626072063999999e-08,
+         "sampling_post_13fJ": 1.39829248e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.00904704e-06,
+         "sampling_idle_layers_clocked_13fJ": 3.4957312e-06,
+         "reads": [
+          2.21773824e-06,
+          1.8199314432000002e-05
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          2.32172068864e-06,
+          6.334415667200001e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           1.351312e-07,
+           1.0815136000000001e-06
+          ],
+          "total_low_J": 5.03503598864e-06,
+          "total_high_J": 6.700385437200001e-05,
+          "total_without_readout_J": [
+           2.45685188864e-06,
+           6.4425670272e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           1.351312e-06,
+           1.0815136e-05
+          ],
+          "total_low_J": 2.9454873688640003e-05,
+          "total_high_J": 9.994113367200001e-05,
+          "total_without_readout_J": [
+           3.67303268864e-06,
+           7.4159292672e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           1.3513119999999999e-05,
+           0.00010815136
+          ],
+          "total_low_J": 0.00027365325068864,
+          "total_high_J": 0.00042931392667199995,
+          "total_without_readout_J": [
+           1.5834840688639998e-05,
+           0.00017149551667200002
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": 6.901
+       },
+       {
+        "N": 1024,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 12,
+         "shared_inputs/fully_parallel": 368,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 36,
+         "copied_inputs/fully_parallel": 1147
+        },
+        "output_samples": 21512192,
+        "input_pbit_samples_if_free": [
+         77594624,
+         287571968
+        ],
+        "updates_if_idle_layers_clocked": 537804800,
+        "read_bits": {
+         "post_steps_5xDxN": 2621440,
+         "every_output_every_step": 21512192
+        },
+        "counterfactual_onchip_count_read_bits": 231088,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 524288,
+         "shared_inputs": 2424832,
+         "copied_inputs": 8986624
+        },
+        "coprocessor_ops": [
+         2662032,
+         21571232
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 25600,
+        "sampling_time_us_serial": 512.0,
+        "read_time_us_at_25.6Gbps": [
+         102.39999999999999,
+         840.3199999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.5252144127999998e-07,
+         "sampling_post_13fJ": 2.79658496e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 4.01809408e-06,
+         "sampling_idle_layers_clocked_13fJ": 6.9914624e-06,
+         "reads": [
+          4.43547648e-06,
+          3.6398628864000004e-05
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          4.6157196492800004e-06,
+          8.355251814400001e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           2.662032e-07,
+           2.1571232e-06
+          ],
+          "total_low_J": 7.460106949280001e-06,
+          "total_high_J": 8.828782544400002e-05,
+          "total_without_readout_J": [
+           4.88192284928e-06,
+           8.570964134400002e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           2.662032e-06,
+           2.1571232e-05
+          ],
+          "total_low_J": 3.305959264928e-05,
+          "total_high_J": 0.00013090559114400002,
+          "total_without_readout_J": [
+           7.2777516492800006e-06,
+           0.00010512375014400001
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           2.6620319999999998e-05,
+           0.00021571232
+          ],
+          "total_low_J": 0.00028905444964928,
+          "total_high_J": 0.000557083248144,
+          "total_without_readout_J": [
+           3.123603964928e-05,
+           0.000299264838144
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 2048,
+        "pbits": {
+         "shared_inputs": 96784,
+         "copied_inputs": 301840
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 23,
+         "shared_inputs/fully_parallel": 736,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 72,
+         "copied_inputs/fully_parallel": 2294
+        },
+        "output_samples": 43024384,
+        "input_pbit_samples_if_free": [
+         155189248,
+         575143936
+        ],
+        "updates_if_idle_layers_clocked": 1075609600,
+        "read_bits": {
+         "post_steps_5xDxN": 5242880,
+         "every_output_every_step": 43024384
+        },
+        "counterfactual_onchip_count_read_bits": 252096,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 75776,
+         "copied_inputs": 280832
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 1048576,
+         "shared_inputs": 4849664,
+         "copied_inputs": 17973248
+        },
+        "coprocessor_ops": [
+         5283472,
+         43083424
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 51200,
+        "sampling_time_us_serial": 1024.0,
+        "read_time_us_at_25.6Gbps": [
+         204.79999999999998,
+         1680.6399999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 3.0504288255999996e-07,
+         "sampling_post_13fJ": 5.59316992e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 8.03618816e-06,
+         "sampling_idle_layers_clocked_13fJ": 1.39829248e-05,
+         "reads": [
+          8.87095296e-06,
+          7.279725772800001e-05
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.31357952e-05
+         ],
+         "z1_band": [
+          9.203717570560002e-06,
+          0.00012396924108800002
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           5.283472000000001e-07,
+           4.3083424e-06
+          ],
+          "total_low_J": 1.2310248870560001e-05,
+          "total_high_J": 0.000130855767588,
+          "total_without_readout_J": [
+           9.732064770560002e-06,
+           0.00012827758348800001
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           5.2834719999999995e-06,
+           4.3083424e-05
+          ],
+          "total_low_J": 4.026903057056e-05,
+          "total_high_J": 0.00019283450608800003,
+          "total_without_readout_J": [
+           1.4487189570560001e-05,
+           0.00016705266508800003
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           5.283472e-05,
+           0.00043083423999999996
+          ],
+          "total_low_J": 0.00031985684757055994,
+          "total_high_J": 0.000812621891088,
+          "total_without_readout_J": [
+           6.203843757056e-05,
+           0.0005548034810879999
+          ],
+          "sparse_body_macs_at_this_price_J": 7.0208e-07
+         }
+        },
+        "loss_nats_software_simulation": 4.916
+       }
+      ]
+     },
+     "projections_only/full": {
+      "structure": {
+       "unit_set": "projections_only",
+       "gated": false,
+       "sampled_units": 16400,
+       "gated_units_removed": 0,
+       "sequential_sampling_layers": 16,
+       "input_pbits_shared": 57344,
+       "input_pbits_copied": 262400,
+       "post_write_values": 4096,
+       "post_read_values": 2560,
+       "readout_macs": 25781841,
+       "coprocessor_fixed_ops": {
+        "pool_conv_macs": 8256,
+        "pool_elementwise": 12368,
+        "mlp_activation": 8192,
+        "residual_adds": 4096,
+        "positional_add": 512,
+        "dyt_affine": 0,
+        "total": 33424
+       },
+       "sparse_body_macs_reference": 65600
+      },
+      "per_N": [
+       {
+        "N": 32,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 1,
+         "shared_inputs/fully_parallel": 9,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 2,
+         "copied_inputs/fully_parallel": 34
+        },
+        "output_samples": 524800,
+        "input_pbit_samples_if_free": [
+         1835008,
+         8396800
+        ],
+        "updates_if_idle_layers_clocked": 8396800,
+        "read_bits": {
+         "post_steps_5xDxN": 81920,
+         "every_output_every_step": 524800
+        },
+        "counterfactual_onchip_count_read_bits": 98400,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "coprocessor_ops": [
+         117904,
+         574624
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 512,
+        "sampling_time_us_serial": 10.24,
+        "read_time_us_at_25.6Gbps": [
+         3.1999999999999997,
+         20.5
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 3.7208319999999997e-09,
+         "sampling_post_13fJ": 6.8224e-09,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.159808e-07,
+         "sampling_idle_layers_clocked_13fJ": 1.091584e-07,
+         "reads": [
+          1.3860864e-07,
+          8.879616e-07
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          1.7005120000000003e-07,
+          4.13085824e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           1.1790400000000002e-08,
+           5.74624e-08
+          ],
+          "total_low_J": 2.7600257e-06,
+          "total_high_J": 4.39442289e-05,
+          "total_without_readout_J": [
+           1.8184160000000003e-07,
+           4.1366044799999997e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           1.17904e-07,
+           5.74624e-07
+          ],
+          "total_low_J": 2.6069796199999998e-05,
+          "total_high_J": 6.766504739999999e-05,
+          "total_without_readout_J": [
+           2.8795520000000005e-07,
+           4.1883206399999995e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           1.17904e-06,
+           5.7462399999999996e-06
+          ],
+          "total_low_J": 0.0002591675012,
+          "total_high_J": 0.0003048732324,
+          "total_without_readout_J": [
+           1.3490912e-06,
+           4.7054822399999995e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": 10.746
+       },
+       {
+        "N": 64,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 1,
+         "shared_inputs/fully_parallel": 18,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 3,
+         "copied_inputs/fully_parallel": 67
+        },
+        "output_samples": 1049600,
+        "input_pbit_samples_if_free": [
+         3670016,
+         16793600
+        ],
+        "updates_if_idle_layers_clocked": 16793600,
+        "read_bits": {
+         "post_steps_5xDxN": 163840,
+         "every_output_every_step": 1049600
+        },
+        "counterfactual_onchip_count_read_bits": 114800,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 32768,
+         "shared_inputs": 114688,
+         "copied_inputs": 524800
+        },
+        "coprocessor_ops": [
+         199824,
+         1099424
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 1024,
+        "sampling_time_us_serial": 20.48,
+        "read_time_us_at_25.6Gbps": [
+         6.3999999999999995,
+         41.0
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 7.441663999999999e-09,
+         "sampling_post_13fJ": 1.36448e-08,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.319616e-07,
+         "sampling_idle_layers_clocked_13fJ": 2.183168e-07,
+         "reads": [
+          2.7721728e-07,
+          1.7759232e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          3.1238067200000005e-07,
+          4.23125248e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           1.99824e-08,
+           1.099424e-07
+          ],
+          "total_low_J": 2.910547172e-06,
+          "total_high_J": 4.50006513e-05,
+          "total_without_readout_J": [
+           3.3236307200000007e-07,
+           4.2422467199999995e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           1.99824e-07,
+           1.099424e-06
+          ],
+          "total_low_J": 2.6294045672e-05,
+          "total_high_J": 6.919378979999999e-05,
+          "total_without_readout_J": [
+           5.122046720000001e-07,
+           4.3411948799999994e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           1.99824e-06,
+           1.099424e-05
+          ],
+          "total_low_J": 0.00026012903067199994,
+          "total_high_J": 0.0003111251748,
+          "total_without_readout_J": [
+           2.310620672e-06,
+           5.33067648e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 128,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 2,
+         "shared_inputs/fully_parallel": 36,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 5,
+         "copied_inputs/fully_parallel": 133
+        },
+        "output_samples": 2099200,
+        "input_pbit_samples_if_free": [
+         7340032,
+         33587200
+        ],
+        "updates_if_idle_layers_clocked": 33587200,
+        "read_bits": {
+         "post_steps_5xDxN": 327680,
+         "every_output_every_step": 2099200
+        },
+        "counterfactual_onchip_count_read_bits": 131200,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 65536,
+         "shared_inputs": 229376,
+         "copied_inputs": 1049600
+        },
+        "coprocessor_ops": [
+         363664,
+         2149024
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 2048,
+        "sampling_time_us_serial": 40.96,
+        "read_time_us_at_25.6Gbps": [
+         12.799999999999999,
+         82.0
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.4883327999999999e-08,
+         "sampling_post_13fJ": 2.72896e-08,
+         "sampling_post_13fJ_plus_free_inputs_copied": 4.639232e-07,
+         "sampling_idle_layers_clocked_13fJ": 4.366336e-07,
+         "reads": [
+          5.5443456e-07,
+          3.5518464e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          5.970396160000001e-07,
+          4.43204096e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           3.63664e-08,
+           2.1490240000000002e-07
+          ],
+          "total_low_J": 3.211590116e-06,
+          "total_high_J": 4.71134961e-05,
+          "total_without_readout_J": [
+           6.334060160000001e-07,
+           4.4535312e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           3.6366399999999997e-07,
+           2.149024e-06
+          ],
+          "total_low_J": 2.6742544616e-05,
+          "total_high_J": 7.225127459999999e-05,
+          "total_without_readout_J": [
+           9.60703616e-07,
+           4.64694336e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           3.63664e-06,
+           2.149024e-05
+          ],
+          "total_low_J": 0.000262052089616,
+          "total_high_J": 0.0003236290596,
+          "total_without_readout_J": [
+           4.233679616e-06,
+           6.58106496e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": 9.184
+       },
+       {
+        "N": 256,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 3,
+         "shared_inputs/fully_parallel": 71,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 9,
+         "copied_inputs/fully_parallel": 265
+        },
+        "output_samples": 4198400,
+        "input_pbit_samples_if_free": [
+         14680064,
+         67174400
+        ],
+        "updates_if_idle_layers_clocked": 67174400,
+        "read_bits": {
+         "post_steps_5xDxN": 655360,
+         "every_output_every_step": 4198400
+        },
+        "counterfactual_onchip_count_read_bits": 147600,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 131072,
+         "shared_inputs": 458752,
+         "copied_inputs": 2099200
+        },
+        "coprocessor_ops": [
+         691344,
+         4248224
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 4096,
+        "sampling_time_us_serial": 81.92,
+        "read_time_us_at_25.6Gbps": [
+         25.599999999999998,
+         164.0
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.9766655999999997e-08,
+         "sampling_post_13fJ": 5.45792e-08,
+         "sampling_post_13fJ_plus_free_inputs_copied": 9.278464e-07,
+         "sampling_idle_layers_clocked_13fJ": 8.732672e-07,
+         "reads": [
+          1.10886912e-06,
+          7.1036928e-06
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          1.1663575040000002e-06,
+          4.83361792e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           6.913440000000001e-08,
+           4.2482240000000004e-07
+          ],
+          "total_low_J": 3.813676004e-06,
+          "total_high_J": 5.1339185700000005e-05,
+          "total_without_readout_J": [
+           1.2354919040000001e-06,
+           4.87610016e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           6.91344e-07,
+           4.248224e-06
+          ],
+          "total_low_J": 2.7639542504e-05,
+          "total_high_J": 7.83662442e-05,
+          "total_without_readout_J": [
+           1.8577015040000002e-06,
+           5.2584403199999996e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           6.91344e-06,
+           4.248224e-05
+          ],
+          "total_low_J": 0.000265898207504,
+          "total_high_J": 0.0003486368292,
+          "total_without_readout_J": [
+           8.079797504e-06,
+           9.08184192e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 512,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 5,
+         "shared_inputs/fully_parallel": 141,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 17,
+         "copied_inputs/fully_parallel": 530
+        },
+        "output_samples": 8396800,
+        "input_pbit_samples_if_free": [
+         29360128,
+         134348800
+        ],
+        "updates_if_idle_layers_clocked": 134348800,
+        "read_bits": {
+         "post_steps_5xDxN": 1310720,
+         "every_output_every_step": 8396800
+        },
+        "counterfactual_onchip_count_read_bits": 164000,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 262144,
+         "shared_inputs": 917504,
+         "copied_inputs": 4198400
+        },
+        "coprocessor_ops": [
+         1346704,
+         8446624
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 8192,
+        "sampling_time_us_serial": 163.84,
+        "read_time_us_at_25.6Gbps": [
+         51.199999999999996,
+         328.0
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 5.9533311999999995e-08,
+         "sampling_post_13fJ": 1.091584e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.8556928e-06,
+         "sampling_idle_layers_clocked_13fJ": 1.7465344e-06,
+         "reads": [
+          2.21773824e-06,
+          1.42073856e-05
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          2.30499328e-06,
+          5.6367718399999995e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           1.346704e-07,
+           8.446624e-07
+          ],
+          "total_low_J": 5.01784778e-06,
+          "total_high_J": 5.9790564899999996e-05,
+          "total_without_readout_J": [
+           2.43966368e-06,
+           5.721238079999999e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           1.346704e-06,
+           8.446624e-06
+          ],
+          "total_low_J": 2.9433538279999998e-05,
+          "total_high_J": 9.059618339999999e-05,
+          "total_without_readout_J": [
+           3.6516972800000004e-06,
+           6.481434239999999e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           1.346704e-05,
+           8.446624e-05
+          ],
+          "total_low_J": 0.00027359044327999993,
+          "total_high_J": 0.0003986523684,
+          "total_without_readout_J": [
+           1.577203328e-05,
+           0.0001408339584
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": 6.901
+       },
+       {
+        "N": 1024,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 9,
+         "shared_inputs/fully_parallel": 281,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 34,
+         "copied_inputs/fully_parallel": 1060
+        },
+        "output_samples": 16793600,
+        "input_pbit_samples_if_free": [
+         58720256,
+         268697600
+        ],
+        "updates_if_idle_layers_clocked": 268697600,
+        "read_bits": {
+         "post_steps_5xDxN": 2621440,
+         "every_output_every_step": 16793600
+        },
+        "counterfactual_onchip_count_read_bits": 180400,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 524288,
+         "shared_inputs": 1835008,
+         "copied_inputs": 8396800
+        },
+        "coprocessor_ops": [
+         2657424,
+         16843424
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 16384,
+        "sampling_time_us_serial": 327.68,
+        "read_time_us_at_25.6Gbps": [
+         102.39999999999999,
+         656.0
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.1906662399999999e-07,
+         "sampling_post_13fJ": 2.183168e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 3.7113856e-06,
+         "sampling_idle_layers_clocked_13fJ": 3.4930688e-06,
+         "reads": [
+          4.43547648e-06,
+          2.84147712e-05
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          4.5822648320000005e-06,
+          7.24307968e-05
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           2.657424e-07,
+           1.6843424000000002e-06
+          ],
+          "total_low_J": 7.426191332000001e-06,
+          "total_high_J": 7.66933233e-05,
+          "total_without_readout_J": [
+           4.848007232000001e-06,
+           7.41151392e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           2.657424e-06,
+           1.6843424e-05
+          ],
+          "total_low_J": 3.3021529832e-05,
+          "total_high_J": 0.0001150560618,
+          "total_without_readout_J": [
+           7.2396888320000005e-06,
+           8.92742208e-05
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           2.657424e-05,
+           0.00016843423999999998
+          ],
+          "total_low_J": 0.000288974914832,
+          "total_high_J": 0.0004986834468,
+          "total_without_readout_J": [
+           3.1156504832e-05,
+           0.0002408650368
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 2048,
+        "pbits": {
+         "shared_inputs": 73744,
+         "copied_inputs": 278800
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 1,
+         "shared_inputs/latency_held_N_over_32": 18,
+         "shared_inputs/fully_parallel": 561,
+         "copied_inputs/serial_C6": 2,
+         "copied_inputs/latency_held_N_over_32": 67,
+         "copied_inputs/fully_parallel": 2119
+        },
+        "output_samples": 33587200,
+        "input_pbit_samples_if_free": [
+         117440512,
+         537395200
+        ],
+        "updates_if_idle_layers_clocked": 537395200,
+        "read_bits": {
+         "post_steps_5xDxN": 5242880,
+         "every_output_every_step": 33587200
+        },
+        "counterfactual_onchip_count_read_bits": 196800,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 16384,
+         "shared_inputs": 57344,
+         "copied_inputs": 262400
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 1048576,
+         "shared_inputs": 3670016,
+         "copied_inputs": 16793600
+        },
+        "coprocessor_ops": [
+         5278864,
+         33637024
+        ],
+        "readout_macs": 25781841,
+        "sampling_cycles_serial": 32768,
+        "sampling_time_us_serial": 655.36,
+        "read_time_us_at_25.6Gbps": [
+         204.79999999999998,
+         1312.0
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.3813324799999998e-07,
+         "sampling_post_13fJ": 4.366336e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 7.4227712e-06,
+         "sampling_idle_layers_clocked_13fJ": 6.9861376e-06,
+         "reads": [
+          8.87095296e-06,
+          5.68295424e-05
+         ],
+         "writes_read_const_to_write_const": [
+          2.7721728e-08,
+          4.0304639999999996e-05
+         ],
+         "z1_band": [
+          9.136807936000002e-06,
+          0.0001045569536
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 2.5781841e-06,
+          "coprocessor_J": [
+           5.278864e-07,
+           3.3637024000000003e-06
+          ],
+          "total_low_J": 1.2242878436000002e-05,
+          "total_high_J": 0.0001104988401,
+          "total_without_readout_J": [
+           9.664694336000002e-06,
+           0.00010792065599999999
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-09
+         },
+         "1.0_pJ": {
+          "readout_J": 2.5781841e-05,
+          "coprocessor_J": [
+           5.278864e-06,
+           3.3637024e-05
+          ],
+          "total_low_J": 4.0197512936000005e-05,
+          "total_high_J": 0.0001639758186,
+          "total_without_readout_J": [
+           1.4415671936000001e-05,
+           0.0001381939776
+          ],
+          "sparse_body_macs_at_this_price_J": 6.56e-08
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00025781841,
+          "coprocessor_J": [
+           5.278864e-05,
+           0.00033637023999999997
+          ],
+          "total_low_J": 0.00031974385793599996,
+          "total_high_J": 0.0006987456036,
+          "total_without_readout_J": [
+           6.1925447936e-05,
+           0.0004409271936
+          ],
+          "sparse_body_macs_at_this_price_J": 6.559999999999999e-07
+         }
+        },
+        "loss_nats_software_simulation": 4.916
+       }
+      ]
+     }
+    }
+   },
+   "released_12288": {
+    "config": {
+     "D": 12288,
+     "H": 4,
+     "L": 4,
+     "ksize": 4,
+     "V": 50257,
+     "checkpoint": true
+    },
+    "variants": {
+     "with_dyt/full": {
+      "structure": {
+       "unit_set": "with_dyt",
+       "gated": false,
+       "sampled_units": 503824,
+       "gated_units_removed": 0,
+       "sequential_sampling_layers": 25,
+       "input_pbits_shared": 1818624,
+       "input_pbits_copied": 6734080,
+       "post_write_values": 98304,
+       "post_read_values": 61440,
+       "readout_macs": 617608273,
+       "coprocessor_fixed_ops": {
+        "pool_conv_macs": 196672,
+        "pool_elementwise": 294992,
+        "mlp_activation": 196608,
+        "residual_adds": 98304,
+        "positional_add": 12288,
+        "dyt_affine": 110592,
+        "total": 909456
+       },
+       "sparse_body_macs_reference": 1683520
+      },
+      "per_N": [
+       {
+        "N": 32,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 9,
+         "shared_inputs/fully_parallel": 276,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 27,
+         "copied_inputs/fully_parallel": 860
+        },
+        "output_samples": 16122368,
+        "input_pbit_samples_if_free": [
+         58195968,
+         215490560
+        ],
+        "updates_if_idle_layers_clocked": 403059200,
+        "read_bits": {
+         "post_steps_5xDxN": 1966080,
+         "every_output_every_step": 16122368
+        },
+        "counterfactual_onchip_count_read_bits": 3022944,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "coprocessor_ops": [
+         2936976,
+         17535648
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 800,
+        "sampling_time_us_serial": 16.0,
+        "read_time_us_at_25.6Gbps": [
+         76.8,
+         629.7800000000001
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.1430758911999999e-07,
+         "sampling_post_13fJ": 2.09590784e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 3.010968064e-06,
+         "sampling_idle_layers_clocked_13fJ": 5.2397696e-06,
+         "reads": [
+          3.32660736e-06,
+          2.7279046656e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          4.10623642112e-06,
+          0.00106464470272
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           2.936976e-07,
+           1.7535648e-06
+          ],
+          "total_low_J": 6.616076132112001e-05,
+          "total_high_J": 0.00112815909482,
+          "total_without_readout_J": [
+           4.39993402112e-06,
+           0.00106639826752
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           2.9369759999999998e-06,
+           1.7535648e-05
+          ],
+          "total_low_J": 0.00062465148542112,
+          "total_high_J": 0.00169978862372,
+          "total_without_readout_J": [
+           7.043212421119999e-06,
+           0.00108218035072
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           2.936976e-05,
+           0.00017535648
+          ],
+          "total_low_J": 0.00620955872642112,
+          "total_high_J": 0.00741608391272,
+          "total_without_readout_J": [
+           3.347599642112e-05,
+           0.00124000118272
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": 10.746
+       },
+       {
+        "N": 64,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 18,
+         "shared_inputs/fully_parallel": 552,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 54,
+         "copied_inputs/fully_parallel": 1719
+        },
+        "output_samples": 32244736,
+        "input_pbit_samples_if_free": [
+         116391936,
+         430981120
+        ],
+        "updates_if_idle_layers_clocked": 806118400,
+        "read_bits": {
+         "post_steps_5xDxN": 3932160,
+         "every_output_every_step": 32244736
+        },
+        "counterfactual_onchip_count_read_bits": 3526768,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 786432,
+         "shared_inputs": 3637248,
+         "copied_inputs": 13468160
+        },
+        "coprocessor_ops": [
+         4903056,
+         33658016
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 1600,
+        "sampling_time_us_serial": 32.0,
+        "read_time_us_at_25.6Gbps": [
+         153.6,
+         1259.5600000000002
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.2861517823999998e-07,
+         "sampling_post_13fJ": 4.19181568e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 6.021936128e-06,
+         "sampling_idle_layers_clocked_13fJ": 1.04795392e-05,
+         "reads": [
+          6.65321472e-06,
+          5.4558093312e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          7.54715137024e-06,
+          0.00109493471744
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           4.903056e-07,
+           3.3658016e-06
+          ],
+          "total_low_J": 6.979828427024001e-05,
+          "total_high_J": 0.0011600613463400003,
+          "total_without_readout_J": [
+           8.03745697024e-06,
+           0.0010983005190400002
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           4.903056e-06,
+           3.3658016e-05
+          ],
+          "total_low_J": 0.00063005848037024,
+          "total_high_J": 0.00174620100644,
+          "total_without_readout_J": [
+           1.245020737024e-05,
+           0.00112859273344
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           4.903056e-05,
+           0.00033658016
+          ],
+          "total_low_J": 0.00623266044137024,
+          "total_high_J": 0.00760759760744,
+          "total_without_readout_J": [
+           5.657771137024e-05,
+           0.00143151487744
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 128,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 35,
+         "shared_inputs/fully_parallel": 1103,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 108,
+         "copied_inputs/fully_parallel": 3437
+        },
+        "output_samples": 64489472,
+        "input_pbit_samples_if_free": [
+         232783872,
+         861962240
+        ],
+        "updates_if_idle_layers_clocked": 1612236800,
+        "read_bits": {
+         "post_steps_5xDxN": 7864320,
+         "every_output_every_step": 64489472
+        },
+        "counterfactual_onchip_count_read_bits": 4030592,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 1572864,
+         "shared_inputs": 7274496,
+         "copied_inputs": 26936320
+        },
+        "coprocessor_ops": [
+         8835216,
+         65902752
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 3200,
+        "sampling_time_us_serial": 64.0,
+        "read_time_us_at_25.6Gbps": [
+         307.2,
+         2519.1200000000003
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 4.5723035647999996e-07,
+         "sampling_post_13fJ": 8.38363136e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.2043872256e-05,
+         "sampling_idle_layers_clocked_13fJ": 2.09590784e-05,
+         "reads": [
+          1.330642944e-05,
+          0.000109116186624
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          1.442898126848e-05,
+          0.00115551474688
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           8.835216000000001e-07,
+           6.5902752e-06
+          ],
+          "total_low_J": 7.707333016848001e-05,
+          "total_high_J": 0.0012238658493800001,
+          "total_without_readout_J": [
+           1.531250286848e-05,
+           0.00116210502208
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           8.835216e-06,
+           6.5902752e-05
+          ],
+          "total_low_J": 0.00064087247026848,
+          "total_high_J": 0.00183902577188,
+          "total_without_readout_J": [
+           2.326419726848e-05,
+           0.00122141749888
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           8.835216e-05,
+           0.0006590275199999999
+          ],
+          "total_low_J": 0.00627886387126848,
+          "total_high_J": 0.007990624996879999,
+          "total_without_readout_J": [
+           0.00010278114126847999,
+           0.00181454226688
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": 9.184
+       },
+       {
+        "N": 256,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 69,
+         "shared_inputs/fully_parallel": 2206,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 215,
+         "copied_inputs/fully_parallel": 6874
+        },
+        "output_samples": 128978944,
+        "input_pbit_samples_if_free": [
+         465567744,
+         1723924480
+        ],
+        "updates_if_idle_layers_clocked": 3224473600,
+        "read_bits": {
+         "post_steps_5xDxN": 15728640,
+         "every_output_every_step": 128978944
+        },
+        "counterfactual_onchip_count_read_bits": 4534416,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 3145728,
+         "shared_inputs": 14548992,
+         "copied_inputs": 53872640
+        },
+        "coprocessor_ops": [
+         16699536,
+         130392224
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 6400,
+        "sampling_time_us_serial": 128.0,
+        "read_time_us_at_25.6Gbps": [
+         614.4,
+         5038.240000000001
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 9.144607129599999e-07,
+         "sampling_post_13fJ": 1.676726272e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.4087744512e-05,
+         "sampling_idle_layers_clocked_13fJ": 4.19181568e-05,
+         "reads": [
+          2.661285888e-05,
+          0.000218232373248
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          2.8192641064959997e-05,
+          0.00127667480576
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.6699536000000001e-06,
+           1.30392224e-05
+          ],
+          "total_low_J": 9.162342196496e-05,
+          "total_high_J": 0.00135147485546,
+          "total_without_readout_J": [
+           2.9862594664959998e-05,
+           0.00128971402816
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           1.6699536e-05,
+           0.000130392224
+          ],
+          "total_low_J": 0.00066250045006496,
+          "total_high_J": 0.00202467530276,
+          "total_without_readout_J": [
+           4.489217706496e-05,
+           0.00140706702976
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00016699536,
+           0.00130392224
+          ],
+          "total_low_J": 0.0063712707310649595,
+          "total_high_J": 0.00875667977576,
+          "total_without_readout_J": [
+           0.00019518800106496,
+           0.00258059704576
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 512,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 138,
+         "shared_inputs/fully_parallel": 4412,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 430,
+         "copied_inputs/fully_parallel": 13748
+        },
+        "output_samples": 257957888,
+        "input_pbit_samples_if_free": [
+         931135488,
+         3447848960
+        ],
+        "updates_if_idle_layers_clocked": 6448947200,
+        "read_bits": {
+         "post_steps_5xDxN": 31457280,
+         "every_output_every_step": 257957888
+        },
+        "counterfactual_onchip_count_read_bits": 5038240,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 6291456,
+         "shared_inputs": 29097984,
+         "copied_inputs": 107745280
+        },
+        "coprocessor_ops": [
+         32428176,
+         259371168
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 12800,
+        "sampling_time_us_serial": 256.0,
+        "read_time_us_at_25.6Gbps": [
+         1228.8,
+         10076.480000000001
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.8289214259199998e-06,
+         "sampling_post_13fJ": 3.353452544e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 4.8175489024e-05,
+         "sampling_idle_layers_clocked_13fJ": 8.38363136e-05,
+         "reads": [
+          5.322571776e-05,
+          0.000436464746496
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          5.571996065792e-05,
+          0.0015189949235200001
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           3.2428176e-06,
+           2.59371168e-05
+          ],
+          "total_low_J": 0.00012072360555792001,
+          "total_high_J": 0.0016066928676200002,
+          "total_without_readout_J": [
+           5.896277825792e-05,
+           0.00154493204032
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           3.2428175999999997e-05,
+           0.000259371168
+          ],
+          "total_low_J": 0.00070575640965792,
+          "total_high_J": 0.0023959743645199996,
+          "total_without_readout_J": [
+           8.814813665792e-05,
+           0.00177836609152
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00032428176,
+           0.0025937116799999997
+          ],
+          "total_low_J": 0.006556084450657919,
+          "total_high_J": 0.01028878933352,
+          "total_without_readout_J": [
+           0.00038000172065792,
+           0.00411270660352
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": 6.901
+       },
+       {
+        "N": 1024,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 276,
+         "shared_inputs/fully_parallel": 8823,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 860,
+         "copied_inputs/fully_parallel": 27495
+        },
+        "output_samples": 515915776,
+        "input_pbit_samples_if_free": [
+         1862270976,
+         6895697920
+        ],
+        "updates_if_idle_layers_clocked": 12897894400,
+        "read_bits": {
+         "post_steps_5xDxN": 62914560,
+         "every_output_every_step": 515915776
+        },
+        "counterfactual_onchip_count_read_bits": 5542064,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 12582912,
+         "shared_inputs": 58195968,
+         "copied_inputs": 215490560
+        },
+        "coprocessor_ops": [
+         63885456,
+         517329056
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 25600,
+        "sampling_time_us_serial": 512.0,
+        "read_time_us_at_25.6Gbps": [
+         2457.6,
+         20152.960000000003
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 3.6578428518399997e-06,
+         "sampling_post_13fJ": 6.706905088e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 9.6350978048e-05,
+         "sampling_idle_layers_clocked_13fJ": 0.0001676726272,
+         "reads": [
+          0.00010645143552,
+          0.000872929492992
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          0.00011077459984384,
+          0.00200363515904
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           6.3885456e-06,
+           5.17329056e-05
+          ],
+          "total_low_J": 0.00017892397274384,
+          "total_high_J": 0.00211712889194,
+          "total_without_readout_J": [
+           0.00011716314544384,
+           0.00205536806464
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           6.3885456e-05,
+           0.000517329056
+          ],
+          "total_low_J": 0.0007922683288438399,
+          "total_high_J": 0.00313857248804,
+          "total_without_readout_J": [
+           0.00017466005584384,
+           0.0025209642150400002
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.0006388545599999999,
+           0.00517329056
+          ],
+          "total_low_J": 0.006925711889843839,
+          "total_high_J": 0.013353008449040001,
+          "total_without_readout_J": [
+           0.0007496291598438399,
+           0.00717692571904
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 2048,
+        "pbits": {
+         "shared_inputs": 2322448,
+         "copied_inputs": 7237904
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 552,
+         "shared_inputs/fully_parallel": 17645,
+         "copied_inputs/serial_C6": 27,
+         "copied_inputs/latency_held_N_over_32": 1719,
+         "copied_inputs/fully_parallel": 54989
+        },
+        "output_samples": 1031831552,
+        "input_pbit_samples_if_free": [
+         3724541952,
+         13791395840
+        ],
+        "updates_if_idle_layers_clocked": 25795788800,
+        "read_bits": {
+         "post_steps_5xDxN": 125829120,
+         "every_output_every_step": 1031831552
+        },
+        "counterfactual_onchip_count_read_bits": 6045888,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 6734080
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 25165824,
+         "shared_inputs": 116391936,
+         "copied_inputs": 430981120
+        },
+        "coprocessor_ops": [
+         126800016,
+         1033244832
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 51200,
+        "sampling_time_us_serial": 1024.0,
+        "read_time_us_at_25.6Gbps": [
+         4915.2,
+         40305.920000000006
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 7.315685703679999e-06,
+         "sampling_post_13fJ": 1.3413810176e-05,
+         "sampling_post_13fJ_plus_free_inputs_copied": 0.000192701956096,
+         "sampling_idle_layers_clocked_13fJ": 0.0003353452544,
+         "reads": [
+          0.00021290287104,
+          0.001745858985984
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.001034354688
+         ],
+         "z1_band": [
+          0.00022088387821567998,
+          0.00297291563008
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.2680001600000001e-05,
+           0.0001033244832
+          ],
+          "total_low_J": 0.00029532470711568,
+          "total_high_J": 0.00313800094058,
+          "total_without_readout_J": [
+           0.00023356387981567997,
+           0.00307624011328
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           0.000126800016,
+           0.001033244832
+          ],
+          "total_low_J": 0.0009652921672156799,
+          "total_high_J": 0.00462376873508,
+          "total_without_readout_J": [
+           0.00034768389421568,
+           0.00400616046208
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00126800016,
+           0.01033244832
+          ],
+          "total_low_J": 0.00766496676821568,
+          "total_high_J": 0.01948144668008,
+          "total_without_readout_J": [
+           0.00148888403821568,
+           0.01330536395008
+          ],
+          "sparse_body_macs_at_this_price_J": 1.68352e-05
+         }
+        },
+        "loss_nats_software_simulation": 4.916
+       }
+      ]
+     },
+     "with_dyt/gated": {
+      "structure": {
+       "unit_set": "with_dyt",
+       "gated": true,
+       "sampled_units": 398382,
+       "gated_units_removed": 105442,
+       "sequential_sampling_layers": 25,
+       "input_pbits_shared": 1818624,
+       "input_pbits_copied": 5047008,
+       "post_write_values": 98304,
+       "post_read_values": 61440,
+       "readout_macs": 617608273,
+       "coprocessor_fixed_ops": {
+        "pool_conv_macs": 196672,
+        "pool_elementwise": 294992,
+        "mlp_activation": 196608,
+        "residual_adds": 98304,
+        "positional_add": 12288,
+        "dyt_affine": 110592,
+        "total": 909456
+       },
+       "sparse_body_macs_reference": 1261752
+      },
+      "per_N": [
+       {
+        "N": 32,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 9,
+         "shared_inputs/fully_parallel": 264,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 21,
+         "copied_inputs/fully_parallel": 647
+        },
+        "output_samples": 12748224,
+        "input_pbit_samples_if_free": [
+         58195968,
+         161504256
+        ],
+        "updates_if_idle_layers_clocked": 318705600,
+        "read_bits": {
+         "post_steps_5xDxN": 1966080,
+         "every_output_every_step": 12748224
+        },
+        "counterfactual_onchip_count_read_bits": 2390292,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "coprocessor_ops": [
+         2936976,
+         14056062
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 800,
+        "sampling_time_us_serial": 16.0,
+        "read_time_us_at_25.6Gbps": [
+         76.8,
+         497.97749999999996
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 9.038490815999999e-08,
+         "sampling_post_13fJ": 1.65726912e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.26528224e-06,
+         "sampling_idle_layers_clocked_13fJ": 4.1431728e-06,
+         "reads": [
+          3.32660736e-06,
+          2.1569995008e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          4.0823137401600004e-06,
+          0.0007990557060479999
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           2.936976e-07,
+           1.4056062000000002e-06
+          ],
+          "total_low_J": 6.613683864016001e-05,
+          "total_high_J": 0.0008622221395479999,
+          "total_without_readout_J": [
+           4.3760113401600005e-06,
+           0.000800461312248
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           2.9369759999999998e-06,
+           1.4056062e-05
+          ],
+          "total_low_J": 0.00062462756274016,
+          "total_high_J": 0.001430720041048,
+          "total_without_readout_J": [
+           7.019289740160001e-06,
+           0.0008131117680479999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           2.936976e-05,
+           0.00014056061999999999
+          ],
+          "total_low_J": 0.0062095348037401596,
+          "total_high_J": 0.007115699056048,
+          "total_without_readout_J": [
+           3.345207374016e-05,
+           0.0009396163260479999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": 10.746
+       },
+       {
+        "N": 64,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 17,
+         "shared_inputs/fully_parallel": 527,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 41,
+         "copied_inputs/fully_parallel": 1293
+        },
+        "output_samples": 25496448,
+        "input_pbit_samples_if_free": [
+         116391936,
+         323008512
+        ],
+        "updates_if_idle_layers_clocked": 637411200,
+        "read_bits": {
+         "post_steps_5xDxN": 3932160,
+         "every_output_every_step": 25496448
+        },
+        "counterfactual_onchip_count_read_bits": 2788674,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 786432,
+         "shared_inputs": 3637248,
+         "copied_inputs": 10094016
+        },
+        "coprocessor_ops": [
+         4903056,
+         26804286
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 1600,
+        "sampling_time_us_serial": 32.0,
+        "read_time_us_at_25.6Gbps": [
+         153.6,
+         995.9549999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.8076981631999999e-07,
+         "sampling_post_13fJ": 3.31453824e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 4.53056448e-06,
+         "sampling_idle_layers_clocked_13fJ": 8.2863456e-06,
+         "reads": [
+          6.65321472e-06,
+          4.3139990016e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          7.499306008320001e-06,
+          0.0008228909832959999
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           4.903056e-07,
+           2.6804286e-06
+          ],
+          "total_low_J": 6.975043890832001e-05,
+          "total_high_J": 0.0008873322391959999,
+          "total_without_readout_J": [
+           7.98961160832e-06,
+           0.0008255714118959999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           4.903056e-06,
+           2.6804286e-05
+          ],
+          "total_low_J": 0.00063001063500832,
+          "total_high_J": 0.0014673035422959999,
+          "total_without_readout_J": [
+           1.2402362008320001e-05,
+           0.0008496952692959999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           4.903056e-05,
+           0.00026804286
+          ],
+          "total_low_J": 0.006232612596008319,
+          "total_high_J": 0.0072670165732959995,
+          "total_without_readout_J": [
+           5.652986600832e-05,
+           0.001090933843296
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 128,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 33,
+         "shared_inputs/fully_parallel": 1053,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 81,
+         "copied_inputs/fully_parallel": 2586
+        },
+        "output_samples": 50992896,
+        "input_pbit_samples_if_free": [
+         232783872,
+         646017024
+        ],
+        "updates_if_idle_layers_clocked": 1274822400,
+        "read_bits": {
+         "post_steps_5xDxN": 7864320,
+         "every_output_every_step": 50992896
+        },
+        "counterfactual_onchip_count_read_bits": 3187056,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 1572864,
+         "shared_inputs": 7274496,
+         "copied_inputs": 20188032
+        },
+        "coprocessor_ops": [
+         8835216,
+         52300734
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 3200,
+        "sampling_time_us_serial": 64.0,
+        "read_time_us_at_25.6Gbps": [
+         307.2,
+         1991.9099999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 3.6153963263999997e-07,
+         "sampling_post_13fJ": 6.62907648e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 9.06112896e-06,
+         "sampling_idle_layers_clocked_13fJ": 1.65726912e-05,
+         "reads": [
+          1.330642944e-05,
+          8.6279980032e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          1.4333290544640001e-05,
+          0.0008705615377919999
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           8.835216000000001e-07,
+           5.2300734e-06
+          ],
+          "total_low_J": 7.697763944464001e-05,
+          "total_high_J": 0.0009375524384919999,
+          "total_without_readout_J": [
+           1.5216812144640001e-05,
+           0.0008757916111919999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           8.835216e-06,
+           5.2300734e-05
+          ],
+          "total_low_J": 0.00064077677954464,
+          "total_high_J": 0.0015404705447919999,
+          "total_without_readout_J": [
+           2.316850654464e-05,
+           0.0009228622717919999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           8.835216e-05,
+           0.00052300734
+          ],
+          "total_low_J": 0.00627876818054464,
+          "total_high_J": 0.007569651607792,
+          "total_without_readout_J": [
+           0.00010268545054463999,
+           0.0013935688777919999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": 9.184
+       },
+       {
+        "N": 256,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 66,
+         "shared_inputs/fully_parallel": 2106,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 162,
+         "copied_inputs/fully_parallel": 5172
+        },
+        "output_samples": 101985792,
+        "input_pbit_samples_if_free": [
+         465567744,
+         1292034048
+        ],
+        "updates_if_idle_layers_clocked": 2549644800,
+        "read_bits": {
+         "post_steps_5xDxN": 15728640,
+         "every_output_every_step": 101985792
+        },
+        "counterfactual_onchip_count_read_bits": 3585438,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 3145728,
+         "shared_inputs": 14548992,
+         "copied_inputs": 40376064
+        },
+        "coprocessor_ops": [
+         16699536,
+         103293630
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 6400,
+        "sampling_time_us_serial": 128.0,
+        "read_time_us_at_25.6Gbps": [
+         614.4,
+         3983.8199999999997
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 7.230792652799999e-07,
+         "sampling_post_13fJ": 1.325815296e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.812225792e-05,
+         "sampling_idle_layers_clocked_13fJ": 3.31453824e-05,
+         "reads": [
+          2.661285888e-05,
+          0.000172559960064
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          2.800125961728e-05,
+          0.0009659026467839999
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.6699536000000001e-06,
+           1.0329363e-05
+          ],
+          "total_low_J": 9.143204051728002e-05,
+          "total_high_J": 0.001037992837084,
+          "total_without_readout_J": [
+           2.967121321728e-05,
+           0.0009762320097839998
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           1.6699536e-05,
+           0.00010329362999999999
+          ],
+          "total_low_J": 0.00066230906861728,
+          "total_high_J": 0.0016868045497839999,
+          "total_without_readout_J": [
+           4.470079561728e-05,
+           0.001069196276784
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00016699536,
+           0.0010329363
+          ],
+          "total_low_J": 0.0063710793496172795,
+          "total_high_J": 0.008174921676784,
+          "total_without_readout_J": [
+           0.00019499661961728,
+           0.001998838946784
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 512,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 132,
+         "shared_inputs/fully_parallel": 4211,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 324,
+         "copied_inputs/fully_parallel": 10343
+        },
+        "output_samples": 203971584,
+        "input_pbit_samples_if_free": [
+         931135488,
+         2584068096
+        ],
+        "updates_if_idle_layers_clocked": 5099289600,
+        "read_bits": {
+         "post_steps_5xDxN": 31457280,
+         "every_output_every_step": 203971584
+        },
+        "counterfactual_onchip_count_read_bits": 3983820,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 6291456,
+         "shared_inputs": 29097984,
+         "copied_inputs": 80752128
+        },
+        "coprocessor_ops": [
+         32428176,
+         205279422
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 12800,
+        "sampling_time_us_serial": 256.0,
+        "read_time_us_at_25.6Gbps": [
+         1228.8,
+         7967.639999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.4461585305599999e-06,
+         "sampling_post_13fJ": 2.651630592e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 3.624451584e-05,
+         "sampling_idle_layers_clocked_13fJ": 6.62907648e-05,
+         "reads": [
+          5.322571776e-05,
+          0.000345119920128
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          5.5337197762560006e-05,
+          0.0011565848647679998
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           3.2428176e-06,
+           2.0527942200000002e-05
+          ],
+          "total_low_J": 0.00012034084266256001,
+          "total_high_J": 0.001238873634268,
+          "total_without_readout_J": [
+           5.8580015362560004e-05,
+           0.001177112806968
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           3.2428175999999997e-05,
+           0.000205279422
+          ],
+          "total_low_J": 0.00070537364676256,
+          "total_high_J": 0.0019794725597679997,
+          "total_without_readout_J": [
+           8.776537376256e-05,
+           0.001361864286768
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00032428176,
+           0.00205279422
+          ],
+          "total_low_J": 0.006555701687762559,
+          "total_high_J": 0.009385461814768,
+          "total_without_readout_J": [
+           0.00037961895776256,
+           0.003209379084768
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": 6.901
+       },
+       {
+        "N": 1024,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 264,
+         "shared_inputs/fully_parallel": 8422,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 647,
+         "copied_inputs/fully_parallel": 20686
+        },
+        "output_samples": 407943168,
+        "input_pbit_samples_if_free": [
+         1862270976,
+         5168136192
+        ],
+        "updates_if_idle_layers_clocked": 10198579200,
+        "read_bits": {
+         "post_steps_5xDxN": 62914560,
+         "every_output_every_step": 407943168
+        },
+        "counterfactual_onchip_count_read_bits": 4382202,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 12582912,
+         "shared_inputs": 58195968,
+         "copied_inputs": 161504256
+        },
+        "coprocessor_ops": [
+         63885456,
+         409251006
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 25600,
+        "sampling_time_us_serial": 512.0,
+        "read_time_us_at_25.6Gbps": [
+         2457.6,
+         15935.279999999999
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.8923170611199998e-06,
+         "sampling_post_13fJ": 5.303261184e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 7.248903168e-05,
+         "sampling_idle_layers_clocked_13fJ": 0.0001325815296,
+         "reads": [
+          0.00010645143552,
+          0.000690239840256
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          0.00011000907405312001,
+          0.001537949300736
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           6.3885456e-06,
+           4.09251006e-05
+          ],
+          "total_low_J": 0.00017815844695312,
+          "total_high_J": 0.001640635228636,
+          "total_without_readout_J": [
+           0.00011639761965312001,
+           0.0015788744013359999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           6.3885456e-05,
+           0.000409251006
+          ],
+          "total_low_J": 0.0007915028030531199,
+          "total_high_J": 0.0025648085797359997,
+          "total_without_readout_J": [
+           0.00017389453005312,
+           0.001947200306736
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.0006388545599999999,
+           0.0040925100599999995
+          ],
+          "total_low_J": 0.00692494636405312,
+          "total_high_J": 0.011806542090735998,
+          "total_without_readout_J": [
+           0.0007488636340531199,
+           0.005630459360735999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 2048,
+        "pbits": {
+         "shared_inputs": 2217006,
+         "copied_inputs": 5445390
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 9,
+         "shared_inputs/latency_held_N_over_32": 527,
+         "shared_inputs/fully_parallel": 16844,
+         "copied_inputs/serial_C6": 21,
+         "copied_inputs/latency_held_N_over_32": 1293,
+         "copied_inputs/fully_parallel": 41371
+        },
+        "output_samples": 815886336,
+        "input_pbit_samples_if_free": [
+         3724541952,
+         10336272384
+        ],
+        "updates_if_idle_layers_clocked": 20397158400,
+        "read_bits": {
+         "post_steps_5xDxN": 125829120,
+         "every_output_every_step": 815886336
+        },
+        "counterfactual_onchip_count_read_bits": 4780584,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1818624,
+         "copied_inputs": 5047008
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 25165824,
+         "shared_inputs": 116391936,
+         "copied_inputs": 323008512
+        },
+        "coprocessor_ops": [
+         126800016,
+         817194174
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 51200,
+        "sampling_time_us_serial": 1024.0,
+        "read_time_us_at_25.6Gbps": [
+         4915.2,
+         31870.559999999998
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 5.7846341222399995e-06,
+         "sampling_post_13fJ": 1.0606522368e-05,
+         "sampling_post_13fJ_plus_free_inputs_copied": 0.00014497806336,
+         "sampling_idle_layers_clocked_13fJ": 0.0002651630592,
+         "reads": [
+          0.00021290287104,
+          0.001380479680512
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0007752204287999999
+         ],
+         "z1_band": [
+          0.00021935282663424,
+          0.002300678172672
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.2680001600000001e-05,
+           8.17194174e-05
+          ],
+          "total_low_J": 0.00029379365553424005,
+          "total_high_J": 0.002444158417372,
+          "total_without_readout_J": [
+           0.00023203282823424,
+           0.002382397590072
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617520000000001e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           0.000126800016,
+           0.000817194174
+          ],
+          "total_low_J": 0.00096376111563424,
+          "total_high_J": 0.003735480619672,
+          "total_without_readout_J": [
+           0.00034615284263424,
+           0.003117872346672
+          ],
+          "sparse_body_macs_at_this_price_J": 1.2617519999999999e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00126800016,
+           0.008171941739999999
+          ],
+          "total_low_J": 0.00766343571663424,
+          "total_high_J": 0.016648702642672,
+          "total_without_readout_J": [
+           0.00148735298663424,
+           0.010472619912672
+          ],
+          "sparse_body_macs_at_this_price_J": 1.261752e-05
+         }
+        },
+        "loss_nats_software_simulation": 4.916
+       }
+      ]
+     },
+     "projections_only/full": {
+      "structure": {
+       "unit_set": "projections_only",
+       "gated": false,
+       "sampled_units": 393232,
+       "gated_units_removed": 0,
+       "sequential_sampling_layers": 16,
+       "input_pbits_shared": 1376256,
+       "input_pbits_copied": 6291712,
+       "post_write_values": 98304,
+       "post_read_values": 61440,
+       "readout_macs": 617608273,
+       "coprocessor_fixed_ops": {
+        "pool_conv_macs": 196672,
+        "pool_elementwise": 294992,
+        "mlp_activation": 196608,
+        "residual_adds": 98304,
+        "positional_add": 12288,
+        "dyt_affine": 0,
+        "total": 798864
+       },
+       "sparse_body_macs_reference": 1572928
+      },
+      "per_N": [
+       {
+        "N": 32,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 7,
+         "shared_inputs/fully_parallel": 211,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 25,
+         "copied_inputs/fully_parallel": 794
+        },
+        "output_samples": 12583424,
+        "input_pbit_samples_if_free": [
+         44040192,
+         201334784
+        ],
+        "updates_if_idle_layers_clocked": 201334784,
+        "read_bits": {
+         "post_steps_5xDxN": 1966080,
+         "every_output_every_step": 12583424
+        },
+        "counterfactual_onchip_count_read_bits": 2359392,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "coprocessor_ops": [
+         2826384,
+         13775520
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 512,
+        "sampling_time_us_serial": 10.24,
+        "read_time_us_at_25.6Gbps": [
+         76.8,
+         491.5400000000001
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 8.921647616e-08,
+         "sampling_post_13fJ": 1.63584512e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.780936704e-06,
+         "sampling_idle_layers_clocked_13fJ": 2.617352192e-06,
+         "reads": [
+          3.32660736e-06,
+          2.1291153408e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          4.08114530816e-06,
+          0.000990479053312
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           2.826384e-07,
+           1.3775519999999999e-06
+          ],
+          "total_low_J": 6.612461100816001e-05,
+          "total_high_J": 0.0010536174326120002,
+          "total_without_readout_J": [
+           4.36378370816e-06,
+           0.0009918566053120001
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           2.826384e-06,
+           1.377552e-05
+          ],
+          "total_low_J": 0.00062451580230816,
+          "total_high_J": 0.001621862846312,
+          "total_without_readout_J": [
+           6.90752930816e-06,
+           0.001004254573312
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           2.8263839999999998e-05,
+           0.0001377552
+          ],
+          "total_low_J": 0.00620842771530816,
+          "total_high_J": 0.007304316983312,
+          "total_without_readout_J": [
+           3.234498530816e-05,
+           0.001128234253312
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": 10.746
+       },
+       {
+        "N": 64,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 14,
+         "shared_inputs/fully_parallel": 421,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 50,
+         "copied_inputs/fully_parallel": 1588
+        },
+        "output_samples": 25166848,
+        "input_pbit_samples_if_free": [
+         88080384,
+         402669568
+        ],
+        "updates_if_idle_layers_clocked": 402669568,
+        "read_bits": {
+         "post_steps_5xDxN": 3932160,
+         "every_output_every_step": 25166848
+        },
+        "counterfactual_onchip_count_read_bits": 2752624,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 786432,
+         "shared_inputs": 2752512,
+         "copied_inputs": 12583424
+        },
+        "coprocessor_ops": [
+         4792464,
+         26358944
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 1024,
+        "sampling_time_us_serial": 20.48,
+        "read_time_us_at_25.6Gbps": [
+         153.6,
+         983.0800000000002
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.7843295232e-07,
+         "sampling_post_13fJ": 3.27169024e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 5.561873408e-06,
+         "sampling_idle_layers_clocked_13fJ": 5.234704384e-06,
+         "reads": [
+          6.65321472e-06,
+          4.2582306816e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          7.49696914432e-06,
+          0.001014551143424
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           4.792464e-07,
+           2.6358944000000005e-06
+          ],
+          "total_low_J": 6.973704284432001e-05,
+          "total_high_J": 0.001078947865124,
+          "total_without_readout_J": [
+           7.97621554432e-06,
+           0.001017187037824
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           4.792464e-06,
+           2.6358944e-05
+          ],
+          "total_low_J": 0.0006298977061443199,
+          "total_high_J": 0.0016585183604239998,
+          "total_without_readout_J": [
+           1.228943314432e-05,
+           0.0010409100874239998
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           4.792464e-05,
+           0.00026358944
+          ],
+          "total_low_J": 0.00623150433914432,
+          "total_high_J": 0.007454223313424,
+          "total_without_readout_J": [
+           5.5421609144320004e-05,
+           0.001278140583424
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 128,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 27,
+         "shared_inputs/fully_parallel": 841,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 100,
+         "copied_inputs/fully_parallel": 3175
+        },
+        "output_samples": 50333696,
+        "input_pbit_samples_if_free": [
+         176160768,
+         805339136
+        ],
+        "updates_if_idle_layers_clocked": 805339136,
+        "read_bits": {
+         "post_steps_5xDxN": 7864320,
+         "every_output_every_step": 50333696
+        },
+        "counterfactual_onchip_count_read_bits": 3145856,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 1572864,
+         "shared_inputs": 5505024,
+         "copied_inputs": 25166848
+        },
+        "coprocessor_ops": [
+         8724624,
+         51525792
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 2048,
+        "sampling_time_us_serial": 40.96,
+        "read_time_us_at_25.6Gbps": [
+         307.2,
+         1966.1600000000003
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 3.5686590464e-07,
+         "sampling_post_13fJ": 6.54338048e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.1123746816e-05,
+         "sampling_idle_layers_clocked_13fJ": 1.0469408768e-05,
+         "reads": [
+          1.330642944e-05,
+          8.5164613632e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          1.432861681664e-05,
+          0.001062695323648
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           8.724624e-07,
+           5.1525792e-06
+          ],
+          "total_low_J": 7.696190651664002e-05,
+          "total_high_J": 0.001129608730148,
+          "total_without_readout_J": [
+           1.520107921664e-05,
+           0.001067847902848
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           8.724624e-06,
+           5.1525792e-05
+          ],
+          "total_low_J": 0.0006406615138166399,
+          "total_high_J": 0.001731829388648,
+          "total_without_readout_J": [
+           2.305324081664e-05,
+           0.001114221115648
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           8.724624e-05,
+           0.00051525792
+          ],
+          "total_low_J": 0.00627765758681664,
+          "total_high_J": 0.007754035973647999,
+          "total_without_readout_J": [
+           0.00010157485681664,
+           0.0015779532436479998
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": 9.184
+       },
+       {
+        "N": 256,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 53,
+         "shared_inputs/fully_parallel": 1681,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 199,
+         "copied_inputs/fully_parallel": 6349
+        },
+        "output_samples": 100667392,
+        "input_pbit_samples_if_free": [
+         352321536,
+         1610678272
+        ],
+        "updates_if_idle_layers_clocked": 1610678272,
+        "read_bits": {
+         "post_steps_5xDxN": 15728640,
+         "every_output_every_step": 100667392
+        },
+        "counterfactual_onchip_count_read_bits": 3539088,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 3145728,
+         "shared_inputs": 11010048,
+         "copied_inputs": 50333696
+        },
+        "coprocessor_ops": [
+         16588944,
+         101859488
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 4096,
+        "sampling_time_us_serial": 81.92,
+        "read_time_us_at_25.6Gbps": [
+         614.4,
+         3932.3200000000006
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 7.1373180928e-07,
+         "sampling_post_13fJ": 1.308676096e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.2247493632e-05,
+         "sampling_idle_layers_clocked_13fJ": 2.0938817536e-05,
+         "reads": [
+          2.661285888e-05,
+          0.000170329227264
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          2.7991912161279998e-05,
+          0.001158983684096
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.6588944000000001e-06,
+           1.0185948800000001e-05
+          ],
+          "total_low_J": 9.141163386128002e-05,
+          "total_high_J": 0.001230930460196,
+          "total_without_readout_J": [
+           2.9650806561279996e-05,
+           0.001169169632896
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           1.6588944e-05,
+           0.000101859488
+          ],
+          "total_low_J": 0.00066218912916128,
+          "total_high_J": 0.001878451445096,
+          "total_without_readout_J": [
+           4.458085616128e-05,
+           0.001260843172096
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00016588944,
+           0.00101859488
+          ],
+          "total_low_J": 0.00636996408216128,
+          "total_high_J": 0.008353661294096,
+          "total_without_readout_J": [
+           0.00019388135216127998,
+           0.0021775785640960003
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 512,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 106,
+         "shared_inputs/fully_parallel": 3361,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 397,
+         "copied_inputs/fully_parallel": 12697
+        },
+        "output_samples": 201334784,
+        "input_pbit_samples_if_free": [
+         704643072,
+         3221356544
+        ],
+        "updates_if_idle_layers_clocked": 3221356544,
+        "read_bits": {
+         "post_steps_5xDxN": 31457280,
+         "every_output_every_step": 201334784
+        },
+        "counterfactual_onchip_count_read_bits": 3932320,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 6291456,
+         "shared_inputs": 22020096,
+         "copied_inputs": 100667392
+        },
+        "coprocessor_ops": [
+         32317584,
+         202526880
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 8192,
+        "sampling_time_us_serial": 163.84,
+        "read_time_us_at_25.6Gbps": [
+         1228.8,
+         7864.640000000001
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.42746361856e-06,
+         "sampling_post_13fJ": 2.617352192e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 4.4494987264e-05,
+         "sampling_idle_layers_clocked_13fJ": 4.1877635072e-05,
+         "reads": [
+          5.322571776e-05,
+          0.000340658454528
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          5.531850285056e-05,
+          0.001351560404992
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           3.2317584000000004e-06,
+           2.0252688e-05
+          ],
+          "total_low_J": 0.00012031108855056001,
+          "total_high_J": 0.001433573920292,
+          "total_without_readout_J": [
+           5.8550261250560004e-05,
+           0.0013718130929919999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           3.2317584e-05,
+           0.00020252688
+          ],
+          "total_low_J": 0.0007052443598505599,
+          "total_high_J": 0.002171695557992,
+          "total_without_readout_J": [
+           8.763608685056e-05,
+           0.0015540872849919998
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00032317584,
+           0.0020252688
+          ],
+          "total_low_J": 0.0065545770728505605,
+          "total_high_J": 0.009552911934992,
+          "total_without_readout_J": [
+           0.00037849434285056,
+           0.003376829204992
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": 6.901
+       },
+       {
+        "N": 1024,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 211,
+         "shared_inputs/fully_parallel": 6722,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 794,
+         "copied_inputs/fully_parallel": 25394
+        },
+        "output_samples": 402669568,
+        "input_pbit_samples_if_free": [
+         1409286144,
+         6442713088
+        ],
+        "updates_if_idle_layers_clocked": 6442713088,
+        "read_bits": {
+         "post_steps_5xDxN": 62914560,
+         "every_output_every_step": 402669568
+        },
+        "counterfactual_onchip_count_read_bits": 4325552,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 12582912,
+         "shared_inputs": 44040192,
+         "copied_inputs": 201334784
+        },
+        "coprocessor_ops": [
+         63774864,
+         403861664
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 16384,
+        "sampling_time_us_serial": 327.68,
+        "read_time_us_at_25.6Gbps": [
+         2457.6,
+         15729.280000000002
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.85492723712e-06,
+         "sampling_post_13fJ": 5.234704384e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 8.8989974528e-05,
+         "sampling_idle_layers_clocked_13fJ": 8.3755270144e-05,
+         "reads": [
+          0.00010645143552,
+          0.000681316909056
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          0.00010997168422912,
+          0.001736713846784
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           6.3774864e-06,
+           4.03861664e-05
+          ],
+          "total_low_J": 0.00017810999792912003,
+          "total_high_J": 0.0018388608404840002,
+          "total_without_readout_J": [
+           0.00011634917062912,
+           0.001777100013184
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           6.377486399999999e-05,
+           0.000403861664
+          ],
+          "total_low_J": 0.0007913548212291199,
+          "total_high_J": 0.0027581837837840004,
+          "total_without_readout_J": [
+           0.00017374654822912,
+           0.002140575510784
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00063774864,
+           0.00403861664
+          ],
+          "total_low_J": 0.0069238030542291195,
+          "total_high_J": 0.011951413216784001,
+          "total_without_readout_J": [
+           0.00074772032422912,
+           0.005775330486784001
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 2048,
+        "pbits": {
+         "shared_inputs": 1769488,
+         "copied_inputs": 6684944
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 421,
+         "shared_inputs/fully_parallel": 13444,
+         "copied_inputs/serial_C6": 25,
+         "copied_inputs/latency_held_N_over_32": 1588,
+         "copied_inputs/fully_parallel": 50788
+        },
+        "output_samples": 805339136,
+        "input_pbit_samples_if_free": [
+         2818572288,
+         12885426176
+        ],
+        "updates_if_idle_layers_clocked": 12885426176,
+        "read_bits": {
+         "post_steps_5xDxN": 125829120,
+         "every_output_every_step": 805339136
+        },
+        "counterfactual_onchip_count_read_bits": 4718784,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 6291712
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 25165824,
+         "shared_inputs": 88080384,
+         "copied_inputs": 402669568
+        },
+        "coprocessor_ops": [
+         126689424,
+         806531232
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 32768,
+        "sampling_time_us_serial": 655.36,
+        "read_time_us_at_25.6Gbps": [
+         4915.2,
+         31458.560000000005
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 5.70985447424e-06,
+         "sampling_post_13fJ": 1.0469408768e-05,
+         "sampling_post_13fJ_plus_free_inputs_copied": 0.000177979949056,
+         "sampling_idle_layers_clocked_13fJ": 0.000167510540288,
+         "reads": [
+          0.00021290287104,
+          0.001362633818112
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.0009664069632
+         ],
+         "z1_band": [
+          0.00021927804698623998,
+          0.002507020730368
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.26689424e-05,
+           8.06531232e-05
+          ],
+          "total_low_J": 0.00029370781668624,
+          "total_high_J": 0.002649434680868,
+          "total_without_readout_J": [
+           0.00023194698938623997,
+           0.002587673853568
+          ],
+          "sparse_body_macs_at_this_price_J": 1.5729280000000002e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           0.000126689424,
+           0.000806531232
+          ],
+          "total_low_J": 0.00096357574398624,
+          "total_high_J": 0.003931160235368,
+          "total_without_readout_J": [
+           0.00034596747098624,
+           0.003313551962368
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.0012668942399999999,
+           0.00806531232
+          ],
+          "total_low_J": 0.00766225501698624,
+          "total_high_J": 0.016748415780368002,
+          "total_without_readout_J": [
+           0.00148617228698624,
+           0.010572333050368001
+          ],
+          "sparse_body_macs_at_this_price_J": 1.572928e-05
+         }
+        },
+        "loss_nats_software_simulation": 4.916
+       }
+      ]
+     },
+     "projections_only/gated": {
+      "structure": {
+       "unit_set": "projections_only",
+       "gated": true,
+       "sampled_units": 287790,
+       "gated_units_removed": 105442,
+       "sequential_sampling_layers": 16,
+       "input_pbits_shared": 1376256,
+       "input_pbits_copied": 4604640,
+       "post_write_values": 98304,
+       "post_read_values": 61440,
+       "readout_macs": 617608273,
+       "coprocessor_fixed_ops": {
+        "pool_conv_macs": 196672,
+        "pool_elementwise": 294992,
+        "mlp_activation": 196608,
+        "residual_adds": 98304,
+        "positional_add": 12288,
+        "dyt_affine": 0,
+        "total": 798864
+       },
+       "sparse_body_macs_reference": 1151160
+      },
+      "per_N": [
+       {
+        "N": 32,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 7,
+         "shared_inputs/fully_parallel": 198,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 19,
+         "copied_inputs/fully_parallel": 581
+        },
+        "output_samples": 9209280,
+        "input_pbit_samples_if_free": [
+         44040192,
+         147348480
+        ],
+        "updates_if_idle_layers_clocked": 147348480,
+        "read_bits": {
+         "post_steps_5xDxN": 1966080,
+         "every_output_every_step": 9209280
+        },
+        "counterfactual_onchip_count_read_bits": 1726740,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "coprocessor_ops": [
+         2826384,
+         10295934
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 512,
+        "sampling_time_us_serial": 10.24,
+        "read_time_us_at_25.6Gbps": [
+         76.8,
+         359.7375
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 6.52937952e-08,
+         "sampling_post_13fJ": 1.1972064e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 2.03525088e-06,
+         "sampling_idle_layers_clocked_13fJ": 1.91553024e-06,
+         "reads": [
+          3.32660736e-06,
+          1.558210176e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          4.0572226272e-06,
+          0.00072489005664
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           2.826384e-07,
+           1.0295934e-06
+          ],
+          "total_low_J": 6.610068832720001e-05,
+          "total_high_J": 0.00078768047734,
+          "total_without_readout_J": [
+           4.3398610272e-06,
+           0.00072591965004
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           2.826384e-06,
+           1.0295934e-05
+          ],
+          "total_low_J": 0.0006244918796272,
+          "total_high_J": 0.0013527942636399999,
+          "total_without_readout_J": [
+           6.8836066272e-06,
+           0.00073518599064
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           2.8263839999999998e-05,
+           0.00010295934
+          ],
+          "total_low_J": 0.0062084037926271995,
+          "total_high_J": 0.00700393212664,
+          "total_without_readout_J": [
+           3.23210626272e-05,
+           0.00082784939664
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": 10.746
+       },
+       {
+        "N": 64,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 13,
+         "shared_inputs/fully_parallel": 396,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 37,
+         "copied_inputs/fully_parallel": 1162
+        },
+        "output_samples": 18418560,
+        "input_pbit_samples_if_free": [
+         88080384,
+         294696960
+        ],
+        "updates_if_idle_layers_clocked": 294696960,
+        "read_bits": {
+         "post_steps_5xDxN": 3932160,
+         "every_output_every_step": 18418560
+        },
+        "counterfactual_onchip_count_read_bits": 2014530,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 786432,
+         "shared_inputs": 2752512,
+         "copied_inputs": 9209280
+        },
+        "coprocessor_ops": [
+         4792464,
+         19505214
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 1024,
+        "sampling_time_us_serial": 20.48,
+        "read_time_us_at_25.6Gbps": [
+         153.6,
+         719.475
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.305875904e-07,
+         "sampling_post_13fJ": 2.3944128e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 4.07050176e-06,
+         "sampling_idle_layers_clocked_13fJ": 3.83106048e-06,
+         "reads": [
+          6.65321472e-06,
+          3.116420352e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          7.4491237824e-06,
+          0.00074250740928
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           4.792464e-07,
+           1.9505214e-06
+          ],
+          "total_low_J": 6.968919748240001e-05,
+          "total_high_J": 0.00080621875798,
+          "total_without_readout_J": [
+           7.9283701824e-06,
+           0.00074445793068
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           4.792464e-06,
+           1.9505214e-05
+          ],
+          "total_low_J": 0.0006298498607823999,
+          "total_high_J": 0.00137962089628,
+          "total_without_readout_J": [
+           1.22415877824e-05,
+           0.0007620126232799999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           4.792464e-05,
+           0.00019505213999999998
+          ],
+          "total_low_J": 0.006231456493782399,
+          "total_high_J": 0.007113642279279999,
+          "total_without_readout_J": [
+           5.5373763782400004e-05,
+           0.00093755954928
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 128,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 25,
+         "shared_inputs/fully_parallel": 791,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 73,
+         "copied_inputs/fully_parallel": 2324
+        },
+        "output_samples": 36837120,
+        "input_pbit_samples_if_free": [
+         176160768,
+         589393920
+        ],
+        "updates_if_idle_layers_clocked": 589393920,
+        "read_bits": {
+         "post_steps_5xDxN": 7864320,
+         "every_output_every_step": 36837120
+        },
+        "counterfactual_onchip_count_read_bits": 2302320,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 1572864,
+         "shared_inputs": 5505024,
+         "copied_inputs": 18418560
+        },
+        "coprocessor_ops": [
+         8724624,
+         37923774
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 2048,
+        "sampling_time_us_serial": 40.96,
+        "read_time_us_at_25.6Gbps": [
+         307.2,
+         1438.95
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.611751808e-07,
+         "sampling_post_13fJ": 4.7888256e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 8.14100352e-06,
+         "sampling_idle_layers_clocked_13fJ": 7.66212096e-06,
+         "reads": [
+          1.330642944e-05,
+          6.232840704e-05
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          1.42329260928e-05,
+          0.00077774211456
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           8.724624e-07,
+           3.7923774000000005e-06
+          ],
+          "total_low_J": 7.686621579280002e-05,
+          "total_high_J": 0.00084329531926,
+          "total_without_readout_J": [
+           1.51053884928e-05,
+           0.00078153449196
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           8.724624e-06,
+           3.7923774e-05
+          ],
+          "total_low_J": 0.0006405658230927999,
+          "total_high_J": 0.00143327416156,
+          "total_without_readout_J": [
+           2.29575500928e-05,
+           0.00081566588856
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           8.724624e-05,
+           0.00037923774
+          ],
+          "total_low_J": 0.0062775618960928,
+          "total_high_J": 0.00733306258456,
+          "total_without_readout_J": [
+           0.0001014791660928,
+           0.00115697985456
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": 9.184
+       },
+       {
+        "N": 256,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 50,
+         "shared_inputs/fully_parallel": 1581,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 146,
+         "copied_inputs/fully_parallel": 4647
+        },
+        "output_samples": 73674240,
+        "input_pbit_samples_if_free": [
+         352321536,
+         1178787840
+        ],
+        "updates_if_idle_layers_clocked": 1178787840,
+        "read_bits": {
+         "post_steps_5xDxN": 15728640,
+         "every_output_every_step": 73674240
+        },
+        "counterfactual_onchip_count_read_bits": 2590110,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 3145728,
+         "shared_inputs": 11010048,
+         "copied_inputs": 36837120
+        },
+        "coprocessor_ops": [
+         16588944,
+         74760894
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 4096,
+        "sampling_time_us_serial": 81.92,
+        "read_time_us_at_25.6Gbps": [
+         614.4,
+         2877.9
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 5.223503616e-07,
+         "sampling_post_13fJ": 9.5776512e-07,
+         "sampling_post_13fJ_plus_free_inputs_copied": 1.628200704e-05,
+         "sampling_idle_layers_clocked_13fJ": 1.532424192e-05,
+         "reads": [
+          2.661285888e-05,
+          0.00012465681408
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          2.7800530713599997e-05,
+          0.00084821152512
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.6588944000000001e-06,
+           7.4760894e-06
+          ],
+          "total_low_J": 9.122025241360002e-05,
+          "total_high_J": 0.0009174484418199999,
+          "total_without_readout_J": [
+           2.9459425113599996e-05,
+           0.0008556876145199999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           1.6588944e-05,
+           7.4760894e-05
+          ],
+          "total_low_J": 0.0006619977477136,
+          "total_high_J": 0.00154058069212,
+          "total_without_readout_J": [
+           4.43894747136e-05,
+           0.00092297241912
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00016588944,
+           0.00074760894
+          ],
+          "total_low_J": 0.0063697727007136,
+          "total_high_J": 0.00777190319512,
+          "total_without_readout_J": [
+           0.00019368997071359998,
+           0.00159582046512
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 512,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 99,
+         "shared_inputs/fully_parallel": 3161,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 291,
+         "copied_inputs/fully_parallel": 9293
+        },
+        "output_samples": 147348480,
+        "input_pbit_samples_if_free": [
+         704643072,
+         2357575680
+        ],
+        "updates_if_idle_layers_clocked": 2357575680,
+        "read_bits": {
+         "post_steps_5xDxN": 31457280,
+         "every_output_every_step": 147348480
+        },
+        "counterfactual_onchip_count_read_bits": 2877900,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 6291456,
+         "shared_inputs": 22020096,
+         "copied_inputs": 73674240
+        },
+        "coprocessor_ops": [
+         32317584,
+         148435134
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 8192,
+        "sampling_time_us_serial": 163.84,
+        "read_time_us_at_25.6Gbps": [
+         1228.8,
+         5755.8
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 1.0447007232e-06,
+         "sampling_post_13fJ": 1.91553024e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 3.256401408e-05,
+         "sampling_idle_layers_clocked_13fJ": 3.064848384e-05,
+         "reads": [
+          5.322571776e-05,
+          0.00024931362816
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          5.49357399552e-05,
+          0.00098915034624
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           3.2317584000000004e-06,
+           1.48435134e-05
+          ],
+          "total_low_J": 0.00011992832565520001,
+          "total_high_J": 0.0010657546869400002,
+          "total_without_readout_J": [
+           5.81674983552e-05,
+           0.0010039938596400001
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           3.2317584e-05,
+           0.000148435134
+          ],
+          "total_low_J": 0.0007048615969551999,
+          "total_high_J": 0.00175519375324,
+          "total_without_readout_J": [
+           8.72533239552e-05,
+           0.00113758548024
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00032317584,
+           0.00148435134
+          ],
+          "total_low_J": 0.0065541943099552006,
+          "total_high_J": 0.008649584416240001,
+          "total_without_readout_J": [
+           0.0003781115799552,
+           0.00247350168624
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": 6.901
+       },
+       {
+        "N": 1024,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 198,
+         "shared_inputs/fully_parallel": 6322,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 581,
+         "copied_inputs/fully_parallel": 18585
+        },
+        "output_samples": 294696960,
+        "input_pbit_samples_if_free": [
+         1409286144,
+         4715151360
+        ],
+        "updates_if_idle_layers_clocked": 4715151360,
+        "read_bits": {
+         "post_steps_5xDxN": 62914560,
+         "every_output_every_step": 294696960
+        },
+        "counterfactual_onchip_count_read_bits": 3165690,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 12582912,
+         "shared_inputs": 44040192,
+         "copied_inputs": 147348480
+        },
+        "coprocessor_ops": [
+         63774864,
+         295783614
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 16384,
+        "sampling_time_us_serial": 327.68,
+        "read_time_us_at_25.6Gbps": [
+         2457.6,
+         11511.6
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 2.0894014464e-06,
+         "sampling_post_13fJ": 3.83106048e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 6.512802816e-05,
+         "sampling_idle_layers_clocked_13fJ": 6.129696768e-05,
+         "reads": [
+          0.00010645143552,
+          0.00049862725632
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          0.0001092061584384,
+          0.00127102798848
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           6.3774864e-06,
+           2.95783614e-05
+          ],
+          "total_low_J": 0.00017734447213840003,
+          "total_high_J": 0.00136236717718,
+          "total_without_readout_J": [
+           0.0001155836448384,
+           0.00130060634988
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           6.377486399999999e-05,
+           0.00029578361399999997
+          ],
+          "total_low_J": 0.0007905892954383999,
+          "total_high_J": 0.00218441987548,
+          "total_without_readout_J": [
+           0.0001729810224384,
+           0.00156681160248
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.00063774864,
+           0.00295783614
+          ],
+          "total_low_J": 0.0069230375284384,
+          "total_high_J": 0.01040494685848,
+          "total_without_readout_J": [
+           0.0007469547984384,
+           0.00422886412848
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": null
+       },
+       {
+        "N": 2048,
+        "pbits": {
+         "shared_inputs": 1664046,
+         "copied_inputs": 4892430
+        },
+        "chips_at_100pct_packing": {
+         "shared_inputs/serial_C6": 7,
+         "shared_inputs/latency_held_N_over_32": 396,
+         "shared_inputs/fully_parallel": 12643,
+         "copied_inputs/serial_C6": 19,
+         "copied_inputs/latency_held_N_over_32": 1162,
+         "copied_inputs/fully_parallel": 37170
+        },
+        "output_samples": 589393920,
+        "input_pbit_samples_if_free": [
+         2818572288,
+         9430302720
+        ],
+        "updates_if_idle_layers_clocked": 9430302720,
+        "read_bits": {
+         "post_steps_5xDxN": 125829120,
+         "every_output_every_step": 589393920
+        },
+        "counterfactual_onchip_count_read_bits": 3453480,
+        "node_writes_serial": {
+         "post_steps_8xDx4": 393216,
+         "shared_inputs": 1376256,
+         "copied_inputs": 4604640
+        },
+        "node_writes_latency_held": {
+         "post_steps_8xDx4": 25165824,
+         "shared_inputs": 88080384,
+         "copied_inputs": 294696960
+        },
+        "coprocessor_ops": [
+         126689424,
+         590480574
+        ],
+        "readout_macs": 617608273,
+        "sampling_cycles_serial": 32768,
+        "sampling_time_us_serial": 655.36,
+        "read_time_us_at_25.6Gbps": [
+         4915.2,
+         23023.2
+        ],
+        "z1_J": {
+         "sampling_sealed_7.09fJ": 4.1788028928e-06,
+         "sampling_post_13fJ": 7.66212096e-06,
+         "sampling_post_13fJ_plus_free_inputs_copied": 0.00013025605632,
+         "sampling_idle_layers_clocked_13fJ": 0.00012259393536,
+         "reads": [
+          0.00021290287104,
+          0.00099725451264
+         ],
+         "writes_read_const_to_write_const": [
+          6.65321472e-07,
+          0.000707272704
+         ],
+         "z1_band": [
+          0.00021774699540479998,
+          0.00183478327296
+         ]
+        },
+        "off_chip": {
+         "0.1_pJ": {
+          "readout_J": 6.176082730000001e-05,
+          "coprocessor_J": [
+           1.26689424e-05,
+           5.9048057400000004e-05
+          ],
+          "total_low_J": 0.0002921767651048,
+          "total_high_J": 0.00195559215766,
+          "total_without_readout_J": [
+           0.00023041593780479997,
+           0.00189383133036
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-07
+         },
+         "1.0_pJ": {
+          "readout_J": 0.000617608273,
+          "coprocessor_J": [
+           0.000126689424,
+           0.000590480574
+          ],
+          "total_low_J": 0.0009620446924048,
+          "total_high_J": 0.00304287211996,
+          "total_without_readout_J": [
+           0.0003444364194048,
+           0.00242526384696
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-06
+         },
+         "10.0_pJ": {
+          "readout_J": 0.00617608273,
+          "coprocessor_J": [
+           0.0012668942399999999,
+           0.00590480574
+          ],
+          "total_low_J": 0.0076607239654048,
+          "total_high_J": 0.01391567174296,
+          "total_without_readout_J": [
+           0.0014846412354048,
+           0.007739589012959999
+          ],
+          "sparse_body_macs_at_this_price_J": 1.15116e-05
+         }
+        },
+        "loss_nats_software_simulation": 4.916
+       }
+      ]
+     }
+    }
+   }
+  },
+  "anchor_8.74nJ_reproduced": true
+ },
+ "verdict": {
+  "z1_sampling_reproduced": true,
+  "fpga_split_reproduced": false,
+  "fpga_matches": 0,
+  "budget_anchor_8.74nJ_reproduced": true,
+  "fpga_285.78nJ_used_in_budget": false
+ }
+}
