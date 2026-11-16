@@ -1,0 +1,151 @@
+{
+ "row": "z1t-system-budget",
+ "proposal": "P-0014",
+ "evidence_class": "exploration (re-derivation of Extropic calibrated_projection figures)",
+ "post": {
+  "total_nj": 294.52,
+  "z1_sampling_nj": 8.74,
+  "fpga_nj": 285.78,
+  "with_readout_uj": 136.4,
+  "h100_uj": {
+   "0.10": 40.9,
+   "0.50": 8.17,
+   "1.00": 4.09
+  },
+  "latency_us": 58.8,
+  "latency_parts_us": {
+   "orchestration": 38.0,
+   "z1_sampling": 16.0,
+   "reads": 3.2,
+   "writes": 1.3,
+   "averaging": 0.13,
+   "pool_positional_residual": 0.16
+  },
+  "sequential_sampling_layers": 25,
+  "write_steps": 8,
+  "read_steps": 5
+ },
+ "z1_sampling": {
+  "units_by_site": {
+   "block_dyt1": 2048,
+   "block_qkv": 4112,
+   "block_out": 2048,
+   "block_dyt2": 2048,
+   "block_p1": 8192,
+   "block_p2": 2048,
+   "final_dyt": 512
+  },
+  "variants": {
+   "all_sampled_outputs_one_draw_each": {
+    "units": 21008,
+    "samples": 672256,
+    "nj": 8.739328,
+    "matches_8.74_within_rounding": true
+   },
+   "projections_only_no_dyt": {
+    "units": 16400,
+    "samples": 524800,
+    "nj": 6.8224,
+    "matches_8.74_within_rounding": false
+   },
+   "projections_and_block_dyt_no_final_dyt": {
+    "units": 20496,
+    "samples": 655872,
+    "nj": 8.526336,
+    "matches_8.74_within_rounding": false
+   },
+   "all_outputs_times_4_dy4p_pbits": {
+    "units": 84032,
+    "samples": 2689024,
+    "nj": 34.957312,
+    "matches_8.74_within_rounding": false
+   },
+   "all_outputs_plus_16_input_pbits_each": {
+    "units": 357136,
+    "samples": 11428352,
+    "nj": 148.568576,
+    "matches_8.74_within_rounding": false
+   }
+  },
+  "sequential_sampling_layers": 25,
+  "matches_25_layers": true,
+  "sampling_time_us": 16.0
+ },
+ "latency": {
+  "assumed_read_bits": 81920,
+  "assumed_write_bits": 32768,
+  "assumption": "read = 5 x D x 32 bits and write = 8 x D x 8 bits are inferred, not stated; the averaging and pool times are taken from the post, not derived",
+  "parts_us": {
+   "orchestration": 38.0,
+   "z1_sampling": 16.0,
+   "reads": 3.2,
+   "writes": 1.28,
+   "averaging": 0.13,
+   "pool_positional_residual": 0.16
+  },
+  "total_us": 58.77,
+  "matches_58.8_within_rounding": true,
+  "write_bits_range_consistent_with_1.3us": [
+   32000,
+   34560
+  ]
+ },
+ "fpga": {
+  "combinations_tested": 2048,
+  "matches_within_rounding": [],
+  "nearest": {
+   "averaging_scope": "read_back_values_5xD",
+   "averaging_ops": "N_adds_plus_divide",
+   "averaging_price": "scalar_3.0",
+   "pool": "elementwise_only",
+   "ops_per_mac": "1",
+   "conv_price": "matmul_0.2",
+   "residual": "excluded",
+   "positional": "included",
+   "nj": 285.84
+  },
+  "nearest_gap_nj": 0.06,
+  "post_fpga_nj_over_scalar_price": 95259.99999999999,
+  "post_fpga_nj_over_matmul_price": 1428899.9999999998,
+  "static_energy_over_latency_nj": 88199.99999999999,
+  "page_statement": "the trace figure's source says 'Totals exact ... per-stage pacing and split are illustrative' and divides the FPGA total evenly over 9 stages"
+ },
+ "readout": {
+  "readout_macs": 25731584,
+  "readout_prices_uj": {
+   "1_op_per_mac_matmul_0.2": 5.1463,
+   "1_op_per_mac_scalar_3.0": 77.1948,
+   "2_op_per_mac_matmul_0.2": 10.2926,
+   "2_op_per_mac_scalar_3.0": 154.3895
+  },
+  "implied": {
+   "pj_per_mac_if_no_static": 5.2894,
+   "pj_per_mac_if_static_over_58.8us": 1.8617,
+   "static_seconds_us_if_1_op_per_mac_at_0.2": 87.306,
+   "static_seconds_us_if_2_op_per_mac_at_0.2": 83.875
+  },
+  "matches_any_stated_price": false
+ },
+ "h100": {
+  "flops_per_token": 23100000.0,
+  "rows": {
+   "0.10": {
+    "derived_uj": 40.887,
+    "post_uj": 40.9
+   },
+   "0.50": {
+    "derived_uj": 8.1774,
+    "post_uj": 8.17
+   },
+   "1.00": {
+    "derived_uj": 4.0887,
+    "post_uj": 4.09
+   }
+  }
+ },
+ "verdict": {
+  "z1_sampling_reproduced": true,
+  "fpga_split_reproduced": false,
+  "fpga_matches": 0
+ }
+}
