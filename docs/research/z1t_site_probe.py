@@ -27,8 +27,9 @@ Part C, normalisation layers (--norms both). A DyT layer is g * tanh(a * x) + b:
 input, so on Z1 it is a sampled unit of fan-in 1 like any other, and the affine g, b is applied
 off-chip or folded into the next layer's weights (the noise is the same either way). The
 default leaves the DyT layers (n1 and n2 in each block and one final, nine in Z1T-0)
-noise-free, as z1t_noise_finetune.py does. With --norms both, every uniform and grid configuration is also
-run as a twin named <config>_norms, in which each DyT tanh is an exact sample mean at the
+noise-free, as z1t_noise_finetune.py does. With --norms both, every uniform and grid
+configuration is also run as a twin named <config>_norms, in which each DyT tanh is an exact
+sample mean at the
 count of the site it feeds (n1 as qkv, n2 as p1, the final one, which feeds the readout, as
 p2), plus one configuration per DyT layer with only that layer noisy. The twins are the
 reading under which the Z1T post's 25 sequential sampling layers and its 8.74 nJ of sampling
