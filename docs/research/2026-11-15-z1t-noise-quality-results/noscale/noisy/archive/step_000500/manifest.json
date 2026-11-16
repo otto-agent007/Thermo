@@ -1,0 +1,9 @@
+{
+  "step": 500,
+  "created_utc": "2026-11-15T10:27:46Z",
+  "arrays_sha256": "b21055be7ce0b468939a69313789feebfa9c3f2af0ff94bee97c528a0efab31a",
+  "sha256": {
+    "body_params.npz": "8e1d869a63533026c9b4c7d9aa6ea60f86a806d6d374b99fe0d34c765ca0ebd6",
+    "record.json": "bcfa78601982b3512e590e9ef1f221787d6a95d9be3091a892e3e99e94c48041"
+  }
+}
