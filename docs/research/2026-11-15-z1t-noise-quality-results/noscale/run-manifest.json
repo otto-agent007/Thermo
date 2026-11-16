@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "run_id": "1f4037bdc3abb5ea35d429c45e11a45c11b39a9ba6213dcec5bd75c9aaa51ab1",
+  "identity": {
+    "schema": 1,
+    "settings": {
+      "N": 32,
+      "n_start": 1024,
+      "anneal_frac": 0.5,
+      "train_noise": "exact",
+      "emb_scale": false,
+      "steps": 2000,
+      "accum": 4,
+      "seq": 256,
+      "lr": 0.0003,
+      "lr_gain": 0.003,
+      "warmup": 100,
+      "loss": "lm",
+      "chunk": 1733,
+      "train_docs": 8000,
+      "eval_docs": 3000,
+      "eval_windows": 64,
+      "eval_seeds": 3,
+      "eval_every": 500,
+      "curve_Ns": "128,512,2048",
+      "seed": 0,
+      "smoke": false
+    },
+    "inputs": {
+      "weights": "02577f67eade622036b35eb2200e890045bea1b626ddac1a2004afc882246dcc",
+      "config": "5980a7f0fc2c0afcf1e6fe43aa7f1538b4c1c39adcb8194d62f417b8bea1a227",
+      "tokenizer": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+      "owt": "0091eb3bf33f8ce0896c8d5f0109672c4ed33dfd5ea52d5d13a172c6a5e50073",
+      "wikitext": "5f1bea067869d04849c0f975a2b29c4ff47d867f484f5010ea5e861eab246d91"
+    },
+    "code": {
+      "z1t_noise_finetune.py": "51ddcf2a47cfbf1ef4003504534805105768504b633b8fadc7f290506903bb64",
+      "z1t_site_probe.py": "964ea5842c01f7e093d9ae7202e81dafb636a37ae58889107cccea430221b55a",
+      "z1t_sampled_head.py": "3696818da1ca47568576e69b9221eaf3e62e4aba0c6cd7957dcec4984a1ee495"
+    },
+    "upstream_python": {
+      "experiments/sparse_gpt_scaling.py": "37b0455f0cab2833ec658e8e9c47d0100a21e49aa985aa1a2259d44918219860",
+      "experiments/z1t_scaling.py": "d93c01b3356f8790717636536c716121c45c14a961dc2d947674dbc4dda317e2",
+      "research/st/__init__.py": "7be83c0eda42af468ca21cea02e055b555abfda2db3f3057baa15ebdcf39ff34",
+      "research/st/dataset.py": "719bab71afddfc8931b30c42555185393424b896f0b413ef513a6bbb9e0cbfc5",
+      "research/st/tokenizer.py": "994d67c3b5eab13dd701f1c4da07a48a9c3fa6edee5d31ec99f7709807dd73ea",
+      "research/st/train.py": "0770bad8b74eab746d40484b8b44dc58c63a90f174df3a4835cb36a0d3e22b7d",
+      "research/st/transformer.py": "d1b9819d46b054a4886394de9d0368965dc58115f1cf686c2f1262dcefed367e",
+      "research/z1t/__init__.py": "c2124f33d6b219cede443250a6c030cd497a58891e2ff2b9537f316cb64a82b5",
+      "research/z1t/components.py": "bab3f54fc9f3eb180ca4ee566448f93c2f4e6826407bddd446ebe27ff5027202",
+      "research/z1t/dataset.py": "ef66effe959bfb64b4ebf336c6d21e7f339ddeac62c22c630d4957b10d114016",
+      "research/z1t/model.py": "542374ffff99130240fc04be692b803ecc7c379c6188b3b9b7528db385516a68",
+      "research/z1t/tokenizer.py": "dbac7e4366a3450177e2e40e2eba593b4e3ba60760ee2ca510b1c5f25229b907",
+      "research/z1t/train.py": "5f0e6673a037b07b2da0e61f4821bc6e1eedd8f14408d58788aeced1d4adef99"
+    }
+  },
+  "runtime": {
+    "versions": {
+      "jax": "0.12.0.1",
+      "jaxlib": "0.12.0.1",
+      "equinox": "0.13.8",
+      "optax": "0.2.9",
+      "numpy": "2.5.4"
+    },
+    "dtype": "float32 body and logits; output head stored as float16",
+    "jax_enable_x64": false,
+    "default_matmul_precision": null,
+    "devices": [
+      "cuda:0"
+    ],
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-149-generic-x86_64-with-glibc2.39",
+    "gpu": "NVIDIA GeForce GTX 1050 Ti, 580.196.07, 4096 MiB",
+    "JAX_PLATFORMS": null
+  },
+  "initial_provenance": {
+    "evidence_class": "software_simulation",
+    "utc": "2026-11-15T09:09:52Z",
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-149-generic-x86_64-with-glibc2.39",
+    "versions": {
+      "jax": "0.12.0.1",
+      "jaxlib": "0.12.0.1",
+      "equinox": "0.13.8",
+      "optax": "0.2.9",
+      "numpy": "2.5.4"
+    },
+    "devices": [
+      "cuda:0"
+    ],
+    "gpu": "NVIDIA GeForce GTX 1050 Ti, 580.196.07, 4096 MiB",
+    "JAX_PLATFORMS": null,
+    "XLA_PYTHON_CLIENT_PREALLOCATE": "false",
+    "jax_enable_x64": false,
+    "default_matmul_precision": null,
+    "dtype": "float32 body and logits; output head stored as float16",
+    "sparse_transformers_commit": "8c0f7e66cfea794f70e81fcf289e179d9f58ed0d",
+    "sha256": {
+      "weights": "02577f67eade622036b35eb2200e890045bea1b626ddac1a2004afc882246dcc",
+      "config": "5980a7f0fc2c0afcf1e6fe43aa7f1538b4c1c39adcb8194d62f417b8bea1a227",
+      "tokenizer": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+      "owt": "0091eb3bf33f8ce0896c8d5f0109672c4ed33dfd5ea52d5d13a172c6a5e50073",
+      "wikitext": "5f1bea067869d04849c0f975a2b29c4ff47d867f484f5010ea5e861eab246d91",
+      "script": "51ddcf2a47cfbf1ef4003504534805105768504b633b8fadc7f290506903bb64"
+    }
+  }
+}

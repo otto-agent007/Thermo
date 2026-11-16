@@ -1,0 +1,89 @@
+{
+  "captured_utc": "2026-11-16T00:45:02.392715+00:00",
+  "evidence_class": "software_simulation",
+  "source_directories": {
+    "noscale": "run_n32_noscale under the owner's z1t-finetune folder",
+    "distill": "run_n32_distill under the owner's z1t-finetune folder"
+  },
+  "copy_rule": "byte copies of the run's JSON records and per-step archive manifests; weights, checkpoints and record.json files are not copied",
+  "verification": "every copied file's SHA-256 equals its source file's at capture; compare.py replays the pre-registered comparison from these copies and the first run's snapshot",
+  "files_sha256": {
+    "noscale/invocations/0eec123dcce845068ea3d6f3e2e6bf77.json": "a693f16256f8863d67c753dfdf671ec517eb7458c0ea2ee1381685dfcde38901",
+    "noscale/invocations/e74709f74d6f4a248be5c0d181ebd1ce.json": "f55eb86fa5d7984068c7a4fc72192daada72aaf1746558ae1175f08ec0e14e2b",
+    "noscale/noisy/archive/step_000500/manifest.json": "2cd10f83966d9ce8f5ccf91096b52ddcbb89e0596a6e78d938f902182b374f6d",
+    "noscale/noisy/archive/step_001000/manifest.json": "c2505dd2959c41738c450880e3dedcb588825360878bf921f39275802838d6c9",
+    "noscale/noisy/archive/step_001500/manifest.json": "13f48e8b375746fd1f44c0c7635146a25a2102234cb1d02983e47b9b8c1fee85",
+    "noscale/noisy/archive/step_002000/manifest.json": "3359198356f661b9e9837f4d7c3b2f718df1ed1aed56e798e7cf390ed6361fb0",
+    "noscale/noisy/final.json": "56f5900c771e9034e060dd7640930ae569b281bba0160b559c9b29196f036767",
+    "noscale/noisy/log.json": "fe246abd9d1b36e3503b9b433ebefdadf3995e357041a516a22ab261ddd20d64",
+    "noscale/provenance.json": "29e0661789014046dc539281113598fb8417906b6fe483d9ea48577071b85567",
+    "noscale/run-manifest.json": "3ffaddf31e90e7e2e07ad4cea9398b261fbe172e0529763bcfda848dbdc8263b",
+    "noscale/start.json": "a58ca0ba359168be2ea77127a945bf116b5d758c26aad07ec13c71329a9b1d55",
+    "noscale/summary.json": "ba492b6035b2ba43197f5439af282023f6362d07187482e7bbfb28d008282e6d",
+    "distill/invocations/c16cb48e7fb5437bb62b9c39c7f05c94.json": "2f020915b2de2de64598e484f3559f4fc9c43eee3db14e3c89dcd376ef308794",
+    "distill/noisy/archive/step_000500/manifest.json": "0a5b7da9a73fd1fbf99943e2b485028c31887a387cf74e2bf87993a149eb4c45",
+    "distill/noisy/archive/step_001000/manifest.json": "b900162b6c3f16cd7a5731d28c6a37e712ec3444e2365a0989b00a1262379eee",
+    "distill/noisy/archive/step_001500/manifest.json": "6eec3ea9fc11219c3b63dbbfe5ddcbc0ded7547f5393a5de61c541eee14193c9",
+    "distill/noisy/archive/step_002000/manifest.json": "78350d95ec8708935c8d5a211c628487475b794f31fcabe56be49d31ce2ec336",
+    "distill/noisy/final.json": "a67a777959ad2109364982eef6d0320b114d1ff69a312c628af7726c3d5e6ed6",
+    "distill/noisy/log.json": "3e10884905fddc4f816d14df278ff87713fcf489ecc4fd800154cd3fb3a57b24",
+    "distill/provenance.json": "f29697f270d1f9136eed407aa49ab6a57f55b4e65446839cebdf385188e59118",
+    "distill/run-manifest.json": "18fadf5adda6a5230204e67d6fba9441b445d15cb9cbf1b9ec228d863ff3dc11",
+    "distill/start.json": "c44c3d55fa4612c04d9d949571808314171809d892d381e04f0757065c2ff9cc",
+    "distill/summary.json": "a8031e5901fe2fda05532072e272c2ad666dc85f4cac3462cbddd73eee6133e6"
+  },
+  "not_copied": {
+    "noscale": {
+      "noisy/archive/step_000500/body_params.npz": {
+        "sha256": "8e1d869a63533026c9b4c7d9aa6ea60f86a806d6d374b99fe0d34c765ca0ebd6",
+        "bytes": 8767298
+      },
+      "noisy/archive/step_001000/body_params.npz": {
+        "sha256": "1df039bb9f632982573034fddf0649ce693a8fdc7b2b2cda3211476ef4eaca47",
+        "bytes": 8767298
+      },
+      "noisy/archive/step_001500/body_params.npz": {
+        "sha256": "93c3ef576732ee1ae809fa15ed377e205617ec1c1a02976d922405d7843fd725",
+        "bytes": 8767298
+      },
+      "noisy/archive/step_002000/body_params.npz": {
+        "sha256": "20cd48e496cd06588497affc010c069950743c7dbf4a385464b68c121b3436ca",
+        "bytes": 8767298
+      },
+      "noisy/body_params.npz": {
+        "sha256": "20cd48e496cd06588497affc010c069950743c7dbf4a385464b68c121b3436ca",
+        "bytes": 8767298
+      },
+      "noisy/ckpt.npz": {
+        "sha256": "d85bc9a12b3c56d113d734ff5b7d8ceceafd0b462731229219f9f2d0c0b4989f",
+        "bytes": 26347576
+      }
+    },
+    "distill": {
+      "noisy/archive/step_000500/body_params.npz": {
+        "sha256": "bb3e75920bcdfc9a9cffa052f77cf69620fdb1756c710ffa0442c7ca358f0f52",
+        "bytes": 8767566
+      },
+      "noisy/archive/step_001000/body_params.npz": {
+        "sha256": "e207d2de643b77d11000736cc4bbb706c8b5aec1b46fdf0cbc4eb2a893c34593",
+        "bytes": 8767566
+      },
+      "noisy/archive/step_001500/body_params.npz": {
+        "sha256": "c878364f888aace23989bdff11bfec1e96427c1514c83da09ea6c01c622be552",
+        "bytes": 8767566
+      },
+      "noisy/archive/step_002000/body_params.npz": {
+        "sha256": "399d5799f9e1a6a6b149be7d5b912a718b652e85e2a50c293b0c308dda81c539",
+        "bytes": 8767566
+      },
+      "noisy/body_params.npz": {
+        "sha256": "399d5799f9e1a6a6b149be7d5b912a718b652e85e2a50c293b0c308dda81c539",
+        "bytes": 8767566
+      },
+      "noisy/ckpt.npz": {
+        "sha256": "3f72e57010605a44218f251ea54bfe5501610fb0d4d1dfb90c7c849046b743b4",
+        "bytes": 26349070
+      }
+    }
+  }
+}
