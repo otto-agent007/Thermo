@@ -38,6 +38,11 @@ text = "The sparse tanh layers that run on Z1 alone are about 468x to 4,680x mor
 id = "C5"
 status = "asserted"
 text = "Serial latency is 58.8 us per token (about 17,000 tokens/s), against 102 us for a batch-1 torch.compile H100 run at 0.006% MFU. The authors say batching would make the H100 substantially more efficient and recommend Z1 for decode, not prefill."
+
+[[claims]]
+id = "C6"
+status = "asserted"
+text = "The latency estimate assumes 32 samples per sequential sampling layer ('25 x 32 samples at 50 MHz'), averaged to estimate each scalar tanh-linear output. This is an assumption of the projected latency. The post does not, in that statement, report model quality at 32 samples on Z1 hardware, and the estimate excludes the final vocabulary-logit computation. Read by the owner on 2026-11-15; the page was not re-fetched for this entry, so last_checked and the page hash above are unchanged."
 ```
 
 ## Claim
