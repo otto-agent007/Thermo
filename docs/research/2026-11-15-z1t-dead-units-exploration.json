@@ -1,5 +1,5 @@
 {
- "note": "Exploration only, CPU, owner session 2026-11-15. Counts are exact for the released Z1T-0 checkpoint: a unit is counted when every incoming weight and its bias are below 1e-6 in magnitude, so its noise-free output is tanh(0) = 0.",
+ "note": "Exploration only, CPU, owner session 2026-11-15. Reported counts for the released Z1T-0 checkpoint use a threshold: every incoming weight and its bias are below 1e-6 in magnitude. These are near-zero units under that threshold, not proven exact-zero units; their deterministic output is not asserted to equal tanh(0).",
  "units_dead_of_total": {
   "block0": {
    "qkv": [
@@ -100,5 +100,5 @@
   105442,
   393232
  ],
- "under_sampling_noise": "Not established. A quick check on two OpenWebText windows found no difference at three decimals between sampling these units and gating them to zero at 32, 512 and 2,048 samples; too small to report as a result."
+ "under_sampling_noise": "Not established. Even a unit with exactly zero mean has nonzero variance under finite-sample output noise, so replacing it by deterministic zero changes the stochastic model. A quick check on two OpenWebText windows found no difference at three decimals between sampling these units and gating them to zero at 32, 512 and 2,048 samples; too small to report as a result."
 }
