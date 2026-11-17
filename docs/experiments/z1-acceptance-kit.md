@@ -1,23 +1,37 @@
-# Z1 acceptance kit: protocol (draft, proposal P-0015)
+# Z1 acceptance kit: protocol (draft, proposal P-0015, round 1)
 
-Drafted on 2026-11-15 for queue row `z1-acceptance-kit`. Not frozen until
-the owner approves it; no runner exists yet. Probe:
-[`docs/research/2026-11-15-z1-acceptance-kit-probe.md`](../research/2026-11-15-z1-acceptance-kit-probe.md)
-(exploration, one sampler seed per size).
+Redrafted on 2026-11-17 against the queue row `z1-acceptance-kit` as amended
+on main (PRs #176 and #179). Not frozen until the owner approves it; no runner
+exists yet. Probes (exploration, not evidence):
+
+- round 0: [`2026-11-15-z1-acceptance-kit-probe.md`](../research/2026-11-15-z1-acceptance-kit-probe.md)
+  (reproduce-first check, beta = 4 counts, defect admission on patches);
+- review: `docs/research/z1_acceptance_kit_review_probe.py` and its JSON
+  (read correlation at beta 4, warmer temperatures);
+- round 1: [`2026-11-17-z1-acceptance-kit-probe-r1.md`](../research/2026-11-17-z1-acceptance-kit-probe-r1.md)
+  (isolated-pair and single-site tests, temperature choice, pass-rule
+  arithmetic).
 
 ## The number this study produces
 
-For each admitted defect on the nine P-0001 `greedy-long` graphs (64, 256
-and 1,024 spins, zero field, beta = 4), the study reports **the reads, and
-the writes, an acceptance test needs to detect that defect at 5 percent false
-alarm and 5 percent miss, with reads one sweep apart.** It also reports the
-smallest defect of each kind detectable within 10,000 reads. Both are read
-budgets that a test plan for a sampled array is designed against. Each count
-is validated by running the test itself on the ideal and the defective
-sampler. Means and shifts are `exact_reference`. The read correlation and
-the operating characteristic are `software_simulation`. It is a metrology
-row: there is no chip, no claim about any chip and no digital baseline to
-price.
+For each of the row's four defects, **the reads and programming writes of
+the cheapest exact test that detects it at 5 percent false alarm and 5
+percent miss**, and **the smallest defect of that kind detectable within
+10,000 reads**. Two families of test are compared on the same footing:
+
+- **simple tests**: isolated pairs (one matching of the patch, one coupler
+  per pair, pooled over pairs where the defect is shared) and single sites
+  (one bias, no couplers), with closed-form exact references;
+- **collective tests**: Kac-Ward statistics on the nine P-0001
+  `greedy-long` graphs at zero field and one chosen inverse temperature.
+
+A collective test stays in the kit only where it needs fewer reads or fewer
+programming writes than the simple test, or detects something the simple
+test cannot. The protocol says which, per defect (table below). Every
+retained test's operating characteristic is then checked by sampling.
+Means, shifts and read counts are `exact_reference`. Read correlation and
+operating characteristics are `software_simulation`. It is a metrology row:
+no chip, no claim about any chip, no digital baseline to price.
 
 ## Question
 
@@ -25,326 +39,327 @@ Which exact-answer tests on Z1-native graphs can accept or reject a sampled
 array, and how many reads does each need to detect a stated defect at stated
 error rates?
 
-- **User and decision.** A person qualifying a sampler, such as a chip
-  bring-up engineer or a later loop row, needs to decide how many reads to
-  spend before accepting an array as sampling the programmed law.
-- **Mechanism.** A defect that keeps the model a zero-field planar Ising law
-  shifts exact Kac-Ward moments. The most powerful test of a simple pair of
-  hypotheses is the log-likelihood ratio (LLR), and its read count follows
-  from exact means and variances.
-- **Falsifier.** The sampled operating characteristic misses 5 percent false
-  alarm or 5 percent miss at the predicted count, by more than the declared
-  tolerance.
+- **User and decision.** A person qualifying a sampled array decides which
+  test to run per defect and how many reads and programmings to spend.
+- **Mechanism.** Each declared defect is a fault of one coupler or one site.
+  On an isolated pair or site the two-colour heat bath draws every read
+  afresh, so reads are exactly independent and the count test has exact
+  binomial error rates. A collective graph pools many edges per read but
+  carries mixing correlation and a start-state question.
+- **Falsifier.** A retained test's sampled false alarm or miss exceeds the
+  nominal 5 percent by more than the multiplicity-corrected tolerance below.
 
 ## Hardware constraints (rule 8)
 
-Applied:
-
-- the two-colour schedule (colour A, then colour B, every sweep);
-- 16-offset placement on a planar subgraph, which uses a subset of the
-  lattice's edges and is therefore placeable;
-- coupling quantization as a defect under the constraint layer's codebook;
-- zero field;
-- no replica exchange.
+Applied: the two-colour schedule (colour A, then colour B, every sweep);
+16-offset placement (the planar subgraph and its matchings use lattice
+edges only, and every edge joins the two colours); zero field on the
+collective graphs; coupling rounding under the constraint layer's codebook;
+no replica exchange.
 
 Relaxed or assumed, and why:
 
-1. The ideal model has float couplings. It is the reference the defects are
-   measured against.
-2. Static beta jitter is not applied. The probe shows its stationary law is
-   not an Ising law, so it has no exact reference here (see the arms).
-3. Starts are full-state writes of a Néel ground state. The archived random
-   start leaves the ideal sampler unattributable at 256 and 1,024 spins
-   (probe finding 2).
-4. Planarity restricts the chip's degree-16 rule. It is required because the
-   exact reference exists only on planar graphs.
+1. The ideal model has float couplings; it is the reference.
+2. Single-site tests program a site bias. The row lifts the zero-field
+   restriction for this test only. The bias is assumed representable at the
+   declared value; a bias-scale error is indistinguishable from a gain error
+   in this test (both enter as the product beta_i h), so a failed site test
+   detects "gain times bias off nominal", not which of the two.
+3. Simple tests choose their own program (beta, coupling value, bias) inside
+   the declared ranges: beta in [0.5, 4], |J| at most the cap 1. The
+   collective tests use the archived couplings at the chosen beta.
+4. Planarity restricts the chip's degree-16 rule; the exact collective
+   reference exists only on planar graphs. On the full degree-16 lattice a
+   matching scan needs 16 programmings, a planar cover at least three.
 
 ## Resource accounting (rule 9)
 
-Every test reports:
+Every test reports elapsed sweeps (burn-in included), full-array reads,
+node reads, programming writes (one per coupling and bias configuration)
+and state writes (one per chain start). Simple tests need no state write:
+an isolated pair or site forgets its start after one sweep (checked by
+enumeration). No joules are projected; this is not a task row.
 
-- elapsed sweeps, including burn-in;
-- full-array reads and node reads (N per full read, 1 per single-site read);
-- writes: one coupling-programming write per model and one state
-  initialization write per chain.
+## Defects and their kernels
 
-Projected joules are not reported. This is not a task row, so the standing
-task-row pricing rules do not apply, and no conventional baseline is priced.
-The exact reference itself is the "digital" side: one Kac-Ward evaluation
-takes about 14 CPU-seconds at 1,024 spins.
+All defects use the two-colour heat bath, P(s_i = +1) = sigmoid(2 beta g_i
+h_i), with ideal gain g_i = 1.
 
-## Model, representation, update and estimator
+- **Rounding.** Every coupling replaced by `quantize_array(J, 1.0, bits)`
+  (the `full` cap). Computed at 4, 5, 6, 7, 8, 9, 10, 11 and 12 bits. 5 and
+  9 bits are exact on the weights {1..5}/5 and carry no defect.
+- **Missing coupling.** One coupler reads 0 whatever is programmed.
+- **Stuck p-bit.** One site never changes value. Two behaviours, both
+  covered by the single-site test: it ignores writes (reads a constant), or
+  it accepts a write and never updates. An isolated unbiased ideal site
+  resamples a fair coin every sweep from any start, so both behaviours read
+  a constant where the ideal site does not. No random start is needed, and
+  none is relied on.
+- **Static beta variation.** One site's gain is 1 + delta, delta = ±0.1 or
+  ±0.3 (the extremes of the declared spread). Only the single-site test has
+  an exact reference. The collective graph has none (the stationary law with
+  site gains is not an Ising law; round-0 probe finding 7), and the pair
+  product sees only the colour-B site's gain (enumerated check).
 
-- **Intended model.** Zero-field Ising on each target's graph, with the
-  archived couplings and beta = 4.
-- **Representation.** The same couplings after the defect. Rounding uses
-  `thermo_lab.constraints.quantize.quantize_array` with the `full` cap (1.0),
-  delegating to M5b `round_parameters` at 4, 6 and 8 bits. A missing
-  coupling sets one J to 0. A stuck p-bit pins one site.
-- **Actual update.** Parallel heat bath on colour A, then on colour B, with
-  P(s_i = +1) = sigmoid(2 beta h_i), the archived sampler's convention.
-- **Estimator.** The test statistic averaged over n reads, compared with a
-  threshold fixed from the ideal model's exact moments.
+## Chosen temperature for the collective tests
 
-## Fixed choices and what they bound
+Rule (amendment item 1), fixed in the round-1 probe before its sampling:
+among betas evaluated on all nine graphs whose random-start bias passes
+(|z| ≤ 3.5 for energy and both rounding LLRs on every graph, after 512
+burn-in sweeps), take the beta minimising the largest ratio, over graphs and
+over the 6- and 8-bit rounding LLR tests, of sweeps per test (512 + reads ×
+scatter ratio) to that graph's best over its own grid.
 
-- **Graphs: the nine `greedy-long` targets of P-0001** (seeds 4510 to 4512;
-  L = 8, 16, 32), rebuilt from seed. The paired grids are not targets.
-  *Bounds:* missing-edge detectability, through local degree.
-- **beta = 4**, the only archived temperature. Ordinary Gibbs qualified
-  there at 64 spins in the archive. *Bounds:* detection power. No 8-bit
-  defect is detectable within 10,000 reads at any size (probe finding 3).
-  Not varied.
-- **Start: flip-symmetric Néel.** Even-numbered chains start in one ground
-  state and odd-numbered chains in the other. There are 256 burn-in sweeps
-  before the first read. *Bounds:* mixing error (probe bias ≤ 1e-6 per spin,
-  autocorrelation ≤ 1.29 sweeps). Flip symmetry keeps the stuck-spin test
-  exact.
-- **Read spacing: one sweep.** Read counts are multiplied by the measured
-  integrated autocorrelation of each statistic on the ideal model.
-- **Error rates: 5 percent and 5 percent, one-sided** (the defect hypothesis
-  is simple). Read limit 10,000.
-- **Statistics:**
-  - energy per spin with the nominal couplings;
-  - each edge product, both at a known location and scanned over all edges
-    with Bonferroni-corrected false alarm;
-  - the defect's LLR, which for a missing coupling is its own edge product;
-  - for a stuck p-bit, one site's value across independent chains, at a
-    known site and scanned over all sites.
-- **Codebook.** The `full` cap 1 on weights {1..5}/5. *Bounds:* bit
-  monotonicity. 5 and 9 bits are exact on this alphabet, so they are
-  secondary rows with zero defect.
+**Chosen: beta = 0.6.** Both betas run on all nine graphs (0.5 and 0.6)
+passed the bias check (largest |z| 2.5). The largest regret was 1.19 at 0.6
+and 1.40 at 0.5. That margin is close to the sampling error of the scatter
+ratios (relative standard error 9 to 13 percent), so 0.5 would serve almost
+as well; the rule, not a judgement, picks 0.6. Colder betas lost where they
+were run: at 0.75 the 8-bit LLR scatter ratio is 1.96 to 6.42 at 64 and 256
+spins (3.5 to 9.8 at 1,024 in the review probe), and at 2.0 the
+random-start bias fails at 64 spins (z = −4.8 and −4.5). A second-seed
+check at 0.6, two consecutive test windows per graph, gave 8-bit LLR
+scatter ratios of 1.25 to 1.99 in both windows and no chain-level outlier
+beyond what 128 to 256 normal chain means produce (largest |z|/sqrt(r)
+3.66). Rare slow states below about one chain in 256 are not excluded by
+the probe. New exact references at
+beta = 0.6 are computed for all nine graphs. Beta = 4 is used only for
+the reproduce-first check of the 18 P-0001 references.
 
-## Pre-registered expectations (from the probe)
+Read correlation (amendment item 2) is the scatter ratio: the variance
+across independent chains of the mean of a window of reads at the test
+length, times the window length, over the exact per-read variance. It is
+measured on every graph, for each retained statistic, at that statistic's
+own test length. It is not a short-window estimate.
 
-1. All 18 P-0001 references reproduce bitwise.
-2. LLR read counts at independent reads match the probe's table to the
-   printed digits. 4-bit: 34 to 46 reads at 1,024 spins. 6-bit: 1,889 to
-   3,021 reads at 1,024 spins. 8-bit: above 10,000 at every size.
-3. The smallest rounding defect detectable within 10,000 reads is 4 bits at
-   64 spins and 6 bits at 1,024 spins. At 256 spins it is 6 bits on two of
-   three targets.
-4. Of the edges at 64 spins, 40 to 50 percent can go missing detectably
-   within 10,000 reads at a known location. The share is no higher at 1,024
-   spins.
-5. Stuck p-bit: 5 or 6 reads at a known site, and 12, 14 and 16 reads
-   scanning all sites, with zero miss.
-6. Every sampled test passes its operating-characteristic check, and the
-   ideal sampler's energy bias at 10,000 reads is within 3 standard errors
-   of zero.
+## Which test each defect gets (from the round-1 probe)
 
-## Exact anchor and evidence classes
+Reads are for independent reads at 5 percent false alarm and 5 percent
+miss. Simple-test reads are exactly independent. Collective counts are
+multiplied by the measured scatter ratio before use (n*).
 
-The anchor is the Kac-Ward determinant on the explicit embedding, imported
-unchanged from `planar_16_offset_ferro`. A zero coupling is handled by
-dropping the edge (the graph stays planar). Its own correlation is
-d ln Z / dK_e at 0, by central difference.
+| Defect | Simple test: reads, programming writes | Collective test at beta 0.6 | In the kit |
+| --- | --- | --- | --- |
+| Stuck p-bit (either behaviour) | Unbiased isolated site: 6 at a known site; 12, 14, 16 scanning 64, 256, 1,024 sites. 1 programming, 0 state writes | Same counts, but every read is a fresh chain: a state write, 512 burn-in sweeps and a fair-coin start each | Simple only |
+| Gain error ±10 percent | Biased site at the best beta h: 2,239 (−10) and 2,751 (+10) at a known site; 6,278 and 7,878 scanning 1,024 sites. 1 programming | No exact reference | Simple only |
+| Gain error ±30 percent | 199 and 368 at a known site; 543 and 1,077 scanning 1,024 sites | No exact reference | Simple only |
+| Missing coupling, location known | Pair at \|J\| = 1, beta 4: 5 reads, 1 programming | Own edge: 35 to 928 reads (64 and 256 spins) | Simple only |
+| Missing coupling, location unknown | 8 reads per matching, 7 to 9 matchings: 56 to 72 reads, 7 to 9 programmings | All edges at once: 1,906 to 2,444 reads, 1 programming (64 and 256 spins; 1,024 left to the runner) | Both: simple for reads, collective for writes |
+| Rounding, 8 bits | Matching at weight 0.2, beta 4: 238, 955, 3,788 reads at 1,024, 256, 64 spins. 1 programming | LLR: 3,738 to 3,785 at 1,024 spins (scatter 1.35 to 1.61), 15,288 to 16,317 at 256, 73,881 to 83,235 at 64 | Simple only |
 
-For all edges of a target, the study computes these from one inverse per
-target with a rank-2 determinant update. On 20 declared edges per target the
-update is checked against direct evaluation, to 1e-9.
+So the collective Kac-Ward test stays for one case only: scanning for a
+missing coupling at an unknown location with one programming write instead
+of 7 to 9, at about 30 times the reads. It sees nothing declared that the
+simple tests miss. What only a collective test could see is the update
+process (stale neighbour reads, colour order). The row does not declare
+those defects, and this protocol does not add them.
 
-Per-read variances are second derivatives of ln Z along the defect
-direction. The finite-difference check against brute force on 4 x 4 patches
-must pass to a relative 1e-6.
+## Pre-registered expectations (from the probes)
 
-Before any sampling, two checks run on an enumerated 12-spin patch:
+1. All 18 P-0001 references reproduce bitwise at beta = 4.
+2. Simple-test counts match the round-1 probe JSON exactly (they are closed
+   form): stuck p-bit 6 reads at a known site and 12, 14, 16 scanning all
+   sites; missing coupling 5 reads at a known coupler and 8 reads per
+   matching (7 to 9 programmings) scanning; 10 percent gain error 2,239 and
+   2,751 reads at a known site; 8-bit rounding 238 reads at 1,024 spins.
+3. The smallest defect detectable within 10,000 reads, over every depth
+   computed (4, 6, 7, 8, 10, 11 and 12 bits; 5 and 9 carry no defect):
+   - rounding: 8 bits at every size with the pooled pair test. 10, 11 and 12
+     bits need 12,572, 15,509 and 61,981 reads at 1,024 spins. The
+     collective LLR at beta 0.6 reaches 8 bits at 1,024 spins, 7 bits at
+     256 and 6 bits at 64 in independent reads (the 7-bit scatter ratio is
+     not yet measured);
+   - gain error: a positive delta of 5.1 percent at a known site, and 7.6,
+     8.3 and 8.8 percent scanning 64, 256 and 1,024 sites;
+   - missing coupling: every coupler (pair test);
+   - stuck p-bit: both behaviours, at any site.
+4. Every sampled check passes its operating-characteristic rule, and every
+   collective target passes its attribution check at beta = 0.6.
 
-- the stuck-spin conditional law and odd identity, to 1e-10;
-- the beta-variation non-Ising residual. Its fit residual must exceed 1e-4
-  at ±10 percent, or beta variation is reconsidered and the run stops for
-  the owner.
+## Exact anchors and evidence classes
+
+- Simple tests: closed-form two-state laws. P(pair product = sign J) =
+  sigmoid(2 beta |J|); P(site = +1) = sigmoid(2 beta g h); a free unbiased
+  site is a fair coin per read. Independence of consecutive reads under the
+  two-colour sweep is checked by enumerating the two-site chain, to 1e-12.
+  Counts use exact binomial error rates; pooled pairs are independent
+  trials because the pairs are disconnected.
+- Collective tests: the Kac-Ward determinant on the explicit embedding,
+  imported unchanged from `planar_16_offset_ferro`. A missing edge's
+  correlation is d ln Z / dK_e at 0 by central difference; all edges by
+  rank-2 update, checked against direct evaluation on 20 declared edges per
+  target to 1e-9. Per-read variances are second differences of ln Z,
+  checked against brute force on a 4 x 4 patch to a relative 1e-6.
 
 Means, shifts, per-read variances and independent-read counts are
-`exact_reference`. Counts under the normal approximation are labelled as
-such. Autocorrelations, sampled means and operating characteristics are
+`exact_reference`; normal-approximation counts are labelled as such.
+Scatter ratios, sampled means and operating characteristics are
 `software_simulation` (NumPy float64, CPU). Nothing runs on hardware.
 
-## Arms and controls
+## Arms and sampled checks
 
-- **Control:** the ideal model, with sampled false alarm measured at every
-  test's read count and threshold.
-- **Rounding:** 4, 6 and 8 bits. Exact secondary rows at 5, 7, 9, 10 and 12
-  bits, not sampled.
-- **Missing coupling:** every edge of every target, exact. Sampled on three
-  declared edges per target, chosen among edges detectable within 10,000
-  reads at a known location: the cheapest, the median and the dearest. If
-  fewer than three exist, all of them are sampled.
-- **Stuck p-bit:** every site, exact. Sampled with site 0 and the centre
-  site (L/2, L/2) pinned at +1, on the scan-over-all-sites test.
-- **Excluded:** static per-site beta variation of 10 and 30 percent. There
-  is no exact reference at 64 spins or more (probe finding 7). It is
-  reported as excluded, with the patch evidence, and no simulated substitute
-  is labelled exact.
+- **Simple tests** (run on the same two-colour kernel code, with all other
+  couplers off): stuck p-bit at a known site and scanning 1,024 sites; gain
+  error ±10 and ±30 percent at a known site, at the probe's best beta h;
+  missing coupling at a known coupler and one scanned matching at 1,024
+  spins; rounding at 4, 6, 7 and 8 bits pooled over a 1,024-spin matching at
+  the probe's best (beta, weight). 12 checks, 1,000 replicates each.
+- **Collective missing coupling** at beta = 0.6, as the scan over every
+  edge with Bonferroni false alarm 0.05 / E: per target, three declared
+  edges among those the scan detects within 10,000 reads (cheapest, median
+  and dearest by n*, where n* uses the scatter ratio of that edge's own
+  product). 27 checks, 1,000 replicates, ideal chains shared across the
+  three edges of a target. The ideal side measures the family-wise false
+  alarm of the whole scan.
+- **Control**: the ideal model, with false alarm measured at every check's
+  read count and threshold.
+- **Excluded**: collective tests for rounding, stuck p-bit and gain error
+  (the simple test needs fewer reads and no more writes, or the collective
+  test has no exact reference).
+
+The predicted count n* for a collective check is the independent-read count
+times that statistic's scatter ratio on the ideal model at that length,
+rounded up. Simple checks use the exact count (scatter ratio 1 by
+construction; measured anyway and reported).
 
 ## Primary decision rule (fixed in advance)
 
-The predicted count n* for a (target, defect, statistic) triple is the
-independent-read count multiplied by the ideal model's measured integrated
-autocorrelation of that statistic, rounded up. Each triple with n* ≤ 10,000
-is run as 400 replicate tests on fresh chains, with the threshold set from
-exact ideal moments. A triple **passes** if the ideal sampler rejects in at
-most 31 of 400 replicates and the defective sampler rejects in at least 369
-of 400. That is about 2.3 binomial standard deviations each way; the
-one-sided risk of a wrong failure is about 1 percent per check.
+Number of sampled checks m = 39, each tested on two sides. Per side the
+tolerance is Bonferroni at 0.05 / (2m), so the chance that any correctly
+calibrated check fails by luck is at most 5 percent over the whole study
+(amendment item 5). Every check has 1,000 replicates, and a check fails if
+the ideal sampler rejects in more than 74 of them or the defective sampler
+in fewer than 926.
+The family-wise false-failure bound is 3.2 percent. These thresholds still
+flag a test whose true false alarm is 10 percent with probability 0.997,
+and one at 8 percent with probability 0.74. At 400 replicates the same
+multiplicity would give thresholds of 35 and 365 and only 0.77 power at 10
+percent, which is why 1,000 are used. The round-0 rule (31 and 369 of 400
+per check, about 54 checks) had a 30 percent chance of at least one false
+failure on the false-alarm side alone and 52 percent on both sides.
 
-Before any test runs, an **attribution check** is applied per target: the
-ideal sampler's energy-per-spin mean over 400 chains × 10,000 reads must lie
-within 3 standard errors of the exact value. A target that fails is
-unattributable. Its tests are reported but do not count.
-
-Device error and mixing error are reported apart for every target:
-
-- device error is the exact shift;
-- mixing error is the ideal sampled mean minus the exact mean, with its
-  standard error.
+**Attribution check** per collective target, before its checks count: the
+ideal sampler's mean of each tested statistic, pooled over its replicates,
+must have an upper confidence bound on |bias| (at 0.05 / 9) no larger than
+0.05 times the smallest admitted shift of that statistic on that target. A
+bias of that size moves a 5 percent false alarm to at most 6.9 percent at
+n*. This replaces the round-0 "within 3 standard errors, no margin" rule.
+The pooled ideal replicates give a standard error of about 0.01 sqrt(r)
+times the shift (r the scatter ratio), so the bound is reachable for r up
+to about 4 when the bias is near zero; a larger r leaves the target
+unattributable for lack of precision, and the report says which cause.
+A target that fails is unattributable; its checks are reported and do not
+count. Device error (exact shift) and mixing error (ideal sampled mean minus
+exact, with its standard error) are reported apart for every target.
 
 Row verdict, one of three sentences:
 
-- **The kit holds** if every target passes the attribution check and every
-  triple with n* ≤ 10,000 passes.
-- **The kit holds except for named triples** if every target passes the
-  attribution check and some triples fail. Each failure is named with its
-  false-alarm and detection counts.
-- **The kit is not attributable at size L** if any target of size L fails
-  the attribution check.
-
-The headline per defect is n* for the best passing statistic, with its reads
-and writes. Defects with n* above 10,000 are reported as "not detectable
-within 10,000 reads" from the exact count and are not sampled.
+- **The kit holds**: every collective target is attributable and every
+  check passes.
+- **The kit holds except for named checks**: each failure named with its
+  rejection counts.
+- **The collective test is not attributable at size L**: a target of that
+  size fails attribution. The simple tests are unaffected.
 
 ## What one recorded sample means
 
-One read is the full array after one complete two-colour sweep, with
-nothing averaged inside the read. One replicate test uses n consecutive
-reads from one chain, after 256 burn-in sweeps. The stuck-spin test is the
-exception: it uses one read from each of n independent chains. Replicate
-tests, not reads, are the replication unit for operating characteristics.
+One read is the full array after one complete two-colour sweep. A simple
+replicate test uses n consecutive reads after one sweep from an arbitrary
+start (no burn-in needed; the enumerated check shows the first full sweep
+already gives the stationary law). A collective replicate test uses n
+consecutive reads from one chain after a random start and 512 burn-in
+sweeps. Replicates, not reads, are the replication unit.
 
 ## Seeds
 
-Graph and coupling seeds 4510, 4511 and 4512 are fixed by the row, as
-reproduced from P-0001. They are target identities, not sampler seeds. The
-sampler root is 20261116 (fresh; the probe used 20261115 plus the size),
-folded with target, model and replicate.
+Graph and coupling seeds 4510, 4511, 4512 are target identities. Sampler
+root 20261118 (fresh; the probes used 20261115, 20261117 and the review's
+seeds), folded with arm, target, model and replicate.
 
 ## Budgets and CPU estimate
 
-The estimate is scaled from probe timings (about 45 µs per chain-sweep at
-1,024 spins; Kac-Ward 3.5 s for ln Z and 14 s with correlations).
+Scaled from round-1 timings (42.7 µs per chain-sweep at 1,024 spins; Kac-Ward
+13.6 s with correlations, 2.8 s for ln Z alone).
 
-Exact part, about 25 CPU-minutes:
+- Exact part, about 20 CPU-minutes: references at beta 4 and 0.6;
+  every missing edge by rank-2 update with direct checks; simple-test
+  tables.
+- Simple sampled checks: under 2 CPU-minutes.
+- Collective sampled checks: about 45 CPU-minutes, mostly the 1,024-spin
+  targets (1,000 replicates × (512 + n*) sweeps per model, n* about 2,000
+  to 4,000, one ideal and three defect models per target).
+- Replay: about 10 minutes, no sweeps.
 
-- references, 3 min;
-- rounding with variances, about 15 min;
-- every missing edge by rank-2 update, plus direct checks, about 8 min.
-
-Sampled part, at most about 90 CPU-minutes:
-
-- per 1,024-spin target, about 20 min: ideal chains for 10,256 sweeps × 400,
-  defect chains for at most 10,256 sweeps × 400 each, and stuck tests;
-- 256-spin targets about a quarter of that, 64-spin targets about 1/16.
-
-Replay: about 10 min (exact recomputation and statistics; no sweeps).
-
-**Total about 2 CPU-hours**, about 45 min wall with three workers. Under the
-8 CPU-hour flag. Peak memory about 0.3 GiB per worker for the 1,024-spin
-inverse.
+**Total about 1.3 CPU-hours**, about 30 min wall with three workers. Peak
+memory about 0.3 GiB per worker.
 
 ## Autosave and resume
 
-The run is over 30 minutes, so it follows the autosave contract in
-`docs/experiment-runner.md`. The work unit is one (target, model) group:
-its exact rows, or its sampled replicate statistics and rejection counts.
-Each unit is written atomically under `units/` with a digest in a unit
-index. `--resume` re-authenticates the request and sources, verifies every
-completed unit and runs only the missing ones.
-
-Interruption test: kill after at least one sampled unit, resume, and
-require bitwise equality with an uninterrupted run of the same small
-request.
+Over 30 minutes, so it follows the autosave contract in
+`docs/experiment-runner.md`. The work unit is one (arm, target, model)
+group. Units are written atomically under `units/` with a digest index.
+`--resume` re-authenticates the request and sources, verifies every
+completed unit and runs only the missing ones. Interruption test: kill after
+at least one sampled unit, resume, require bitwise equality with an
+uninterrupted run of the same small request.
 
 Resume command:
 `uv run python -m thermo_lab.z1_acceptance_kit --output-dir results/z1-acceptance-kit --resume`.
 
 ## Persistence and archive size
 
-The archive holds:
-
-- the request, graph edge lists and references;
-- exact tables for every defect and statistic, with every missing edge's
-  c0, c1 and its known and scanned counts;
-- per sampled unit: the 400 replicate statistic values (float32) and
-  rejection counts, the ideal prefix means at each declared n, and
-  autocorrelation estimates;
-- summaries and decisions.
-
-No sweep traces. Estimated at under 1 MB gzipped. Above 4 MB, the run
-completes but the executor does not commit the archive and asks the owner.
+Request, graph edge lists, references, simple-test tables, collective exact
+tables (every missing edge's c0, c1 and counts), per sampled unit the
+replicate statistics (float32), rejection counts and scatter ratios, and
+the decisions. No sweep traces. Estimated under 1 MB gzipped; above 4 MB the
+executor does not commit and asks the owner.
 
 ## Gate
 
 `uv run python -m thermo_lab.z1_acceptance_kit --output-dir results/z1-acceptance-kit`.
-`completion.json` is written last, after a full replay, and must show:
-
-- `status=z1_acceptance_kit_complete`;
-- `targets=9` and `references_reproduced=18`;
-- `rounding_rows=27`;
-- `missing_edges_exact` equal to the summed edge count of the nine targets;
-- `stuck_sites_exact` equal to the summed site count (4,032);
-- `sampled_triples` equal to the declared count;
-- `attribution_checks_passed`, `reference_checks_passed`,
-  `patch_checks_passed` and `replayed`, all `true`.
-
-CPU only, single-thread BLAS. CI replays the archive only.
+`completion.json` is written last, after a full replay, and must show
+`status=z1_acceptance_kit_complete`, `targets=9`, `references_reproduced=18`,
+`chosen_beta=0.6`, `simple_checks=12`, `collective_checks=27`,
+`missing_edges_exact` equal to the summed edge count of the nine targets,
+and `attribution_checks_passed`, `reference_checks_passed`,
+`patch_checks_passed`, `enumeration_checks_passed` and `replayed`, all
+`true`. CPU only, single-thread BLAS. CI replays the archive only.
 
 ## Stop rules
 
-- A reference, rank-2, finite-difference or patch check fails: stop before
-  sampling and report. No tolerance is loosened.
-- A unit fails to verify on resume: rerun only that unit. If it fails
-  twice, stop and report.
+- A reference, rank-2, finite-difference, patch or enumeration check fails:
+  stop before sampling and report. No tolerance is loosened.
+- A unit fails to verify on resume: rerun only that unit; twice, stop.
 - Wall time above 2x the estimate: checkpoint and report.
 - Archive above 4 MB: do not commit; ask the owner.
-- No defect, edge, statistic, threshold or seed is added or removed after
+- No defect, edge, statistic, threshold, temperature or seed changes after
   seeing results.
 
 ## Advance, stop or unresolved
 
-- **Advance:** "the kit holds". The read budgets become a reference for
-  scoring a sampled array on these graphs at beta = 4. A later row could
-  ask the same at a temperature with more information per read; this row
-  does not.
-- **Stop:** the kit is not attributable at a size. That size's budgets
-  are withdrawn, and the start design goes back to the owner.
-- **Unresolved:** some triples fail. The normal approximation or the
-  autocorrelation correction is wrong for them, and their read counts need
-  empirical calibration before use.
+- **Advance:** the kit holds. The per-defect table becomes the reference
+  for testing a sampled array: simple tests for the defects they win, the
+  collective test where it is retained.
+- **Stop:** the collective test is not attributable at a size. Its budgets
+  at that size are withdrawn; the simple tests stand.
+- **Unresolved:** named checks fail; those counts need empirical
+  calibration before use.
 
 ## What a negative result means
 
-A failed triple means the exact-moment read count does not deliver the
-stated error rates for that statistic on this sampler. That is a statement
-about the test design at beta = 4 on these planar graphs, not about any
-defect's physics or any chip. An unattributable size means the ideal
-two-colour sampler, even from a ground-state start, does not hold the exact
-law to the needed precision there. No test at that size can then be scored.
-None of this covers frustrated targets, the non-planar degree-16 lattice,
-static beta variation, or hardware.
+A failed check means the exact count does not deliver the stated error
+rates for that test on this simulated sampler. For a simple test that would
+point at the runner or the kernel code, since its law is closed form. For a
+collective test it is a statement about mixing at beta = 0.6 on these
+planar graphs. None of it is about any chip, frustrated targets, the full
+degree-16 lattice, or update-process defects (stale reads, colour order),
+which only a collective test could see and which the row does not declare.
 
 ## Evidence obligations
 
-From the dated index `loop/evidence-obligations.json` (checked
-2026-11-11), reconciled against the current main snapshot:
-
-- EO-001, EO-002, EO-004 (rounding-rule literature and transfer): do not
-  apply. This row uses nearest rounding as a defect, not as a lever.
-- EO-003 (adsorption unpowered read allocation lesson): adjacent, still
-  open, not closed here. This protocol powers its own read counts, but the
-  owed lesson concerns the adsorption probe and needs a documentation
-  author. Closure evidence: missing.
-- EO-005 (amendment 1 evaluation): open and unaffected.
-
-The row's source card `extropic-thermalizers` exists. It covers the
-Thermalizers paper, not acceptance testing, and supports no claim here
-beyond the kernel convention.
+From `loop/evidence-obligations.json`, reconciled against the current main
+snapshot: EO-001, EO-002, EO-004 do not apply (rounding is a defect here,
+not a lever). EO-003 (adsorption read-allocation lesson) is adjacent and
+stays open; closure evidence missing. EO-005 (amendment 1 evaluation) is
+open and unaffected. Source card `extropic-thermalizers` exists and supports
+nothing here beyond the kernel convention.
