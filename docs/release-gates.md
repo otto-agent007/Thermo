@@ -1072,6 +1072,66 @@ JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
 
 The values of b\*, b_stable and the recommended rule do not gate.
 
+## Z1 acceptance kit
+
+Follow the [frozen protocol](experiments/z1-acceptance-kit.md), CPU only,
+single-thread BLAS (the runner refuses to run or replay without it), a
+fresh output directory and three workers. The run takes about 2 h 15 min
+(5.7 CPU-h), so it autosaves every exact, calibration and sampled unit to
+`units/` with a digest index:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen python -m thermo_lab.z1_acceptance_kit \
+  --output-dir results/z1-acceptance-kit-new --workers 3
+# after an interruption, the same command with --resume
+uv run --frozen pytest tests/unit/test_z1_acceptance_kit.py
+```
+
+`--resume` re-authenticates the request and every source by SHA-256,
+verifies each unit and runs only the missing ones. The interruption test
+stops a small run after six units, resumes it and requires a record equal
+to an uninterrupted run, with bitwise-equal statistics.
+
+Before sampling, the runner stops if any of these fail:
+
+- the 18 P-0001 references must reproduce from the archive within 1e-9
+  (all 18 were bitwise in the recorded run);
+- `planar_16_offset_ferro.reference_checks`;
+- the rank-2 missing-edge correlations against a direct evaluation on 20
+  declared edges per target and beta (1e-9);
+- the central-difference check (1e-4);
+- brute force on 18 small 16-offset patches (1e-9);
+- the enumerated two-site chain (1e-12).
+
+Completion requires:
+
+- `status=z1_acceptance_kit_complete`, `targets=9`,
+  `references_reproduced=18`;
+- `chosen_beta` with `candidate_betas=[0.5, 0.6, 0.75]`,
+  `scan_quantile="student_t_127"`, `attribution_limit=0.065` and
+  `gain_spread_count="draw_averaged_monte_carlo"`;
+- `calibration_seed_root_disjoint=true`, `simple_checks=14`,
+  `collective_checks=27` and `missing_edges_exact=23136`;
+- `attribution_checks_passed`, `reference_checks_passed`,
+  `rank2_checks_passed`, `patch_checks_passed`,
+  `enumeration_checks_passed` and `replayed` all `true`.
+
+The full replay runs no sweeps. It recomputes the checks, every exact c0
+and c1, the simple-test tables (including the Monte Carlo counts) and every
+scan statistic, bootstrap, decision and the verdict from the units. Floats
+compare at 2e-12 relative, or bitwise with `THERMO_ARCHIVE_HOST=1`. CI
+replays the bounded archive: digests, rejection counts, n_scan from the
+stored ratios and exact tables, attribution bounds and decisions:
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run --frozen pytest tests/unit/test_z1_acceptance_kit.py -k committed
+```
+
+The chosen beta, the scan lengths, the 10,000-read fit, the check outcomes
+and the row verdict do not gate.
+
 ## Changing evidence and causal restart policy
 
 Use the [frozen protocol](experiments/changing-evidence.md), a fresh directory,
