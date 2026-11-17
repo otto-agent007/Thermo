@@ -9,7 +9,12 @@ calibration before use. **Operating point to use for a missing coupling at
 an unknown location: the simple matching scan** (8 reads per matching, 7 to
 9 programmings, 56 to 72 reads in total; sampled check 3 and 955 of 1,000).
 The other 38 of 41 sampled checks pass, all 14 simple checks included, and
-all nine collective targets are attributable.
+all nine collective targets are attributable. A post-run fresh-chain check
+(exploration, `software_simulation`, one seed; PR #174, 2026-11-17 20:36
+UTC) traces the L16 s4510 excess to its 128-chain calibration ratios: 6.0
+% false alarm on 2,000 fresh chains with the archived ratios, 2.9 % with
+fresh ratios. The verdict stays a failure. Calibrating from 128 chains is
+a limitation of this kit (findings).
 
 Two assumptions change how this headline reads (protocol rule 8, items 2
 and 4; all four are listed below). The 7 to 9 programmings hold on the

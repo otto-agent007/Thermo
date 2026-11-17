@@ -88,7 +88,19 @@ Post-hoc diagnostic, not a frozen statistic: its 76 false alarms fall on 63
 distinct edges, led by edges whose calibration ratio sits below the median
 (0.73, 0.66 against 1.16). That fits scatter ratios underestimated by the
 128-chain calibration noise on some edges, which the t(127) quantile
-corrects only on average. This run does not test that explanation.
+corrects only on average. The study run did not test that explanation. A
+separate check did, after the run (PR #174 comment of 2026-11-17 20:36 UTC,
+[issuecomment-6960287740](https://github.com/otto-agent007/Thermo/pull/174#issuecomment-6960287740);
+exploration, `software_simulation`, one seed, not part of the archive). On
+2,000 fresh ideal chains on L16 s4510 at the archived n_scan of 6,615, the
+scan's family-wise false alarm was 121 of 2,000, 6.0 percent (95 percent
+interval 5.0 to 7.2), with the archived 128-chain ratios. It was 57 of
+2,000, 2.9 percent (2.2 to 3.7), with ratios estimated from the fresh
+chains. The excess therefore follows this target's calibration set, not a
+bias in the sampler's means, which agrees with the attribution bound of
+0.053. The study's 7.6 percent sits above 6.0 percent with overlapping
+intervals, so part of the 76 is sampling variation. The archived verdict is
+unchanged: 76 of 1,000 against a limit of 74 is a failure.
 
 Device error and mixing error are reported apart for every declared edge:
 exact shifts of 0.095 to 0.461 against ideal sampled-mean errors of at most
@@ -251,6 +263,15 @@ collective result is specific to these archived couplings (weakest |J| =
 0.2), zero field, planar subgraphs and beta 0.5. It does not cover
 frustrated targets, the full degree-16 lattice, or update-process defects
 (stale reads, colour order), which the row does not declare.
+
+The scan's calibration has a limit. The t(127) quantile corrects the
+scan's false alarm on average over calibration sets, and one set of 128
+chains can still put a target above 5 percent: L16 s4510 ran at 6.0
+percent on fresh chains with its archived ratios (post-run check above,
+exploration). Every collective n_scan here rests on one 128-chain set. A
+rerun of this kit would need a larger calibration set; the post-run check
+suggests about 1,500 chains at the chosen beta, which this study did not
+test.
 
 ## Archive
 
