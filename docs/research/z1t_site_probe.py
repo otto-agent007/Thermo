@@ -23,11 +23,25 @@ the same noise keys:
 Every count is an exact binomial draw (a fast sampler up to 256, the library one above).
 The sample budget of a configuration is sum over sites of units x count, per token.
 
+Part C, normalisation layers (--norms both). A DyT layer is g * tanh(a * x) + b: a tanh of one
+input, so on Z1 it is a sampled unit of fan-in 1 like any other, and the affine g, b is applied
+off-chip or folded into the next layer's weights (the noise is the same either way). The
+default leaves the DyT layers (n1 and n2 in each block and one final, nine in Z1T-0)
+noise-free, as z1t_noise_finetune.py does. With --norms both, every uniform and grid
+configuration is also run as a twin named <config>_norms, in which each DyT tanh is an exact
+sample mean at the
+count of the site it feeds (n1 as qkv, n2 as p1, the final one, which feeds the readout, as
+p2), plus one configuration per DyT layer with only that layer noisy. The twins are the
+reading under which the Z1T post's 25 sequential sampling layers and its 8.74 nJ of sampling
+(21,008 sampled outputs at width 512) re-derive; the post does not say so in words. Noise
+keys of the four projection sites are the same in a configuration and its twin.
+
 Run (same inputs as z1t_noise_finetune.py, which must sit next to this script):
   python z1t_site_probe.py --repo sparse-transformers --weights model.eqx \
       --config config.json --tokenizer tokenizer.json --owt owt100k.parquet \
       --run run_n32 --out run_n32/site_probe
-Evidence class: software_simulation. Not modelled: dy4p input noise, 4-bit weights, analog error.
+Evidence class: software_simulation. Not modelled: dy4p input noise, 4-bit weights, analog
+error, and (without --norms both) sampling of the DyT layers.
 """
 
 import argparse
@@ -42,6 +56,8 @@ import z1t_noise_finetune as ft  # noqa: E402
 
 SITES = ("qkv", "out", "p1", "p2")
 INTERNAL, WRITING = ("qkv", "p1"), ("out", "p2")
+NORMS = ("n1", "n2", "final")  # DyT layers: n1 and n2 once per block, final once per model
+FEEDS = {"n1": "qkv", "n2": "p1", "final": "p2"}  # whose sample count a DyT takes in a twin
 
 
 def parse():
@@ -55,6 +71,12 @@ def parse():
     p.add_argument("--N", type=int, default=32)
     p.add_argument("--internal-Ns", default="1,4,32")
     p.add_argument("--writing-Ns", default="32,128,512,2048")
+    p.add_argument(
+        "--norms",
+        choices=("off", "both"),
+        default="off",
+        help="both: also run every noisy configuration with the DyT layers sampled",
+    )
     p.add_argument("--seq", type=int, default=256)
     p.add_argument("--eval-windows", type=int, default=32)
     p.add_argument("--eval-seeds", type=int, default=2)
@@ -136,6 +158,22 @@ def execute(args, session):
     def rms(x):
         return jnp.sqrt(jnp.mean(x * x))
 
+    def six(y):
+        a = jnp.abs(y)
+        return jnp.stack(
+            [a.mean(), (1 - y * y).mean(), (a > 0.9).mean(), (a > 0.99).mean()]
+            + [(a < 0.05).mean(), rms(y)]
+        )
+
+    def norm(p, x, key, n):
+        """DyT with its tanh as a sampled unit of fan-in 1 (n None = noise-free = M.dyt).
+        Returns the layer output and statistics of the noise-free tanh values."""
+        t = jnp.tanh(jnp.exp(p["la"]) * x)
+        clean = p["g"] * t + p["b"]
+        aux = jnp.stack([jnp.mean(p["g"] ** 2 * (1 - t * t)), rms(clean)])
+        out = clean if n is None else p["g"] * sample_mean(key, t, n) + p["b"]
+        return out, six(t), aux
+
     def forward(params, x0, key, ns):
         """Same arithmetic as ft.build_model's block, with a sample count per site (None =
         noise-free) and activation statistics of the noise-free values."""
@@ -145,7 +183,8 @@ def execute(args, session):
         for p, ix, k in zip(params["blocks"], M.idx, keys, strict=True):
             k1, k2, k3, k4 = jax.random.split(k, 4)
             st = {"rms_x_out": rms(x)}
-            y, qkv = site(p["qkv"], ix["qkv"], M.dyt(p["n1"], x), k1, ns["qkv"])
+            u, st["n1"], st["n1_aux"] = norm(p["n1"], x, jax.random.fold_in(k, 1), ns.get("n1"))
+            y, qkv = site(p["qkv"], ix["qkv"], u, k1, ns["qkv"])
             ys = {"qkv": y}
             Q, V, K = qkv[:, :d], qkv[:, d : 2 * d], qkv[:, 2 * d :]
             eK = jnp.exp(jnp.tanh(K))
@@ -164,17 +203,16 @@ def execute(args, session):
             ys["out"], w = site(p["out"], ix["out"], Y, k2, ns["out"])
             x = x + w
             st["rms_x_p2"] = rms(x)
-            ys["p1"], m = site(p["p1"], ix["p1"], M.dyt(p["n2"], x), k3, ns["p1"])
+            u, st["n2"], st["n2_aux"] = norm(p["n2"], x, jax.random.fold_in(k, 2), ns.get("n2"))
+            ys["p1"], m = site(p["p1"], ix["p1"], u, k3, ns["p1"])
             ys["p2"], w = site(p["p2"], ix["p2"], jnp.tanh(m), k4, ns["p2"])
             x = x + w
             for name, y in ys.items():
-                a = jnp.abs(y)
-                st[name] = jnp.stack(
-                    [a.mean(), (1 - y * y).mean(), (a > 0.9).mean(), (a > 0.99).mean()]
-                    + [(a < 0.05).mean(), rms(y)]
-                )
+                st[name] = six(y)
             stats.append(st)
-        return M.dyt(params["norm"], x), jax.tree.map(lambda *v: jnp.stack(v), *stats)
+        hid, fin, fin_aux = norm(params["norm"], x, jax.random.fold_in(key, 3), ns.get("final"))
+        stats = jax.tree.map(lambda *v: jnp.stack(v), *stats)
+        return hid, {"blocks": stats, "final": fin, "final_aux": fin_aux}
 
     # ---- configurations ----------------------------------------------------------------
     N = args.N
@@ -188,10 +226,22 @@ def execute(args, session):
                     dict.fromkeys(INTERNAL, a), **dict.fromkeys(WRITING, b)
                 )
 
+    twins = {}
+    if args.norms == "both":
+        for name, ns in list(cfgs.items()):
+            if name != "clean" and not name.startswith("only_"):
+                twins[name + "_norms"] = name
+                cfgs[name + "_norms"] = dict(ns, **{m: ns[FEEDS[m]] for m in NORMS})
+        for m in NORMS:
+            cfgs[f"only_{m}_N{N}"] = dict(dict.fromkeys(SITES), **{m: N})
+
     def budget(ns):
-        if any(v is None for v in ns.values()):
+        """Samples per token; unsampled DyT layers count nothing."""
+        if any(ns[s] is None for s in SITES):
             return None
-        return nblocks * sum(units[s] * ns[s] for s in SITES)
+        per_block = sum(units[s] * ns[s] for s in SITES)
+        per_block += d * ((ns.get("n1") or 0) + (ns.get("n2") or 0))
+        return nblocks * per_block + d * (ns.get("final") or 0)
 
     W16 = jax.device_put(np.asarray(fz["head_w"], np.float16))
     hb = jax.device_put(fz["head_b"])
@@ -225,6 +275,13 @@ def execute(args, session):
     # ---- run -----------------------------------------------------------------------------
     result = {"evidence_class": "software_simulation", "N": N, "T": T, "windows": len(ws)}
     result.update(eval_seeds=args.eval_seeds, units_per_block=units, blocks=nblocks, models={})
+    projections = nblocks * sum(units.values())
+    result["norms"] = args.norms
+    result["sampled_units_per_token"] = {
+        "projections_only": projections,
+        "with_norms": projections + (2 * nblocks + 1) * d,
+    }
+    print("sampled units per token:", result["sampled_units_per_token"], flush=True)
     for mname, tree in models.items():
         p = jax.tree.map(jnp.asarray, tree)
         per, stat_sum = {c: [] for c in cfgs}, None
@@ -242,7 +299,8 @@ def execute(args, session):
                     st = jax.tree.map(np.asarray, st)
                     stat_sum = st if stat_sum is None else jax.tree.map(np.add, stat_sum, st)
             print(f"{mname} window {wi + 1}/{len(ws)}", flush=True)
-        st = jax.tree.map(lambda v: v / len(ws), stat_sum)
+        st_all = jax.tree.map(lambda v: v / len(ws), stat_sum)
+        st = st_all["blocks"]
         names = ("mean_abs", "mean_1my2", "frac_gt_0.9", "frac_gt_0.99", "frac_lt_0.05", "rms")
         sites = {}
         for s in SITES:
@@ -252,6 +310,16 @@ def execute(args, session):
             rx = float(np.sqrt((st[f"rms_x_{s}"] ** 2).mean()))
             sites[s]["rms_residual"] = rx
             sites[s]["noise_to_signal"] = float(np.sqrt(sites[s]["mean_1my2"] / N) / rx)
+        norm_sites = {}
+        for m in NORMS:
+            six_m = st_all["final"] if m == "final" else st[m].mean(0)
+            aux = st_all["final_aux"][None] if m == "final" else st[f"{m}_aux"]
+            norm_sites[m] = dict(zip(names, [float(v) for v in six_m], strict=True))
+            # written value is g * tanh + b: noise RMS at N samples over the RMS of the output
+            norm_sites[m]["rms_output"] = float(np.sqrt((aux[:, 1] ** 2).mean()))
+            norm_sites[m]["noise_to_signal"] = float(
+                np.sqrt(aux[:, 0].mean() / N) / norm_sites[m]["rms_output"]
+            )
         table = {}
         for c, ns in cfgs.items():
             table[c] = {"samples_per_token": budget(ns), "loss": ft.mean_sem(per[c])}
@@ -259,7 +327,11 @@ def execute(args, session):
             table[c]["minus_uniform"] = ft.mean_sem(
                 np.array(per[c]) - np.array(per[f"uniform_N{N}"])
             )
-        entry = {"sites": sites, "configs": table, "per_window": per}
+            if c in twins:
+                table[c]["minus_same_without_norms"] = ft.mean_sem(
+                    np.array(per[c]) - np.array(per[twins[c]])
+                )
+        entry = {"sites": sites, "norm_sites": norm_sites, "configs": table, "per_window": per}
         if "emb_logscale" in tree:
             entry["emb_scale"] = float(np.exp(tree["emb_logscale"]))
         result["models"][mname] = entry
