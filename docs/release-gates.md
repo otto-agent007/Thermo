@@ -1098,9 +1098,12 @@ Before sampling, the runner stops if any of these fail:
 - the 18 P-0001 references must reproduce from the archive within 1e-9
   (all 18 were bitwise in the recorded run);
 - `planar_16_offset_ferro.reference_checks`;
-- the rank-2 missing-edge correlations against a direct evaluation on 20
-  declared edges per target and beta (1e-9);
-- the central-difference check (1e-4);
+- the rank-2 missing-edge correlations against the derivative evaluated by
+  LU on the rebuilt Kac-Ward matrix, on 20 declared edges per target and
+  beta (1e-9). This is the owner-accepted deviation of 2026-11-17, not the
+  protocol's text: against the h = 1e-4 central difference the protocol's
+  1e-9 check fails in 13 of 27 tables (max 2.32e-9);
+- the central-difference check (1e-4), also part of that deviation;
 - brute force on 18 small 16-offset patches (1e-9);
 - the enumerated two-site chain (1e-12).
 

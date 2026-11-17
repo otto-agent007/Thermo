@@ -11,6 +11,13 @@ missing coupling at an unknown location is the **simple matching scan**
 955 of 1,000). The collective scan's single programming write is the only
 thing it offers over that test.
 
+Two assumptions change how this verdict reads (rule 8 items 2 and 4,
+listed in full below). The 7 to 9 programmings hold on the planar
+subgraphs; on the full degree-16 lattice a matching scan needs 16. Site and
+pair tests detect gain times bias or gain times coupling, not the cause.
+One owner-accepted protocol deviation applies to the rank-2 check (below);
+no reported number depends on it.
+
 Protocol: [`docs/experiments/z1-acceptance-kit.md`](../../experiments/z1-acceptance-kit.md)
 at dc32142 (approved 2026-11-17, PR #174). Runner:
 `src/thermo_lab/z1_acceptance_kit.py` at ba3f4f3. Queue row
@@ -23,9 +30,11 @@ baseline to price, no joule).
   equal to the archive); for the nine `greedy-long` targets at beta 0.5,
   0.6 and 0.75, c0 and the missing-edge correlation c1 on every edge
   (23,136 values) by a rank-2 update of the Kac-Ward inverse; on 20 declared
-  edges per target and beta, a direct evaluation on the rebuilt matrix
-  (largest difference 4.4e-16, tolerance 1e-9) and the central difference
-  (largest difference 2.3e-9, tolerance 1e-4; see the note below); brute
+  edges per target and beta, the derivative evaluated by LU on the rebuilt
+  matrix (largest difference 4.4e-16, tolerance 1e-9) and the central
+  difference (largest difference 2.32e-9, tolerance 1e-4). Applying 1e-9 to
+  the LU derivative and 1e-4 to the central difference is a protocol
+  deviation, accepted by the owner on 2026-11-17 (note below); brute
   force on 18 small 16-offset patches (1.6e-15); the enumerated two-site
   chain (2.2e-16).
 - Simple-test tables in closed form, and the pooled gain-spread count and
@@ -52,11 +61,16 @@ and the 1,024-spin scans would need 115,000 to 807,000 reads.
 
 ## Missing coupling: collective scan against the matching scan
 
-At beta 0.5 the scan needs 2,624 to 4,013 independent reads and, with the
-measured scatter (median ratio 1.16 to 1.23, largest 2.1 to 3.3), n_scan of
-3,658 to 5,969 at 64 spins, 6,316 to 7,219 at 256 and 9,765 to 11,677 at
-1,024. That is 57 to 182 times the matching scan's 56 to 72 reads, for one
-programming write instead of 7 to 9. Two 1,024-spin scans do not fit the
+At beta 0.5 the scan needs 2,624 to 4,013 independent reads
+(`exact_reference`) and, with the measured scatter (median ratio 1.16 to
+1.23, largest 2.1 to 3.3, `software_simulation`), n_scan of 3,658 to 5,969
+at 64 spins, 6,316 to 7,219 at 256 and 9,765 to 11,677 at 1,024. n_scan is
+therefore an exact count times a simulated ratio. Per target it is 65 to
+182 times that graph's matching-scan reads (65.3 on L8 s4511, 182.5 on L32
+s4512), for one programming write instead of 7 to 9. Counting the scan's
+512 burn-in sweeps, it is 74 to 190 times the matching scan's elapsed
+sweeps, and it needs one state write where the matching scan needs none
+(rule 9 table below). Two 1,024-spin scans do not fit the
 10,000-read limit at this size (s4510 at 10,494, s4512 at 11,677). The
 protocol names that a scientific outcome, and their sampled checks ran at
 n_scan and passed.
@@ -83,13 +97,23 @@ fewer).
 
 ## Simple tests
 
-All 14 checks pass (ideal 0 to 62, defect 937 to 1,000 of 1,000). Their
-scatter ratios are 0.91 to 1.07, as expected for exactly independent reads.
-Closed-form counts are in [summary](summary.md). Draw-averaged pooled
-gain-spread counts: 520, 229 and 108 reads (±10 %) and 59, 27 and 13
-(±30 %) at 64, 256 and 1,024 sites. Their Monte Carlo thresholds are 0.1 to
-0.5 percent below the chi-square percentile. The unfolded draws (round 2's
-fixed arrays, draw-specific) have power 0.944 to 0.975 at those counts.
+All 14 checks pass (ideal 0 to 62, defect 937 to 1,000 of 1,000). On the
+ideal side 13 scatter ratios are 0.91 to 1.07, as expected for exactly
+independent reads; the fourteenth, the known-coupler ideal, is 0.00
+because at |J| = 1 and beta 4 its 5-read count did not vary across
+replicates (0 rejections). On the defect side the ratios are 0.68 to 6.01.
+The ratio is the variance across replicates of the pooled mean, scaled by
+reads and pooled units, over 1 minus the squared sample mean. It is 1 only
+when every pooled read follows one law independently. A defect breaks that:
+pooled pairs or sites with unequal laws, a gain array drawn per replicate,
+or reads that never change. 6.01 is the stuck known site: its 6 reads in a
+replicate are identical, so the ratio sits near 6. Closed-form counts are in
+[summary](summary.md). Draw-averaged pooled gain-spread counts (Monte Carlo
+on exact laws, not `exact_reference`): 520, 229 and 108 reads (±10 %) and
+59, 27 and 13 (±30 %) at 64, 256 and 1,024 sites. Their Monte Carlo
+thresholds are 0.1 to 0.5 percent below the chi-square percentile. The
+unfolded draws (round 2's fixed arrays, draw-specific) have power 0.944 to
+0.975 at those counts.
 
 ## Pre-registered expectations
 
@@ -111,15 +135,22 @@ fixed arrays, draw-specific) have power 0.944 to 0.975 at those counts.
 
 ## Notes on the implementation
 
-- **"Direct evaluation" of c1** (protocol, exact anchors). Before the run,
-  the h = 1e-4 central difference was measured to differ from the exact
-  derivative by up to 1.4e-9 at beta 0.6 and 0.75. That is its own h²
-  truncation; the residual is about 1e-10. The runner therefore checks the
-  rank-2 values against the derivative evaluated directly on the rebuilt
-  matrix (LU, tolerance 1e-9). It keeps the central difference as the
-  separate finite-difference check at the P-0001 reference tolerance
-  (1e-4). This was recorded on the card before the run; no threshold
-  changed.
+- **Protocol deviation in the rank-2 check, accepted by the owner on
+  2026-11-17.** The protocol checks the rank-2 c1 values "against direct
+  evaluation on 20 declared edges per target and beta to 1e-9" and stops
+  before sampling if a rank-2 or finite-difference check fails. Every probe
+  computed c1 by the h = 1e-4 central difference. Against it the 1e-9 check
+  fails in 13 of 27 (target, beta) tables: max 2.32e-9 (L32 s4512, beta
+  0.75); at the chosen beta 0.5 one table, L32 s4512 at 1.02e-9. Before the
+  run the executor read "direct evaluation" as the derivative evaluated by
+  LU on the rebuilt Kac-Ward matrix and recorded that reading on the card.
+  The runner checked rank-2 against it at 1e-9 (max 4.4e-16) and held the
+  central difference to 1e-4, the P-0001 reference tolerance. The stop
+  rule as written would have stopped the run before sampling. The gap is
+  the central difference's own h² truncation (reviewer check: 4.98e-9,
+  1.25e-9 and 3.60e-10 at h = 2e-4, 1e-4 and 5e-5), and no reported number
+  depends on the check. The reviewer escalated it; the owner accepted the
+  reading as a deviation, with no rerun.
 - A collective defect replicate counts as detected when the whole scan
   rejects (any edge above t_α). Rejections at the missing edge itself were
   at most 4 fewer per check and change no decision.
@@ -136,6 +167,82 @@ fixed arrays, draw-specific) have power 0.944 to 0.975 at those counts.
   reproduces alone (tested). The kernel is bitwise equal to the round-2
   probe sampler under that probe's draw order (tested). It also reproduces
   the round-3 probe's n_scan of 5,402 on L8 s4510 (tested).
+
+- **Provenance `git_dirty`.** The run-start record in `provenance.json`
+  (`attempts[0]`, 2026-11-17T07:07:00Z) has `git_dirty=false` at ba3f4f3,
+  and the 10 source digests in `request.json` equal the ba3f4f3 blobs
+  (rechecked for this report). The assembly record (`runtime`, written at
+  01:10:43 PST) has `git_dirty=true`. The runner sets it from a non-empty
+  `git status --porcelain`. What was dirty: while the run was going, the
+  executor wrote `docs/experiment-reports/2026-11-17-z1-acceptance-kit/plot.py`
+  at 23:58:42 PST. That is recorded in the executor's session log, and the
+  report directory's filesystem birth time is the same second. No removal
+  of it before assembly appears in the log, so it was untracked at
+  assembly. The session log shows no other write in the
+  worktree before 01:10:43; the edits to `docs/studies.md` and
+  `docs/release-gates.md` came after assembly. No file under `src/`
+  or `tests/` changed after ba3f4f3.
+
+## Relaxed or assumed constraints (protocol rule 8)
+
+1. The ideal model has float couplings; it is the reference.
+2. Site tests program a site bias, assumed representable at the declared
+   value; the row lifts the zero-field restriction for this test only. A
+   bias-scale error is indistinguishable from a gain error: a failed site
+   test detects gain times bias off nominal, and a failed pooled spread test
+   detects gain times bias varying across sites, not which factor. The pair
+   test has the same confound with gain times coupling: 8-bit rounding at
+   weight 0.2 (a 1.6 percent coupling shift) is indistinguishable from a
+   1.6 percent colour-B gain or temperature offset on that pair.
+3. Simple tests choose their own program (beta in [0.5, 4], |J| at most 1,
+   a bias) inside the declared ranges. The collective scan uses the
+   archived couplings at the chosen beta.
+4. Planarity restricts the chip's degree-16 rule; the exact collective
+   reference exists only on planar graphs. The 7 to 9 matching programmings
+   reported here are for these planar subgraphs. On the full degree-16
+   lattice a matching scan needs 16 programmings, a planar cover at least
+   three.
+
+## Resources per test (protocol rule 9)
+
+Algorithmic counts, not device operations. They come from archived counts
+and the protocol's constants; nothing was measured for this table. A read
+is the full array after one two-colour sweep. Simple tests start from any
+state and need no burn-in or state write (enumerated check), so their
+elapsed sweeps equal their reads. The collective scan is one chain: one
+state write (random start), 512 burn-in sweeps, then n_scan reads. Node
+reads count the node values the statistic uses: reads times the sites, or
+pair endpoints, read.
+
+| Test | Elapsed sweeps | Full-array reads | Node reads | Programming writes | State writes |
+| --- | --- | --- | --- | --- | --- |
+| Stuck p-bit, known site | 6 | 6 | 6 | 1 | 0 |
+| Stuck p-bit, scanning 64 / 256 / 1,024 sites | 12 / 14 / 16 | 12 / 14 / 16 | 768 / 3,584 / 16,384 | 1 | 0 |
+| Gain spread ±10 %, 64 / 256 / 1,024 sites | 520 / 229 / 108 | same | 33,280 / 58,624 / 110,592 | 1 | 0 |
+| Gain spread ±30 %, 64 / 256 / 1,024 sites | 59 / 27 / 13 | same | 3,776 / 6,912 / 13,312 | 1 | 0 |
+| Outlier ±10 %, known site; scanning 64 / 256 / 1,024 | 3,368; 6,456 / 7,420 / 8,377 | same | 3,368; 413,184 / 1,899,520 / 8,578,048 | 1 | 0 |
+| Outlier ±30 %, known site; scanning 64 / 256 / 1,024 | 469; 893 / 1,026 / 1,160 | same | 469; 57,152 / 262,656 / 1,187,840 | 1 | 0 |
+| Missing coupling, known coupler | 5 | 5 | 10 | 1 | 0 |
+| Missing coupling, matching scan (8 reads per matching) | 56 to 72 | 56 to 72 | 16 × edges: 1,792 / 7,584 to 7,680 / 31,616 to 31,744 | 7 to 9 | 0 |
+| Rounding 8 bits, pooled matching at 1,024 / 256 / 64 spins | 238 / 955 / 3,788 | same | 243,236 / 242,570 / 242,432 | 1 | 0 |
+
+Collective scan against the same graph's matching scan:
+
+| Target | Scan sweeps (512 + n_scan) | Scan reads | Scan node reads | Matching sweeps = reads | Matching node reads | Ratio: reads / sweeps / node reads |
+| --- | --- | --- | --- | --- | --- | --- |
+| L8 s4510 | 5,965 | 5,453 | 348,992 | 64 | 1,792 | 85.2 / 93.2 / 195 |
+| L8 s4511 | 4,170 | 3,658 | 234,112 | 56 | 1,792 | 65.3 / 74.5 / 131 |
+| L8 s4512 | 6,481 | 5,969 | 382,016 | 56 | 1,792 | 106.6 / 115.7 / 213 |
+| L16 s4510 | 7,127 | 6,615 | 1,693,440 | 64 | 7,680 | 103.4 / 111.4 / 220.5 |
+| L16 s4511 | 7,731 | 7,219 | 1,848,064 | 64 | 7,680 | 112.8 / 120.8 / 241 |
+| L16 s4512 | 6,828 | 6,316 | 1,616,896 | 72 | 7,584 | 87.7 / 94.8 / 213 |
+| L32 s4510 | 11,006 | 10,494 | 10,745,856 | 64 | 31,744 | 164.0 / 172.0 / 339 |
+| L32 s4511 | 10,277 | 9,765 | 9,999,360 | 72 | 31,616 | 135.6 / 142.7 / 316 |
+| L32 s4512 | 12,189 | 11,677 | 11,957,248 | 64 | 31,712 | 182.5 / 190.5 / 377 |
+
+The scan uses 1 programming write and 1 state write; the matching scan uses
+7 to 9 programming writes and none. Scan rows inherit n_scan's labels: an
+exact independent-read count times a `software_simulation` scatter ratio.
 
 ## What this does not show
 

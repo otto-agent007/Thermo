@@ -912,10 +912,19 @@ cheapest tests are:
   to 9 programmings by matching scan at an unknown location;
 - 8-bit rounding: 238 reads on a 1,024-spin matching.
 
-The collective scan at the chosen beta 0.5 needs 3,658 to 11,677 reads (57
-to 182 times the matching scan) for one programming write. Two 1,024-spin
-targets exceed the 10,000-read limit. Counts are `exact_reference`; sampled
-checks are `software_simulation`; there is no hardware claim. The run takes
+The collective scan at the chosen beta 0.5 needs n_scan of 3,658 to 11,677
+reads (65 to 182 times the same graph's matching scan) for one programming
+write. Two 1,024-spin targets exceed the 10,000-read limit. The 7 to 9
+matching programmings hold on these planar subgraphs (16 on the full
+degree-16 lattice), and site and pair tests detect gain times bias or gain
+times coupling, not the cause. Closed-form counts are `exact_reference`.
+Pooled gain-spread counts are Monte Carlo on exact laws. n_scan is an exact
+independent-read count times a `software_simulation` scatter ratio. Sampled
+checks are `software_simulation`; there is no hardware claim. The rank-2
+check ran against an LU derivative at 1e-9, with the central difference
+held to 1e-4: a protocol deviation the owner accepted on 2026-11-17 (the
+protocol's 1e-9 check against the central difference fails in 13 of 27
+tables, max 2.32e-9). The run takes
 about 2 h 15 min with three workers, autosaves and resumes with `--resume`,
 and the [gate](release-gates.md#z1-acceptance-kit) replays every unit;
 CI replays the bounded archive.
