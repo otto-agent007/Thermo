@@ -16,40 +16,44 @@ GPU is `software_simulation`, never a Z1 hardware measurement. Unreleased or
 inaccessible systems are documented in the roadmap rather than represented by
 placeholder backends.
 
-## Status (October 2, 2026)
+## Status (November 17, 2026)
 
-- **M1–M4** built and audited a compiled 25-site, 500-operation PAsymSwap
-  program: population-objective audit, finite-sweep transfer, exact
-  finite-sweep gradients, and five bounded K=4 updates.
-- **M4B–M4I (conservation line, closed).** The compiled program loses its
-  single particle. Only 0.04% of K=4 paths survive all 500 operations
-  (M4C). No training, weighting or fixture variant reached the 95% survival
-  target. The main cause was the ±2 field/coupling cap
-  ([analysis](docs/research/2026-09-23-cap-leakage-analysis.md)). Raising the
-  cap and adding one kernel feature (M4H, M4I) brought exact survival to 89.6%,
-  still short of 95%.
-- **M5:** the [topology-aware meta-EBM](docs/experiments/topology-aware-meta-ebm.md).
-  The [M5a cap baseline](docs/experiment-reports/2026-09-27-meta-ebm-cap-baseline/summary.md)
-  and [M5b thermalization/precision study](docs/experiment-reports/2026-09-28-meta-ebm-thermalization/findings.md)
-  and [M5c synthetic-topology study](docs/experiment-reports/2026-09-30-meta-ebm-topology/findings.md)
-  are recorded exact CPU references; complete hardware costs remain open.
-- **Native sampling:** [time-to-accuracy experiments](docs/experiment-reports/2026-10-02-sampling-time-to-accuracy/findings.md)
-  favor different methods for different targets. [Symmetry plus tempering](docs/experiment-reports/2026-10-02-symmetry-tempering/findings.md)
-  transfers to six fresh zero-field graphs; ordinary Gibbs remains the working
-  reference for the small denoising posteriors.
-- **Changing evidence:** [the recorded study](docs/experiment-reports/2026-10-02-changing-evidence/findings.md)
-  finds useful state retention and measurable history dependence. Failure
-  prediction improves, but the tested restart policy does not reliably improve
-  on retention. Exact enumeration wins the measured timings at this small size.
-  The [conditional-estimation follow-up](docs/experiment-reports/2026-10-02-conditional-estimation/findings.md)
-  reduces marginal error on identical states, especially at weak coupling;
-  strong-coupling errors and decision-utility tradeoffs remain.
+The lab's question (charter amendment 2) is when physical stochastic
+computation is worth using against the best practical digital method, which
+representations allow it, and which hardware features would change the
+answer. Work runs through an owner-curated
+[research queue](docs/research-queue.md) and the [research loop](docs/research-loop.md).
 
-The [roadmap](docs/roadmap.md) has one row per milestone with links to every
-recorded report. The [study guide](docs/studies.md) describes each experiment,
-its command and its limitations.
-The [October sampling synthesis](docs/research/2026-10-02-sampling-synthesis.md)
-connects all six new reports, review corrections and the next research questions.
+- **No task has beaten digital yet.** The
+  [four-week evaluation](docs/research/2026-11-11-four-week-evaluation.md)
+  found the lab can state bits, sweeps, reads, writes and projected energy for
+  a task, and that at the stated quality a conventional model is more accurate
+  and, outside one corner of the pricing band, cheaper. Reading and writing
+  the array, not sampling, dominates projected cost.
+- **Closed lines:** conservation (M4B–M4I), small-image denoising, including
+  every construction of the `t4` global latent
+  ([closure](docs/research/2026-11-16-t4-global-latent-closure.md)), and the
+  Z1T-0 sampling-noise retrofit
+  ([closure](docs/research/2026-11-15-z1t-noise-retrofit-closing.md)).
+- **Hardware features that would change an answer** are collected in
+  [one note](docs/research/2026-11-13-z1-feature-requirements.md). If any of
+  those constants is published, the archive can be re-priced without new runs.
+- **Latest study, the Z1 acceptance kit (P-0015):**
+  [findings](docs/experiment-reports/2026-11-17-z1-acceptance-kit/findings.md).
+  Simple tests on isolated sites and pairs detect every declared chip defect
+  cheaply. For a missing coupling, the matching scan needs 56 to 72 reads
+  against thousands for the collective Kac-Ward scan. That scan failed its
+  false-alarm limit on one target (76 against 74 of 1,000).
+- **Queue:** no row is open to the loop. The remaining Z1T rows are held for
+  owner-run GPU work.
+
+Earlier work, all recorded with exact references or CPU simulation: the
+PAsymSwap program (M1–M4), the topology-aware meta-EBM (M5), the THRML
+finite-sweep contracts, sampling comparisons on Ising, Potts and planar
+graphs, associative memory, exchange-cost pricing, and adsorption precision.
+The [roadmap](docs/roadmap.md) has one row per milestone with a link to every
+report, and the [study guide](docs/studies.md) gives each study's command and
+limitations.
 
 ## Quick start
 
@@ -79,6 +83,7 @@ committed deliberately under `docs/experiment-reports/`.
 - [Project charter](PROJECT_CHARTER.md) and [roadmap](docs/roadmap.md)
 - [Evidence policy](docs/evidence-policy.md) and [Z1 hardware model](docs/z1-hardware-model.md)
 - [Study guide](docs/studies.md) and frozen protocols in [docs/experiments/](docs/experiments/)
+- [Research queue](docs/research-queue.md), [research loop](docs/research-loop.md) and [research agenda](docs/research/2026-10-20-lab-research-agenda.md)
 - [Experiment reports](docs/experiment-reports/) and [research notes](docs/research/)
 - [Research knowledge base](docs/knowledge/README.md): source cards, concepts and research cautions
 - [CI/CD runbook](docs/ci-cd.md) and the parked [improvement harness](docs/improvement-harness.md)
