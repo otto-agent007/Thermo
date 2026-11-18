@@ -880,6 +880,55 @@ takes about 12 s, and the
 [gate](release-gates.md#adsorption-precision-requirement) replays every
 cell in full. The result does not unhold `native-adsorption-eligibility`.
 
+## Z1 acceptance kit
+
+The [frozen protocol](experiments/z1-acceptance-kit.md) (research-loop
+proposal P-0015, queue row `z1-acceptance-kit`) asks which exact-answer
+tests can accept or reject a sampled array, and how many reads and
+programming writes each needs to detect four declared defects (coupling
+rounding, a missing coupling, a stuck p-bit, static per-site gain
+variation) at 5 percent false alarm and 5 percent miss. Simple tests on
+isolated pairs and sites are compared with a collective Kac-Ward scan on
+the nine P-0001 `greedy-long` graphs at a temperature chosen by a declared
+rule, and every retained test is checked by sampling.
+
+```bash
+JAX_PLATFORMS=cpu OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  uv run python -m thermo_lab.z1_acceptance_kit \
+  --output-dir results/z1-acceptance-kit
+```
+
+The [recorded study](experiment-reports/2026-11-17-z1-acceptance-kit/findings.md)
+holds except for named checks. The collective scan's ideal sampler on
+`L16-greedy-long-s4510` rejected in 76 of 1,000 replicates (limit 74), so
+that target's three checks fail and its scan count is unresolved. The other
+38 of 41 checks pass, and every collective target is attributable. The
+cheapest tests are:
+
+- stuck p-bit: 6 reads at a known site, 16 scanning 1,024 sites;
+- uniform gain spread ±10 %: 520, 229 and 108 reads at 64, 256 and 1,024
+  sites (pooled X²);
+- missing coupling: 5 reads at a known coupler, and 56 to 72 reads with 7
+  to 9 programmings by matching scan at an unknown location;
+- 8-bit rounding: 238 reads on a 1,024-spin matching.
+
+The collective scan at the chosen beta 0.5 needs n_scan of 3,658 to 11,677
+reads (65 to 182 times the same graph's matching scan) for one programming
+write. Two 1,024-spin targets exceed the 10,000-read limit. The 7 to 9
+matching programmings hold on these planar subgraphs (16 on the full
+degree-16 lattice), and site and pair tests detect gain times bias or gain
+times coupling, not the cause. Closed-form counts are `exact_reference`.
+Pooled gain-spread counts are Monte Carlo on exact laws. n_scan is an exact
+independent-read count times a `software_simulation` scatter ratio. Sampled
+checks are `software_simulation`; there is no hardware claim. The rank-2
+check ran against an LU derivative at 1e-9, with the central difference
+held to 1e-4: a protocol deviation the owner accepted on 2026-11-17 (the
+protocol's 1e-9 check against the central difference fails in 13 of 27
+tables, max 2.32e-9). The run takes
+about 2 h 15 min with three workers, autosaves and resumes with `--resume`,
+and the [gate](release-gates.md#z1-acceptance-kit) replays every unit;
+CI replays the bounded archive.
+
 ## Changing evidence and causal restart policy
 
 The five native sampling studies also have a
