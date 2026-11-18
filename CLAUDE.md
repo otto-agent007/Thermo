@@ -339,6 +339,20 @@ work pointed at the right problem.
   `thermo_lab.constraints.quantize`. Treat class diffusion as a per-model
   compile option and check it exactly before use. A per-kind cap would be a
   different question and is not a queue row.
+- **Z1 acceptance kit** (`docs/experiment-reports/2026-11-17-z1-acceptance-kit/`,
+  loop P-0015, PR #174): holds except for named checks. Every declared
+  defect is local, and isolated sites and pairs detect all four cheaply
+  with exactly independent reads: stuck p-bit 6 reads (16 scanning 1,024
+  sites), uniform ±10 % gain spread 108 reads at 1,024 sites (Monte Carlo
+  on exact laws), missing coupling 5 reads known and 56 to 72 reads with 7
+  to 9 programmings by matching scan (planar subgraphs; 16 on the full
+  lattice), 8-bit rounding 238 reads. The collective Kac-Ward scan at the
+  rule's beta 0.5 needs n_scan 3,658 to 11,677 reads (exact counts times
+  simulated scatter ratios) for one programming write and exceeds 10,000
+  reads on two 1,024-spin targets; its ideal false alarm on L16 s4510 was
+  76/1,000 (limit 74), so that count is unresolved, traced post-run to the
+  128-chain calibration. Use the matching scan. One owner-accepted
+  deviation (rank-2 check tolerance reference). No chip claim.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
