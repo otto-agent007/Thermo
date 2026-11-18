@@ -8,7 +8,7 @@ of study gates. The full per-study gate requirements are in
 This file adds the current state of the project and the habits that keep the
 work pointed at the right problem.
 
-## Where the project stands (updated 2026-11-11)
+## Where the project stands (updated 2026-11-17)
 
 - **Charter amendment 2** records the owner's 2026-10-20 selection of a
   representation-and-architecture research direction; repository adoption
@@ -40,9 +40,19 @@ work pointed at the right problem.
   none names a task with digital headroom. All three closed by probe on
   2026-11-13 (P-0011 to P-0013; D-0010): each result holds only with a
   feature Z1 lacks or does not price, collected in
-  `docs/research/2026-11-13-z1-feature-requirements.md`. The queue has no
-  open row. Amendment 1's four-week
-  evaluation falls due on 2026-11-11.
+  `docs/research/2026-11-13-z1-feature-requirements.md`. Amendment 1's
+  four-week evaluation (`docs/research/2026-11-11-four-week-evaluation.md`)
+  passes as literally read but is negative for the hardware: no task wins on
+  quality and cost together, and it advised parking the loop until a task
+  with digital headroom is named. The Z1T-0 noise retrofit closed on
+  2026-11-15 (`docs/research/2026-11-15-z1t-noise-retrofit-closing.md`);
+  P-0014 (`z1t-system-budget`, PR #173) priced the published Z1T design.
+  On 2026-11-16 the owner closed the `t4` global-latent line for every
+  construction (`docs/research/2026-11-16-t4-global-latent-closure.md`).
+  P-0015 (`z1-acceptance-kit`, PR #174) is recorded below. D-0012 (PR #178,
+  adopted in #179) set `z1t-sampled-head` to `held` with a drop advised and
+  added a reporting note to `z1t-sample-budget-map`. No queue row is open
+  to the loop; the remaining Z1T rows are held for owner-run GPU work.
 
 - **Charter amendment 1** (`PROJECT_CHARTER.md`, "Amendments", merged in
   PR #101 on 2026-10-09) established the preceding research cycle. Its primary
@@ -339,6 +349,20 @@ work pointed at the right problem.
   `thermo_lab.constraints.quantize`. Treat class diffusion as a per-model
   compile option and check it exactly before use. A per-kind cap would be a
   different question and is not a queue row.
+- **Z1 acceptance kit** (`docs/experiment-reports/2026-11-17-z1-acceptance-kit/`,
+  loop P-0015, PR #174): holds except for named checks. Every declared
+  defect is local, and isolated sites and pairs detect all four cheaply
+  with exactly independent reads: stuck p-bit 6 reads (16 scanning 1,024
+  sites), uniform ±10 % gain spread 108 reads at 1,024 sites (Monte Carlo
+  on exact laws), missing coupling 5 reads known and 56 to 72 reads with 7
+  to 9 programmings by matching scan (planar subgraphs; 16 on the full
+  lattice), 8-bit rounding 238 reads. The collective Kac-Ward scan at the
+  rule's beta 0.5 needs n_scan 3,658 to 11,677 reads (exact counts times
+  simulated scatter ratios) for one programming write and exceeds 10,000
+  reads on two 1,024-spin targets; its ideal false alarm on L16 s4510 was
+  76/1,000 (limit 74), so that count is unresolved, traced post-run to the
+  128-chain calibration. Use the matching scan. One owner-accepted
+  deviation (rank-2 check tolerance reference). No chip claim.
 - **The improvement harness is parked** (2026-10-07,
   `docs/improvement-harness.md`). It has never been run, and its research track
   only tunes a fixture from the closed conservation line. Don't extend it or
