@@ -65,7 +65,10 @@ Delivery verifies the source through GitHub's API: same repository and head
 repository, `ci.yml`, successful completed **push** on **main**, full SHA, selected
 run ID and attempt. The latest actual successful dashboard job and its successful
 artifact-upload step identify the build attempt. This may be earlier than the CI
-attempt when GitHub reruns only failed scientific jobs. No older artifact is
+attempt when GitHub reruns only failed scientific jobs: GitHub then lists the
+passed dashboard job again under the new attempt with its original timestamps,
+and delivery maps that copy back to the earliest attempt with the same execution
+window, which is the one that uploaded. No older artifact is
 substituted if the selected producer artifact is missing. Automatic delivery also requires the source to still be the
 current main commit, rechecked immediately before retention together with the
 original CI/build attempt selection. This prevents an
