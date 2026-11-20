@@ -697,11 +697,17 @@ jobs:
               tests/unit/test_meta_ebm_thermalization.py
               -m "not slow"
               -n auto --dist loadfile --durations=20
+          # unit-rest hung silently at 97% on main after #183 until the job
+          # timeout cancelled it. A per-test limit fails a stuck test with its
+          # stack instead. The slowest test takes 210-458 s here (Nov 2026), and
+          # 600 s still fires inside the job timeout for a hang at ~11 min.
           - name: unit-rest
             command: >-
               uv run --with pytest-xdist==3.8.0 --with execnet==2.1.2
+              --with pytest-timeout==2.4.0
               pytest tests/unit -m "not slow"
               -n auto --dist loadfile --durations=20
+              --timeout=600
               --ignore=tests/unit/test_aggregation.py
               --ignore=tests/unit/test_target_context_pasym_swap_results.py
               --ignore=tests/unit/test_planar_ising_scaling.py
