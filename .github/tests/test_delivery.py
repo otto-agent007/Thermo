@@ -188,7 +188,10 @@ class RunTests(unittest.TestCase):
         result = select_run(self.run, REPO, "123", "b" * 40, rollback=True)
         self.assertEqual(result["sha"], SHA)
 
-    def producer(self, attempt=1, conclusion="success"):
+    def producer(self, attempt=1, conclusion="success", ran_in=None):
+        # `ran_in` is the attempt whose execution window the job carries: GitHub
+        # copies a passed job into a partial rerun with the original timestamps.
+        ran_in = ran_in or attempt
         return {
             "name": "dashboard / dashboard",
             "run_id": 123,
@@ -196,8 +199,29 @@ class RunTests(unittest.TestCase):
             "head_sha": SHA,
             "status": "completed",
             "conclusion": conclusion,
+            "started_at": f"2026-11-1{ran_in}T19:37:41Z",
+            "completed_at": f"2026-11-1{ran_in}T19:38:29Z",
             "steps": [{"name": "Preserve exact tested build", "conclusion": "success"}],
         }
+
+    def test_partial_rerun_copy_resolves_to_the_attempt_that_built(self):
+        # Observed on run 44382193310: `rerun --failed` listed the dashboard job
+        # again as attempt 2 with attempt 1's timestamps, and only
+        # dashboard-...-1 existed.
+        self.run["run_attempt"] = 3
+        selected = select_run(self.run, REPO, "123", SHA)
+        copies = [self.producer(), self.producer(2, ran_in=1), self.producer(3, ran_in=1)]
+        build = select_build(selected, copies)
+        self.assertEqual((build["ci_attempt"], build["attempt"]), ("3", "1"))
+        self.assertEqual(build["artifact"], "dashboard-123-1")
+        rebuilt = [self.producer(), self.producer(2, ran_in=1), self.producer(3)]
+        self.assertEqual(select_build(selected, rebuilt)["artifact"], "dashboard-123-3")
+        undated = {**self.producer(2, ran_in=1), "started_at": None}
+        self.assertEqual(
+            select_build(selected, [self.producer(), undated])["artifact"], "dashboard-123-2"
+        )
+        with self.assertRaises(ValueError):
+            select_build(selected, [self.producer(conclusion="failure"), copies[1]])
 
     def test_partial_rerun_reuses_successful_earlier_build(self):
         self.run["run_attempt"] = 2

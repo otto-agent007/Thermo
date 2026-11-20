@@ -41,23 +41,41 @@ def select_build(selection, jobs):
     if len(matches) != 1:
         raise ValueError("Ambiguous dashboard producer")
     job = matches[0]
-    uploads = [
-        step for step in job.get("steps", []) if step.get("name") == "Preserve exact tested build"
-    ]
-    if (
-        not 1 <= latest <= int(selection["ci_attempt"])
-        or str(job.get("run_id")) != selection["run_id"]
-        or job.get("head_sha") != selection["sha"]
-        or job.get("status") != "completed"
-        or job.get("conclusion") != "success"
-        or len(uploads) != 1
-        or uploads[0].get("conclusion") != "success"
-    ):
-        raise ValueError("Latest dashboard producer did not successfully retain this source build")
+    # A partial rerun (`gh run rerun --failed`) copies a job that already passed
+    # into the new attempt under a new ID and run_attempt but with the original
+    # timestamps; the copy never runs and uploads nothing. The artifact belongs
+    # to the earliest attempt with that exact execution window.
+    window = (job.get("started_at"), job.get("completed_at"))
+    if all(window):
+        original = min(
+            (p for p in producers if (p.get("started_at"), p.get("completed_at")) == window),
+            key=lambda p: p["run_attempt"],
+        )
+    else:
+        original = job
+    built = original["run_attempt"]
+    for candidate in {id(job): job, id(original): original}.values():
+        uploads = [
+            step
+            for step in candidate.get("steps", [])
+            if step.get("name") == "Preserve exact tested build"
+        ]
+        if (
+            not 1 <= built <= int(selection["ci_attempt"])
+            or str(candidate.get("run_id")) != selection["run_id"]
+            or candidate.get("head_sha") != selection["sha"]
+            or candidate.get("status") != "completed"
+            or candidate.get("conclusion") != "success"
+            or len(uploads) != 1
+            or uploads[0].get("conclusion") != "success"
+        ):
+            raise ValueError(
+                "Latest dashboard producer did not successfully retain this source build"
+            )
     return {
         **selection,
-        "attempt": str(latest),
-        "artifact": f"dashboard-{selection['run_id']}-{latest}",
+        "attempt": str(built),
+        "artifact": f"dashboard-{selection['run_id']}-{built}",
     }
 
 
